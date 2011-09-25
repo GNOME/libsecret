@@ -65,16 +65,18 @@ if test "$enable_gcrypt" != "no"; then
 
 	AC_SUBST([LIBGCRYPT_CFLAGS])
 	AC_SUBST([LIBGCRYPT_LIBS])
-	enable_gcrypt="yes"
 
+	gcrypt_status=$GCRYPT_VERSION
+	enable_gcrypt="yes"
+else
+	gcrypt_status="no"
 fi
 
 AM_CONDITIONAL(WITH_GCRYPT, test "$enable_gcrypt" = "yes")
 
-
-dnl *************************************
-dnl *** Warnings to show if using GCC ***
-dnl *************************************
+# --------------------------------------------------------------------
+# Compilation options
+#
 
 AC_ARG_ENABLE(more-warnings,
               AS_HELP_STRING([--disable-more-warnings], [Inhibit compiler warnings]),
@@ -105,19 +107,90 @@ AC_ARG_ENABLE(strict, [
                AS_HELP_STRING([--enable-strict], [Strict code compilation])
              ])
 
+AC_MSG_CHECKING([build strict])
+
 if test "$enable_strict" = "yes"; then
 	CFLAGS="$CFLAGS -Werror \
 		-DGTK_DISABLE_DEPRECATED \
 		-DGDK_DISABLE_DEPRECATED \
-		-DG_DISABLE_DEPRECATED"
+		-DG_DISABLE_DEPRECATED \
+		-DGDK_PIXBUF_DISABLE_DEPRECATED"
+	TEST_MODE="thorough"
+else 
+	TEST_MODE="quick"
+	$enable_strict="no"
 fi
 
-dnl *****************************
-dnl *** done                  ***
-dnl *****************************
+AC_MSG_RESULT($enable_strict)
+AC_SUBST(TEST_MODE)
+
+AC_MSG_CHECKING([for debug mode])
+AC_ARG_ENABLE(debug,
+              AC_HELP_STRING([--enable-debug=no/default/yes],
+                             [Turn on or off debugging])
+             )
+
+if test "$enable_debug" != "no"; then
+	AC_DEFINE_UNQUOTED(WITH_DEBUG, 1, [Print debug output])
+	AC_DEFINE_UNQUOTED(_DEBUG, 1, [In debug mode])
+	CFLAGS="$CFLAGS -g"
+fi
+if test "$enable_debug" = "yes"; then
+	debug_status="yes"
+	CFLAGS="$CFLAGS -O0"
+elif test "$enable_debug" = "no"; then
+	debug_status="no"
+	AC_DEFINE_UNQUOTED(G_DISABLE_ASSERT, 1, [Disable glib assertions])
+else
+	debug_status="default"
+fi
+
+AC_MSG_RESULT($debug_status)
+
+AC_MSG_CHECKING([whether to build with gcov testing])
+AC_ARG_ENABLE([coverage],
+              AS_HELP_STRING([--enable-coverage],
+                             [Whether to enable coverage testing ]),
+              [], [enable_coverage=no])
+AC_MSG_RESULT([$enable_coverage])
+
+if test "$enable_coverage" = "yes"; then
+	if test "$GCC" != "yes"; then
+		AC_MSG_ERROR(Coverage testing requires GCC)
+	fi
+
+	AC_PATH_PROG(GCOV, gcov, no)
+	if test "$GCOV" = "no" ; then
+		AC_MSG_ERROR(gcov tool is not available)
+	fi
+
+	AC_PATH_PROG(LCOV, lcov, no)
+	if test "$LCOV" = "no" ; then
+		AC_MSG_ERROR(lcov tool is not installed)
+	fi
+
+	AC_PATH_PROG(GENHTML, genhtml, no)
+	if test "$GENHTML" = "no" ; then
+		AC_MSG_ERROR(lcov's genhtml tool is not installed)
+	fi
+
+	CFLAGS="$CFLAGS -O0 -g -fprofile-arcs -ftest-coverage"
+	LDFLAGS="$LDFLAGS -lgcov"
+fi
+
+AM_CONDITIONAL([WITH_COVERAGE], [test "$enable_coverage" = "yes"])
+AC_SUBST(LCOV)
+AC_SUBST(GCOV)
+AC_SUBST(GENHTML)
+
+# ------------------------------------------------------------------------------
+# Results
+#
+
 AC_CONFIG_FILES([
 	Makefile
 	egg/Makefile
+	egg/tests/Makefile
 	po/Makefile.in
 	po/Makefile
 	library/Makefile
@@ -125,13 +198,11 @@ AC_CONFIG_FILES([
 ])
 AC_OUTPUT
 
-# ------------------------------------------------------------------------------
-# Summary
-#
-
 echo
 echo "CFLAGS: $CFLAGS"
 echo
 echo "OPTIONS:"
-echo "  libgcrypt:            $enable_gcrypt"
+echo "  libgcrypt:            $gcrypt_status"
+echo "  Debug:                $debug_status"
+echo "  Coverage:             $enable_coverage"
 echo

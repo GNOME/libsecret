@@ -1,6 +1,9 @@
+SUBDIRS = . tests
 
 noinst_LTLIBRARIES = \
 	libegg.la
+
+EXTRA_DIST = egg-testing.h
 
 INCLUDES = \
 	-I$(top_srcdir)
@@ -15,5 +18,6 @@ endif
 
 libegg_la_SOURCES = \
 	egg-secure-memory.c egg-secure-memory.h \
+	egg-testing.c egg-testing.h \
 	$(ENCRYPTION_SRCS) \
 	$(BUILT_SOURCES)

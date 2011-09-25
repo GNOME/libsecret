@@ -3,6 +3,8 @@
 *.la
 *.lo
 *.pyc
+*.gcno
+*.gcda
 .deps
 .cproject
 .libs
@@ -27,6 +29,12 @@ stamp*
 .project
 .cproject
 
+/coverage
+
 /po/POTFILES
+
+/egg/tests/test-dh
+/egg/tests/test-hkdf
+/egg/tests/test-secmem
 
 /library/tests/test-session
