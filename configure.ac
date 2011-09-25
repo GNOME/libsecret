@@ -3,7 +3,7 @@ AC_CONFIG_MACRO_DIR([m4])
 
 AC_INIT([gsecret],[0.1],[http://bugzilla.gnome.org/enter_bug.cgi?product=gsecret])
 
-AC_CONFIG_SRCDIR([library/gsecret-data.c])
+AC_CONFIG_SRCDIR([library/gsecret-value.c])
 AC_CONFIG_HEADERS([config.h])
 
 dnl Other initialization
@@ -70,10 +70,12 @@ fi
 dnl *****************************
 dnl *** done                  ***
 dnl *****************************
-AC_CONFIG_FILES([Makefile
-                 egg/Makefile
-                 po/Makefile.in
-                 po/Makefile
-                 library/Makefile
-                ])
+AC_CONFIG_FILES([
+	Makefile
+	egg/Makefile
+	po/Makefile.in
+	po/Makefile
+	library/Makefile
+	library/tests/Makefile
+])
 AC_OUTPUT

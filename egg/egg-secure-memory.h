@@ -70,15 +70,22 @@ extern void*  egg_memory_fallback (void *p, size_t length);
  * Allocations return NULL on failure.
  */ 
  
-#define GKR_SECURE_USE_FALLBACK     0x0001
+#define EGG_SECURE_USE_FALLBACK     0x0001
 
-void*  egg_secure_alloc        (size_t length);
+#define EGG_SECURE_DECLARE(tag) \
+	static inline void* egg_secure_alloc (size_t length) { \
+		return egg_secure_alloc_full (G_STRINGIFY (tag), length, EGG_SECURE_USE_FALLBACK); \
+	} \
+	static inline void* egg_secure_realloc (void *p, size_t length) { \
+		return egg_secure_realloc_full (G_STRINGIFY (tag), p, length, EGG_SECURE_USE_FALLBACK); \
+	} \
+	static inline void* egg_secure_strdup (const char *str) { \
+		return egg_secure_strdup_full (G_STRINGIFY (tag), str, EGG_SECURE_USE_FALLBACK); \
+	}
 
-void*  egg_secure_alloc_full   (size_t length, int flags);
+void*  egg_secure_alloc_full   (const char *tag, size_t length, int options);
 
-void*  egg_secure_realloc      (void *p, size_t length);
-
-void*  egg_secure_realloc_full (void *p, size_t length, int fallback);
+void*  egg_secure_realloc_full (const char *tag, void *p, size_t length, int options);
 
 void   egg_secure_free         (void* p); 
 
@@ -90,12 +97,18 @@ int    egg_secure_check        (const void* p);
 
 void   egg_secure_validate     (void);
 
-void   egg_secure_dump_blocks  (void);
-
-char*  egg_secure_strdup       (const char *str);
+char*  egg_secure_strdup_full  (const char *tag, const char *str, int options);
 
 void   egg_secure_strclear     (char *str);
 
 void   egg_secure_strfree      (char *str);
+
+typedef struct {
+	const char *tag;
+	size_t request_length;
+	size_t block_length;
+} egg_secure_rec;
+
+egg_secure_rec *   egg_secure_records    (unsigned int *count);
 
 #endif /* EGG_SECURE_MEMORY_H */

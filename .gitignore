@@ -22,5 +22,8 @@ Makefile.in
 Makefile.in.in
 missing
 stamp*
+.settings
+.project
+.cproject
 
 /po/POTFILES

@@ -8,7 +8,7 @@ ORIGDIR=`pwd`
 cd $srcdir
 PROJECT=gsecret
 TEST_TYPE=-f
-FILE=library/gsecret-data.c
+FILE=library/gsecret-value.c
 
 DIE=0
 
