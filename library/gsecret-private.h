@@ -20,9 +20,18 @@
 
 G_BEGIN_DECLS
 
+#define             GSECRET_SERVICE_PATH              "/org/freedesktop/secrets"
+
+#define             GSECRET_SERVICE_BUS_NAME          "org.freedesktop.Secret.Service"
+
+#define             GSECRET_SERVICE_INTERFACE         "org.freedesktop.Secret.Service"
+
 #define             GSECRET_COLLECTION_INTERFACE      "org.freedesktop.Secret.Collection"
 
 gchar *             _gsecret_util_parent_path         (const gchar *path);
+
+GSecretService *    _gsecret_service_bare_instance    (GDBusConnection *connection,
+                                                       const gchar *bus_name);
 
 GVariant *          _gsecret_service_encode_secret    (GSecretService *self,
                                                        GSecretValue *value);
@@ -30,12 +39,10 @@ GVariant *          _gsecret_service_encode_secret    (GSecretService *self,
 GSecretValue *      _gsecret_service_decode_secret    (GSecretService *service,
                                                        GVariant *encoded);
 
-GCancellable *      _gsecret_async_result_get_cancellable     (GSimpleAsyncResult *result);
-
-void                _gsecret_async_result_set_cancellable     (GSimpleAsyncResult *result,
-                                                               GCancellable *cancellable);
-
-gboolean            _gsecret_async_result_propagate_cancelled (GSimpleAsyncResult *result);
+const gchar *       _gsecret_service_ensure_session_finish     (GSecretService *self,
+                                                                GAsyncResult *result,
+                                                                GCancellable **cancellable,
+                                                                GError **error);
 
 G_END_DECLS
 

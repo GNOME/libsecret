@@ -49,6 +49,11 @@ struct _GSecretServicePrivate {
 	gpointer session;
 };
 
+G_LOCK_DEFINE (service_instance);
+static gpointer service_instance = NULL;
+
+G_DEFINE_TYPE (GSecretService, gsecret_service, G_TYPE_DBUS_PROXY);
+
 static void
 gsecret_session_free (gpointer data)
 {
@@ -65,6 +70,90 @@ gsecret_session_free (gpointer data)
 #endif
 	egg_secure_free (session->key);
 	g_free (session);
+}
+
+static void
+gsecret_service_init (GSecretService *self)
+{
+	self->pv = G_TYPE_INSTANCE_GET_PRIVATE (self, GSECRET_TYPE_SERVICE,
+	                                        GSecretServicePrivate);
+}
+
+static void
+gsecret_service_finalize (GObject *obj)
+{
+	GSecretService *self = GSECRET_SERVICE (obj);
+
+	gsecret_session_free (self->pv->session);
+
+	G_OBJECT_CLASS (gsecret_service_parent_class)->finalize (obj);
+}
+
+static void
+gsecret_service_class_init (GSecretServiceClass *klass)
+{
+	GObjectClass *object_class = G_OBJECT_CLASS (klass);
+
+	object_class->finalize = gsecret_service_finalize;
+
+	g_type_class_add_private (klass, sizeof (GSecretServicePrivate));
+}
+
+static void
+on_service_instance_gone (gpointer user_data,
+                          GObject *where_the_object_was)
+{
+	G_LOCK (service_instance);
+
+		g_assert (service_instance == where_the_object_was);
+		service_instance = NULL;
+
+	G_UNLOCK (service_instance);
+}
+
+GSecretService *
+_gsecret_service_bare_instance (GDBusConnection *connection,
+                                const gchar *bus_name)
+{
+	GSecretService *service;
+	GError *error = NULL;
+
+	g_return_val_if_fail (G_IS_DBUS_CONNECTION (connection), NULL);
+
+	/* Alternate bus name is only used for testing */
+	if (bus_name == NULL)
+		bus_name = GSECRET_SERVICE_BUS_NAME;
+
+	service = g_initable_new (GSECRET_TYPE_SERVICE, NULL, &error,
+	                          "g-flags", G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
+	                          "g-interface-info", NULL, /* TODO: */
+	                          "g-name", bus_name,
+	                          "g-connection", connection,
+	                          "g-object-path", GSECRET_SERVICE_PATH,
+	                          "g-interface-name", GSECRET_SERVICE_INTERFACE,
+	                          NULL);
+
+	if (error != NULL) {
+		g_warning ("couldn't create GSecretService object: %s", error->message);
+		g_clear_error (&error);
+		return NULL;
+	}
+
+	g_assert (GSECRET_IS_SERVICE (service));
+
+	G_LOCK (service_instance);
+
+		if (service_instance == NULL) {
+			service_instance = service;
+			g_object_weak_ref (G_OBJECT (service), on_service_instance_gone, NULL);
+		} else {
+			g_object_unref (service);
+			service = g_object_ref (service_instance);
+		}
+
+	G_UNLOCK (service_instance);
+
+	return service;
 }
 
 #ifdef WITH_GCRYPT
@@ -330,14 +419,17 @@ gsecret_service_ensure_session (GSecretService *self,
 }
 
 const gchar *
-gsecret_service_ensure_session_finish (GSecretService *self,
-                                       GAsyncResult *result,
-                                       GError **error)
+_gsecret_service_ensure_session_finish (GSecretService *self,
+                                        GAsyncResult *result,
+                                        GCancellable **cancellable,
+                                        GError **error)
 {
 	GSecretSession *session;
+	OpenSessionClosure *closure;
 
 	g_return_val_if_fail (GSECRET_IS_SERVICE (self), NULL);
 	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
+	g_return_val_if_fail (cancellable == NULL || *cancellable == NULL, NULL);
 
 	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (self),
 	                      gsecret_service_ensure_session), NULL);
@@ -345,10 +437,23 @@ gsecret_service_ensure_session_finish (GSecretService *self,
 	if (g_simple_async_result_propagate_error (G_SIMPLE_ASYNC_RESULT (result), error))
 		return NULL;
 
+	if (cancellable) {
+		closure = g_simple_async_result_get_op_res_gpointer (G_SIMPLE_ASYNC_RESULT (result));
+		*cancellable = closure->cancellable ? g_object_ref (closure->cancellable) : NULL;
+	}
+
 	/* The session we have should never change once created */
 	session = g_atomic_pointer_get (&self->pv->session);
 	g_assert (session != NULL);
 	return session->path;
+}
+
+const gchar *
+gsecret_service_ensure_session_finish (GSecretService *self,
+                                       GAsyncResult *result,
+                                       GError **error)
+{
+	return _gsecret_service_ensure_session_finish (self, result, NULL, error);
 }
 
 const gchar *

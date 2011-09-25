@@ -165,10 +165,11 @@ on_service_ensure_session (GObject *source, GAsyncResult *result, gpointer user_
 	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
 	GSecretItem *self = GSECRET_ITEM (g_async_result_get_source_object (user_data));
 	GError *error = NULL;
+	GCancellable *cancellable = NULL;
 	const gchar *session_path;
 
-	session_path = gsecret_service_ensure_session_finish (self->pv->service,
-	                                                      result, &error);
+	session_path = _gsecret_service_ensure_session_finish (self->pv->service,
+	                                                      result, &cancellable, &error);
 	if (error != NULL) {
 		g_simple_async_result_take_error (res, error);
 		g_simple_async_result_complete (res);
@@ -177,11 +178,11 @@ on_service_ensure_session (GObject *source, GAsyncResult *result, gpointer user_
 		g_assert (session_path != NULL && session_path[0] != '\0');
 		g_dbus_proxy_call (G_DBUS_PROXY (self), "GetSecret",
 		                   g_variant_new ("o", session_path),
-		                   G_DBUS_CALL_FLAGS_NONE, -1,
-		                   _gsecret_async_result_get_cancellable (res),
+		                   G_DBUS_CALL_FLAGS_NONE, -1, cancellable,
 		                   on_item_get_secret_ready, g_object_ref (res));
 	}
 
+	g_clear_object (&cancellable);
 	g_object_unref (res);
 }
 

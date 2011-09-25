@@ -2,6 +2,7 @@
 *.o
 *.la
 *.lo
+*.pyc
 .deps
 .cproject
 .libs
@@ -27,3 +28,5 @@ stamp*
 .cproject
 
 /po/POTFILES
+
+/library/tests/test-session

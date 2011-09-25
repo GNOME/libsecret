@@ -2,6 +2,7 @@ include $(top_srcdir)/Makefile.decl
 
 INCLUDES = \
 	-I$(top_srcdir)/library \
+	-DSRCDIR="\"@abs_srcdir@\"" \
 	$(NULL)
 
 LDADD =  \
@@ -10,7 +11,7 @@ LDADD =  \
 	$(NULL)
 
 TEST_PROGS = \
-	test-initial \
+	test-session \
 	$(NULL)
 
 check_PROGRAMS = \

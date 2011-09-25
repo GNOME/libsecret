@@ -13,8 +13,23 @@
 #include "config.h"
 
 #include "gsecret-private.h"
+#include "gsecret-types.h"
 
 #include <string.h>
+
+GQuark
+gsecret_error_get_quark (void)
+{
+	static volatile gsize initialized = 0;
+	static GQuark quark = 0;
+
+	if (g_once_init_enter (&initialized)) {
+		quark = g_quark_from_static_string ("gsecret-error");
+		g_once_init_leave (&initialized, 1);
+	}
+
+	return quark;
+}
 
 gchar *
 _gsecret_util_parent_path (const gchar *path)
