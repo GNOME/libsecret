@@ -17,14 +17,18 @@
 #include "gsecret-types.h"
 #include "gsecret-value.h"
 
+#ifdef WITH_GCRYPT
+#include "egg/egg-dh.h"
+#include "egg/egg-hkdf.h"
+#include "egg/egg-libgcrypt.h"
+#endif
+
+#include "egg/egg-secure-memory.h"
+
 #include <glib.h>
 #include <glib/gi18n-lib.h>
 
 #include <gcrypt.h>
-
-#include "egg/egg-dh.h"
-#include "egg/egg-hkdf.h"
-#include "egg/egg-secure-memory.h"
 
 EGG_SECURE_GLIB_DEFINITIONS ();
 
@@ -32,9 +36,11 @@ EGG_SECURE_DECLARE (secret_service);
 
 typedef struct {
 	gchar *path;
+#ifdef WITH_GCRYPT
 	gcry_mpi_t prime;
 	gcry_mpi_t privat;
 	gcry_mpi_t publi;
+#endif
 	gpointer key;
 	gsize n_key;
 } GSecretSession;
@@ -52,12 +58,16 @@ gsecret_session_free (gpointer data)
 		return;
 
 	g_free (session->path);
+#ifdef WITH_GCRYPT
 	gcry_mpi_release (session->publi);
 	gcry_mpi_release (session->privat);
 	gcry_mpi_release (session->prime);
+#endif
 	egg_secure_free (session->key);
 	g_free (session);
 }
+
+#ifdef WITH_GCRYPT
 
 static GVariant *
 request_open_session_aes (GSecretSession *session)
@@ -135,6 +145,8 @@ response_open_session_aes (GSecretSession *session,
 
 	return TRUE;
 }
+
+#endif /* WITH_GCRYPT */
 
 static GVariant *
 request_open_session_plain (GSecretSession *session)
@@ -218,6 +230,8 @@ on_service_open_session_plain (GObject *source,
 	g_object_unref (res);
 }
 
+#ifdef WITH_GCRYPT
+
 static void
 on_service_open_session_aes (GObject *source,
                              GAsyncResult *result,
@@ -268,6 +282,10 @@ on_service_open_session_aes (GObject *source,
 	g_object_unref (res);
 }
 
+
+
+#endif /* WITH_GCRYPT */
+
 void
 gsecret_service_ensure_session (GSecretService *self,
                                 GCancellable *cancellable,
@@ -292,9 +310,15 @@ gsecret_service_ensure_session (GSecretService *self,
 		g_simple_async_result_set_op_res_gpointer (res, closure, open_session_closure_free);
 
 		g_dbus_proxy_call (G_DBUS_PROXY (self), "OpenSession",
+#ifdef WITH_GCRYPT
 		                   request_open_session_aes (closure->session),
 		                   G_DBUS_CALL_FLAGS_NONE, -1,
 		                   cancellable, on_service_open_session_aes,
+#else
+		                   request_open_session_plain (closure->session),
+		                   G_DBUS_CALL_FLAGS_NONE, -1,
+		                   cancellable, on_service_open_session_plain,
+#endif
 		                   g_object_ref (res));
 
 	/* Already have a session */
@@ -347,6 +371,7 @@ gsecret_service_ensure_session_sync (GSecretService *self,
 		return session->path;
 
 	session = g_new0 (GSecretSession, 1);
+#ifdef WITH_GCRYPT
 	response = g_dbus_proxy_call_sync (G_DBUS_PROXY (self), "OpenSession",
 	                                   request_open_session_aes (session),
 	                                   G_DBUS_CALL_FLAGS_NONE, -1,
@@ -359,7 +384,7 @@ gsecret_service_ensure_session_sync (GSecretService *self,
 	/* AES session not supported, request a plain session */
 	} else if (g_error_matches (lerror, G_DBUS_ERROR, G_DBUS_ERROR_NOT_SUPPORTED)) {
 		g_clear_error (&lerror);
-
+#endif /* WITH_GCRYPT */
 		response = g_dbus_proxy_call_sync (G_DBUS_PROXY (self), "OpenSession",
 		                                   request_open_session_plain (session),
 		                                   G_DBUS_CALL_FLAGS_NONE, -1,
@@ -369,7 +394,9 @@ gsecret_service_ensure_session_sync (GSecretService *self,
 			complete = response_open_session_plain (session, response);
 			g_variant_unref (response);
 		}
+#ifdef WITH_GCRYPT
 	}
+#endif
 
 	if (lerror == NULL && !complete) {
 		g_set_error (&lerror, GSECRET_ERROR, GSECRET_ERROR_PROTOCOL,
@@ -392,6 +419,8 @@ gsecret_service_ensure_session_sync (GSecretService *self,
 	g_assert (session != NULL);
 	return session->path;
 }
+
+#ifdef WITH_GCRYPT
 
 static gboolean
 pkcs7_unpad_bytes_in_place (guchar *padded,
@@ -483,6 +512,8 @@ service_decode_aes_secret (GSecretSession *session,
 	return gsecret_value_new_full ((gchar *)padded, n_padded, content_type, egg_secure_free);
 }
 
+#endif /* WITH_GCRYPT */
+
 static GSecretValue *
 service_decode_plain_secret (GSecretSession *session,
                              gconstpointer param,
@@ -537,13 +568,14 @@ _gsecret_service_decode_secret (GSecretService *self,
 	value = g_variant_get_fixed_array (vvalue, &n_value, sizeof (guchar));
 	g_variant_get_child (encoded, 3, "s", &content_type);
 
-	if (session->key != NULL) {
+#ifdef WITH_GCRYPT
+	if (session->key != NULL)
 		result = service_decode_aes_secret (session, param, n_param,
 		                                    value, n_value, content_type);
-	} else {
+	else
+#endif
 		result = service_decode_plain_secret (session, param, n_param,
 		                                      value, n_value, content_type);
-	}
 
 	g_variant_unref (vparam);
 	g_variant_unref (vvalue);
@@ -552,6 +584,8 @@ _gsecret_service_decode_secret (GSecretService *self,
 
 	return result;
 }
+
+#ifdef WITH_GCRYPT
 
 static guchar*
 pkcs7_pad_bytes_in_secure_memory (gconstpointer secret,
@@ -632,6 +666,8 @@ service_encode_aes_secret (GSecretSession *session,
 	return TRUE;
 }
 
+#endif /* WITH_GCRYPT */
+
 static gboolean
 service_encode_plain_secret (GSecretSession *session,
                              GSecretValue *value,
@@ -678,9 +714,11 @@ _gsecret_service_encode_secret (GSecretService *self,
 	type = g_variant_type_new ("(oayays)");
 	builder = g_variant_builder_new (type);
 
+#ifdef WITH_GCRYPT
 	if (session->key)
 		ret = service_encode_aes_secret (session, value, builder);
 	else
+#endif
 		ret = service_encode_plain_secret (session, value, builder);
 	if (ret)
 		result = g_variant_builder_end (builder);

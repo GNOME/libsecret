@@ -18,6 +18,10 @@ libgsecret_la_SOURCES = \
 	gsecret-util.c \
 	$(NULL)
 
+libgsecret_la_CFLAGS = \
+	$(LIBGCRYPT_CFLAGS)
+
 libgsecret_la_LIBADD = \
 	$(top_builddir)/egg/libegg.la \
+	$(LIBGCRYPT_LIBS) \
 	$(LIBS)

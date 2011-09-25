@@ -17,10 +17,11 @@ AC_PROG_CC
 AC_PROG_CPP
 AM_PROG_CC_C_O
 
-dnl Checks for libraries.
+AC_CHECK_FUNCS(mlock)
 
-dnl ****************************
-dnl *** Checks for intltool
+# --------------------------------------------------------------------
+# intltool
+#
 
 IT_PROG_INTLTOOL([0.35.0])
 GETTEXT_PACKAGE=gsecret
@@ -29,22 +30,55 @@ AC_SUBST([GETTEXT_PACKAGE])
 AC_DEFINE_UNQUOTED([GETTEXT_PACKAGE],["$GETTEXT_PACKAGE"],[The gettext domain name])
 AM_GLIB_GNU_GETTEXT
 
-dnl *****************************
-dnl *** Check GLib
+# --------------------------------------------------------------------
+# GLib
+#
 
-PKG_CHECK_MODULES(GLIB, glib-2.0 >= 2.16.0 gio-2.0 >= 2.16.0 gthread-2.0 >= 2.16.0)
+PKG_CHECK_MODULES(GLIB, glib-2.0 >= 2.28.0 gio-2.0 >= 2.28.0 gthread-2.0 >= 2.16.0)
 LIBS="$LIBS $GLIB_LIBS"
 CFLAGS="$CFLAGS $GLIB_CFLAGS"
 
-AC_CHECK_FUNCS(mlock)
+# --------------------------------------------------------------------
+# libgcrypt
+#
+
+GCRYPT_VERSION=1.2.2
+GCRYPT_LIBVER=1
+
+AC_ARG_ENABLE(gcrypt,
+              [AC_HELP_STRING([--disable-gcrypt],
+                              [without gcrypt and transport encryption])
+              ])
+
+if test "$enable_gcrypt" != "no"; then
+	AM_PATH_LIBGCRYPT($GCRYPT_LIBVER:$GCRYPT_VERSION,,
+	                  AC_MSG_ERROR([[
+***
+*** libgcrypt was not found. You may want to get it from
+*** ftp://ftp.gnupg.org/gcrypt/libgcrypt/
+***
+	                  ]]))
+
+	AC_DEFINE(WITH_GCRYPT, 1, [Build with libgcypt and transport encryption])
+	AC_DEFINE_UNQUOTED(LIBGCRYPT_VERSION, "$GCRYPT_VERSION",
+	                   [Version of GCRYPT we expect])
+
+	AC_SUBST([LIBGCRYPT_CFLAGS])
+	AC_SUBST([LIBGCRYPT_LIBS])
+	enable_gcrypt="yes"
+
+fi
+
+AM_CONDITIONAL(WITH_GCRYPT, test "$enable_gcrypt" = "yes")
+
 
 dnl *************************************
 dnl *** Warnings to show if using GCC ***
 dnl *************************************
 
 AC_ARG_ENABLE(more-warnings,
-	      AS_HELP_STRING([--disable-more-warnings], [Inhibit compiler warnings]),
-	      set_more_warnings=no)
+              AS_HELP_STRING([--disable-more-warnings], [Inhibit compiler warnings]),
+              set_more_warnings=no)
 
 if test "$GCC" = "yes" -a "$set_more_warnings" != "no"; then
 	CFLAGS="$CFLAGS \
@@ -67,6 +101,17 @@ if test "$GCC" = "yes" -a "$set_more_warnings" != "no"; then
 	done
 fi
 
+AC_ARG_ENABLE(strict, [
+               AS_HELP_STRING([--enable-strict], [Strict code compilation])
+             ])
+
+if test "$enable_strict" = "yes"; then
+	CFLAGS="$CFLAGS -Werror \
+		-DGTK_DISABLE_DEPRECATED \
+		-DGDK_DISABLE_DEPRECATED \
+		-DG_DISABLE_DEPRECATED"
+fi
+
 dnl *****************************
 dnl *** done                  ***
 dnl *****************************
@@ -79,3 +124,14 @@ AC_CONFIG_FILES([
 	library/tests/Makefile
 ])
 AC_OUTPUT
+
+# ------------------------------------------------------------------------------
+# Summary
+#
+
+echo
+echo "CFLAGS: $CFLAGS"
+echo
+echo "OPTIONS:"
+echo "  libgcrypt:            $enable_gcrypt"
+echo
