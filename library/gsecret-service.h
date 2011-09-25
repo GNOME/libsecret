@@ -72,6 +72,10 @@ GSecretService *    gsecret_service_instance_sync            (GDBusConnection *c
                                                               GError **error);
 #endif
 
+const gchar *       gsecret_service_get_session_algorithms   (GSecretService *self);
+
+const gchar *       gsecret_service_get_session_path         (GSecretService *self);
+
 void                gsecret_service_ensure_session           (GSecretService *self,
                                                               GCancellable *cancellable,
                                                               GAsyncReadyCallback callback,

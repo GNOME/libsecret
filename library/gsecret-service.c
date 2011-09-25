@@ -34,8 +34,12 @@ EGG_SECURE_GLIB_DEFINITIONS ();
 
 EGG_SECURE_DECLARE (secret_service);
 
+#define ALGORITHMS_AES    "dh-ietf1024-sha256-aes128-cbc-pkcs7"
+#define ALGORITHMS_PLAIN  "plain"
+
 typedef struct {
 	gchar *path;
+	const gchar *algorithms;
 #ifdef WITH_GCRYPT
 	gcry_mpi_t prime;
 	gcry_mpi_t privat;
@@ -156,6 +160,28 @@ _gsecret_service_bare_instance (GDBusConnection *connection,
 	return service;
 }
 
+const gchar *
+gsecret_service_get_session_algorithms (GSecretService *self)
+{
+	GSecretSession *session;
+
+	g_return_val_if_fail (GSECRET_IS_SERVICE (self), NULL);
+
+	session = g_atomic_pointer_get (&self->pv->session);
+	return session ? session->algorithms : NULL;
+}
+
+const gchar *
+gsecret_service_get_session_path (GSecretService *self)
+{
+	GSecretSession *session;
+
+	g_return_val_if_fail (GSECRET_IS_SERVICE (self), NULL);
+
+	session = g_atomic_pointer_get (&self->pv->session);
+	return session ? session->path : NULL;
+}
+
 #ifdef WITH_GCRYPT
 
 static GVariant *
@@ -186,7 +212,7 @@ request_open_session_aes (GSecretSession *session)
 	                                    buffer, n_buffer, TRUE,
 	                                    gcry_free, buffer);
 
-	return g_variant_new ("sv", "dh-ietf1024-sha256-aes128-cbc-pkcs7", argument);
+	return g_variant_new ("(sv)", ALGORITHMS_AES, argument);
 }
 
 static gboolean
@@ -195,20 +221,23 @@ response_open_session_aes (GSecretSession *session,
 {
 	gconstpointer buffer;
 	GVariant *argument;
+	const gchar *sig;
 	gsize n_buffer;
 	gcry_mpi_t peer;
 	gcry_error_t gcry;
 	gpointer ikm;
 	gsize n_ikm;
 
-	if (G_VARIANT_TYPE ("vo") != g_variant_get_type (response)) {
-		g_warning ("invalid OpenSession() response from daemon with signature: %s",
-		           g_variant_get_type_string (response));
+	sig = g_variant_get_type_string (response);
+	g_return_val_if_fail (sig != NULL, FALSE);
+
+	if (!g_str_equal (sig, "(vo)")) {
+		g_warning ("invalid OpenSession() response from daemon with signature: %s", sig);
 		return FALSE;
 	}
 
 	g_assert (session->path == NULL);
-	g_variant_get (response, "vo", &argument, &session->path);
+	g_variant_get (response, "(vo)", &argument, &session->path);
 
 	buffer = g_variant_get_fixed_array (argument, &n_buffer, sizeof (guchar));
 	gcry = gcry_mpi_scan (&peer, GCRYMPI_FMT_USG, buffer, n_buffer, NULL);
@@ -232,6 +261,7 @@ response_open_session_aes (GSecretSession *session,
 		g_return_val_if_reached (FALSE);
 	egg_secure_free (ikm);
 
+	session->algorithms = ALGORITHMS_AES;
 	return TRUE;
 }
 
@@ -241,7 +271,7 @@ static GVariant *
 request_open_session_plain (GSecretSession *session)
 {
 	GVariant *argument = g_variant_new_string ("");
-	return g_variant_new ("sv", "plain", argument);
+	return g_variant_new ("(sv)", "plain", argument);
 }
 
 static gboolean
@@ -249,20 +279,25 @@ response_open_session_plain (GSecretSession *session,
                              GVariant *response)
 {
 	GVariant *argument;
+	const gchar *sig;
 
-	if (G_VARIANT_TYPE ("vo") != g_variant_get_type (response)) {
+	sig = g_variant_get_type_string (response);
+	g_return_val_if_fail (sig != NULL, FALSE);
+
+	if (!g_str_equal (sig, "(vo)")) {
 		g_warning ("invalid OpenSession() response from daemon with signature: %s",
 		           g_variant_get_type_string (response));
 		return FALSE;
 	}
 
 	g_assert (session->path == NULL);
-	g_variant_get (response, "vo", &argument, &session->path);
+	g_variant_get (response, "(vo)", &argument, &session->path);
 	g_variant_unref (argument);
 
 	g_assert (session->key == NULL);
 	g_assert (session->n_key == 0);
 
+	session->algorithms = ALGORITHMS_PLAIN;
 	return TRUE;
 }
 
@@ -395,7 +430,7 @@ gsecret_service_ensure_session (GSecretService *self,
 
 		closure = g_new (OpenSessionClosure, 1);
 		closure->cancellable = cancellable ? g_object_ref (cancellable) : cancellable;
-		closure->session = g_new (GSecretSession, 1);
+		closure->session = g_new0 (GSecretSession, 1);
 		g_simple_async_result_set_op_res_gpointer (res, closure, open_session_closure_free);
 
 		g_dbus_proxy_call (G_DBUS_PROXY (self), "OpenSession",

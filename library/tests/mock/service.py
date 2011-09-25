@@ -31,6 +31,10 @@ class NotSupported(dbus.exceptions.DBusException):
 	def __init__(self, msg):
 		dbus.exceptions.DBusException.__init__(self, msg, name="org.freedesktop.DBus.Error.NotSupported")
 
+class InvalidArgs(dbus.exceptions.DBusException):
+	def __init__(self, msg):
+		dbus.exceptions.DBusException.__init__(self, msg, name="org.freedesktop.DBus.Error.InvalidArgs")
+
 unique_identifier = 0
 def next_identifier():
 	global unique_identifier
@@ -39,11 +43,15 @@ def next_identifier():
 
 class PlainAlgorithm():
 	def negotiate(self, service, sender, param):
+		if type (param) != dbus.String:
+			raise InvalidArgs("invalid argument passed to OpenSession")
 		session = SecretSession(service, sender, None)
 		return (dbus.String("", variant_level=1), session)
 
 class AesAlgorithm():
 	def negotiate(self, service, sender, param):
+		if type (param) != dbus.ByteArray:
+			raise InvalidArgs("invalid argument passed to OpenSession")
 		publi, privat = dh.generate_pair()
 		peer = dh.bytes_to_number(param)
 		ikm = dh.derive_key(privat, peer)
@@ -72,9 +80,11 @@ class SecretService(dbus.service.Object):
 		"dh-ietf1024-sha256-aes128-cbc-pkcs7": AesAlgorithm(),
 	}
 
-	def __init__(self, name=bus_name):
-		bus = bus = dbus.SessionBus()
-		self.bus_name = dbus.service.BusName(name)
+	def __init__(self, name=None):
+		if name == None:
+			name = bus_name
+		bus = dbus.SessionBus()
+		self.bus_name = dbus.service.BusName(name, allow_replacement=True, replace_existing=True)
 		dbus.service.Object.__init__(self, self.bus_name, '/org/freedesktop/secrets')
 		self.sessions = { }
 
@@ -102,7 +112,6 @@ class SecretService(dbus.service.Object):
 	@dbus.service.method('org.freedesktop.Secret.Service', byte_arrays=True, sender_keyword='sender')
 	def OpenSession(self, algorithm, param, sender=None):
 		assert type(algorithm) == dbus.String
-		assert type(param) == dbus.ByteArray
 
 		if algorithm not in self.algorithms:
 			raise NotSupported("algorithm %s is not supported" % algorithm)

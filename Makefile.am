@@ -24,16 +24,15 @@ dist-hook:
 	fi
 
 if WITH_COVERAGE
-check-coverage: clear-coverage check coverage
-
 coverage:
 	mkdir -p coverage
 	$(LCOV) --directory . --capture --output-file coverage/coverage.info
-	$(GENHTML) --output-directory coverage/coverage coverage/coverage.info
+	$(GENHTML) --output-directory coverage coverage/coverage.info
 	$(LCOV) --directory . --zerocounters
 	@echo "file://$(abs_top_builddir)/coverage/index.html"
 
 clear-coverage:
 	$(LCOV) --directory . --zerocounters
 
+.PHONY: coverage
 endif

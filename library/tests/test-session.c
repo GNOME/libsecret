@@ -17,6 +17,8 @@
 #include "gsecret-service.h"
 #include "gsecret-private.h"
 
+#include "egg/egg-testing.h"
+
 #include <glib.h>
 
 #include <errno.h>
@@ -31,18 +33,20 @@ typedef struct {
 } Test;
 
 static void
-setup_normal (Test *test,
-              gconstpointer unused)
+setup (Test *test,
+       gconstpointer data)
 {
 	GError *error = NULL;
+	const gchar *mock_script = data;
 	gchar *argv[] = {
-		"python", "./mock-service-normal.py",
+		"python", (gchar *)mock_script,
 		"--name", MOCK_NAME,
 		NULL
 	};
 
 	g_spawn_async (SRCDIR, argv, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL, &test->pid, &error);
 	g_assert_no_error (error);
+	g_usleep (100 * 1000);
 
 	test->connection = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, &error);
 	g_assert_no_error (error);
@@ -64,16 +68,130 @@ teardown (Test *test,
 }
 
 static void
-test_ensure_sync (Test *test,
-                  gconstpointer unused)
+test_ensure (Test *test,
+             gconstpointer unused)
 {
 	GError *error = NULL;
 	const gchar *path;
 
+	g_assert_cmpstr (gsecret_service_get_session_path (test->service), ==, NULL);
+	g_assert_cmpstr (gsecret_service_get_session_algorithms (test->service), ==, NULL);
+
 	path = gsecret_service_ensure_session_sync (test->service, NULL, &error);
 	g_assert_no_error (error);
 	g_assert (path != NULL);
-	g_printerr ("%s", path);
+	g_assert_cmpstr (gsecret_service_get_session_path (test->service), ==, path);
+	g_assert_cmpstr (gsecret_service_get_session_algorithms (test->service), ==, "dh-ietf1024-sha256-aes128-cbc-pkcs7");
+}
+
+static void
+test_ensure_twice (Test *test,
+                   gconstpointer unused)
+{
+	GError *error = NULL;
+	const gchar *path;
+
+	g_assert_cmpstr (gsecret_service_get_session_path (test->service), ==, NULL);
+	g_assert_cmpstr (gsecret_service_get_session_algorithms (test->service), ==, NULL);
+
+	path = gsecret_service_ensure_session_sync (test->service, NULL, &error);
+	g_assert_no_error (error);
+	g_assert (path != NULL);
+	g_assert_cmpstr (gsecret_service_get_session_path (test->service), ==, path);
+	g_assert_cmpstr (gsecret_service_get_session_algorithms (test->service), ==, "dh-ietf1024-sha256-aes128-cbc-pkcs7");
+
+	path = gsecret_service_ensure_session_sync (test->service, NULL, &error);
+	g_assert_no_error (error);
+	g_assert (path != NULL);
+	g_assert_cmpstr (gsecret_service_get_session_path (test->service), ==, path);
+	g_assert_cmpstr (gsecret_service_get_session_algorithms (test->service), ==, "dh-ietf1024-sha256-aes128-cbc-pkcs7");
+}
+
+static void
+test_ensure_plain (Test *test,
+                   gconstpointer unused)
+{
+	GError *error = NULL;
+	const gchar *path;
+
+	g_assert_cmpstr (gsecret_service_get_session_path (test->service), ==, NULL);
+	g_assert_cmpstr (gsecret_service_get_session_algorithms (test->service), ==, NULL);
+
+	path = gsecret_service_ensure_session_sync (test->service, NULL, &error);
+	g_assert_no_error (error);
+
+	g_assert (path != NULL);
+	g_assert_cmpstr (gsecret_service_get_session_path (test->service), ==, path);
+	g_assert_cmpstr (gsecret_service_get_session_algorithms (test->service), ==, "plain");
+}
+
+static void
+on_complete_get_result (GObject *source,
+                        GAsyncResult *result,
+                        gpointer user_data)
+{
+	GAsyncResult **ret = user_data;
+	g_assert (ret != NULL);
+	g_assert (*ret == NULL);
+	*ret = g_object_ref (result);
+}
+
+static void
+test_ensure_async (Test *test,
+                   gconstpointer unused)
+{
+	GAsyncResult *result = NULL;
+	GError *error = NULL;
+	const gchar *path;
+
+	gsecret_service_ensure_session (test->service, NULL, on_complete_get_result, &result);
+	egg_test_wait_until (500);
+
+	g_assert (G_IS_ASYNC_RESULT (result));
+	path = gsecret_service_ensure_session_finish (test->service, result, &error);
+	g_assert_no_error (error);
+
+	g_assert (path != NULL);
+	g_assert_cmpstr (gsecret_service_get_session_path (test->service), ==, path);
+	g_assert_cmpstr (gsecret_service_get_session_algorithms (test->service), ==, "plain");
+
+	g_object_unref (result);
+}
+
+static void
+test_ensure_async_twice (Test *test,
+                         gconstpointer unused)
+{
+	GAsyncResult *result = NULL;
+	GError *error = NULL;
+	const gchar *path;
+
+	gsecret_service_ensure_session (test->service, NULL, on_complete_get_result, &result);
+	egg_test_wait_until (500);
+
+	g_assert (G_IS_ASYNC_RESULT (result));
+	path = gsecret_service_ensure_session_finish (test->service, result, &error);
+	g_assert_no_error (error);
+
+	g_assert (path != NULL);
+	g_assert_cmpstr (gsecret_service_get_session_path (test->service), ==, path);
+	g_assert_cmpstr (gsecret_service_get_session_algorithms (test->service), ==, "plain");
+
+	g_object_unref (result);
+	result = NULL;
+
+	gsecret_service_ensure_session (test->service, NULL, on_complete_get_result, &result);
+	egg_test_wait_until (500);
+
+	g_assert (G_IS_ASYNC_RESULT (result));
+	path = gsecret_service_ensure_session_finish (test->service, result, &error);
+	g_assert_no_error (error);
+
+	g_assert (path != NULL);
+	g_assert_cmpstr (gsecret_service_get_session_path (test->service), ==, path);
+	g_assert_cmpstr (gsecret_service_get_session_algorithms (test->service), ==, "plain");
+
+	g_object_unref (result);
 }
 
 int
@@ -83,7 +201,11 @@ main (int argc, char **argv)
 	g_set_prgname ("test-session");
 	g_type_init ();
 
-	g_test_add ("/session/ensure-sync", Test, NULL, setup_normal, test_ensure_sync, teardown);
+	g_test_add ("/session/ensure-aes", Test, "mock-service-normal.py", setup, test_ensure, teardown);
+	g_test_add ("/session/ensure-twice", Test, "mock-service-normal.py", setup, test_ensure_twice, teardown);
+	g_test_add ("/session/ensure-plain", Test, "mock-service-only-plain.py", setup, test_ensure_plain, teardown);
+	g_test_add ("/session/ensure-async", Test, "mock-service-only-plain.py", setup, test_ensure_async, teardown);
+	g_test_add ("/session/ensure-async-twice", Test, "mock-service-only-plain.py", setup, test_ensure_async_twice, teardown);
 
-	return g_test_run ();
+	return egg_tests_run_in_thread_with_loop ();
 }
