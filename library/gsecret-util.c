@@ -45,3 +45,23 @@ _gsecret_util_parent_path (const gchar *path)
 	pos--;
 	return g_strndup (path, pos - path);
 }
+
+GVariant *
+_gsecret_util_variant_for_attributes (GHashTable *attributes)
+{
+	GHashTableIter iter;
+	GVariantBuilder builder;
+	const gchar *name;
+	const gchar *value;
+
+	g_return_val_if_fail (attributes != NULL, NULL);
+
+	g_variant_builder_init (&builder, G_VARIANT_TYPE ("a{ss}"));
+
+	g_hash_table_iter_init (&iter, attributes);
+	while (g_hash_table_iter_next (&iter, (gpointer *)&name, (gpointer *)&value))
+		g_variant_builder_add (&builder, "{ss}", name, value);
+
+	return g_variant_builder_end (&builder);
+
+}

@@ -11,6 +11,7 @@ LDADD =  \
 	$(NULL)
 
 TEST_PROGS = \
+	test-service \
 	test-session \
 	$(NULL)
 

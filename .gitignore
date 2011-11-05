@@ -37,4 +37,5 @@ stamp*
 /egg/tests/test-hkdf
 /egg/tests/test-secmem
 
-/library/tests/test-session
+/library/tests/test-*
+!/library/tests/test-*.c

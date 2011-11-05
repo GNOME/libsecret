@@ -30,6 +30,8 @@ G_BEGIN_DECLS
 
 gchar *             _gsecret_util_parent_path         (const gchar *path);
 
+GVariant *          _gsecret_util_variant_for_attributes       (GHashTable *attributes);
+
 GSecretService *    _gsecret_service_bare_instance    (GDBusConnection *connection,
                                                        const gchar *bus_name);
 

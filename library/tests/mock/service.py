@@ -73,6 +73,43 @@ class SecretSession(dbus.service.Object):
 		self.remove_from_connection()
 		self.service.remove_session(self)
 
+
+class SecretItem(dbus.service.Object):
+	def __init__(self, collection, identifier, label="Item", attributes={ }):
+		self.collection = collection
+		self.identifier = identifier
+		self.label = label
+		self.attributes = attributes
+		self.path = "/org/freedesktop/secrets/collection/%s/%s" % (collection.identifier, identifier)
+		dbus.service.Object.__init__(self, collection.service.bus_name, self.path)
+		collection.items[identifier] = self
+
+	def match_attributes(self, attributes):
+		for (key, value) in attributes.items():
+			if not self.attributes.get(key) == value:
+				return False
+		return True
+
+
+class SecretCollection(dbus.service.Object):
+	def __init__(self, service, identifier, label="Collection", locked=False):
+		self.service = service
+		self.identifier = identifier
+		self.label = label
+		self.locked = locked
+		self.items = { }
+		self.path = "/org/freedesktop/secrets/collection/%s" % identifier
+		dbus.service.Object.__init__(self, service.bus_name, self.path)
+		service.collections[identifier] = self
+
+	def search_items(self, attributes):
+		results = []
+		for item in self.items.values():
+			if item.match_attributes(attributes):
+				results.append(item)
+		return results
+
+
 class SecretService(dbus.service.Object):
 
 	algorithms = {
@@ -87,6 +124,7 @@ class SecretService(dbus.service.Object):
 		self.bus_name = dbus.service.BusName(name, allow_replacement=True, replace_existing=True)
 		dbus.service.Object.__init__(self, self.bus_name, '/org/freedesktop/secrets')
 		self.sessions = { }
+		self.collections = { }
 
 		def on_name_owner_changed(owned, old_owner, new_owner):
 			if not new_owner:
@@ -108,7 +146,7 @@ class SecretService(dbus.service.Object):
 
 	def remove_session(self, session):
 		self.sessions[session.sender].remove(session)
-	
+
 	@dbus.service.method('org.freedesktop.Secret.Service', byte_arrays=True, sender_keyword='sender')
 	def OpenSession(self, algorithm, param, sender=None):
 		assert type(algorithm) == dbus.String
@@ -117,6 +155,20 @@ class SecretService(dbus.service.Object):
 			raise NotSupported("algorithm %s is not supported" % algorithm)
 
 		return self.algorithms[algorithm].negotiate(self, sender, param)
+
+	@dbus.service.method('org.freedesktop.Secret.Service')
+	def SearchItems(self, attributes):
+		locked = [ ]
+		unlocked = [ ]
+		items = [ ]
+		for collection in self.collections.values():
+			items = collection.search_items(attributes)
+			if collection.locked:
+				locked.extend(items)
+			else:
+				unlocked.extend(items)
+		return (dbus.Array(unlocked, "o"), dbus.Array(locked, "o"))
+
 
 def parse_options(args):
 	global bus_name

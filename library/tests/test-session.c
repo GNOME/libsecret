@@ -46,7 +46,7 @@ setup (Test *test,
 
 	g_spawn_async (SRCDIR, argv, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL, &test->pid, &error);
 	g_assert_no_error (error);
-	g_usleep (100 * 1000);
+	g_usleep (200 * 1000);
 
 	test->connection = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, &error);
 	g_assert_no_error (error);

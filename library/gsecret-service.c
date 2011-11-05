@@ -869,24 +869,6 @@ _gsecret_service_encode_secret (GSecretService *self,
 	return result;
 }
 
-static GVariant *
-_gsecret_util_variant_for_attributes (GHashTable *attributes)
-{
-	GHashTableIter iter;
-	GVariantBuilder builder;
-	const gchar *name;
-	const gchar *value;
-
-	g_variant_builder_init (&builder, G_VARIANT_TYPE ("a(ssv)"));
-
-	g_hash_table_iter_init (&iter, attributes);
-	while (g_hash_table_iter_next (&iter, (gpointer *)&name, (gpointer *)&value))
-		g_variant_builder_add (&builder, "(ss)", name, value);
-
-	return g_variant_builder_end (&builder);
-
-}
-
 static void
 on_search_items_complete (GObject *source,
                           GAsyncResult *result,
@@ -924,7 +906,8 @@ gsecret_service_search_paths (GSecretService *self,
 	                                 gsecret_service_search_paths);
 
 	g_dbus_proxy_call (G_DBUS_PROXY (self), "SearchItems",
-	                   _gsecret_util_variant_for_attributes (attributes),
+	                   g_variant_new ("(@a{ss})",
+	                                  _gsecret_util_variant_for_attributes (attributes)),
 	                   G_DBUS_CALL_FLAGS_NONE, -1, cancellable,
 	                   on_search_items_complete, g_object_ref (res));
 
@@ -980,7 +963,8 @@ gsecret_service_search_paths_sync (GSecretService *self,
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
 	response = g_dbus_proxy_call_sync (G_DBUS_PROXY (self), "SearchItems",
-	                                   _gsecret_util_variant_for_attributes (attributes),
+	                                   g_variant_new ("(@a{ss})",
+	                                                  _gsecret_util_variant_for_attributes (attributes)),
 	                                   G_DBUS_CALL_FLAGS_NONE, -1, cancellable, error);
 
 	if (response != NULL) {
