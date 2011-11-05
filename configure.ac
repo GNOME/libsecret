@@ -34,7 +34,10 @@ AM_GLIB_GNU_GETTEXT
 # GLib
 #
 
-PKG_CHECK_MODULES(GLIB, glib-2.0 >= 2.28.0 gio-2.0 >= 2.28.0 gthread-2.0 >= 2.16.0)
+PKG_CHECK_MODULES(GLIB,
+	glib-2.0 >= 2.30.0
+	gio-2.0 >= 2.30.0
+	gio-unix-2.0)
 LIBS="$LIBS $GLIB_LIBS"
 CFLAGS="$CFLAGS $GLIB_CFLAGS"
 

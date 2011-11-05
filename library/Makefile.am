@@ -11,11 +11,15 @@ module_flags = \
 
 lib_LTLIBRARIES = libgsecret.la
 
+BUILT_SOURCES = \
+	gsecret-dbus-generated.c gsecret-dbus-generated.h
+
 libgsecret_la_SOURCES = \
 	gsecret-value.h gsecret-value.c \
 	gsecret-item.h gsecret-item.c \
 	gsecret-service.h gsecret-service.c \
 	gsecret-util.c \
+	$(BUILT_SOURCES) \
 	$(NULL)
 
 libgsecret_la_CFLAGS = \
@@ -25,3 +29,14 @@ libgsecret_la_LIBADD = \
 	$(top_builddir)/egg/libegg.la \
 	$(LIBGCRYPT_LIBS) \
 	$(LIBS)
+
+DBUS_XML_DEFINITIONS = \
+	org.freedesktop.Secrets.xml
+
+gsecret-dbus-generated.c: $(DBUS_XML_DEFINITIONS) Makefile.am
+	$(AM_V_GEN) gdbus-codegen --interface-prefix org.freedesktop.Secret. \
+		--generate-c-code gsecret-dbus-generated --c-namespace GSecretGen \
+		$(DBUS_XML_DEFINITIONS)
+	$(AM_V_GEN) sed -i -e 's/gsecret_gen_/_gsecret_gen_/g' gsecret-dbus-generated.[ch]
+
+gsecret-dbus-generated.h: gsecret-dbus-generated.c

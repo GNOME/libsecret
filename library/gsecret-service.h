@@ -108,26 +108,28 @@ gboolean            gsecret_service_search_sync              (GSecretService *se
                                                               GList **unlocked,
                                                               GList **locked,
                                                               GError **error);
+#endif
 
-void                gsecret_service_search_for_paths         (GSecretService *self,
+void                gsecret_service_search_paths             (GSecretService *self,
                                                               GHashTable *attributes,
                                                               GCancellable *cancellable,
                                                               GAsyncReadyCallback callback,
                                                               gpointer user_data);
 
-gboolean            gsecret_service_search_for_paths_finish  (GSecretService *self,
+gboolean            gsecret_service_search_paths_finish      (GSecretService *self,
                                                               GAsyncResult *result,
                                                               gchar ***unlocked,
                                                               gchar ***locked,
                                                               GError **error);
 
-gboolean            gsecret_service_search_for_paths_sync    (GSecretService *self,
+gboolean            gsecret_service_search_paths_sync        (GSecretService *self,
                                                               GHashTable *attributes,
                                                               GCancellable *cancellable,
                                                               gchar ***unlocked,
                                                               gchar ***locked,
                                                               GError **error);
 
+#if 0
 void                gsecret_service_lock                     (GSecretService *self,
                                                               GList *objects,
                                                               GCancellable *cancellable,

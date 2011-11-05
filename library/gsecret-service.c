@@ -12,6 +12,7 @@
 
 #include "config.h"
 
+#include "gsecret-dbus-generated.h"
 #include "gsecret-private.h"
 #include "gsecret-service.h"
 #include "gsecret-types.h"
@@ -130,7 +131,7 @@ _gsecret_service_bare_instance (GDBusConnection *connection,
 
 	service = g_initable_new (GSECRET_TYPE_SERVICE, NULL, &error,
 	                          "g-flags", G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
-	                          "g-interface-info", NULL, /* TODO: */
+	                          "g-interface-info", _gsecret_gen_service_interface_info (),
 	                          "g-name", bus_name,
 	                          "g-connection", connection,
 	                          "g-object-path", GSECRET_SERVICE_PATH,
@@ -866,4 +867,135 @@ _gsecret_service_encode_secret (GSecretService *self,
 	g_variant_builder_unref (builder);
 	g_variant_type_free (type);
 	return result;
+}
+
+static GVariant *
+_gsecret_util_variant_for_attributes (GHashTable *attributes)
+{
+	GHashTableIter iter;
+	GVariantBuilder builder;
+	const gchar *name;
+	const gchar *value;
+
+	g_variant_builder_init (&builder, G_VARIANT_TYPE ("a(ssv)"));
+
+	g_hash_table_iter_init (&iter, attributes);
+	while (g_hash_table_iter_next (&iter, (gpointer *)&name, (gpointer *)&value))
+		g_variant_builder_add (&builder, "(ss)", name, value);
+
+	return g_variant_builder_end (&builder);
+
+}
+
+static void
+on_search_items_complete (GObject *source,
+                          GAsyncResult *result,
+                          gpointer user_data)
+{
+	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
+	GError *error = NULL;
+	GVariant *response;
+
+	response = g_dbus_proxy_call_finish (G_DBUS_PROXY (source), result, &error);
+	if (error != NULL)
+		g_simple_async_result_take_error (res, error);
+	else
+		g_simple_async_result_set_op_res_gpointer (res, response,
+		                                           (GDestroyNotify)g_variant_unref);
+
+	g_simple_async_result_complete (res);
+	g_object_unref (res);
+}
+
+void
+gsecret_service_search_paths (GSecretService *self,
+                              GHashTable *attributes,
+                              GCancellable *cancellable,
+                              GAsyncReadyCallback callback,
+                              gpointer user_data)
+{
+	GSimpleAsyncResult *res;
+
+	g_return_if_fail (GSECRET_IS_SERVICE (self));
+	g_return_if_fail (attributes != NULL);
+	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+	res = g_simple_async_result_new (G_OBJECT (self), callback, user_data,
+	                                 gsecret_service_search_paths);
+
+	g_dbus_proxy_call (G_DBUS_PROXY (self), "SearchItems",
+	                   _gsecret_util_variant_for_attributes (attributes),
+	                   G_DBUS_CALL_FLAGS_NONE, -1, cancellable,
+	                   on_search_items_complete, g_object_ref (res));
+
+	g_object_unref (res);
+}
+
+gboolean
+gsecret_service_search_paths_finish (GSecretService *self,
+                                     GAsyncResult *result,
+                                     gchar ***unlocked,
+                                     gchar ***locked,
+                                     GError **error)
+{
+	GVariant *response;
+	GSimpleAsyncResult *res;
+	gchar **dummy = NULL;
+
+	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (self),
+	                      gsecret_service_search_paths), FALSE);
+	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+
+	res = G_SIMPLE_ASYNC_RESULT (result);
+	if (g_simple_async_result_propagate_error (res, error))
+		return FALSE;
+
+	if (unlocked || locked) {
+		if (!unlocked)
+			unlocked = &dummy;
+		else if (!locked)
+			locked = &dummy;
+		response = g_simple_async_result_get_op_res_gpointer (res);
+		g_variant_get (response, "(^ao^ao)", unlocked, locked);
+	}
+
+	g_strfreev (dummy);
+	return TRUE;
+}
+
+gboolean
+gsecret_service_search_paths_sync (GSecretService *self,
+                                   GHashTable *attributes,
+                                   GCancellable *cancellable,
+                                   gchar ***unlocked,
+                                   gchar ***locked,
+                                   GError **error)
+{
+	gchar **dummy = NULL;
+	GVariant *response;
+
+	g_return_val_if_fail (GSECRET_IS_SERVICE (self), FALSE);
+	g_return_val_if_fail (attributes != NULL, FALSE);
+	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), FALSE);
+	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+
+	response = g_dbus_proxy_call_sync (G_DBUS_PROXY (self), "SearchItems",
+	                                   _gsecret_util_variant_for_attributes (attributes),
+	                                   G_DBUS_CALL_FLAGS_NONE, -1, cancellable, error);
+
+	if (response != NULL) {
+		if (unlocked || locked) {
+			if (!unlocked)
+				unlocked = &dummy;
+			else if (!locked)
+				locked = &dummy;
+			g_variant_get (response, "(^ao^ao)", unlocked, locked);
+		}
+
+		g_variant_unref (response);
+	}
+
+	g_strfreev (dummy);
+
+	return response != NULL;
 }
