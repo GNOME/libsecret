@@ -137,8 +137,8 @@ on_complete_get_result (GObject *source,
 }
 
 static void
-test_ensure_async (Test *test,
-                   gconstpointer unused)
+test_ensure_async_plain (Test *test,
+                         gconstpointer unused)
 {
 	GAsyncResult *result = NULL;
 	GError *error = NULL;
@@ -154,6 +154,28 @@ test_ensure_async (Test *test,
 	g_assert (path != NULL);
 	g_assert_cmpstr (gsecret_service_get_session_path (test->service), ==, path);
 	g_assert_cmpstr (gsecret_service_get_session_algorithms (test->service), ==, "plain");
+
+	g_object_unref (result);
+}
+
+static void
+test_ensure_async_aes (Test *test,
+                       gconstpointer unused)
+{
+	GAsyncResult *result = NULL;
+	GError *error = NULL;
+	const gchar *path;
+
+	gsecret_service_ensure_session (test->service, NULL, on_complete_get_result, &result);
+	egg_test_wait_until (500);
+
+	g_assert (G_IS_ASYNC_RESULT (result));
+	path = gsecret_service_ensure_session_finish (test->service, result, &error);
+	g_assert_no_error (error);
+
+	g_assert (path != NULL);
+	g_assert_cmpstr (gsecret_service_get_session_path (test->service), ==, path);
+	g_assert_cmpstr (gsecret_service_get_session_algorithms (test->service), ==, "dh-ietf1024-sha256-aes128-cbc-pkcs7");
 
 	g_object_unref (result);
 }
@@ -204,7 +226,8 @@ main (int argc, char **argv)
 	g_test_add ("/session/ensure-aes", Test, "mock-service-normal.py", setup, test_ensure, teardown);
 	g_test_add ("/session/ensure-twice", Test, "mock-service-normal.py", setup, test_ensure_twice, teardown);
 	g_test_add ("/session/ensure-plain", Test, "mock-service-only-plain.py", setup, test_ensure_plain, teardown);
-	g_test_add ("/session/ensure-async", Test, "mock-service-only-plain.py", setup, test_ensure_async, teardown);
+	g_test_add ("/session/ensure-async-aes", Test, "mock-service-normal.py", setup, test_ensure_async_aes, teardown);
+	g_test_add ("/session/ensure-async-plain", Test, "mock-service-only-plain.py", setup, test_ensure_async_plain, teardown);
 	g_test_add ("/session/ensure-async-twice", Test, "mock-service-only-plain.py", setup, test_ensure_async_twice, teardown);
 
 	return egg_tests_run_in_thread_with_loop ();
