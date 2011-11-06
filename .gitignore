@@ -29,7 +29,7 @@ stamp*
 .project
 .cproject
 
-/build/coverage
+/build/coverage*
 /build/m4
 /build/valgrind-built.supp
 

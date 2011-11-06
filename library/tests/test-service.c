@@ -69,6 +69,18 @@ teardown (Test *test,
 }
 
 static void
+on_complete_get_result (GObject *source,
+                        GAsyncResult *result,
+                        gpointer user_data)
+{
+	GAsyncResult **ret = user_data;
+	g_assert (ret != NULL);
+	g_assert (*ret == NULL);
+	*ret = g_object_ref (result);
+	egg_test_wait_stop ();
+}
+
+static void
 test_instance (void)
 {
 	GSecretService *service1;
@@ -134,6 +146,117 @@ test_search_paths (Test *test,
 	g_hash_table_unref (attributes);
 }
 
+static void
+test_search_paths_async (Test *test,
+                         gconstpointer used)
+{
+	GAsyncResult *result = NULL;
+	GHashTable *attributes;
+	gboolean ret;
+	gchar **locked;
+	gchar **unlocked;
+	GError *error = NULL;
+
+	attributes = g_hash_table_new (g_str_hash, g_str_equal);
+	g_hash_table_insert (attributes, "number", "1");
+
+	gsecret_service_search_paths (test->service, attributes, NULL,
+	                              on_complete_get_result, &result);
+	egg_test_wait ();
+
+	g_assert (G_IS_ASYNC_RESULT (result));
+	ret = gsecret_service_search_paths_finish (test->service, result,
+	                                           &unlocked, &locked,
+	                                           &error);
+	g_assert_no_error (error);
+	g_assert (ret == TRUE);
+
+	g_assert (locked);
+	g_assert_cmpstr (locked[0], ==, "/org/freedesktop/secrets/collection/second/item_one");
+
+	g_assert (unlocked);
+	g_assert_cmpstr (unlocked[0], ==, "/org/freedesktop/secrets/collection/collection/item_one");
+
+	g_strfreev (unlocked);
+	g_strfreev (locked);
+	g_object_unref (result);
+
+	g_hash_table_unref (attributes);
+}
+
+static void
+test_search_paths_nulls (Test *test,
+                         gconstpointer used)
+{
+	GAsyncResult *result = NULL;
+	GHashTable *attributes;
+	gboolean ret;
+	gchar **paths;
+	GError *error = NULL;
+
+	attributes = g_hash_table_new (g_str_hash, g_str_equal);
+	g_hash_table_insert (attributes, "number", "1");
+
+	ret = gsecret_service_search_paths_sync (test->service, attributes, NULL,
+	                                         &paths, NULL, &error);
+	g_assert_no_error (error);
+	g_assert (ret == TRUE);
+	g_assert (paths != NULL);
+	g_assert_cmpstr (paths[0], ==, "/org/freedesktop/secrets/collection/collection/item_one");
+	g_strfreev (paths);
+
+	ret = gsecret_service_search_paths_sync (test->service, attributes, NULL,
+	                                         NULL, &paths, &error);
+	g_assert_no_error (error);
+	g_assert (ret == TRUE);
+	g_assert (paths != NULL);
+	g_assert_cmpstr (paths[0], ==, "/org/freedesktop/secrets/collection/second/item_one");
+	g_strfreev (paths);
+
+	ret = gsecret_service_search_paths_sync (test->service, attributes, NULL,
+	                                         NULL, NULL, &error);
+	g_assert_no_error (error);
+	g_assert (ret == TRUE);
+
+	gsecret_service_search_paths (test->service, attributes, NULL,
+	                              on_complete_get_result, &result);
+	egg_test_wait ();
+	g_assert (G_IS_ASYNC_RESULT (result));
+	ret = gsecret_service_search_paths_finish (test->service, result,
+	                                           &paths, NULL, &error);
+	g_assert_no_error (error);
+	g_assert (ret == TRUE);
+	g_assert (paths != NULL);
+	g_assert_cmpstr (paths[0], ==, "/org/freedesktop/secrets/collection/collection/item_one");
+	g_strfreev (paths);
+	g_clear_object (&result);
+
+	gsecret_service_search_paths (test->service, attributes, NULL,
+	                              on_complete_get_result, &result);
+	egg_test_wait ();
+	g_assert (G_IS_ASYNC_RESULT (result));
+	ret = gsecret_service_search_paths_finish (test->service, result,
+	                                           NULL, &paths, &error);
+	g_assert_no_error (error);
+	g_assert (ret == TRUE);
+	g_assert (paths != NULL);
+	g_assert_cmpstr (paths[0], ==, "/org/freedesktop/secrets/collection/second/item_one");
+	g_strfreev (paths);
+	g_clear_object (&result);
+
+	gsecret_service_search_paths (test->service, attributes, NULL,
+	                              on_complete_get_result, &result);
+	egg_test_wait ();
+	g_assert (G_IS_ASYNC_RESULT (result));
+	ret = gsecret_service_search_paths_finish (test->service, result,
+	                                           NULL, NULL, &error);
+	g_assert_no_error (error);
+	g_assert (ret == TRUE);
+	g_clear_object (&result);
+
+	g_hash_table_unref (attributes);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -143,6 +266,8 @@ main (int argc, char **argv)
 
 	g_test_add_func ("/service/instance", test_instance);
 	g_test_add ("/service/search-paths", Test, "mock-service-normal.py", setup, test_search_paths, teardown);
+	g_test_add ("/service/search-paths-async", Test, "mock-service-normal.py", setup, test_search_paths_async, teardown);
+	g_test_add ("/service/search-paths-nulls", Test, "mock-service-normal.py", setup, test_search_paths_nulls, teardown);
 
 	return egg_tests_run_with_loop ();
 }

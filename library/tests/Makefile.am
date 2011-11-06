@@ -22,7 +22,7 @@ noinst_PROGRAMS =  \
 	$(NULL)
 
 test: $(TEST_PROGS)
-	gtester -k --verbose $(TEST_PROGS)
+	gtester --verbose -m $(TEST_MODE) --g-fatal-warnings $(TEST_PROGS)
 
 all-local: $(check_PROGRAMS)
 

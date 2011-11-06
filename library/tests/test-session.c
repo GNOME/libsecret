@@ -139,6 +139,7 @@ on_complete_get_result (GObject *source,
 	g_assert (ret != NULL);
 	g_assert (*ret == NULL);
 	*ret = g_object_ref (result);
+	egg_test_wait_stop ();
 }
 
 static void
@@ -150,7 +151,7 @@ test_ensure_async_plain (Test *test,
 	const gchar *path;
 
 	gsecret_service_ensure_session (test->service, NULL, on_complete_get_result, &result);
-	egg_test_wait_until (500);
+	egg_test_wait ();
 
 	g_assert (G_IS_ASYNC_RESULT (result));
 	path = gsecret_service_ensure_session_finish (test->service, result, &error);

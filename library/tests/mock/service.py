@@ -75,10 +75,11 @@ class SecretSession(dbus.service.Object):
 
 
 class SecretItem(dbus.service.Object):
-	def __init__(self, collection, identifier, label="Item", attributes={ }):
+	def __init__(self, collection, identifier, label="Item", attributes={ }, secret=""):
 		self.collection = collection
 		self.identifier = identifier
 		self.label = label
+		self.secret = secret
 		self.attributes = attributes
 		self.path = "/org/freedesktop/secrets/collection/%s/%s" % (collection.identifier, identifier)
 		dbus.service.Object.__init__(self, collection.service.bus_name, self.path)

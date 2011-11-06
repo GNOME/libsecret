@@ -31,9 +31,9 @@ check-memory:
 
 if WITH_COVERAGE
 coverage:
-	mkdir -p build/coverage
-	$(LCOV) --directory . --capture --output-file build/coverage/coverage.info
-	$(GENHTML) --output-directory coverage build/coverage/coverage.info
+	mkdir -p $(builddir)/build/coverage
+	$(LCOV) --directory . --capture --output-file $(builddir)/build/coverage.info
+	$(GENHTML) --output-directory $(builddir)/build/coverage $(builddir)/build/coverage.info
 	$(LCOV) --directory . --zerocounters
 	@echo "file://$(abs_top_builddir)/build/coverage/index.html"
 
