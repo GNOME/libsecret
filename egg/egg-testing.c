@@ -57,6 +57,25 @@ hex_dump (const guchar *data, gsize n_data)
 }
 
 void
+egg_assertion_not_object (const char *domain,
+                          const char *file,
+                          int         line,
+                          const char *func,
+                          const char *expr,
+                          gpointer was_object)
+{
+	gchar *s;
+
+	if (RUNNING_ON_VALGRIND)
+		return;
+	if (G_IS_OBJECT (was_object)) {
+		s = g_strdup_printf ("assertion failed: %s is still referenced", expr);
+		g_assertion_message (domain, file, line, func, s);
+		g_free (s);
+	}
+}
+
+void
 egg_assertion_message_cmpmem (const char     *domain,
                               const char     *file,
                               int             line,

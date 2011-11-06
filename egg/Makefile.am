@@ -6,7 +6,9 @@ noinst_LTLIBRARIES = \
 EXTRA_DIST = egg-testing.h
 
 INCLUDES = \
-	-I$(top_srcdir)
+	-I$(top_srcdir) \
+	-I$(top_srcdir)/build \
+	-DWITH_VALGRIND
 
 if WITH_GCRYPT
 ENCRYPTION_SRCS = egg-dh.c egg-dh.h

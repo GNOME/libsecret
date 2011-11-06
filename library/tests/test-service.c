@@ -58,6 +58,8 @@ teardown (Test *test,
           gconstpointer unused)
 {
 	g_clear_object (&test->service);
+	egg_assert_not_object (test->service);
+
 	g_clear_object (&test->connection);
 
 	g_assert (test->pid);
@@ -87,17 +89,17 @@ test_instance (void)
 	g_assert (service1 == service2);
 
 	g_object_unref (service1);
-	g_assert (GSECRET_IS_SERVICE (service1));
+	g_assert (G_IS_OBJECT (service1));
 
 	g_object_unref (service2);
-	g_assert (!GSECRET_IS_SERVICE (service2));
+	egg_assert_not_object (service2);
 
 	/* Services were unreffed, so this should create a new one */
 	service3 = _gsecret_service_bare_instance (connection, MOCK_NAME);
 	g_assert (GSECRET_IS_SERVICE (service3));
 
 	g_object_unref (service3);
-	g_assert (!GSECRET_IS_SERVICE (service3));
+	egg_assert_not_object (service3);
 
 	g_object_unref (connection);
 }

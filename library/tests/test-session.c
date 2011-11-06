@@ -58,13 +58,18 @@ static void
 teardown (Test *test,
           gconstpointer unused)
 {
+	GError *error = NULL;
+
 	g_clear_object (&test->service);
-	g_clear_object (&test->connection);
 
 	g_assert (test->pid);
 	if (kill (test->pid, SIGTERM) < 0)
 		g_error ("kill() failed: %s", g_strerror (errno));
 	g_spawn_close_pid (test->pid);
+
+	g_dbus_connection_flush_sync (test->connection, NULL, &error);
+	g_assert_no_error (error);
+	g_clear_object (&test->connection);
 }
 
 static void

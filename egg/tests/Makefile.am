@@ -1,3 +1,4 @@
+include $(top_srcdir)/Makefile.decl
 
 INCLUDES = \
 	-I$(top_builddir) \
@@ -23,5 +24,7 @@ test: $(TEST_PROGS)
 	gtester --verbose -m $(TEST_MODE) --g-fatal-warnings $(TEST_PROGS)
 
 check-local: test
+
+check-memory: perform-memcheck
 
 all-local: $(check_PROGRAMS)

@@ -46,12 +46,6 @@
 #include <valgrind/memcheck.h>
 #endif
 
-/*
- * Use this to force all memory through malloc
- * for use with valgrind and the like 
- */
-#define FORCE_FALLBACK_MEMORY 0
-
 #define DEBUG_SECURE_MEMORY 0
 
 #if DEBUG_SECURE_MEMORY 
@@ -212,11 +206,11 @@ pool_alloc (void)
 	++pool->used;
 	ASSERT (unused_peek (&pool->unused));
 	item = unused_pop (&pool->unused);
-	
+
 #ifdef WITH_VALGRIND
 	VALGRIND_MEMPOOL_ALLOC (pool, item, sizeof (Item));
 #endif
-	
+
 	return memset (item, 0, sizeof (Item));
 }
 
@@ -246,20 +240,20 @@ pool_free (void* item)
 	/* No more meta cells used in this block, remove from list, destroy */
 	if (pool->used == 1) {
 		*at = pool->next;
-		
+
 #ifdef WITH_VALGRIND
 		VALGRIND_DESTROY_MEMPOOL (pool);
 #endif
-		
+
 		munmap (pool, pool->length);
 		return;
 	}
-	
+
 #ifdef WITH_VALGRIND
 	VALGRIND_MEMPOOL_FREE (pool, item);
 	VALGRIND_MAKE_MEM_UNDEFINED (item, sizeof (Item));
 #endif
-	
+
 	--pool->used;
 	memset (item, 0xCD, sizeof (Item));
 	unused_push (&pool->unused, item);
@@ -404,12 +398,33 @@ sec_is_valid_word (Block *block, word_t *word)
 	return (word >= block->words && word < block->words + block->n_words);
 }
 
-static inline void*
-sec_clear_memory (void *memory, size_t from, size_t to)
+static inline void
+sec_clear_undefined (void *memory,
+                     size_t from,
+                     size_t to)
 {
+	char *ptr = memory;
 	ASSERT (from <= to);
-	memset ((char*)memory + from, 0, to - from);
-	return memory;
+#ifdef WITH_VALGRIND
+	VALGRIND_MAKE_MEM_UNDEFINED (ptr + from, to - from);
+#endif
+	memset (ptr + from, 0, to - from);
+#ifdef WITH_VALGRIND
+	VALGRIND_MAKE_MEM_UNDEFINED (ptr + from, to - from);
+#endif
+}
+static inline void
+sec_clear_noaccess (void *memory, size_t from, size_t to)
+{
+	char *ptr = memory;
+	ASSERT (from <= to);
+#ifdef WITH_VALGRIND
+	VALGRIND_MAKE_MEM_UNDEFINED (ptr + from, to - from);
+#endif
+	memset (ptr + from, 0, to - from);
+#ifdef WITH_VALGRIND
+	VALGRIND_MAKE_MEM_NOACCESS (ptr + from, to - from);
+#endif
 }
 
 static Cell*
@@ -567,7 +582,7 @@ sec_free (Block *block, void *memory)
 #endif
 
 	sec_check_guards (cell);
-	sec_clear_memory (memory, 0, cell->requested);
+	sec_clear_noaccess (memory, 0, cell->requested);
 
 	sec_check_guards (cell);
 	ASSERT (cell->requested > 0);
@@ -609,6 +624,34 @@ sec_free (Block *block, void *memory)
         cell->requested = 0;
         --block->n_used;
         return NULL;
+}
+
+static void
+memcpy_with_vbits (void *dest,
+                   void *src,
+                   size_t length)
+{
+#ifdef WITH_VALGRIND
+	int vbits_setup = 0;
+	void *vbits = NULL;
+
+	if (RUNNING_ON_VALGRIND) {
+		vbits = malloc (length);
+		if (vbits != NULL)
+			vbits_setup = VALGRIND_GET_VBITS (src, vbits, length);
+		VALGRIND_MAKE_MEM_DEFINED (src, length);
+	}
+#endif
+
+	memcpy (dest, src, length);
+
+#ifdef WITH_VALGRIND
+	if (vbits_setup == 1) {
+		VALGRIND_SET_VBITS (dest, vbits, length);
+		VALGRIND_SET_VBITS (src, vbits, length);
+	}
+	free (vbits);
+#endif
 }
 
 static void*
@@ -658,19 +701,15 @@ sec_realloc (Block *block,
 		cell->requested = length;
 		alloc = sec_cell_to_memory (cell);
 
-#ifdef WITH_VALGRIND
-		VALGRIND_MAKE_MEM_DEFINED (alloc, length);
-#endif
-		
 		/* 
 		 * Even though we may be reusing the same cell, that doesn't
 		 * mean that the allocation is shrinking. It could have shrunk
 		 * and is now expanding back some. 
 		 */ 
 		if (length < valid)
-			return sec_clear_memory (alloc, length, valid);
-		else
-			return alloc;
+			sec_clear_undefined (alloc, length, valid);
+
+		return alloc;
 	}
 	
 	/* Need braaaaaiiiiiinsss... */
@@ -702,18 +741,14 @@ sec_realloc (Block *block,
 		cell->requested = length;
 		cell->tag = tag;
 		alloc = sec_cell_to_memory (cell);
-
-#ifdef WITH_VALGRIND
-		VALGRIND_MAKE_MEM_DEFINED (alloc, length);
-#endif
-		
-		return sec_clear_memory (alloc, valid, length);
+		sec_clear_undefined (alloc, valid, length);
+		return alloc;
 	}
 
 	/* That didn't work, try alloc/free */
 	alloc = sec_alloc (block, tag, length);
 	if (alloc) {
-		memcpy (alloc, memory, valid);
+		memcpy_with_vbits (alloc, memory, valid);
 		sec_free (block, memory);
 	}
 	
@@ -758,7 +793,10 @@ sec_validate (Block *block)
 {
 	Cell *cell;
 	word_t *word, *last;
-	
+
+	if (RUNNING_ON_VALGRIND)
+		return;
+
 	word = block->words;
 	last = word + block->n_words;
 
@@ -781,7 +819,7 @@ sec_validate (Block *block)
 			ASSERT (cell->prev->next == cell);
 			ASSERT (cell->requested <= (cell->n_words - 2) * sizeof (word_t));
 		
-			/* An unused block */
+		/* An unused block */
 		} else {
 			ASSERT (cell->tag == NULL);
 			ASSERT (cell->next != NULL);
@@ -884,11 +922,10 @@ sec_block_create (size_t size,
 
 	ASSERT (during_tag);
 
-#if FORCE_FALLBACK_MEMORY
 	/* We can force all all memory to be malloced */
-	return NULL;
-#endif
-	
+	if (getenv ("SECMEM_FORCE_FALLBACK"))
+		return NULL;
+
 	block = pool_alloc ();
 	if (!block)
 		return NULL;
@@ -1103,7 +1140,7 @@ egg_secure_realloc_full (const char *tag,
 	if (donew) {
 		alloc = egg_secure_alloc_full (tag, length, flags);
 		if (alloc) {
-			memcpy (alloc, memory, previous);
+			memcpy_with_vbits (alloc, memory, previous);
 			egg_secure_free_full (memory, flags);
 		}
 	}
@@ -1138,7 +1175,7 @@ egg_secure_free_full (void *memory, int flags)
 
 #ifdef WITH_VALGRIND
 		/* We like valgrind's warnings, so give it a first whack at checking for errors */
-		if (block != NULL || !(flags & GKR_SECURE_USE_FALLBACK))
+		if (block != NULL || !(flags & EGG_SECURE_USE_FALLBACK))
 			VALGRIND_FREELIKE_BLOCK (memory, sizeof (word_t));
 #endif
 

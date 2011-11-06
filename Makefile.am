@@ -1,9 +1,9 @@
 ## Process this file with automake to produce Makefile.in
 include $(top_srcdir)/Makefile.decl
 
-ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
+ACLOCAL_AMFLAGS = -I build/m4 ${ACLOCAL_FLAGS}
 
-SUBDIRS = po egg library
+SUBDIRS = build po egg library
 
 DISTCHECK_CONFIGURE_FLAGS = \
 	--enable-debug=yes \
@@ -23,13 +23,19 @@ dist-hook:
 		echo A git clone is required to generate a ChangeLog >&2; \
 	fi
 
+check-memory:
+	@for subdir in $(SUBDIRS); do \
+		test -d $(builddir)/$$subdir/tests && \
+			make -C $(builddir)/$$subdir/tests check-memory; \
+	done
+
 if WITH_COVERAGE
 coverage:
-	mkdir -p coverage
-	$(LCOV) --directory . --capture --output-file coverage/coverage.info
-	$(GENHTML) --output-directory coverage coverage/coverage.info
+	mkdir -p build/coverage
+	$(LCOV) --directory . --capture --output-file build/coverage/coverage.info
+	$(GENHTML) --output-directory coverage build/coverage/coverage.info
 	$(LCOV) --directory . --zerocounters
-	@echo "file://$(abs_top_builddir)/coverage/index.html"
+	@echo "file://$(abs_top_builddir)/build/coverage/index.html"
 
 clear-coverage:
 	$(LCOV) --directory . --zerocounters

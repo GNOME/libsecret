@@ -3,6 +3,7 @@
 *.la
 *.lo
 *.pyc
+*.gcov
 *.gcno
 *.gcda
 .deps
@@ -19,7 +20,6 @@ install-sh
 INSTALL
 libtool
 ltmain.sh
-m4
 Makefile
 Makefile.in
 Makefile.in.in
@@ -29,9 +29,12 @@ stamp*
 .project
 .cproject
 
-/coverage
+/build/coverage
+/build/m4
+/build/valgrind-built.supp
 
 /po/POTFILES
+/po/gsecret.pot
 
 /egg/tests/test-dh
 /egg/tests/test-hkdf
@@ -40,3 +43,4 @@ stamp*
 /library/gsecret-dbus-generated.[ch]
 /library/tests/test-*
 !/library/tests/test-*.c
+

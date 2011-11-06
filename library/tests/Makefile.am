@@ -27,3 +27,7 @@ test: $(TEST_PROGS)
 all-local: $(check_PROGRAMS)
 
 check-local: test
+
+check-memory: perform-memcheck
+
+.PHONY: check-memory

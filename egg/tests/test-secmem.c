@@ -97,6 +97,8 @@ test_realloc_across (void)
 	p2 = egg_secure_realloc_full ("tests", p, 16200, 0);
 	g_assert (p2 != NULL);
 	g_assert_cmpint (G_MAXSIZE, ==, find_non_zero (p2, 16200));
+
+	egg_secure_free (p2);
 }
 
 static void
@@ -212,6 +214,7 @@ test_multialloc (void)
 	}
 
 	g_assert (memory->len == 0);
+	g_ptr_array_set_free_func (memory, egg_secure_free);
 	g_ptr_array_free (memory, TRUE);
 
 	egg_secure_warnings = 1;

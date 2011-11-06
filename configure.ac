@@ -1,5 +1,5 @@
 AC_PREREQ(2.65)
-AC_CONFIG_MACRO_DIR([m4])
+AC_CONFIG_MACRO_DIR([build/m4])
 
 AC_INIT([gsecret],[0.1],[http://bugzilla.gnome.org/enter_bug.cgi?product=gsecret])
 
@@ -192,6 +192,7 @@ AC_SUBST(GENHTML)
 
 AC_CONFIG_FILES([
 	Makefile
+	build/Makefile
 	egg/Makefile
 	egg/tests/Makefile
 	po/Makefile.in

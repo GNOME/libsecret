@@ -337,8 +337,8 @@ egg_dh_gen_secret (gcry_mpi_t peer, gcry_mpi_t priv,
 #if DEBUG_DH_SECRET
 	g_printerr ("DH SECRET: ");
 	gcry_mpi_dump (k);
-	gcry_mpi_release (k);
 #endif
+	gcry_mpi_release (k);
 
 	*bytes = n_value;
 
