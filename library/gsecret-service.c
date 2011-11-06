@@ -385,8 +385,8 @@ on_service_open_session_aes (GObject *source,
 		if (response_open_session_aes (closure->session, response)) {
 
 			/* Set value atomically, in case of race condition */
-			if (!g_atomic_pointer_compare_and_exchange (&(self->pv->session),
-			                                            NULL, closure->session))
+			if (g_atomic_pointer_compare_and_exchange (&(self->pv->session),
+			                                           NULL, closure->session))
 				closure->session = NULL; /* Service takes ownership */
 
 		} else {
