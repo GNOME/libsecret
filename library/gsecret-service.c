@@ -120,10 +120,20 @@ GSecretService *
 _gsecret_service_bare_instance (GDBusConnection *connection,
                                 const gchar *bus_name)
 {
-	GSecretService *service;
+	GSecretService *service = NULL;
 	GError *error = NULL;
 
 	g_return_val_if_fail (G_IS_DBUS_CONNECTION (connection), NULL);
+
+	G_LOCK (service_instance);
+
+		if (service_instance != NULL)
+			service = g_object_ref (service_instance);
+
+	G_UNLOCK (service_instance);
+
+	if (service != NULL)
+		return service;
 
 	/* Alternate bus name is only used for testing */
 	if (bus_name == NULL)

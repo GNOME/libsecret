@@ -67,6 +67,42 @@ teardown (Test *test,
 }
 
 static void
+test_instance (void)
+{
+	GSecretService *service1;
+	GSecretService *service2;
+	GSecretService *service3;
+	GError *error = NULL;
+	GDBusConnection *connection;
+
+	connection = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, &error);
+	g_assert_no_error (error);
+
+	/* Both these sohuld point to the same thing */
+
+	service1 = _gsecret_service_bare_instance (connection, MOCK_NAME);
+	service2 = _gsecret_service_bare_instance (connection, MOCK_NAME);
+
+	g_assert (GSECRET_IS_SERVICE (service1));
+	g_assert (service1 == service2);
+
+	g_object_unref (service1);
+	g_assert (GSECRET_IS_SERVICE (service1));
+
+	g_object_unref (service2);
+	g_assert (!GSECRET_IS_SERVICE (service2));
+
+	/* Services were unreffed, so this should create a new one */
+	service3 = _gsecret_service_bare_instance (connection, MOCK_NAME);
+	g_assert (GSECRET_IS_SERVICE (service3));
+
+	g_object_unref (service3);
+	g_assert (!GSECRET_IS_SERVICE (service3));
+
+	g_object_unref (connection);
+}
+
+static void
 test_search_paths (Test *test,
                    gconstpointer used)
 {
@@ -103,6 +139,7 @@ main (int argc, char **argv)
 	g_set_prgname ("test-service");
 	g_type_init ();
 
+	g_test_add_func ("/service/instance", test_instance);
 	g_test_add ("/service/search-paths", Test, "mock-service-normal.py", setup, test_search_paths, teardown);
 
 	return egg_tests_run_in_thread_with_loop ();
