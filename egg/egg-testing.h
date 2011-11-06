@@ -45,8 +45,10 @@ void       egg_assertion_message_cmpmem        (const char *domain, const char *
 
 void       egg_test_wait_stop                  (void);
 
+#define    egg_test_wait()                     g_assert (egg_test_wait_until (20000) != FALSE)
+
 gboolean   egg_test_wait_until                 (int timeout);
 
-gint       egg_tests_run_in_thread_with_loop   (void);
+gint       egg_tests_run_with_loop             (void);
 
 #endif /* EGG_DH_H_ */

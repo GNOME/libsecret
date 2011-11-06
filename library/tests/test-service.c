@@ -142,5 +142,5 @@ main (int argc, char **argv)
 	g_test_add_func ("/service/instance", test_instance);
 	g_test_add ("/service/search-paths", Test, "mock-service-normal.py", setup, test_search_paths, teardown);
 
-	return egg_tests_run_in_thread_with_loop ();
+	return egg_tests_run_with_loop ();
 }

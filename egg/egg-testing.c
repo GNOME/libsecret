@@ -25,13 +25,12 @@
 
 #include "egg-testing.h"
 
+#include <glib-object.h>
+
+#include <valgrind/valgrind.h>
+
 #include <errno.h>
 #include <unistd.h>
-
-static GCond *wait_condition = NULL;
-static GCond *wait_start = NULL;
-static GMutex *wait_mutex = NULL;
-static gboolean wait_waiting = FALSE;
 
 static const char HEXC[] = "0123456789ABCDEF";
 
@@ -79,79 +78,84 @@ egg_assertion_message_cmpmem (const char     *domain,
   g_free (s);
 }
 
+static void (*wait_stop_impl) (void);
+static gboolean (*wait_until_impl) (int timeout);
+
 void
 egg_test_wait_stop (void)
 {
-	GTimeVal tv;
-
-	g_get_current_time (&tv);
-	g_time_val_add (&tv, 1000);
-
-	g_assert (wait_mutex);
-	g_assert (wait_condition);
-	g_mutex_lock (wait_mutex);
-		if (!wait_waiting)
-			g_cond_timed_wait (wait_start, wait_mutex, &tv);
-		g_assert (wait_waiting);
-		g_cond_broadcast (wait_condition);
-	g_mutex_unlock (wait_mutex);
+	g_assert (wait_stop_impl != NULL);
+	(wait_stop_impl) ();
 }
 
 gboolean
 egg_test_wait_until (int timeout)
 {
-	GTimeVal tv;
-	gboolean ret;
+	g_assert (wait_until_impl != NULL);
+	return (wait_until_impl) (timeout);
+}
 
-	g_get_current_time (&tv);
-	g_time_val_add (&tv, timeout * 1000);
+static GMainLoop *wait_loop = NULL;
 
-	g_assert (wait_mutex);
-	g_assert (wait_condition);
-	g_mutex_lock (wait_mutex);
-		g_assert (!wait_waiting);
-		wait_waiting = TRUE;
-		g_cond_broadcast (wait_start);
-		ret = g_cond_timed_wait (wait_condition, wait_mutex, &tv);
-		g_assert (wait_waiting);
-		wait_waiting = FALSE;
-	g_mutex_unlock (wait_mutex);
+static void
+loop_wait_stop (void)
+{
+	g_assert (wait_loop != NULL);
+	g_main_loop_quit (wait_loop);
+}
 
+static gboolean
+on_loop_wait_timeout (gpointer data)
+{
+	gboolean *timed_out = data;
+	*timed_out = TRUE;
+
+	g_assert (wait_loop != NULL);
+	g_main_loop_quit (wait_loop);
+
+	return TRUE; /* we remove this source later */
+}
+
+static gboolean
+loop_wait_until (int timeout)
+{
+	gboolean ret = FALSE;
+	gboolean timed_out = FALSE;
+	guint source;
+
+	g_assert (wait_loop == NULL);
+	wait_loop = g_main_loop_new (g_main_context_get_thread_default (), FALSE);
+
+	source = g_timeout_add (timeout, on_loop_wait_timeout, &timed_out);
+
+	g_main_loop_run (wait_loop);
+
+	if (timed_out) {
+		g_source_remove (source);
+		ret = FALSE;
+	} else {
+		ret = TRUE;
+	}
+
+	g_main_loop_unref (wait_loop);
+	wait_loop = NULL;
 	return ret;
 }
 
-static gpointer
-testing_thread (gpointer loop)
-{
-	/* Must have been defined by the test including this file */
-	gint ret = g_test_run ();
-	g_main_loop_quit (loop);
-	return GINT_TO_POINTER (ret);
-}
-
 gint
-egg_tests_run_in_thread_with_loop (void)
+egg_tests_run_with_loop (void)
 {
-	GThread *thread;
-	GMainLoop *loop;
-	gpointer ret;
+	gint ret;
 
-	g_thread_init (NULL);
+	wait_stop_impl = loop_wait_stop;
+	wait_until_impl = loop_wait_until;
 
-	loop = g_main_loop_new (NULL, FALSE);
-	wait_condition = g_cond_new ();
-	wait_start = g_cond_new ();
-	wait_mutex = g_mutex_new ();
+	ret = g_test_run ();
 
-	thread = g_thread_create (testing_thread, loop, TRUE, NULL);
-	g_assert (thread);
+	wait_stop_impl = NULL;
+	wait_until_impl = NULL;
 
-	g_main_loop_run (loop);
-	ret = g_thread_join (thread);
-	g_main_loop_unref (loop);
+	while (g_main_context_iteration (NULL, FALSE));
 
-	g_cond_free (wait_condition);
-	g_mutex_free (wait_mutex);
-
-	return GPOINTER_TO_INT (ret);
+	return ret;
 }

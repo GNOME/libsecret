@@ -35,8 +35,8 @@ AM_GLIB_GNU_GETTEXT
 #
 
 PKG_CHECK_MODULES(GLIB,
-	glib-2.0 >= 2.30.0
-	gio-2.0 >= 2.30.0
+	glib-2.0 >= 2.31.0
+	gio-2.0 >= 2.31.0
 	gio-unix-2.0)
 LIBS="$LIBS $GLIB_LIBS"
 CFLAGS="$CFLAGS $GLIB_CFLAGS"

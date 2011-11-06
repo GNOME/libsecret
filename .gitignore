@@ -37,5 +37,6 @@ stamp*
 /egg/tests/test-hkdf
 /egg/tests/test-secmem
 
+/library/gsecret-dbus-generated.[ch]
 /library/tests/test-*
 !/library/tests/test-*.c

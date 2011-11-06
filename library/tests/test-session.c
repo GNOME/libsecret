@@ -230,5 +230,5 @@ main (int argc, char **argv)
 	g_test_add ("/session/ensure-async-plain", Test, "mock-service-only-plain.py", setup, test_ensure_async_plain, teardown);
 	g_test_add ("/session/ensure-async-twice", Test, "mock-service-only-plain.py", setup, test_ensure_async_twice, teardown);
 
-	return egg_tests_run_in_thread_with_loop ();
+	return egg_tests_run_with_loop ();
 }
