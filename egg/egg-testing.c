@@ -138,7 +138,6 @@ on_loop_wait_timeout (gpointer data)
 static gboolean
 loop_wait_until (int timeout)
 {
-	gboolean ret = FALSE;
 	gboolean timed_out = FALSE;
 	guint source;
 
@@ -149,16 +148,10 @@ loop_wait_until (int timeout)
 
 	g_main_loop_run (wait_loop);
 
-	if (timed_out) {
-		g_source_remove (source);
-		ret = FALSE;
-	} else {
-		ret = TRUE;
-	}
-
+	g_source_remove (source);
 	g_main_loop_unref (wait_loop);
 	wait_loop = NULL;
-	return ret;
+	return !timed_out;
 }
 
 gint

@@ -31,6 +31,32 @@ gsecret_error_get_quark (void)
 	return quark;
 }
 
+GSecretParams *
+_gsecret_params_new (GCancellable *cancellable,
+                     GVariant *in)
+{
+	GSecretParams *params;
+
+	params = g_slice_new0 (GSecretParams);
+	params->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
+	params->in = g_variant_ref_sink (in);
+
+	return params;
+}
+
+void
+_gsecret_params_free (gpointer data)
+{
+	GSecretParams *params = data;
+
+	g_clear_object (&params->cancellable);
+	if (params->in)
+		g_variant_unref (params->in);
+	if (params->out)
+		g_variant_unref (params->out);
+	g_slice_free (GSecretParams, params);
+}
+
 gchar *
 _gsecret_util_parent_path (const gchar *path)
 {

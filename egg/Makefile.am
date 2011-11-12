@@ -19,7 +19,11 @@ ENCRYPTION_SRCS =
 endif
 
 libegg_la_SOURCES = \
+	egg-hex.c egg-hex.h \
 	egg-secure-memory.c egg-secure-memory.h \
 	egg-testing.c egg-testing.h \
 	$(ENCRYPTION_SRCS) \
 	$(BUILT_SOURCES)
+
+check-memory:
+	make -C tests check-memory

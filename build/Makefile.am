@@ -9,11 +9,11 @@ SUPPRESSIONS = \
 	pthread.supp \
 	unknown.supp
 
-valgrind-built.supp: $(SUPPRESSIONS)
+valgrind-suppressions: $(SUPPRESSIONS)
 	$(AM_V_GEN) cat $(SUPPRESSIONS) > $@
 
 EXTRA_DIST = \
 	$(VALGRIND_CONTRIB) \
 	$(SUPPRESSIONS)
 
-all-local: valgrind-built.supp
+all-local: valgrind-suppressions

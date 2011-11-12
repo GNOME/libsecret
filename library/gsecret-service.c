@@ -24,6 +24,7 @@
 #include "egg/egg-libgcrypt.h"
 #endif
 
+#include "egg/egg-hex.h"
 #include "egg/egg-secure-memory.h"
 
 #include <glib.h>
@@ -209,9 +210,18 @@ request_open_session_aes (GSecretSession *session)
 	g_assert (session->publi == NULL);
 
 	/* Initialize our local parameters and values */
-	if (!egg_dh_default_params ("ietf-ike-grp-modp-1024",
+	if (!egg_dh_default_params ("ietf-ike-grp-modp-1536",
 	                            &session->prime, &base))
-			g_return_val_if_reached (NULL);
+		g_return_val_if_reached (NULL);
+
+#if 0
+	g_printerr ("\n lib prime: ");
+	gcry_mpi_dump (session->prime);
+	g_printerr ("\n  lib base: ");
+	gcry_mpi_dump (base);
+	g_printerr ("\n");
+#endif
+
 	if (!egg_dh_gen_pair (session->prime, base, 0,
 	                      &session->publi, &session->privat))
 		g_return_val_if_reached (NULL);
@@ -255,8 +265,20 @@ response_open_session_aes (GSecretSession *session,
 	g_return_val_if_fail (gcry == 0, FALSE);
 	g_variant_unref (argument);
 
+#if 0
+	g_printerr (" lib publi: ");
+	gcry_mpi_dump (session->publi);
+	g_printerr ("\n  lib peer: ");
+	gcry_mpi_dump (peer);
+	g_printerr ("\n");
+#endif
+
 	ikm = egg_dh_gen_secret (peer, session->privat, session->prime, &n_ikm);
 	gcry_mpi_release (peer);
+
+#if 0
+	g_printerr ("   lib ikm:  %s\n", egg_hex_encode (ikm, n_ikm));
+#endif
 
 	if (ikm == NULL) {
 		g_warning ("couldn't negotiate a valid AES session key");
@@ -633,8 +655,16 @@ service_decode_aes_secret (GSecretSession *session,
 		return NULL;
 	}
 
+#if 0
+	g_printerr ("    lib iv:  %s\n", egg_hex_encode (param, n_param));
+#endif
+
 	gcry = gcry_cipher_setiv (cih, param, n_param);
 	g_return_val_if_fail (gcry == 0, NULL);
+
+#if 0
+	g_printerr ("   lib key:  %s\n", egg_hex_encode (session->key, session->n_key));
+#endif
 
 	gcry = gcry_cipher_setkey (cih, session->key, session->n_key);
 	g_return_val_if_fail (gcry == 0, NULL);
@@ -656,7 +686,7 @@ service_decode_aes_secret (GSecretSession *session,
 	if (!pkcs7_unpad_bytes_in_place (padded, &n_padded)) {
 		egg_secure_clear (padded, n_padded);
 		egg_secure_free (padded);
-		g_message ("received an invalid, unencryptable, or non-utf8 secret");
+		g_message ("received an invalid or unencryptable secret");
 		return FALSE;
 	}
 
@@ -900,11 +930,11 @@ on_search_items_complete (GObject *source,
 }
 
 void
-gsecret_service_search_paths (GSecretService *self,
-                              GHashTable *attributes,
-                              GCancellable *cancellable,
-                              GAsyncReadyCallback callback,
-                              gpointer user_data)
+gsecret_service_search_for_paths (GSecretService *self,
+                                  GHashTable *attributes,
+                                  GCancellable *cancellable,
+                                  GAsyncReadyCallback callback,
+                                  gpointer user_data)
 {
 	GSimpleAsyncResult *res;
 
@@ -913,7 +943,7 @@ gsecret_service_search_paths (GSecretService *self,
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
 	res = g_simple_async_result_new (G_OBJECT (self), callback, user_data,
-	                                 gsecret_service_search_paths);
+	                                 gsecret_service_search_for_paths);
 
 	g_dbus_proxy_call (G_DBUS_PROXY (self), "SearchItems",
 	                   g_variant_new ("(@a{ss})",
@@ -925,18 +955,18 @@ gsecret_service_search_paths (GSecretService *self,
 }
 
 gboolean
-gsecret_service_search_paths_finish (GSecretService *self,
-                                     GAsyncResult *result,
-                                     gchar ***unlocked,
-                                     gchar ***locked,
-                                     GError **error)
+gsecret_service_search_for_paths_finish (GSecretService *self,
+                                         GAsyncResult *result,
+                                         gchar ***unlocked,
+                                         gchar ***locked,
+                                         GError **error)
 {
 	GVariant *response;
 	GSimpleAsyncResult *res;
 	gchar **dummy = NULL;
 
 	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (self),
-	                      gsecret_service_search_paths), FALSE);
+	                      gsecret_service_search_for_paths), FALSE);
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
 	res = G_SIMPLE_ASYNC_RESULT (result);
@@ -957,12 +987,12 @@ gsecret_service_search_paths_finish (GSecretService *self,
 }
 
 gboolean
-gsecret_service_search_paths_sync (GSecretService *self,
-                                   GHashTable *attributes,
-                                   GCancellable *cancellable,
-                                   gchar ***unlocked,
-                                   gchar ***locked,
-                                   GError **error)
+gsecret_service_search_for_paths_sync (GSecretService *self,
+                                       GHashTable *attributes,
+                                       GCancellable *cancellable,
+                                       gchar ***unlocked,
+                                       gchar ***locked,
+                                       GError **error)
 {
 	gchar **dummy = NULL;
 	GVariant *response;
@@ -992,4 +1022,252 @@ gsecret_service_search_paths_sync (GSecretService *self,
 	g_strfreev (dummy);
 
 	return response != NULL;
+}
+
+static void
+on_get_secrets_complete (GObject *source,
+                         GAsyncResult *result,
+                         gpointer user_data)
+{
+	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
+	GSecretParams *params = g_simple_async_result_get_op_res_gpointer (res);
+	GError *error = NULL;
+
+	params->out = g_dbus_proxy_call_finish (G_DBUS_PROXY (source), result, &error);
+	if (error != NULL)
+		g_simple_async_result_take_error (res, error);
+	g_simple_async_result_complete (res);
+
+	g_object_unref (res);
+}
+
+static void
+on_get_secrets_session (GObject *source,
+                        GAsyncResult *result,
+                        gpointer user_data)
+{
+	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
+	GSecretParams *params = g_simple_async_result_get_op_res_gpointer (res);
+	GError *error = NULL;
+	const gchar *session;
+
+	session = gsecret_service_ensure_session_finish (GSECRET_SERVICE (source),
+	                                                 result, &error);
+	if (error != NULL) {
+		g_simple_async_result_take_error (res, error);
+		g_simple_async_result_complete (res);
+	} else {
+		g_dbus_proxy_call (G_DBUS_PROXY (source), "GetSecrets",
+		                   g_variant_new ("(@aoo)", params->in, session),
+		                   G_DBUS_CALL_FLAGS_NO_AUTO_START, -1,
+		                   params->cancellable, on_get_secrets_complete,
+		                   g_object_ref (res));
+	}
+
+	g_object_unref (res);
+}
+
+void
+gsecret_service_get_secret_for_path (GSecretService *self,
+                                     const gchar *object_path,
+                                     GCancellable *cancellable,
+                                     GAsyncReadyCallback callback,
+                                     gpointer user_data)
+{
+	GSimpleAsyncResult *res;
+	GSecretParams *params;
+
+	g_return_if_fail (GSECRET_IS_SERVICE (self));
+	g_return_if_fail (object_path != NULL);
+	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+	res = g_simple_async_result_new (G_OBJECT (self), callback, user_data,
+	                                 gsecret_service_get_secret_for_path);
+
+	params = _gsecret_params_new (cancellable, g_variant_new_objv (&object_path, 1));
+	g_simple_async_result_set_op_res_gpointer (res, params, _gsecret_params_free);
+
+	gsecret_service_ensure_session (self, cancellable,
+	                                on_get_secrets_session,
+	                                g_object_ref (res));
+
+	g_object_unref (res);
+}
+
+static GSecretValue *
+service_decode_get_secrets_first (GSecretService *self,
+                                  GVariant *out)
+{
+	GVariantIter *iter;
+	GVariant *variant;
+	GSecretValue *value;
+	const gchar *path;
+
+	g_variant_get (out, "(a{o(oayays)})", &iter);
+	while (g_variant_iter_next (iter, "{&o@(oayays)}", &path, &variant)) {
+		value = _gsecret_service_decode_secret (self, variant);
+		g_variant_unref (variant);
+		break;
+	}
+	g_variant_iter_free (iter);
+	return value;
+}
+
+static GHashTable *
+service_decode_get_secrets_all (GSecretService *self,
+                                GVariant *out)
+{
+	GVariantIter *iter;
+	GVariant *variant;
+	GHashTable *values;
+	GSecretValue *value;
+	gchar *path;
+
+	values = g_hash_table_new_full (g_str_hash, g_str_equal,
+	                                g_free, gsecret_value_unref);
+	g_variant_get (out, "(a{o(oayays)})", &iter);
+	while (g_variant_iter_loop (iter, "{o@(oayays)}", &path, &variant)) {
+		value = _gsecret_service_decode_secret (self, variant);
+		if (value && path)
+			g_hash_table_insert (values, g_strdup (path), value);
+	}
+	g_variant_iter_free (iter);
+	return values;
+}
+
+GSecretValue *
+gsecret_service_get_secret_for_path_finish (GSecretService *self,
+                                            GAsyncResult *result,
+                                            GError **error)
+{
+	GSimpleAsyncResult *res;
+	GSecretParams *params;
+
+	g_return_val_if_fail (GSECRET_IS_SERVICE (self), NULL);
+	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (self),
+	                      gsecret_service_get_secret_for_path), NULL);
+	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
+
+	res = G_SIMPLE_ASYNC_RESULT (result);
+	if (g_simple_async_result_propagate_error (res, error))
+		return NULL;
+
+	params = g_simple_async_result_get_op_res_gpointer (res);
+	return service_decode_get_secrets_first (self, params->out);
+}
+
+GSecretValue *
+gsecret_service_get_secret_for_path_sync (GSecretService *self,
+                                          const gchar *object_path,
+                                          GCancellable *cancellable,
+                                          GError **error)
+{
+	const gchar *session;
+	GSecretValue *value;
+	GVariant *out;
+
+	g_return_val_if_fail (GSECRET_IS_SERVICE (self), NULL);
+	g_return_val_if_fail (object_path != NULL, NULL);
+	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
+	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
+
+	session = gsecret_service_ensure_session_sync (self, cancellable, error);
+	if (!session)
+		return NULL;
+
+	out = g_dbus_proxy_call_sync (G_DBUS_PROXY (self), "GetSecrets",
+	                              g_variant_new ("(@aoo)",
+	                                             g_variant_new_objv (&object_path, 1),
+	                                             session),
+	                              G_DBUS_CALL_FLAGS_NO_AUTO_START, -1,
+	                              cancellable, error);
+	if (!out)
+		return NULL;
+
+	value = service_decode_get_secrets_first (self, out);
+	g_variant_unref (out);
+
+	return value;
+}
+
+void
+gsecret_service_get_secrets_for_paths (GSecretService *self,
+                                       const gchar **object_paths,
+                                       GCancellable *cancellable,
+                                       GAsyncReadyCallback callback,
+                                       gpointer user_data)
+{
+	GSimpleAsyncResult *res;
+	GSecretParams *params;
+
+	g_return_if_fail (GSECRET_IS_SERVICE (self));
+	g_return_if_fail (object_paths != NULL);
+	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+	res = g_simple_async_result_new (G_OBJECT (self), callback, user_data,
+	                                 gsecret_service_get_secret_for_path);
+
+	params = _gsecret_params_new (cancellable, g_variant_new_objv (object_paths, -1));
+	g_simple_async_result_set_op_res_gpointer (res, params, _gsecret_params_free);
+
+	gsecret_service_ensure_session (self, cancellable,
+	                                on_get_secrets_session,
+	                                g_object_ref (res));
+
+	g_object_unref (res);
+}
+
+GHashTable *
+gsecret_service_get_secrets_for_paths_finish (GSecretService *self,
+                                              GAsyncResult *result,
+                                              GError **error)
+{
+	GSimpleAsyncResult *res;
+	GSecretParams *params;
+
+	g_return_val_if_fail (GSECRET_IS_SERVICE (self), NULL);
+	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (self),
+	                      gsecret_service_get_secret_for_path), NULL);
+	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
+
+	res = G_SIMPLE_ASYNC_RESULT (result);
+	if (g_simple_async_result_propagate_error (res, error))
+		return NULL;
+
+	params = g_simple_async_result_get_op_res_gpointer (res);
+	return service_decode_get_secrets_all (self, params->out);
+}
+
+GHashTable *
+gsecret_service_get_secrets_for_paths_sync (GSecretService *self,
+                                            const gchar **object_paths,
+                                            GCancellable *cancellable,
+                                            GError **error)
+{
+	const gchar *session;
+	GHashTable *values;
+	GVariant *out;
+
+	g_return_val_if_fail (GSECRET_IS_SERVICE (self), NULL);
+	g_return_val_if_fail (object_paths != NULL, NULL);
+	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
+	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
+
+	session = gsecret_service_ensure_session_sync (self, cancellable, error);
+	if (!session)
+		return NULL;
+
+	out = g_dbus_proxy_call_sync (G_DBUS_PROXY (self), "GetSecrets",
+	                              g_variant_new ("(@aoo)",
+	                                             g_variant_new_objv (object_paths, -1),
+	                                             session),
+	                              G_DBUS_CALL_FLAGS_NO_AUTO_START, -1,
+	                              cancellable, error);
+	if (!out)
+		return NULL;
+
+	values = service_decode_get_secrets_all (self, out);
+	g_variant_unref (out);
+
+	return values;
 }

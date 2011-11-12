@@ -239,6 +239,15 @@
    fun:g_test_run_suite
 }
 {
+   g_test_run_suite__timer_new2
+   Memcheck:Leak
+   ...
+   fun:g_timer_new
+   fun:test_case_run_suite_internal
+   ...
+   fun:g_test_run_suite
+}
+{
    g_test_run_suite__strconcat
    Memcheck:Leak
    ...
@@ -300,4 +309,11 @@
    Memcheck:Leak
    ...
    fun:g_static_mutex_get_mutex_impl
+}
+{
+   g_variant_type_info_unref
+   Memcheck:Leak
+   ...
+   fun:g_hash_table_remove
+   fun:g_variant_type_info_unref
 }

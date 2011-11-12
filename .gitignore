@@ -31,14 +31,13 @@ stamp*
 
 /build/coverage*
 /build/m4
-/build/valgrind-built.supp
+/build/valgrind-suppressions
 
 /po/POTFILES
 /po/gsecret.pot
 
-/egg/tests/test-dh
-/egg/tests/test-hkdf
-/egg/tests/test-secmem
+/egg/tests/test-*
+!/egg/tests/test-*.c
 
 /library/gsecret-dbus-generated.[ch]
 /library/tests/test-*

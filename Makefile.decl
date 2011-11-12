@@ -1,11 +1,28 @@
 NULL =
 
-perform-memcheck: $(TEST_PROGS) $(top_builddir)/build/valgrind-built.supp
+TEST_SUPPRESSIONS = $(top_builddir)/build/valgrind-suppressions
+
+perform-memcheck: $(TEST_PROGS) $(TEST_SUPPRESSIONS)
 	@for test in $(TEST_PROGS); do \
 		G_SLICE=always-malloc libtool --mode=execute \
 			valgrind --trace-children=no --gen-suppressions=all \
-			--suppressions=$(top_builddir)/build/valgrind-built.supp \
+			--suppressions=$(TEST_SUPPRESSIONS) \
 			--leak-check=full --show-reachable=yes --num-callers=16 \
 			--quiet --error-exitcode=33 \
 			$(builddir)/$$test; \
 	done
+
+if WITH_COVERAGE
+coverage:
+	mkdir -p $(top_builddir)/build/coverage
+	$(LCOV) --directory . --capture --output-file $(top_builddir)/build/coverage.info
+	$(GENHTML) --output-directory $(top_builddir)/build/coverage $(top_builddir)/build/coverage.info
+	$(LCOV) --directory . --zerocounters
+	@echo "file://$(abs_top_builddir)/build/coverage/index.html"
+
+clear-coverage:
+	$(LCOV) --directory . --zerocounters
+
+.PHONY: coverage
+endif
+	

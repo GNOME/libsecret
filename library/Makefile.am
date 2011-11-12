@@ -40,3 +40,6 @@ gsecret-dbus-generated.c: $(DBUS_XML_DEFINITIONS) Makefile.am
 	$(AM_V_GEN) sed -i -e 's/gsecret_gen_/_gsecret_gen_/g' gsecret-dbus-generated.[ch]
 
 gsecret-dbus-generated.h: gsecret-dbus-generated.c
+
+check-memory:
+	make -C tests check-memory

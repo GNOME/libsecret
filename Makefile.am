@@ -28,17 +28,3 @@ check-memory:
 		test -d $(builddir)/$$subdir/tests && \
 			make -C $(builddir)/$$subdir/tests check-memory; \
 	done
-
-if WITH_COVERAGE
-coverage:
-	mkdir -p $(builddir)/build/coverage
-	$(LCOV) --directory . --capture --output-file $(builddir)/build/coverage.info
-	$(GENHTML) --output-directory $(builddir)/build/coverage $(builddir)/build/coverage.info
-	$(LCOV) --directory . --zerocounters
-	@echo "file://$(abs_top_builddir)/build/coverage/index.html"
-
-clear-coverage:
-	$(LCOV) --directory . --zerocounters
-
-.PHONY: coverage
-endif

@@ -60,7 +60,8 @@ teardown (Test *test,
 {
 	GError *error = NULL;
 
-	g_clear_object (&test->service);
+	g_object_unref (test->service);
+	egg_assert_not_object (test->service);
 
 	g_assert (test->pid);
 	if (kill (test->pid, SIGTERM) < 0)
@@ -69,7 +70,7 @@ teardown (Test *test,
 
 	g_dbus_connection_flush_sync (test->connection, NULL, &error);
 	g_assert_no_error (error);
-	g_clear_object (&test->connection);
+	g_object_unref (test->connection);
 }
 
 static void

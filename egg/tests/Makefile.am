@@ -12,6 +12,7 @@ LDADD =  \
 	$(GLIB_LIBS)
 
 TEST_PROGS = \
+	test-hex \
 	test-secmem
 
 if WITH_GCRYPT

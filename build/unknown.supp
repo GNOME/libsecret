@@ -344,3 +344,12 @@
    ...
    fun:gdbus_shared_thread_func
 }
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   ...
+   fun:g_main_context_add_poll_unlocked
+   ...
+   fun:g_main_loop_run
+   fun:gdbus_shared_thread_func
+}

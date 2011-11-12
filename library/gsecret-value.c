@@ -49,7 +49,7 @@ gsecret_value_new (const gchar *secret, gssize length, const gchar *content_type
 {
 	gchar *copy;
 
-	g_return_val_if_fail (!secret && length, NULL);
+	g_return_val_if_fail (secret == NULL || length != 0, NULL);
 	g_return_val_if_fail (content_type, NULL);
 
 	if (length < 0)
@@ -67,14 +67,15 @@ gsecret_value_new_full (gchar *secret, gssize length,
 {
 	GSecretValue *value;
 
-	g_return_val_if_fail (!secret && length, NULL);
+	g_return_val_if_fail (secret == NULL || length != 0, NULL);
 	g_return_val_if_fail (content_type, NULL);
 
 	if (length < 0)
 		length = strlen (secret);
 
 	value = g_slice_new0 (GSecretValue);
-	value->content_type = strdup (content_type);
+	value->refs = 1;
+	value->content_type = g_strdup (content_type);
 	value->destroy = destroy;
 	value->length = length;
 	value->secret = secret;

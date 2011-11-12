@@ -20,6 +20,12 @@
 
 G_BEGIN_DECLS
 
+typedef struct {
+	GVariant *in;
+	GVariant *out;
+	GCancellable *cancellable;
+} GSecretParams;
+
 #define             GSECRET_SERVICE_PATH              "/org/freedesktop/secrets"
 
 #define             GSECRET_SERVICE_BUS_NAME          "org.freedesktop.Secret.Service"
@@ -27,6 +33,11 @@ G_BEGIN_DECLS
 #define             GSECRET_SERVICE_INTERFACE         "org.freedesktop.Secret.Service"
 
 #define             GSECRET_COLLECTION_INTERFACE      "org.freedesktop.Secret.Collection"
+
+GSecretParams *     _gsecret_params_new                        (GCancellable *cancellable,
+                                                                GVariant *in);
+
+void                _gsecret_params_free                       (gpointer data);
 
 gchar *             _gsecret_util_parent_path         (const gchar *path);
 

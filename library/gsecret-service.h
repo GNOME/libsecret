@@ -15,6 +15,8 @@
 
 #include <gio/gio.h>
 
+#include "gsecret-value.h"
+
 G_BEGIN_DECLS
 
 #define GSECRET_TYPE_SERVICE            (gsecret_service_get_type ())
@@ -110,24 +112,54 @@ gboolean            gsecret_service_search_sync              (GSecretService *se
                                                               GError **error);
 #endif
 
-void                gsecret_service_search_paths             (GSecretService *self,
-                                                              GHashTable *attributes,
-                                                              GCancellable *cancellable,
-                                                              GAsyncReadyCallback callback,
-                                                              gpointer user_data);
+void              gsecret_service_search_for_paths                  (GSecretService *self,
+                                                                     GHashTable *attributes,
+                                                                     GCancellable *cancellable,
+                                                                     GAsyncReadyCallback callback,
+                                                                     gpointer user_data);
 
-gboolean            gsecret_service_search_paths_finish      (GSecretService *self,
-                                                              GAsyncResult *result,
-                                                              gchar ***unlocked,
-                                                              gchar ***locked,
-                                                              GError **error);
+gboolean          gsecret_service_search_for_paths_finish           (GSecretService *self,
+                                                                     GAsyncResult *result,
+                                                                     gchar ***unlocked,
+                                                                     gchar ***locked,
+                                                                     GError **error);
 
-gboolean            gsecret_service_search_paths_sync        (GSecretService *self,
-                                                              GHashTable *attributes,
-                                                              GCancellable *cancellable,
-                                                              gchar ***unlocked,
-                                                              gchar ***locked,
-                                                              GError **error);
+gboolean          gsecret_service_search_for_paths_sync             (GSecretService *self,
+                                                                     GHashTable *attributes,
+                                                                     GCancellable *cancellable,
+                                                                     gchar ***unlocked,
+                                                                     gchar ***locked,
+                                                                     GError **error);
+
+void              gsecret_service_get_secret_for_path               (GSecretService *self,
+                                                                     const gchar *object_path,
+                                                                     GCancellable *cancellable,
+                                                                     GAsyncReadyCallback callback,
+                                                                     gpointer user_data);
+
+GSecretValue *    gsecret_service_get_secret_for_path_finish        (GSecretService *self,
+                                                                     GAsyncResult *result,
+                                                                     GError **error);
+
+GSecretValue *    gsecret_service_get_secret_for_path_sync          (GSecretService *self,
+                                                                     const gchar *object_path,
+                                                                     GCancellable *cancellable,
+                                                                     GError **error);
+
+void              gsecret_service_get_secrets_for_paths             (GSecretService *self,
+                                                                     const gchar **object_paths,
+                                                                     GCancellable *cancellable,
+                                                                     GAsyncReadyCallback callback,
+                                                                     gpointer user_data);
+
+GHashTable *      gsecret_service_get_secrets_for_paths_finish      (GSecretService *self,
+                                                                     GAsyncResult *result,
+                                                                     GError **error);
+
+GHashTable *      gsecret_service_get_secrets_for_paths_sync        (GSecretService *self,
+                                                                     const gchar **object_paths,
+                                                                     GCancellable *cancellable,
+                                                                     GError **error);
 
 #if 0
 void                gsecret_service_lock                     (GSecretService *self,
