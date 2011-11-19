@@ -794,8 +794,10 @@ sec_validate (Block *block)
 	Cell *cell;
 	word_t *word, *last;
 
+#ifdef WITH_VALGRIND
 	if (RUNNING_ON_VALGRIND)
 		return;
+#endif
 
 	word = block->words;
 	last = word + block->n_words;
