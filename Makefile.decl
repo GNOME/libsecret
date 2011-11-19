@@ -3,6 +3,7 @@ NULL =
 TEST_SUPPRESSIONS = $(top_builddir)/build/valgrind-suppressions
 
 perform-memcheck: $(TEST_PROGS) $(TEST_SUPPRESSIONS)
+	@make -C $(top_builddir)/build all
 	@for test in $(TEST_PROGS); do \
 		G_SLICE=always-malloc libtool --mode=execute \
 			valgrind --trace-children=no --gen-suppressions=all \
@@ -23,6 +24,5 @@ coverage:
 clear-coverage:
 	$(LCOV) --directory . --zerocounters
 
-.PHONY: coverage
 endif
 	

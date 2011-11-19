@@ -353,3 +353,14 @@
    fun:g_main_loop_run
    fun:gdbus_shared_thread_func
 }
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   ...
+   fun:g_set_error_literal
+   fun:g_cancellable_set_error_if_cancelled
+   fun:g_socket_receive_message
+   ...
+   fun:g_main_loop_run
+   fun:gdbus_shared_thread_func
+}
