@@ -38,7 +38,7 @@ gsecret-dbus-generated.c: $(DBUS_XML_DEFINITIONS) Makefile.am
 		--generate-c-code gsecret-dbus-generated --c-namespace GSecretGen \
 		$(DBUS_XML_DEFINITIONS)
 	$(AM_V_GEN) sed -i -e 's/gsecret_gen_/_gsecret_gen_/g' gsecret-dbus-generated.[ch]
-
+	$(AM_V_GEN) sed -i -e '1i #define GLIB_DISABLE_DEPRECATION_WARNINGS' gsecret-dbus-generated.c
 gsecret-dbus-generated.h: gsecret-dbus-generated.c
 
 check-memory:
