@@ -59,6 +59,8 @@ void       egg_test_wait_stop                  (void);
 
 gboolean   egg_test_wait_until                 (int timeout);
 
+void       egg_test_wait_idle                  (void);
+
 gint       egg_tests_run_with_loop             (void);
 
 #endif /* EGG_DH_H_ */

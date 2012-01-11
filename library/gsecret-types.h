@@ -25,6 +25,36 @@ typedef enum {
 	GSECRET_ERROR_PROTOCOL = 1,
 } GSecretError;
 
+typedef enum {
+	GSECRET_ATTRIBUTE_BOOLEAN,
+	GSECRET_ATTRIBUTE_STRING,
+	GSECRET_ATTRIBUTE_INTEGER
+} GSecretSchemaType;
+
+typedef struct {
+	const gchar *schema_name;
+	struct {
+		const gchar* name;
+		GSecretSchemaType type;
+	} attributes[32];
+
+	/* <private> */
+	gpointer reserved1;
+	gpointer reserved2;
+	gpointer reserved3;
+	gpointer reserved4;
+	gpointer reserved5;
+	gpointer reserved6;
+	gpointer reserved7;
+	gpointer reserved8;
+} GSecretSchema;
+
+typedef struct _GSecretCollection  GSecretCollection;
+typedef struct _GSecretItem        GSecretItem;
+typedef struct _GSecretPrompt      GSecretPrompt;
+typedef struct _GSecretService     GSecretService;
+typedef struct _GSecretValue       GSecretValue;
+
 G_END_DECLS
 
 #endif /* __G_SERVICE_H___ */

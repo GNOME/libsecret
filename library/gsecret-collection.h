@@ -24,7 +24,6 @@ G_BEGIN_DECLS
 #define GSECRET_IS_SERVICE_CLASS(class) (GSECRET_TYPE_CHECK_CLASS_TYPE ((class), GSECRET_TYPE_SERVICE))
 #define GSECRET_SERVICE_GET_CLASS(inst) (GSECRET_TYPE_INSTANCE_GET_CLASS ((inst), GSECRET_TYPE_SERVICE, GSecretServiceClass))
 
-typedef struct _GSecretService        GSecretService;
 typedef struct _GSecretServiceClass   GSecretServiceClass;
 typedef struct _GSecretServicePrivate GSecretServicePrivate;
 

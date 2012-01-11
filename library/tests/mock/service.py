@@ -11,9 +11,10 @@
 # See the included COPYING file for more information.
 #
 
+import getopt
 import os
 import sys
-import getopt
+import time
 import unittest
 
 import aes
@@ -90,6 +91,48 @@ class AesAlgorithm():
 		        "".join([chr(i) for i in ciph]))
 
 
+class SecretPrompt(dbus.service.Object):
+	def __init__(self, service, sender, prompt_name=None, delay=0,
+	             dismiss=False, result=dbus.String("", variant_level=1),
+	             action=None):
+		self.sender = sender
+		self.service = service
+		self.delay = 0
+		self.dismiss = False
+		self.result = result
+		self.action = action
+		self.completed = False
+		if prompt_name:
+			self.path = "/org/freedesktop/secrets/prompts/%s" % prompt_name
+		else:
+			self.path = "/org/freedesktop/secrets/prompts/p%d" % next_identifier()
+		dbus.service.Object.__init__(self, service.bus_name, self.path)
+		service.add_prompt(self)
+		assert self.path not in objects
+		objects[self.path] = self
+
+	def _complete(self):
+		if self.completed:
+			return
+		self.completed = True
+		self.Completed(self.dismiss, self.result)
+		self.remove_from_connection()
+
+	@dbus.service.method('org.freedesktop.Secret.Prompt')
+	def Prompt(self, window_id):
+		if self.action:
+			self.action()
+		gobject.timeout_add(self.delay * 1000, self._complete)
+
+	@dbus.service.method('org.freedesktop.Secret.Prompt')
+	def Dismiss(self):
+		self._complete()
+
+	@dbus.service.signal(dbus_interface='org.freedesktop.Secret.Prompt', signature='bv')
+	def Completed(self, dismiss, result):
+		pass
+
+
 class SecretSession(dbus.service.Object):
 	def __init__(self, service, sender, algorithm, key):
 		self.sender = sender
@@ -116,7 +159,7 @@ class SecretSession(dbus.service.Object):
 
 class SecretItem(dbus.service.Object):
 	def __init__(self, collection, identifier, label="Item", attributes={ },
-	             secret="", content_type="text/plain"):
+	             secret="", confirm=False, content_type="text/plain"):
 		self.collection = collection
 		self.identifier = identifier
 		self.label = label
@@ -125,6 +168,7 @@ class SecretItem(dbus.service.Object):
 		self.content_type = content_type
 		self.locked = collection.locked
 		self.path = "%s/%s" % (collection.path, identifier)
+		self.confirm = confirm
 		dbus.service.Object.__init__(self, collection.service.bus_name, self.path)
 		collection.items[identifier] = self
 		objects[self.path] = self
@@ -135,6 +179,10 @@ class SecretItem(dbus.service.Object):
 				return False
 		return True
 
+	def perform_delete(self):
+		del self.collection.items[self.identifier]
+		del objects[self.path]
+
 	@dbus.service.method('org.freedesktop.Secret.Item', sender_keyword='sender')
 	def GetSecret(self, session_path, sender=None):
 		session = objects.get(session_path, None)
@@ -143,6 +191,16 @@ class SecretItem(dbus.service.Object):
 		if self.locked:
 			raise IsLocked("secret is locked: %s" % self.path)
 		return session.encode_secret(self.secret, self.content_type)
+
+	@dbus.service.method('org.freedesktop.Secret.Item', sender_keyword='sender')
+	def Delete(self, sender=None):
+		if self.confirm:
+			prompt = SecretPrompt(self.collection.service, sender,
+			                      dismiss=False, action=self.perform_delete)
+			return dbus.ObjectPath(prompt.path)
+		else:
+			self.perform_delete()
+			return dbus.ObjectPath("/")
 
 
 class SecretCollection(dbus.service.Object):
@@ -179,6 +237,7 @@ class SecretService(dbus.service.Object):
 		self.bus_name = dbus.service.BusName(name, allow_replacement=True, replace_existing=True)
 		dbus.service.Object.__init__(self, self.bus_name, '/org/freedesktop/secrets')
 		self.sessions = { }
+		self.prompts = { }
 		self.collections = { }
 
 		def on_name_owner_changed(owned, old_owner, new_owner):
@@ -212,6 +271,14 @@ class SecretService(dbus.service.Object):
 
 	def remove_session(self, session):
 		self.sessions[session.sender].remove(session)
+
+	def add_prompt(self, prompt):
+		if prompt.sender not in self.prompts:
+			self.prompts[prompt.sender] = []
+		self.prompts[prompt.sender].append(prompt)
+
+	def remove_prompt (self, prompt):
+		self.prompts[prompt.sender].remove(prompt)
 
 	def find_item(self, object):
 		if object.startswith(COLLECTION_PREFIX):
@@ -253,6 +320,7 @@ class SecretService(dbus.service.Object):
 			if item and not item.locked:
 				results[item_path] = item.GetSecret(session_path, sender)
 		return results
+
 
 def parse_options(args):
 	global bus_name

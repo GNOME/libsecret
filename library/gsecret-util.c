@@ -72,6 +72,13 @@ _gsecret_util_parent_path (const gchar *path)
 	return g_strndup (path, pos - path);
 }
 
+gboolean
+_gsecret_util_empty_path (const gchar *path)
+{
+	g_return_val_if_fail (path != NULL, TRUE);
+	return (g_str_equal (path, "") || g_str_equal (path, "/"));
+}
+
 GVariant *
 _gsecret_util_variant_for_attributes (GHashTable *attributes)
 {
@@ -90,4 +97,72 @@ _gsecret_util_variant_for_attributes (GHashTable *attributes)
 
 	return g_variant_builder_end (&builder);
 
+}
+
+GHashTable *
+_gsecret_util_attributes_for_varargs (const GSecretSchema *schema,
+                                      va_list args)
+{
+	const gchar *attribute_name;
+	GSecretSchemaType type;
+	GHashTable *attributes;
+	const gchar *string;
+	gboolean type_found;
+	gchar *value = NULL;
+	gboolean boolean;
+	gint integer;
+	gint i;
+
+	attributes = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
+
+	for (;;) {
+		attribute_name = va_arg (args, const gchar *);
+		if (attribute_name == NULL)
+			break;
+
+		type_found = FALSE;
+		for (i = 0; i < G_N_ELEMENTS (schema->attributes); ++i) {
+			if (!schema->attributes[i].name)
+				break;
+			if (g_str_equal (schema->attributes[i].name, attribute_name)) {
+				type_found = TRUE;
+				type = schema->attributes[i].type;
+				break;
+			}
+		}
+
+		if (!type_found) {
+			g_warning ("The attribute '%s' was not found in the password schema.", attribute_name);
+			g_hash_table_unref (attributes);
+			return NULL;
+		}
+
+		switch (type) {
+		case GSECRET_ATTRIBUTE_BOOLEAN:
+			boolean = va_arg (args, gboolean);
+			value = g_strdup (boolean ? "true" : "false");
+			break;
+		case GSECRET_ATTRIBUTE_STRING:
+			string = va_arg (args, gchar *);
+			if (!g_utf8_validate (string, -1, NULL)) {
+				g_warning ("The value for attribute '%s' was not a valid utf-8 string.", attribute_name);
+				g_hash_table_unref (attributes);
+				return NULL;
+			}
+			value = g_strdup (string);
+			break;
+		case GSECRET_ATTRIBUTE_INTEGER:
+			integer = va_arg (args, gint);
+			value = g_strdup_printf ("%d", integer);
+			break;
+		default:
+			g_warning ("The password attribute '%s' has an invalid type in the password schema.", attribute_name);
+			g_hash_table_unref (attributes);
+			return NULL;
+		}
+
+		g_hash_table_insert (attributes, g_strdup (attribute_name), value);
+	}
+
+	return attributes;
 }

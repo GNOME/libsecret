@@ -30,21 +30,43 @@ typedef struct {
 
 #define             GSECRET_SERVICE_BUS_NAME          "org.freedesktop.Secret.Service"
 
+#define             GSECRET_ITEM_INTERFACE            "org.freedesktop.Secret.Item"
+#define             GSECRET_COLLECTION_INTERFACE      "org.freedesktop.Secret.Collection"
+#define             GSECRET_PROMPT_INTERFACE          "org.freedesktop.Secret.Prompt"
 #define             GSECRET_SERVICE_INTERFACE         "org.freedesktop.Secret.Service"
 
-#define             GSECRET_COLLECTION_INTERFACE      "org.freedesktop.Secret.Collection"
+#define             GSECRET_PROMPT_SIGNAL_COMPLETED   "Completed"
 
 GSecretParams *     _gsecret_params_new                        (GCancellable *cancellable,
                                                                 GVariant *in);
 
 void                _gsecret_params_free                       (gpointer data);
 
+GSecretPrompt *     _gsecret_prompt_instance                   (GDBusConnection *connection,
+                                                                const gchar *object_path);
+
 gchar *             _gsecret_util_parent_path         (const gchar *path);
+
+gboolean            _gsecret_util_empty_path                   (const gchar *path);
 
 GVariant *          _gsecret_util_variant_for_attributes       (GHashTable *attributes);
 
+GHashTable *        _gsecret_util_attributes_for_varargs       (const GSecretSchema *schema,
+                                                                va_list va);
+
+void                _gsecret_service_set_default_bus_name      (const gchar *bus_name);
+
 GSecretService *    _gsecret_service_bare_instance    (GDBusConnection *connection,
                                                        const gchar *bus_name);
+
+void                _gsecret_service_bare_connect              (const gchar *bus_name,
+                                                                gboolean ensure_session,
+                                                                GCancellable *cancellable,
+                                                                GAsyncReadyCallback callback,
+                                                                gpointer user_data);
+
+GSecretService *    _gsecret_service_bare_connect_finish       (GAsyncResult *result,
+                                                                GError **error);
 
 GVariant *          _gsecret_service_encode_secret    (GSecretService *self,
                                                        GSecretValue *value);

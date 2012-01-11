@@ -25,6 +25,15 @@
 
 static gchar *MOCK_NAME = "org.mock.Service";
 
+static const GSecretSchema DELETE_SCHEMA = {
+	"org.mock.schema.Delete",
+	{
+		{ "number", GSECRET_ATTRIBUTE_INTEGER },
+		{ "string", GSECRET_ATTRIBUTE_STRING },
+		{ "even", GSECRET_ATTRIBUTE_BOOLEAN },
+	}
+};
+
 typedef struct {
 	GPid pid;
 	GDBusConnection *connection;
@@ -32,8 +41,8 @@ typedef struct {
 } Test;
 
 static void
-setup (Test *test,
-       gconstpointer data)
+setup_mock (Test *test,
+            gconstpointer data)
 {
 	GError *error = NULL;
 	const gchar *mock_script = data;
@@ -43,29 +52,49 @@ setup (Test *test,
 		NULL
 	};
 
+	_gsecret_service_set_default_bus_name (MOCK_NAME);
+
 	g_spawn_async (SRCDIR, argv, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL, &test->pid, &error);
 	g_assert_no_error (error);
 	g_usleep (200 * 1000);
+}
+
+static void
+setup (Test *test,
+       gconstpointer data)
+{
+	GError *error = NULL;
+
+	setup_mock (test, data);
 
 	test->connection = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, &error);
 	g_assert_no_error (error);
 
-	test->service = _gsecret_service_bare_instance (test->connection, MOCK_NAME);
+	test->service = _gsecret_service_bare_instance (test->connection, NULL);
+}
+
+static void
+teardown_mock (Test *test,
+               gconstpointer unused)
+{
+	g_assert (test->pid);
+	if (kill (test->pid, SIGTERM) < 0)
+		g_error ("kill() failed: %s", g_strerror (errno));
+	g_spawn_close_pid (test->pid);
 }
 
 static void
 teardown (Test *test,
           gconstpointer unused)
 {
+	egg_test_wait_idle ();
+
 	g_object_unref (test->service);
 	egg_assert_not_object (test->service);
 
 	g_clear_object (&test->connection);
 
-	g_assert (test->pid);
-	if (kill (test->pid, SIGTERM) < 0)
-		g_error ("kill() failed: %s", g_strerror (errno));
-	g_spawn_close_pid (test->pid);
+	teardown_mock (test, unused);
 }
 
 static void
@@ -114,6 +143,60 @@ test_instance (void)
 	egg_assert_not_object (service3);
 
 	g_object_unref (connection);
+}
+
+static void
+test_connect_sync (Test *test,
+                   gconstpointer used)
+{
+	GError *error = NULL;
+	GAsyncResult *result = NULL;
+	GSecretService *service;
+	const gchar *path;
+
+	/* Passing false, not session */
+	_gsecret_service_bare_connect (MOCK_NAME, FALSE, NULL, on_complete_get_result, &result);
+	g_assert (result == NULL);
+
+	egg_test_wait ();
+
+	service = _gsecret_service_bare_connect_finish (result, &error);
+	g_assert (GSECRET_IS_SERVICE (service));
+	g_assert_no_error (error);
+	g_object_unref (result);
+
+	path = gsecret_service_get_session_path (service);
+	g_assert (path == NULL);
+
+	g_object_unref (service);
+	egg_assert_not_object (service);
+}
+
+static void
+test_connect_ensure_sync (Test *test,
+                          gconstpointer used)
+{
+	GError *error = NULL;
+	GAsyncResult *result = NULL;
+	GSecretService *service;
+	const gchar *path;
+
+	/* Passing true, ensures session is established */
+	_gsecret_service_bare_connect (MOCK_NAME, TRUE, NULL, on_complete_get_result, &result);
+	g_assert (result == NULL);
+
+	egg_test_wait ();
+
+	service = _gsecret_service_bare_connect_finish (result, &error);
+	g_assert_no_error (error);
+	g_assert (GSECRET_IS_SERVICE (service));
+	g_object_unref (result);
+
+	path = gsecret_service_get_session_path (service);
+	g_assert (path != NULL);
+
+	g_object_unref (service);
+	egg_assert_not_object (service);
 }
 
 static void
@@ -405,6 +488,111 @@ test_secrets_for_paths_async (Test *test,
 	g_hash_table_unref (values);
 }
 
+static void
+test_delete_for_path_sync (Test *test,
+                           gconstpointer used)
+
+{
+	const gchar *path_item_one = "/org/freedesktop/secrets/collection/to_delete/item";
+	GError *error = NULL;
+	gboolean ret;
+
+	ret = gsecret_service_delete_path_sync (test->service, path_item_one, NULL, &error);
+	g_assert_no_error (error);
+	g_assert (ret == TRUE);
+}
+
+static void
+test_delete_for_path_sync_prompt (Test *test,
+                                  gconstpointer used)
+
+{
+	const gchar *path_item_one = "/org/freedesktop/secrets/collection/to_delete/confirm";
+	GError *error = NULL;
+	gboolean ret;
+
+	ret = gsecret_service_delete_path_sync (test->service, path_item_one, NULL, &error);
+	g_assert_no_error (error);
+	g_assert (ret == TRUE);
+}
+
+static void
+test_delete_password_sync (Test *test,
+                           gconstpointer used)
+{
+	GError *error = NULL;
+	gboolean ret;
+
+	ret = gsecret_service_delete_password_sync (test->service, &DELETE_SCHEMA, NULL, &error,
+	                                            "even", FALSE,
+	                                            "string", "one",
+	                                            "number", 1,
+	                                            NULL);
+
+	g_assert_no_error (error);
+	g_assert (ret == TRUE);
+}
+
+static void
+test_delete_password_async (Test *test,
+                            gconstpointer used)
+{
+	GError *error = NULL;
+	GAsyncResult *result = NULL;
+	gboolean ret;
+
+	gsecret_service_delete_password (test->service, &DELETE_SCHEMA, NULL,
+	                                 on_complete_get_result, &result,
+	                                 "even", FALSE,
+	                                 "string", "one",
+	                                 "number", 1,
+	                                 NULL);
+
+	g_assert (result == NULL);
+
+	egg_test_wait ();
+
+	ret = gsecret_service_delete_password_finish (test->service, result, &error);
+	g_assert_no_error (error);
+	g_assert (ret == TRUE);
+
+	g_object_unref (result);
+}
+
+static void
+test_delete_password_locked (Test *test,
+                           gconstpointer used)
+{
+	GError *error = NULL;
+	gboolean ret;
+
+	ret = gsecret_service_delete_password_sync (test->service, &DELETE_SCHEMA, NULL, &error,
+	                                            "even", FALSE,
+	                                            "string", "three",
+	                                            "number", 3,
+	                                            NULL);
+
+	g_assert_no_error (error);
+	g_assert (ret == TRUE);
+}
+
+static void
+test_delete_password_no_match (Test *test,
+                               gconstpointer used)
+{
+	GError *error = NULL;
+	gboolean ret;
+
+	/* Won't match anything */
+	ret = gsecret_service_delete_password_sync (test->service, &DELETE_SCHEMA, NULL, &error,
+	                                            "even", TRUE,
+	                                            "string", "one",
+	                                            NULL);
+
+	g_assert_no_error (error);
+	g_assert (ret == FALSE);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -413,14 +601,26 @@ main (int argc, char **argv)
 	g_type_init ();
 
 	g_test_add_func ("/service/instance", test_instance);
+
+	g_test_add ("/service/connect-sync", Test, "mock-service-normal.py", setup_mock, test_connect_sync, teardown_mock);
+	g_test_add ("/service/connect-ensure-sync", Test, "mock-service-normal.py", setup_mock, test_connect_ensure_sync, teardown_mock);
+
 	g_test_add ("/service/search-for-paths", Test, "mock-service-normal.py", setup, test_search_paths, teardown);
 	g_test_add ("/service/search-for-paths-async", Test, "mock-service-normal.py", setup, test_search_paths_async, teardown);
 	g_test_add ("/service/search-for-paths-nulls", Test, "mock-service-normal.py", setup, test_search_paths_nulls, teardown);
+
 	g_test_add ("/service/secret-for-path", Test, "mock-service-normal.py", setup, test_secret_for_path, teardown);
 	g_test_add ("/service/secret-for-path-plain", Test, "mock-service-only-plain.py", setup, test_secret_for_path, teardown);
 	g_test_add ("/service/secret-for-path-async", Test, "mock-service-normal.py", setup, test_secret_for_path_async, teardown);
 	g_test_add ("/service/secrets-for-paths", Test, "mock-service-normal.py", setup, test_secrets_for_paths, teardown);
 	g_test_add ("/service/secrets-for-paths-async", Test, "mock-service-normal.py", setup, test_secrets_for_paths_async, teardown);
+
+	g_test_add ("/service/delete-for-path", Test, "mock-service-delete.py", setup, test_delete_for_path_sync, teardown);
+	g_test_add ("/service/delete-for-path-with-prompt", Test, "mock-service-delete.py", setup, test_delete_for_path_sync_prompt, teardown);
+	g_test_add ("/service/delete-password-sync", Test, "mock-service-delete.py", setup, test_delete_password_sync, teardown);
+	g_test_add ("/service/delete-password-async", Test, "mock-service-delete.py", setup, test_delete_password_async, teardown);
+	g_test_add ("/service/delete-password-locked", Test, "mock-service-delete.py", setup, test_delete_password_locked, teardown);
+	g_test_add ("/service/delete-password-no-match", Test, "mock-service-delete.py", setup, test_delete_password_no_match, teardown);
 
 	return egg_tests_run_with_loop ();
 }

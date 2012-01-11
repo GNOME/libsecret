@@ -317,3 +317,11 @@
    fun:g_hash_table_remove
    fun:g_variant_type_info_unref
 }
+{
+   g_rw_lock_reader_lock
+   Memcheck:Leak
+   ...
+   fun:g_rw_lock_impl_new
+   fun:g_rw_lock_get_impl
+   fun:g_rw_lock_reader_lock
+}

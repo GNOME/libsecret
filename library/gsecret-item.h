@@ -16,6 +16,7 @@
 #include <gio/gio.h>
 
 #include "gsecret-item.h"
+#include "gsecret-service.h"
 #include "gsecret-value.h"
 
 G_BEGIN_DECLS
@@ -27,7 +28,6 @@ G_BEGIN_DECLS
 #define GSECRET_IS_ITEM_CLASS(class) (G_TYPE_CHECK_CLASS_TYPE ((class), GSECRET_TYPE_ITEM))
 #define GSECRET_ITEM_GET_CLASS(inst) (G_TYPE_INSTANCE_GET_CLASS ((inst), GSECRET_TYPE_ITEM, GSecretItemClass))
 
-typedef struct _GSecretItem        GSecretItem;
 typedef struct _GSecretItemClass   GSecretItemClass;
 typedef struct _GSecretItemPrivate GSecretItemPrivate;
 

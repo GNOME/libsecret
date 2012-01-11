@@ -364,3 +364,28 @@
    fun:g_main_loop_run
    fun:gdbus_shared_thread_func
 }
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   ...
+   fun:g_source_new
+   fun:g_idle_source_new
+   fun:call_destroy_notify
+   fun:g_dbus_connection_signal_unsubscribe
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   ...
+   fun:g_source_set_callback
+   fun:call_destroy_notify
+   fun:g_dbus_connection_signal_unsubscribe
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   ...
+   fun:g_malloc0_n
+   fun:call_destroy_notify
+   fun:g_dbus_connection_signal_unsubscribe
+}

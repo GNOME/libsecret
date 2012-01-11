@@ -11,8 +11,10 @@ LDADD =  \
 	$(NULL)
 
 TEST_PROGS = \
+	test-prompt \
 	test-service \
 	test-session \
+	test-password \
 	$(NULL)
 
 check_PROGRAMS = \

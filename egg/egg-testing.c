@@ -114,6 +114,17 @@ egg_test_wait_until (int timeout)
 	return (wait_until_impl) (timeout);
 }
 
+void
+egg_test_wait_idle (void)
+{
+	GMainContext *context;
+
+	g_assert (wait_until_impl != NULL);
+
+	context = g_main_context_get_thread_default ();
+	while (g_main_context_iteration (context, FALSE));
+}
+
 static GMainLoop *wait_loop = NULL;
 
 static void

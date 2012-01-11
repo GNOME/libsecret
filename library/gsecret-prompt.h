@@ -15,6 +15,8 @@
 
 #include <gio/gio.h>
 
+#include "gsecret-types.h"
+
 G_BEGIN_DECLS
 
 #define GSECRET_TYPE_PROMPT            (gsecret_prompt_get_type ())
@@ -24,13 +26,13 @@ G_BEGIN_DECLS
 #define GSECRET_IS_PROMPT_CLASS(class) (G_TYPE_CHECK_CLASS_TYPE ((class), GSECRET_TYPE_PROMPT))
 #define GSECRET_PROMPT_GET_CLASS(inst) (G_TYPE_INSTANCE_GET_CLASS ((inst), GSECRET_TYPE_PROMPT, GSecretPromptClass))
 
-typedef struct _GSecretPrompt        GSecretPrompt;
 typedef struct _GSecretPromptClass   GSecretPromptClass;
 typedef struct _GSecretPromptPrivate GSecretPromptPrivate;
 
 struct _GSecretPromptClass {
 	GDBusProxyClass parent_class;
-	padding;
+
+	gpointer padding[8];
 };
 
 struct _GSecretPrompt {
@@ -38,19 +40,32 @@ struct _GSecretPrompt {
 	GSecretPromptPrivate *pv;
 };
 
-GType             gsecret_service_get_type                   (void) G_GNUC_CONST;
+GType               gsecret_prompt_get_type                  (void) G_GNUC_CONST;
 
-GSecretService*     gsecret_collection_xxx_new                   (void);
+GSecretPrompt *     gsecret_prompt_instance                  (GSecretService *service,
+                                                              const gchar *prompt_path);
 
-GSecretPrompt*      gsecret_prompt_instance                  (GDBusConnection *connection,
-                                                              const gchar *object_path,
+gboolean            gsecret_prompt_run                       (GSecretPrompt *self,
+                                                              gulong window_id,
+                                                              GCancellable *cancellable,
                                                               GError **error);
 
-GSecretPrompt*      gsecret_prompt_instance_sync             (GDBusConnection *connection,
-                                                              const gchar *object_path);
+gboolean            gsecret_prompt_perform_sync              (GSecretPrompt *self,
+                                                              gulong window_id,
+                                                              GCancellable *cancellable,
+                                                              GError **error);
 
-                    gsecret_prompt_perform
-                    gsecret_prompt_dismiss
+void                gsecret_prompt_perform                   (GSecretPrompt *self,
+                                                              gulong window_id,
+                                                              GCancellable *cancellable,
+                                                              GAsyncReadyCallback callback,
+                                                              gpointer user_data);
+
+gboolean            gsecret_prompt_perform_finish            (GSecretPrompt *self,
+                                                              GAsyncResult *result,
+                                                              GError **error);
+
+GVariant *          gsecret_prompt_get_result_value          (GSecretPrompt *self);
 
 G_END_DECLS
 

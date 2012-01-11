@@ -38,96 +38,47 @@ gsecret_item_class_init (GSecretItemClass *klass)
 
 }
 
-static void
-on_item_delete_ready (GObject *source, GAsyncResult *result, gpointer user_data)
-{
-	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
-	GError *error = NULL;
-	GVariant *ret;
-
-	ret = g_dbus_connection_call_finish (G_DBUS_CONNECTION (source),
-	                                     result, &error);
-	if (ret == NULL)
-		g_simple_async_result_take_error (res, error);
-	else
-		g_variant_unref (ret);
-
-	g_simple_async_result_complete (res);
-	g_object_unref (res);
-}
-
 void
-gsecret_item_delete (GSecretItem *self, GCancellable *cancellable,
-                     GAsyncReadyCallback callback, gpointer user_data)
+gsecret_item_delete (GSecretItem *self,
+                     GCancellable *cancellable,
+                     GAsyncReadyCallback callback,
+                     gpointer user_data)
 {
 	const gchar *object_path;
-	gchar *collection_path;
-	GSimpleAsyncResult *res;
 
 	g_return_if_fail (GSECRET_IS_ITEM (self));
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
-	res = g_simple_async_result_new (G_OBJECT (self), callback,
-	                                 user_data, gsecret_item_delete);
 
 	object_path = g_dbus_proxy_get_object_path (G_DBUS_PROXY (self));
-	collection_path = _gsecret_util_parent_path (object_path);
-
-	g_dbus_connection_call (g_dbus_proxy_get_connection (G_DBUS_PROXY (self)),
-	                        g_dbus_proxy_get_name (G_DBUS_PROXY (self)),
-	                        collection_path, GSECRET_COLLECTION_INTERFACE,
-	                        "Delete", NULL, NULL,
-	                        G_DBUS_CALL_FLAGS_NO_AUTO_START, -1,
-	                        cancellable, on_item_delete_ready, res);
-
-	g_free (collection_path);
+	gsecret_service_delete_path (self->pv->service, object_path,
+	                             cancellable, callback, user_data);
 }
 
 gboolean
-gsecret_item_delete_finish (GSecretItem *self, GAsyncResult *result,
+gsecret_item_delete_finish (GSecretItem *self,
+                            GAsyncResult *result,
                             GError **error)
 {
 	g_return_val_if_fail (GSECRET_IS_ITEM (self), FALSE);
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
-	g_return_val_if_fail (g_simple_async_result_is_valid (result,
-	                      G_OBJECT (self), gsecret_item_delete), FALSE);
 
-	if (g_simple_async_result_propagate_error (G_SIMPLE_ASYNC_RESULT (result),
-	                                           error))
-		return FALSE;
-
-	return TRUE;
+	return gsecret_service_delete_path_finish (self->pv->service, result, error);
 }
 
 gboolean
-gsecret_item_delete_sync (GSecretItem *self, GCancellable *cancellable,
+gsecret_item_delete_sync (GSecretItem *self,
+                          GCancellable *cancellable,
                           GError **error)
 {
 	const gchar *object_path;
-	gchar *collection_path;
-	GVariant *ret;
 
 	g_return_val_if_fail (GSECRET_IS_ITEM (self), FALSE);
 	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), FALSE);
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
 	object_path = g_dbus_proxy_get_object_path (G_DBUS_PROXY (self));
-	collection_path = _gsecret_util_parent_path (object_path);
-
-	ret = g_dbus_connection_call_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (self)),
-	                                   g_dbus_proxy_get_name (G_DBUS_PROXY (self)),
-	                                   collection_path, GSECRET_COLLECTION_INTERFACE,
-	                                   "Delete", NULL, NULL,
-	                                   G_DBUS_CALL_FLAGS_NO_AUTO_START, -1,
-	                                   cancellable, error);
-
-	g_free (collection_path);
-
-	if (ret != NULL) {
-		g_variant_unref (ret);
-		return TRUE;
-	}
-
-	return FALSE;
+	return gsecret_service_delete_path_sync (self->pv->service,
+	                                         object_path, cancellable, error);
 }
 
 static void

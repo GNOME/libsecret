@@ -13,6 +13,7 @@
 #include "config.h"
 
 #include "gsecret-dbus-generated.h"
+#include "gsecret-item.h"
 #include "gsecret-private.h"
 #include "gsecret-service.h"
 #include "gsecret-types.h"
@@ -35,6 +36,8 @@
 EGG_SECURE_GLIB_DEFINITIONS ();
 
 EGG_SECURE_DECLARE (secret_service);
+
+static const gchar *default_bus_name = GSECRET_SERVICE_BUS_NAME;
 
 #define ALGORITHMS_AES    "dh-ietf1024-sha256-aes128-cbc-pkcs7"
 #define ALGORITHMS_PLAIN  "plain"
@@ -59,6 +62,45 @@ G_LOCK_DEFINE (service_instance);
 static gpointer service_instance = NULL;
 
 G_DEFINE_TYPE (GSecretService, gsecret_service, G_TYPE_DBUS_PROXY);
+
+typedef struct {
+	GAsyncResult *result;
+	GMainContext *context;
+	GMainLoop *loop;
+} SyncClosure;
+
+static SyncClosure *
+sync_closure_new (void)
+{
+	SyncClosure *closure;
+
+	closure = g_new0 (SyncClosure, 1);
+
+	closure->context = g_main_context_new ();
+	closure->loop = g_main_loop_new (closure->context, FALSE);
+
+	return closure;
+}
+
+static void
+sync_closure_free (gpointer data)
+{
+	SyncClosure *closure = data;
+
+	g_clear_object (&closure->result);
+	g_main_loop_unref (closure->loop);
+	g_main_context_unref (closure->context);
+}
+
+static void
+on_sync_result (GObject *source,
+                GAsyncResult *result,
+                gpointer user_data)
+{
+	SyncClosure *closure = user_data;
+	closure->result = g_object_ref (result);
+	g_main_loop_quit (closure->loop);
+}
 
 static void
 gsecret_session_free (gpointer data)
@@ -95,6 +137,65 @@ gsecret_service_finalize (GObject *obj)
 	G_OBJECT_CLASS (gsecret_service_parent_class)->finalize (obj);
 }
 
+static gboolean
+gsecret_service_real_prompt_sync (GSecretService *self,
+                                  GSecretPrompt *prompt,
+                                  GCancellable *cancellable,
+                                  GError **error)
+{
+	return gsecret_prompt_perform_sync (prompt, 0, cancellable, error);
+}
+
+static void
+on_real_prompt_completed (GObject *source,
+                          GAsyncResult *result,
+                          gpointer user_data)
+{
+	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
+	GError *error = NULL;
+	gboolean ret;
+
+	ret = gsecret_prompt_perform_finish (GSECRET_PROMPT (source), result, &error);
+	g_simple_async_result_set_op_res_gboolean (res, ret);
+	if (error != NULL)
+		g_simple_async_result_take_error (res, error);
+	g_simple_async_result_complete (res);
+
+	g_object_unref (res);
+}
+
+static void
+gsecret_service_real_prompt_async (GSecretService *self,
+                                   GSecretPrompt *prompt,
+                                   GCancellable *cancellable,
+                                   GAsyncReadyCallback callback,
+                                   gpointer user_data)
+{
+	GSimpleAsyncResult *res;
+
+	res =  g_simple_async_result_new (G_OBJECT (self), callback, user_data,
+	                                  gsecret_service_real_prompt_async);
+
+	gsecret_prompt_perform (prompt, 0, cancellable,
+	                        on_real_prompt_completed,
+	                        g_object_ref (res));
+
+	g_object_unref (res);
+}
+
+static gboolean
+gsecret_service_real_prompt_finish (GSecretService *self,
+                                    GAsyncResult *result,
+                                    GError **error)
+{
+	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (result);
+
+	if (g_simple_async_result_propagate_error (res, error))
+		return FALSE;
+
+	return g_simple_async_result_get_op_res_gboolean (res);
+}
+
 static void
 gsecret_service_class_init (GSecretServiceClass *klass)
 {
@@ -102,7 +203,18 @@ gsecret_service_class_init (GSecretServiceClass *klass)
 
 	object_class->finalize = gsecret_service_finalize;
 
+	klass->prompt_sync = gsecret_service_real_prompt_sync;
+	klass->prompt_async = gsecret_service_real_prompt_async;
+	klass->prompt_finish = gsecret_service_real_prompt_finish;
+
 	g_type_class_add_private (klass, sizeof (GSecretServicePrivate));
+}
+
+void
+_gsecret_service_set_default_bus_name (const gchar *bus_name)
+{
+	g_return_if_fail (bus_name != NULL);
+	default_bus_name = bus_name;
 }
 
 static void
@@ -138,7 +250,7 @@ _gsecret_service_bare_instance (GDBusConnection *connection,
 
 	/* Alternate bus name is only used for testing */
 	if (bus_name == NULL)
-		bus_name = GSECRET_SERVICE_BUS_NAME;
+		bus_name = default_bus_name;
 
 	service = g_initable_new (GSECRET_TYPE_SERVICE, NULL, &error,
 	                          "g-flags", G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
@@ -170,6 +282,115 @@ _gsecret_service_bare_instance (GDBusConnection *connection,
 	G_UNLOCK (service_instance);
 
 	return service;
+}
+
+typedef struct {
+	GCancellable *cancellable;
+	GSecretService *service;
+	gboolean ensure_session;
+	gchar *bus_name;
+} ConnectClosure;
+
+static void
+connect_closure_free (gpointer data)
+{
+	ConnectClosure *closure = data;
+	g_clear_object (&closure->cancellable);
+	g_clear_object (&closure->service);
+	g_slice_free (ConnectClosure, closure);
+}
+
+static void
+on_connect_ensure (GObject *source,
+                   GAsyncResult *result,
+                   gpointer user_data)
+{
+	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
+	GError *error = NULL;
+
+	gsecret_service_ensure_session_finish (GSECRET_SERVICE (source), result, &error);
+	if (error != NULL)
+		g_simple_async_result_take_error (res, error);
+
+	g_simple_async_result_complete (res);
+	g_object_unref (res);
+}
+
+static void
+on_connect_bus (GObject *source,
+                GAsyncResult *result,
+                gpointer user_data)
+{
+	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
+	ConnectClosure *closure = g_simple_async_result_get_op_res_gpointer (res);
+	GDBusConnection *connection;
+	GError *error = NULL;
+
+	connection = g_bus_get_finish (result, &error);
+	if (error == NULL) {
+		closure->service = _gsecret_service_bare_instance (connection, closure->bus_name);
+		if (closure->ensure_session)
+			gsecret_service_ensure_session (closure->service, closure->cancellable,
+			                                on_connect_ensure, g_object_ref (res));
+
+		else
+			g_simple_async_result_complete (res);
+
+		g_object_unref (connection);
+
+	} else {
+		g_simple_async_result_take_error (res, error);
+		g_simple_async_result_complete (res);
+	}
+
+	g_object_unref (res);
+}
+
+void
+_gsecret_service_bare_connect (const gchar *bus_name,
+                               gboolean ensure_session,
+                               GCancellable *cancellable,
+                               GAsyncReadyCallback callback,
+                               gpointer user_data)
+{
+	GSimpleAsyncResult *res;
+	ConnectClosure *closure;
+
+	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+	if (bus_name == NULL)
+		bus_name = default_bus_name;
+
+	res = g_simple_async_result_new (NULL, callback, user_data,
+	                                 _gsecret_service_bare_connect);
+	closure = g_slice_new0 (ConnectClosure);
+	closure->bus_name = g_strdup (bus_name);
+	closure->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
+	closure->ensure_session = ensure_session;
+	g_simple_async_result_set_op_res_gpointer (res, closure, connect_closure_free);
+
+	g_bus_get (G_BUS_TYPE_SESSION, cancellable, on_connect_bus, g_object_ref (res));
+
+	g_object_unref (res);
+}
+
+GSecretService *
+_gsecret_service_bare_connect_finish (GAsyncResult *result,
+                                      GError **error)
+{
+	ConnectClosure *closure;
+	GSimpleAsyncResult *res;
+
+	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
+	g_return_val_if_fail (g_simple_async_result_is_valid (result, NULL,
+	                      _gsecret_service_bare_connect), NULL);
+
+	res = G_SIMPLE_ASYNC_RESULT (result);
+	if (g_simple_async_result_propagate_error (res, error))
+		return NULL;
+
+	closure = g_simple_async_result_get_op_res_gpointer (res);
+	return g_object_ref (closure->service);
 }
 
 const gchar *
@@ -1270,4 +1491,491 @@ gsecret_service_get_secrets_for_paths_sync (GSecretService *self,
 	g_variant_unref (out);
 
 	return values;
+}
+
+gboolean
+gsecret_service_prompt_sync (GSecretService *self,
+                             GSecretPrompt *prompt,
+                             GCancellable *cancellable,
+                             GError **error)
+{
+	GSecretServiceClass *klass;
+
+	g_return_val_if_fail (GSECRET_IS_SERVICE (self), FALSE);
+	g_return_val_if_fail (GSECRET_IS_PROMPT (prompt), FALSE);
+	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), FALSE);
+	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+
+	klass = GSECRET_SERVICE_GET_CLASS (self);
+	g_return_val_if_fail (klass->prompt_sync != NULL, FALSE);
+
+	return (klass->prompt_sync) (self, prompt, cancellable, error);
+}
+
+void
+gsecret_service_prompt_path (GSecretService *self,
+                             const gchar *prompt_path,
+                             GCancellable *cancellable,
+                             GAsyncReadyCallback callback,
+                             gpointer user_data)
+{
+	GSecretPrompt *prompt;
+
+	g_return_if_fail (GSECRET_IS_SERVICE (self));
+	g_return_if_fail (prompt_path != NULL);
+	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+	prompt = gsecret_prompt_instance (self, prompt_path);
+
+	gsecret_service_prompt (self, prompt, cancellable, callback, user_data);
+
+	g_object_unref (prompt);
+}
+
+void
+gsecret_service_prompt (GSecretService *self,
+                        GSecretPrompt *prompt,
+                        GCancellable *cancellable,
+                        GAsyncReadyCallback callback,
+                        gpointer user_data)
+{
+	GSecretServiceClass *klass;
+
+	g_return_if_fail (GSECRET_IS_SERVICE (self));
+	g_return_if_fail (GSECRET_IS_PROMPT (prompt));
+	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+	klass = GSECRET_SERVICE_GET_CLASS (self);
+	g_return_if_fail (klass->prompt_async != NULL);
+
+	(klass->prompt_async) (self, prompt, cancellable, callback, user_data);
+}
+
+gboolean
+gsecret_service_prompt_finish (GSecretService *self,
+                               GAsyncResult *result,
+                               GError **error)
+{
+	GSecretServiceClass *klass;
+
+	g_return_val_if_fail (GSECRET_IS_SERVICE (self), FALSE);
+	g_return_val_if_fail (G_IS_ASYNC_RESULT (result), FALSE);
+	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+
+	klass = GSECRET_SERVICE_GET_CLASS (self);
+	g_return_val_if_fail (klass->prompt_finish != NULL, FALSE);
+
+	return (klass->prompt_finish) (self, result, error);
+}
+
+#if 0
+
+void
+gsecret_service_store_password (GSecretService *self,
+                                const GSecretSchema *schema,
+                                const gchar *collection_path,
+                                const gchar *label,
+                                const gchar *password,
+                                GCancellable *cancellable,
+                                GAsyncReadyCallback callback,
+                                gpointer user_data,
+                                ...)
+{
+
+}
+
+gboolean
+gsecret_service_store_password_finish (GSecretService *self,
+                                       GAsyncResult *result,
+                                       GError **error)
+{
+
+}
+
+void
+gsecret_service_store_password_sync (GSecretService *self,
+                                     const GSecretSchema *schema,
+                                     const gchar *collection,
+                                     const gchar *display_name,
+                                     const gchar *password,
+                                     GCancellable *cancellable,
+                                     GError **error,
+                                     ...)
+{
+
+}
+
+void
+gsecret_service_lookup_password (GSecretService *self,
+                                 const GSecretSchema *schema,
+                                 GCancellable *cancellable,
+                                 GAsyncReadyCallback callback,
+                                 gpointer user_data,
+                                 ...)
+{
+
+}
+
+gchar *
+gsecret_service_lookup_password_finish (GSecretService *self,
+                                        GAsyncResult *result,
+                                        GError **error)
+{
+
+}
+
+gchar *
+gsecret_service_lookup_password_sync (GSecretService *self,
+                                      const GSecretSchema *schema,
+                                      GCancellable *cancellable,
+                                      GError **error,
+                                      ...)
+{
+
+}
+
+#endif
+
+typedef struct {
+	GCancellable *cancellable;
+	gboolean deleted;
+} DeleteClosure;
+
+static void
+delete_closure_free (gpointer data)
+{
+	DeleteClosure *closure = data;
+	g_clear_object (&closure->cancellable);
+	g_slice_free (DeleteClosure, closure);
+}
+
+static void
+on_delete_prompted (GObject *source,
+                    GAsyncResult *result,
+                    gpointer user_data)
+{
+	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
+	DeleteClosure *closure = g_simple_async_result_get_op_res_gpointer (res);
+	GError *error = NULL;
+
+	gsecret_service_prompt_finish (GSECRET_SERVICE (source), result, &error);
+
+	if (error == NULL)
+		closure->deleted = TRUE;
+	else
+		g_simple_async_result_take_error (res, error);
+
+	g_simple_async_result_complete (res);
+	g_object_unref (res);
+}
+
+static void
+on_delete_complete (GObject *source,
+                    GAsyncResult *result,
+                    gpointer user_data)
+{
+	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
+	DeleteClosure *closure = g_simple_async_result_get_op_res_gpointer (res);
+	GSecretService *self = GSECRET_SERVICE (g_async_result_get_source_object (user_data));
+	const gchar *prompt_path;
+	GError *error = NULL;
+	GVariant *retval;
+
+	retval = g_dbus_connection_call_finish (G_DBUS_CONNECTION (source), result, &error);
+	if (error == NULL) {
+		g_variant_get (retval, "(&o)", &prompt_path);
+
+		if (_gsecret_util_empty_path (prompt_path)) {
+			closure->deleted = TRUE;
+			g_simple_async_result_complete (res);
+
+		} else {
+			gsecret_service_prompt_path (self, prompt_path,
+			                             closure->cancellable,
+			                             on_delete_prompted,
+			                             g_object_ref (res));
+		}
+
+		g_variant_unref (retval);
+
+	} else {
+		g_simple_async_result_take_error (res, error);
+		g_simple_async_result_complete (res);
+	}
+
+	g_object_unref (self);
+	g_object_unref (res);
+}
+
+void
+gsecret_service_delete_path (GSecretService *self,
+                             const gchar *item_path,
+                             GCancellable *cancellable,
+                             GAsyncReadyCallback callback,
+                             gpointer user_data)
+{
+	GSimpleAsyncResult *res;
+	DeleteClosure *closure;
+
+	g_return_if_fail (GSECRET_IS_SERVICE (self));
+	g_return_if_fail (item_path != NULL);
+	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+	res = g_simple_async_result_new (G_OBJECT (self), callback, user_data,
+	                                 gsecret_service_delete_path);
+	closure = g_slice_new0 (DeleteClosure);
+	closure->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
+	g_simple_async_result_set_op_res_gpointer (res, closure, delete_closure_free);
+
+	g_dbus_connection_call (g_dbus_proxy_get_connection (G_DBUS_PROXY (self)),
+	                        g_dbus_proxy_get_name (G_DBUS_PROXY (self)),
+	                        item_path, GSECRET_ITEM_INTERFACE,
+	                        "Delete", g_variant_new ("()"), G_VARIANT_TYPE ("(o)"),
+	                        G_DBUS_CALL_FLAGS_NO_AUTO_START, -1,
+	                        cancellable, on_delete_complete, g_object_ref (res));
+
+	g_object_unref (res);
+}
+
+gboolean
+gsecret_service_delete_path_finish (GSecretService *self,
+                                    GAsyncResult *result,
+                                    GError **error)
+{
+	GSimpleAsyncResult *res;
+	DeleteClosure *closure;
+
+	g_return_val_if_fail (GSECRET_IS_SERVICE (self), FALSE);
+	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (self),
+	                      gsecret_service_delete_path), FALSE);
+
+	res = G_SIMPLE_ASYNC_RESULT (result);
+	if (g_simple_async_result_propagate_error (res, error))
+		return FALSE;
+
+	closure = g_simple_async_result_get_op_res_gpointer (res);
+	return closure->deleted;
+}
+
+gboolean
+gsecret_service_delete_path_sync (GSecretService *self,
+                                  const gchar *item_path,
+                                  GCancellable *cancellable,
+                                  GError **error)
+{
+	SyncClosure *closure;
+	gboolean result;
+
+	g_return_val_if_fail (GSECRET_IS_SERVICE (self), FALSE);
+	g_return_val_if_fail (item_path != NULL, FALSE);
+	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), FALSE);
+	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+
+	closure = sync_closure_new ();
+	g_main_context_push_thread_default (closure->context);
+
+	gsecret_service_delete_path (self, item_path, cancellable, on_sync_result, closure);
+
+	g_main_loop_run (closure->loop);
+
+	result = gsecret_service_delete_path_finish (self, closure->result, error);
+
+	g_main_context_pop_thread_default (closure->context);
+	sync_closure_free (closure);
+
+	return result;
+}
+
+static void
+on_delete_password_complete (GObject *source,
+                             GAsyncResult *result,
+                             gpointer user_data)
+{
+	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
+	GSecretService *self = GSECRET_SERVICE (g_async_result_get_source_object (user_data));
+	DeleteClosure *closure = g_simple_async_result_get_op_res_gpointer (res);
+	GError *error = NULL;
+
+	closure->deleted = gsecret_service_delete_path_finish (self, result, &error);
+	if (error != NULL)
+		g_simple_async_result_take_error (res, error);
+
+	g_simple_async_result_complete (res);
+
+	g_object_unref (self);
+	g_object_unref (res);
+}
+
+static void
+on_search_delete_password (GObject *source,
+                           GAsyncResult *result,
+                           gpointer user_data)
+{
+	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
+	DeleteClosure *closure = g_simple_async_result_get_op_res_gpointer (res);
+	GSecretService *self = GSECRET_SERVICE (g_async_result_get_source_object (user_data));
+	const gchar *path = NULL;
+	GError *error = NULL;
+	gchar **locked;
+	gchar **unlocked;
+
+	gsecret_service_search_for_paths_finish (self, result, &unlocked, &locked, &error);
+	if (error != NULL) {
+		g_simple_async_result_take_error (res, error);
+		g_simple_async_result_complete (res);
+
+	} else {
+		/* Choose the first path */
+		if (unlocked && unlocked[0])
+			path = unlocked[0];
+		else if (locked && locked[0])
+			path = locked[0];
+
+		/* Nothing to delete? */
+		if (path == NULL) {
+			closure->deleted = FALSE;
+			g_simple_async_result_complete (res);
+
+		/* Delete the first path */
+		} else {
+			closure->deleted = TRUE;
+			gsecret_service_delete_path (self, path,
+			                             closure->cancellable,
+			                             on_delete_password_complete,
+			                             g_object_ref (res));
+		}
+	}
+
+	g_strfreev (locked);
+	g_strfreev (unlocked);
+	g_object_unref (self);
+	g_object_unref (res);
+}
+
+void
+gsecret_service_delete_password (GSecretService *self,
+                                 const GSecretSchema *schema,
+                                 GCancellable *cancellable,
+                                 GAsyncReadyCallback callback,
+                                 gpointer user_data,
+                                 ...)
+{
+	GHashTable *attributes;
+	va_list va;
+
+	g_return_if_fail (GSECRET_SERVICE (self));
+	g_return_if_fail (schema != NULL);
+	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+	va_start (va, user_data);
+	attributes = _gsecret_util_attributes_for_varargs (schema, va);
+	va_end (va);
+
+	gsecret_service_delete_passwordv (self, attributes, cancellable,
+	                                 callback, user_data);
+
+	g_hash_table_unref (attributes);
+}
+
+void
+gsecret_service_delete_passwordv (GSecretService *self,
+                                  GHashTable *attributes,
+                                  GCancellable *cancellable,
+                                  GAsyncReadyCallback callback,
+                                  gpointer user_data)
+{
+	GSimpleAsyncResult *res;
+	DeleteClosure *closure;
+
+	g_return_if_fail (GSECRET_SERVICE (self));
+	g_return_if_fail (attributes != NULL);
+	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+	res = g_simple_async_result_new (G_OBJECT (self), callback, user_data,
+	                                 gsecret_service_delete_password);
+	closure = g_slice_new0 (DeleteClosure);
+	closure->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
+	g_simple_async_result_set_op_res_gpointer (res, closure, delete_closure_free);
+
+	gsecret_service_search_for_paths (self, attributes, cancellable,
+	                                  on_search_delete_password, g_object_ref (res));
+
+	g_object_unref (res);
+}
+
+gboolean
+gsecret_service_delete_password_finish (GSecretService *self,
+                                        GAsyncResult *result,
+                                        GError **error)
+{
+	GSimpleAsyncResult *res;
+	DeleteClosure *closure;
+
+	g_return_val_if_fail (GSECRET_IS_SERVICE (self), FALSE);
+	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (self),
+	                      gsecret_service_delete_password), FALSE);
+
+	res = G_SIMPLE_ASYNC_RESULT (result);
+	if (g_simple_async_result_propagate_error (res, error))
+		return FALSE;
+
+	closure = g_simple_async_result_get_op_res_gpointer (res);
+	return closure->deleted;
+}
+
+gboolean
+gsecret_service_delete_password_sync (GSecretService *self,
+                                      const GSecretSchema* schema,
+                                      GCancellable *cancellable,
+                                      GError **error,
+                                      ...)
+{
+	GHashTable *attributes;
+	gboolean result;
+	va_list va;
+
+	g_return_val_if_fail (GSECRET_IS_SERVICE (self), FALSE);
+	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), FALSE);
+	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+
+	va_start (va, error);
+	attributes = _gsecret_util_attributes_for_varargs (schema, va);
+	va_end (va);
+
+	result = gsecret_service_delete_passwordv_sync (self, attributes, cancellable, error);
+
+	g_hash_table_unref (attributes);
+
+	return result;
+}
+
+gboolean
+gsecret_service_delete_passwordv_sync (GSecretService *self,
+                                       GHashTable *attributes,
+                                       GCancellable *cancellable,
+                                       GError **error)
+{
+	SyncClosure *closure;
+	gboolean result;
+
+	g_return_val_if_fail (GSECRET_IS_SERVICE (self), FALSE);
+	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), FALSE);
+	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+
+	closure = sync_closure_new ();
+	g_main_context_push_thread_default (closure->context);
+
+	gsecret_service_delete_passwordv (self, attributes, cancellable,
+	                                  on_sync_result, closure);
+
+	g_main_loop_run (closure->loop);
+
+	result = gsecret_service_delete_password_finish (self, closure->result, error);
+
+	g_main_context_pop_thread_default (closure->context);
+	sync_closure_free (closure);
+
+	return result;
 }

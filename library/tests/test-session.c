@@ -44,6 +44,8 @@ setup (Test *test,
 		NULL
 	};
 
+	_gsecret_service_set_default_bus_name (MOCK_NAME);
+
 	g_spawn_async (SRCDIR, argv, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL, &test->pid, &error);
 	g_assert_no_error (error);
 	g_usleep (200 * 1000);
@@ -51,7 +53,7 @@ setup (Test *test,
 	test->connection = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, &error);
 	g_assert_no_error (error);
 
-	test->service = _gsecret_service_bare_instance (test->connection, MOCK_NAME);
+	test->service = _gsecret_service_bare_instance (test->connection, NULL);
 }
 
 static void
