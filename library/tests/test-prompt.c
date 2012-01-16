@@ -265,16 +265,15 @@ test_prompt_result (Test *test,
 
 	prompt = gsecret_prompt_instance (test->service, "/org/freedesktop/secrets/prompts/result");
 
-	result = gsecret_prompt_get_result_value (prompt);
+	result = gsecret_prompt_get_result_value (prompt, NULL);
 	g_assert (result == NULL);
 
 	ret = gsecret_prompt_perform_sync (prompt, 0, NULL, &error);
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
 
-	result = gsecret_prompt_get_result_value (prompt);
+	result = gsecret_prompt_get_result_value (prompt, G_VARIANT_TYPE_STRING);
 	g_assert (result != NULL);
-	g_assert_cmpstr (g_variant_get_type_string (result), ==, "s");
 	g_assert_cmpstr (g_variant_get_string (result, NULL), ==, "Special Result");
 	g_variant_unref (result);
 
@@ -297,9 +296,8 @@ test_prompt_window_id (Test *test,
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
 
-	result = gsecret_prompt_get_result_value (prompt);
+	result = gsecret_prompt_get_result_value (prompt, G_VARIANT_TYPE_STRING);
 	g_assert (result != NULL);
-	g_assert_cmpstr (g_variant_get_type_string (result), ==, "s");
 	g_assert_cmpstr (g_variant_get_string (result, NULL), ==, "555");
 	g_variant_unref (result);
 

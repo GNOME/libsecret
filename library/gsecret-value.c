@@ -12,6 +12,7 @@
 
 #include "config.h"
 
+#include "gsecret-private.h"
 #include "gsecret-value.h"
 
 #include "egg/egg-secure-memory.h"
@@ -112,7 +113,7 @@ gsecret_value_unref (gpointer value)
 {
 	GSecretValue *val = value;
 
-	g_return_if_fail (value);
+	g_return_if_fail (value != NULL);
 
 	if (g_atomic_int_dec_and_test (&val->refs)) {
 		g_free (val->content_type);
@@ -120,4 +121,36 @@ gsecret_value_unref (gpointer value)
 			(val->destroy) (val->secret);
 		g_slice_free (GSecretValue, val);
 	}
+}
+
+gchar *
+_gsecret_value_unref_to_password (GSecretValue *value)
+{
+	GSecretValue *val = value;
+	gchar *result;
+
+	g_return_val_if_fail (value != NULL, NULL);
+
+	if (val->content_type && !g_str_equal (val->content_type, "text/plain")) {
+		gsecret_value_unref (value);
+		return NULL;
+	}
+
+	if (g_atomic_int_dec_and_test (&val->refs)) {
+		if (val->destroy == egg_secure_free) {
+			result = val->secret;
+
+		} else {
+			result = egg_secure_strdup (val->secret);
+			if (val->destroy)
+				(val->destroy) (val->secret);
+		}
+		g_free (val->content_type);
+		g_slice_free (GSecretValue, val);
+
+	} else {
+		result = egg_secure_strdup (val->secret);
+	}
+
+	return result;
 }

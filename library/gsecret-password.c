@@ -57,82 +57,70 @@ on_sync_result (GObject *source,
 	g_main_loop_quit (closure->loop);
 }
 
-#if 0
-
 typedef struct {
-	GVariant *properties;
+	const GSecretSchema *schema;
+	GHashTable *attributes;
 	gchar *collection_path;
-	GSecretValue *secret;
+	gchar *label;
+	GSecretValue *value;
 	GCancellable *cancellable;
+	gboolean created;
 } StoreClosure;
 
 static void
 store_closure_free (gpointer data)
 {
 	StoreClosure *closure = data;
-	g_variant_unref (closure->properties);
+	g_hash_table_unref (closure->attributes);
 	g_free (closure->collection_path);
-	gsecret_value_unref (closure->secret);
-	g_clear_object (closure->cancellable);
-	g_free (closure);
+	g_free (closure->label);
+	gsecret_value_unref (closure->value);
+	g_clear_object (&closure->cancellable);
+	g_slice_free (StoreClosure, closure);
 }
 
 static void
-on_create_item_reply (GObject *source,
-                      GAsyncResult *result,
-                      gpointer user_data)
+on_store_complete (GObject *source,
+                   GAsyncResult *result,
+                   gpointer user_data)
 {
 	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
+	StoreClosure *closure = g_simple_async_result_get_op_res_gpointer (res);
 	GError *error = NULL;
 
-	retval = g_dbus_connection_call_finish (G_DBUS_CONNECTION (source), result, &error);
-	if (error == NULL) {
-		g_variant_get (retval, "(&o&o)", &item_path, &prompt_path);
-		if (prompt_path xxx)
-			gsecret_prompt_perform (self, "", closure->cancellable,
-			                        on_store_prompt_complete, NULL);
+	closure->created = gsecret_service_store_password_finish (GSECRET_SERVICE (source),
+	                                                          result, &error);
+	if (error != NULL)
+		g_simple_async_result_take_error (res, error);
 
-		if (g_strcmp0 (item_path, "/") != 0)
-			xxx complete!
-	}
-
+	g_simple_async_result_complete (res);
 	g_object_unref (res);
 }
 
 static void
-on_store_service_connected (GObject *source,
-                            GAsyncResult *result,
-                            gpointer user_data)
+on_store_connected (GObject *source,
+                    GAsyncResult *result,
+                    gpointer user_data)
 {
 	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
 	StoreClosure *closure = g_simple_async_result_get_op_res_gpointer (res);
 	GSecretService *service;
 	GError *error = NULL;
-	GDBusProxy *proxy;
-	GVariant *params;
 
 	service = _gsecret_service_bare_connect_finish (result, &error);
 	if (error == NULL) {
-		params = g_variant_new ("(&a{sv}&(oayays)b)",
-		                        closure->properties,
-		                        _gsecret_service_encode_secret (service, closure->secret),
-		                        TRUE);
+		gsecret_service_store_passwordv (service, closure->schema,
+		                                 closure->attributes,
+		                                 closure->collection_path,
+		                                 closure->label, closure->value,
+		                                 closure->cancellable,
+		                                 on_store_complete,
+		                                 g_object_ref (res));
+		g_object_unref (service);
 
-		proxy = G_DBUS_PROXY (service);
-		g_dbus_connection_call (g_dbus_proxy_get_connection (proxy),
-		                        g_dbus_proxy_get_name (proxy),
-		                        closure->collection_path,
-		                        GSECRET_COLLECTION_INTERFACE,
-		                        "CreateItem", params, G_VARIANT_TYPE ("(oo)"),
-		                        G_DBUS_CALL_FLAGS_NO_AUTO_START, -1,
-		                        closure->cancellable, on_create_item_reply,
-		                        g_object_ref (res));
 	} else {
 		g_simple_async_result_take_error (res, error);
 		g_simple_async_result_complete (res);
-
-		<arg name="item" type="o" direction="out"/>
-		<arg name="prompt" type="o" direction="out"/>
 	}
 
 	g_object_unref (res);
@@ -148,107 +136,332 @@ gsecret_password_store (const GSecretSchema *schema,
                         gpointer user_data,
                         ...)
 {
-	GSimpleAsyncResult *res;
-	GVariant *attributes;
-	StoreClosure *closure;
-	GVariantBuilder builder;
+	GHashTable *attributes;
 	va_list va;
 
 	g_return_if_fail (schema != NULL);
+	g_return_if_fail (collection_path != NULL);
 	g_return_if_fail (label != NULL);
 	g_return_if_fail (password != NULL);
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
-	/* Build up the attributes */
 	va_start (va, user_data);
-	attributes = build_attributes (schema, va);
+	attributes = _gsecret_util_attributes_for_varargs (schema, va);
 	va_end (va);
-	g_return_if_fail (attributes != NULL);
 
-	/* Build up the various properties */
-	g_variant_builder_init (&builder, G_VARIANT_TYPE ("a{sv}"));
-	g_variant_builder_add (&builder, "{sv}", GSECRET_SERVICE_INTERFACE "Attributes", attributes);
-	g_variant_builder_add (&builder, "{sv}", GSECRET_SERVICE_INTERFACE "Label", g_variant_new_string ("label"));
-	g_variant_builder_add (&builder, "{sv}", GSECRET_SERVICE_INTERFACE "Schema", g_variant_new_string (schema->schema_name));
+	gsecret_password_storev (schema, collection_path, label, password, attributes,
+	                         cancellable, callback, user_data);
+
+	g_hash_table_unref (attributes);
+}
+
+void
+gsecret_password_storev (const GSecretSchema *schema,
+                         const gchar *collection_path,
+                         const gchar *label,
+                         const gchar *password,
+                         GHashTable *attributes,
+                         GCancellable *cancellable,
+                         GAsyncReadyCallback callback,
+                         gpointer user_data)
+{
+	GSimpleAsyncResult *res;
+	StoreClosure *closure;
+
+	g_return_if_fail (schema != NULL);
+	g_return_if_fail (collection_path != NULL);
+	g_return_if_fail (label != NULL);
+	g_return_if_fail (password != NULL);
+	g_return_if_fail (attributes != NULL);
+	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
 	res = g_simple_async_result_new (NULL, callback, user_data,
-	                                 gsecret_password_store_finish);
-	closure = g_new0 (StoreClosure, 1);
-	closure->properties = g_variant_ref_sink (g_variant_builder_end (&builder));
+	                                 gsecret_password_storev);
+	closure = g_slice_new0 (StoreClosure);
+	closure->schema = schema;
 	closure->collection_path = g_strdup (collection_path);
-	closure->secret = gsecret_value_new (password, -1, "text/plain");
+	closure->label = g_strdup (label);
+	closure->value = gsecret_value_new (password, -1, "text/plain");
+	closure->attributes = g_hash_table_ref (attributes);
 	closure->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
 	g_simple_async_result_set_op_res_gpointer (res, closure, store_closure_free);
 
-	_gsecret_service_bare_connect_with_session (cancellable, on_store_service_connected,
-	                                            g_object_ref (res));
+	_gsecret_service_bare_connect (NULL, TRUE, cancellable,
+	                               on_store_connected, g_object_ref (res));
 
 	g_object_unref (res);
 }
 
-#if 0
 gboolean
 gsecret_password_store_finish (GAsyncResult *result,
                                GError **error)
 {
-	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+	GSimpleAsyncResult *res;
+	StoreClosure *closure;
 
+	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+	g_return_val_if_fail (g_simple_async_result_is_valid (result, NULL,
+	                      gsecret_password_storev), FALSE);
+
+	res = G_SIMPLE_ASYNC_RESULT (result);
+	if (g_simple_async_result_propagate_error (res, error))
+		return FALSE;
+
+	closure = g_simple_async_result_get_op_res_gpointer (res);
+	return closure->created;
 }
 
 gboolean
-gsecret_password_store_sync (const GSecretPasswordSchema *schema,
-                             const gchar *collection,
+gsecret_password_store_sync (const GSecretSchema *schema,
+                             const gchar *collection_path,
                              const gchar *label,
                              const gchar *password,
                              GCancellable *cancellable,
                              GError **error,
-                             const gchar *attribute_name,
                              ...)
 {
+	GHashTable *attributes;
+	va_list va;
+	gboolean ret;
+
 	g_return_val_if_fail (schema != NULL, FALSE);
-	g_return_val_if_fail (display_name != NULL, FALSE);
+	g_return_val_if_fail (label != NULL, FALSE);
 	g_return_val_if_fail (password != NULL, FALSE);
 	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), FALSE);
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
+	va_start (va, error);
+	attributes = _gsecret_util_attributes_for_varargs (schema, va);
+	va_end (va);
+
+	ret = gsecret_password_storev_sync (schema, collection_path, label, password,
+	                                    attributes, cancellable, error);
+
+	g_hash_table_unref (attributes);
+	return ret;
+}
+
+gboolean
+gsecret_password_storev_sync (const GSecretSchema *schema,
+                              const gchar *collection_path,
+                              const gchar *label,
+                              const gchar *password,
+                              GHashTable *attributes,
+                              GCancellable *cancellable,
+                              GError **error)
+{
+	SyncClosure *closure;
+	gboolean ret;
+
+	g_return_val_if_fail (schema != NULL, FALSE);
+	g_return_val_if_fail (collection_path != NULL, FALSE);
+	g_return_val_if_fail (label != NULL, FALSE);
+	g_return_val_if_fail (password != NULL, FALSE);
+	g_return_val_if_fail (attributes != NULL, FALSE);
+	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), FALSE);
+	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+
+	closure = sync_closure_new ();
+	g_main_context_push_thread_default (closure->context);
+
+	gsecret_password_storev (schema, collection_path, label, password, attributes,
+	                         cancellable, on_sync_result, closure);
+
+	g_main_loop_run (closure->loop);
+
+	ret = gsecret_password_store_finish (closure->result, error);
+
+	g_main_context_pop_thread_default (closure->context);
+	sync_closure_free (closure);
+
+	return ret;
+}
+
+typedef struct {
+	GCancellable *cancellable;
+	GHashTable *attributes;
+	GSecretValue *value;
+} LookupClosure;
+
+static void
+lookup_closure_free (gpointer data)
+{
+	LookupClosure *closure = data;
+	g_clear_object (&closure->cancellable);
+	g_hash_table_unref (closure->attributes);
+	if (closure->value)
+		gsecret_value_unref (closure->value);
+	g_slice_free (LookupClosure, closure);
 }
 
 void
-gsecret_password_lookup (const GSecretPasswordSchema *schema,
+gsecret_password_lookup (const GSecretSchema *schema,
                          GCancellable *cancellable,
                          GAsyncReadyCallback callback,
                          gpointer user_data,
-                         const gchar *attribute_name,
                          ...)
 {
+	GHashTable *attributes;
+	va_list va;
+
 	g_return_if_fail (schema != NULL);
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
+	va_start (va, user_data);
+	attributes = _gsecret_util_attributes_for_varargs (schema, va);
+	va_end (va);
+
+	gsecret_password_lookupv (attributes, cancellable, callback, user_data);
+
+	g_hash_table_unref (attributes);
+}
+
+static void
+on_lookup_complete (GObject *source,
+                    GAsyncResult *result,
+                    gpointer user_data)
+{
+	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
+	LookupClosure *closure = g_simple_async_result_get_op_res_gpointer (res);
+	GError *error = NULL;
+
+	closure->value = gsecret_service_lookup_password_finish (GSECRET_SERVICE (source),
+	                                                         result, &error);
+
+	if (error != NULL)
+		g_simple_async_result_take_error (res, error);
+
+	g_simple_async_result_complete (res);
+	g_object_unref (res);
+}
+
+static void
+on_lookup_connected (GObject *source,
+                     GAsyncResult *result,
+                     gpointer user_data)
+{
+	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
+	LookupClosure *closure = g_simple_async_result_get_op_res_gpointer (res);
+	GSecretService *service;
+	GError *error = NULL;
+
+	service = _gsecret_service_bare_connect_finish (result, &error);
+	if (error != NULL) {
+		g_simple_async_result_take_error (res, error);
+		g_simple_async_result_complete (res);
+
+	} else {
+		gsecret_service_lookup_passwordv (service, closure->attributes, closure->cancellable,
+		                                  on_lookup_complete, g_object_ref (res));
+		g_object_unref (service);
+	}
+
+	g_object_unref (res);
+}
+
+void
+gsecret_password_lookupv (GHashTable *attributes,
+                          GCancellable *cancellable,
+                          GAsyncReadyCallback callback,
+                          gpointer user_data)
+{
+	GSimpleAsyncResult *res;
+	LookupClosure *closure;
+
+	g_return_if_fail (attributes != NULL);
+	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+	res = g_simple_async_result_new (NULL, callback, user_data,
+	                                 gsecret_password_lookupv);
+	closure = g_slice_new0 (LookupClosure);
+	closure->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
+	g_simple_async_result_set_op_res_gpointer (res, closure, lookup_closure_free);
+
+	_gsecret_service_bare_connect (NULL, TRUE, cancellable,
+	                               on_lookup_connected, g_object_ref (res));
+
+	g_object_unref (res);
 }
 
 gchar *
 gsecret_password_lookup_finish (GAsyncResult *result,
                                 GError **error)
 {
-	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
+	GSimpleAsyncResult *res;
+	LookupClosure *closure;
+	const gchar *content_type;
+	gchar *password = NULL;
 
+	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
+	g_return_val_if_fail (g_simple_async_result_is_valid (result, NULL,
+	                      gsecret_password_lookupv), NULL);
+
+	res = G_SIMPLE_ASYNC_RESULT (result);
+	if (g_simple_async_result_propagate_error (res, error))
+		return NULL;
+
+	closure = g_simple_async_result_get_op_res_gpointer (res);
+	content_type = gsecret_value_get_content_type (closure->value);
+	if (content_type && g_str_equal (content_type, "text/plain")) {
+		password = _gsecret_value_unref_to_password (closure->value);
+		closure->value = NULL;
+	}
+
+	return password;
 }
 
 gchar *
-gsecret_password_lookup_sync (const GSecretPasswordSchema *schema,
+gsecret_password_lookup_sync (const GSecretSchema *schema,
                               GCancellable *cancellable,
                               GError **error,
-                              const gchar *attribute_name,
                               ...)
 {
+	GHashTable *attributes;
+	gchar *password;
+	va_list va;
+
 	g_return_val_if_fail (schema != NULL, NULL);
 	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
 	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 
+	va_start (va, error);
+	attributes = _gsecret_util_attributes_for_varargs (schema, va);
+	va_end (va);
+
+	password = gsecret_password_lookupv_sync (attributes, cancellable, error);
+
+	g_hash_table_unref (attributes);
+
+	return password;
 }
 
-#endif
-#endif
+gchar *
+gsecret_password_lookupv_sync (GHashTable *attributes,
+                               GCancellable *cancellable,
+                               GError **error)
+{
+	SyncClosure *closure;
+	gchar *password;
+
+	g_return_val_if_fail (attributes != NULL, NULL);
+	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
+	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
+
+	closure = sync_closure_new ();
+	g_main_context_push_thread_default (closure->context);
+
+	gsecret_password_deletev (attributes, cancellable,
+	                          on_sync_result, closure);
+
+	g_main_loop_run (closure->loop);
+
+	password = gsecret_password_lookup_finish (closure->result, error);
+
+	g_main_context_pop_thread_default (closure->context);
+	sync_closure_free (closure);
+
+	return password;
+}
 
 typedef struct {
 	GCancellable *cancellable;

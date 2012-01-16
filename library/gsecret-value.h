@@ -21,13 +21,13 @@ G_BEGIN_DECLS
 
 #define GSECRET_TYPE_VALUE            (gsecret_service_get_type ())
 
-GType               gsecret_value_get_type           (void) G_GNUC_CONST;
+GType               gsecret_value_get_type          (void) G_GNUC_CONST;
 
-GSecretValue*       gsecret_value_new                (const gchar *secret,
+GSecretValue*       gsecret_value_new               (const gchar *secret,
                                                      gssize length,
                                                      const gchar *content_type);
 
-GSecretValue*       gsecret_value_new_full           (gchar *secret,
+GSecretValue*       gsecret_value_new_full          (gchar *secret,
                                                      gssize length,
                                                      const gchar *content_type,
                                                      GDestroyNotify destroy);

@@ -51,8 +51,29 @@ gboolean            _gsecret_util_empty_path                   (const gchar *pat
 
 GVariant *          _gsecret_util_variant_for_attributes       (GHashTable *attributes);
 
+GHashTable *        _gsecret_util_attributes_for_variant       (GVariant *variant);
+
 GHashTable *        _gsecret_util_attributes_for_varargs       (const GSecretSchema *schema,
                                                                 va_list va);
+
+void                _gsecret_util_set_property                 (GDBusProxy *proxy,
+                                                                const gchar *property,
+                                                                GVariant *value,
+                                                                gpointer result_tag,
+                                                                GCancellable *cancellable,
+                                                                GAsyncReadyCallback callback,
+                                                                gpointer user_data);
+
+gboolean            _gsecret_util_set_property_finish          (GDBusProxy *proxy,
+                                                                gpointer result_tag,
+                                                                GAsyncResult *result,
+                                                                GError **error);
+
+gboolean            _gsecret_util_set_property_sync            (GDBusProxy *proxy,
+                                                                const gchar *property,
+                                                                GVariant *value,
+                                                                GCancellable *cancellable,
+                                                                GError **error);
 
 void                _gsecret_service_set_default_bus_name      (const gchar *bus_name);
 
@@ -78,6 +99,8 @@ const gchar *       _gsecret_service_ensure_session_finish     (GSecretService *
                                                                 GAsyncResult *result,
                                                                 GCancellable **cancellable,
                                                                 GError **error);
+
+gchar *             _gsecret_value_unref_to_password           (GSecretValue *value);
 
 G_END_DECLS
 

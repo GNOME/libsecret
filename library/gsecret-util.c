@@ -100,6 +100,23 @@ _gsecret_util_variant_for_attributes (GHashTable *attributes)
 }
 
 GHashTable *
+_gsecret_util_attributes_for_variant (GVariant *variant)
+{
+	GVariantIter iter;
+	GHashTable *attributes;
+	gchar *value;
+	gchar *key;
+
+	attributes = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
+
+	g_variant_iter_init (&iter, variant);
+	while (g_variant_iter_next (&iter, "{sv}", &key, &value))
+		g_hash_table_insert (attributes, key, value);
+
+	return attributes;
+}
+
+GHashTable *
 _gsecret_util_attributes_for_varargs (const GSecretSchema *schema,
                                       va_list args)
 {
@@ -165,4 +182,106 @@ _gsecret_util_attributes_for_varargs (const GSecretSchema *schema,
 	}
 
 	return attributes;
+}
+
+static void
+on_set_property (GObject *source,
+                 GAsyncResult *result,
+                 gpointer user_data)
+{
+	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
+	GError *error = NULL;
+	GVariant *retval;
+
+	retval = g_dbus_connection_call_finish (G_DBUS_CONNECTION (source),
+	                                        result, &error);
+	if (error != NULL)
+		g_simple_async_result_take_error (res, error);
+	if (retval != NULL)
+		g_variant_unref (retval);
+	g_simple_async_result_set_op_res_gboolean (res, retval != NULL);
+	g_object_unref (res);
+}
+
+void
+_gsecret_util_set_property (GDBusProxy *proxy,
+                            const gchar *property,
+                            GVariant *value,
+                            gpointer result_tag,
+                            GCancellable *cancellable,
+                            GAsyncReadyCallback callback,
+                            gpointer user_data)
+{
+	GSimpleAsyncResult *res;
+
+	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+	res = g_simple_async_result_new (G_OBJECT (proxy), callback, user_data, result_tag);
+
+	g_dbus_connection_call (g_dbus_proxy_get_connection (proxy),
+	                        g_dbus_proxy_get_name (proxy),
+	                        g_dbus_proxy_get_object_path (proxy),
+	                        GSECRET_PROPERTIES_INTERFACE,
+	                        "Set",
+	                        g_variant_new ("(ssv)",
+	                                       g_dbus_proxy_get_interface_name (proxy),
+	                                       property,
+	                                       value),
+	                        G_VARIANT_TYPE ("()"),
+	                        G_DBUS_CALL_FLAGS_NO_AUTO_START, -1,
+	                        cancellable, on_set_property,
+	                        g_object_ref (res));
+
+	g_object_unref (res);
+}
+
+gboolean
+_gsecret_util_set_property_finish (GDBusProxy *proxy,
+                                   gpointer result_tag,
+                                   GAsyncResult *result,
+                                   GError **error)
+{
+	GSimpleAsyncResult *res;
+
+	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (proxy), result_tag), FALSE);
+	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+
+	res = G_SIMPLE_ASYNC_RESULT (result);
+
+	if (g_simple_async_result_propagate_error (res, error))
+		return FALSE;
+
+	return g_simple_async_result_get_op_res_gboolean (res);
+}
+
+
+gboolean
+_gsecret_util_set_property_sync (GDBusProxy *proxy,
+                                 const gchar *property,
+                                 GVariant *value,
+                                 GCancellable *cancellable,
+                                 GError **error)
+{
+	GVariant *retval;
+
+	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), FALSE);
+	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+
+	retval = g_dbus_connection_call_sync (g_dbus_proxy_get_connection (proxy),
+	                                      g_dbus_proxy_get_name (proxy),
+	                                      g_dbus_proxy_get_object_path (proxy),
+	                                      GSECRET_PROPERTIES_INTERFACE,
+	                                      "Set",
+	                                      g_variant_new ("(ssv)",
+	                                                     g_dbus_proxy_get_interface_name (proxy),
+	                                                     property,
+	                                                     value),
+	                                      G_VARIANT_TYPE ("()"),
+	                                      G_DBUS_CALL_FLAGS_NO_AUTO_START, -1,
+	                                      cancellable, error);
+
+	if (retval != NULL)
+		g_variant_unref (retval);
+
+	return (retval != NULL);
 }

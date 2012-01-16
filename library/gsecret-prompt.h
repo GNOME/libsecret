@@ -65,7 +65,8 @@ gboolean            gsecret_prompt_perform_finish            (GSecretPrompt *sel
                                                               GAsyncResult *result,
                                                               GError **error);
 
-GVariant *          gsecret_prompt_get_result_value          (GSecretPrompt *self);
+GVariant *          gsecret_prompt_get_result_value          (GSecretPrompt *self,
+                                                              const GVariantType *expected_type);
 
 G_END_DECLS
 

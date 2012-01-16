@@ -235,29 +235,47 @@ gboolean            gsecret_service_prompt_finish            (GSecretService *se
                                                               GAsyncResult *result,
                                                               GError **error);
 
-#if 0
 void                gsecret_service_store_password           (GSecretService *self,
                                                               const GSecretSchema *schema,
                                                               const gchar *collection_path,
                                                               const gchar *label,
-                                                              const gchar *password,
+                                                              GSecretValue *value,
                                                               GCancellable *cancellable,
                                                               GAsyncReadyCallback callback,
                                                               gpointer user_data,
                                                               ...) G_GNUC_NULL_TERMINATED;
 
+void                gsecret_service_store_passwordv          (GSecretService *self,
+                                                              const GSecretSchema *schema,
+                                                              GHashTable *attributes,
+                                                              const gchar *collection_path,
+                                                              const gchar *label,
+                                                              GSecretValue *value,
+                                                              GCancellable *cancellable,
+                                                              GAsyncReadyCallback callback,
+                                                              gpointer user_data);
+
 gboolean            gsecret_service_store_password_finish    (GSecretService *self,
                                                               GAsyncResult *result,
                                                               GError **error);
 
-void                gsecret_service_store_password_sync      (GSecretService *self,
+gboolean            gsecret_service_store_password_sync      (GSecretService *self,
                                                               const GSecretSchema *schema,
-                                                              const gchar *collection,
-                                                              const gchar *display_name,
-                                                              const gchar *password,
+                                                              const gchar *collection_path,
+                                                              const gchar *label,
+                                                              GSecretValue *value,
                                                               GCancellable *cancellable,
                                                               GError **error,
                                                               ...) G_GNUC_NULL_TERMINATED;
+
+gboolean            gsecret_service_store_passwordv_sync     (GSecretService *self,
+                                                              const GSecretSchema *schema,
+                                                              GHashTable *attributes,
+                                                              const gchar *collection_path,
+                                                              const gchar *label,
+                                                              GSecretValue *value,
+                                                              GCancellable *cancellable,
+                                                              GError **error);
 
 void                gsecret_service_lookup_password          (GSecretService *self,
                                                               const GSecretSchema *schema,
@@ -266,16 +284,26 @@ void                gsecret_service_lookup_password          (GSecretService *se
                                                               gpointer user_data,
                                                               ...) G_GNUC_NULL_TERMINATED;
 
-gchar *             gsecret_service_lookup_password_finish   (GSecretService *self,
+void                gsecret_service_lookup_passwordv         (GSecretService *self,
+                                                              GHashTable *attributes,
+                                                              GCancellable *cancellable,
+                                                              GAsyncReadyCallback callback,
+                                                              gpointer user_data);
+
+GSecretValue *      gsecret_service_lookup_password_finish   (GSecretService *self,
                                                               GAsyncResult *result,
                                                               GError **error);
 
-gchar *             gsecret_service_lookup_password_sync     (GSecretService *self,
+GSecretValue *      gsecret_service_lookup_password_sync     (GSecretService *self,
                                                               const GSecretSchema *schema,
                                                               GCancellable *cancellable,
                                                               GError **error,
                                                               ...) G_GNUC_NULL_TERMINATED;
-#endif
+
+GSecretValue *      gsecret_service_lookup_passwordv_sync    (GSecretService *self,
+                                                              GHashTable *attributes,
+                                                              GCancellable *cancellable,
+                                                              GError **error);
 
 void                gsecret_service_delete_path              (GSecretService *self,
                                                               const gchar *item_path,

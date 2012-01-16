@@ -422,12 +422,23 @@ gsecret_prompt_perform_finish (GSecretPrompt *self,
 }
 
 GVariant *
-gsecret_prompt_get_result_value (GSecretPrompt *self)
+gsecret_prompt_get_result_value (GSecretPrompt *self,
+                                 const GVariantType *expected_type)
 {
+	gchar *string;
+
 	g_return_val_if_fail (GSECRET_IS_PROMPT (self), NULL);
 
-	if (self->pv->last_result)
-		return g_variant_ref (self->pv->last_result);
+	if (!self->pv->last_result)
+		return NULL;
 
-	return NULL;
+	if (expected_type && !g_variant_is_of_type (self->pv->last_result, expected_type)) {
+		string = g_variant_type_dup_string (expected_type);
+		g_warning ("received unexpected result type %s from Completed signal instead of expected %s",
+		           g_variant_get_type_string (self->pv->last_result), string);
+		g_free (string);
+		return NULL;
+	}
+
+	return g_variant_ref (self->pv->last_result);
 }
