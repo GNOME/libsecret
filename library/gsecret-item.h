@@ -42,8 +42,10 @@ struct _GSecretItem {
 
 GType               gsecret_item_get_type                   (void) G_GNUC_CONST;
 
-GSecretItem*        gsecret_item_instance                   (GDBusConnection *connection,
+#if 0
+GSecretItem *       gsecret_item_instance                   (GDBusConnection *connection,
                                                              const gchar *object_path);
+#endif
 
 void                gsecret_item_delete                     (GSecretItem *self,
                                                              GCancellable *cancellable,
@@ -71,8 +73,6 @@ GSecretValue *      gsecret_item_get_secret_sync            (GSecretItem *self,
                                                              GCancellable *cancellable,
                                                              GError **error);
 
-#if 0
-
 GHashTable*         gsecret_item_get_attributes             (GSecretItem *self);
 
 void                gsecret_item_set_attributes             (GSecretItem *self,
@@ -85,12 +85,12 @@ gboolean            gsecret_item_set_attributes_finish      (GSecretItem *self,
                                                              GAsyncResult *result,
                                                              GError **error);
 
-void                gsecret_item_set_attributes_sync        (GSecretItem *self,
+gboolean            gsecret_item_set_attributes_sync        (GSecretItem *self,
                                                              GHashTable *attributes,
                                                              GCancellable *cancellable,
                                                              GError **error);
 
-const gchar*        gsecret_item_get_label                  (GSecretItem *self);
+gchar *             gsecret_item_get_label                  (GSecretItem *self);
 
 void                gsecret_item_set_label                  (GSecretItem *self,
                                                              const gchar *label,
@@ -102,7 +102,7 @@ gboolean            gsecret_item_set_label_finish           (GSecretItem *self,
                                                              GAsyncResult *result,
                                                              GError **error);
 
-void                gsecret_item_set_label_sync             (GSecretItem *self,
+gboolean            gsecret_item_set_label_sync             (GSecretItem *self,
                                                              const gchar *label,
                                                              GCancellable *cancellable,
                                                              GError **error);
@@ -112,8 +112,6 @@ gboolean            gsecret_item_get_locked                 (GSecretItem *self);
 guint64             gsecret_item_get_created                (GSecretItem *self);
 
 guint64             gsecret_item_get_modified               (GSecretItem *self);
-
-#endif
 
 G_END_DECLS
 

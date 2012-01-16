@@ -204,46 +204,184 @@ gsecret_item_get_secret_sync (GSecretItem *self,
 	return value;
 }
 
-#ifdef UNIMPLEMENTED
+GHashTable *
+gsecret_item_get_attributes (GSecretItem *self)
+{
+	GHashTable *attributes;
+	GVariant *variant;
 
-GHashTable*         gsecret_item_get_attributes             (GSecretItem *self);
+	g_return_val_if_fail (GSECRET_IS_ITEM (self), NULL);
 
-void                gsecret_item_set_attributes             (GSecretItem *self,
-                                                             GHashTable *attributes,
-                                                             GCancellable *cancellable,
-                                                             GAsyncReadyCallback callback,
-                                                             gpointer user_data);
+	variant = g_dbus_proxy_get_cached_property (G_DBUS_PROXY (self), "Attributes");
+	g_return_val_if_fail (variant != NULL, NULL);
 
-gboolean            gsecret_item_set_attributes_finish      (GSecretItem *self,
-                                                             GAsyncResult *result,
-                                                             GError **error);
+	attributes = _gsecret_util_attributes_for_variant (variant);
+	g_variant_unref (variant);
 
-void                gsecret_item_set_attributes_sync        (GSecretItem *self,
-                                                             GHashTable *attributes,
-                                                             GCancellable *cancellable,
-                                                             GError **error);
+	return attributes;
+}
 
-const gchar*        gsecret_item_get_label                  (GSecretItem *self);
+void
+gsecret_item_set_attributes (GSecretItem *self,
+                             GHashTable *attributes,
+                             GCancellable *cancellable,
+                             GAsyncReadyCallback callback,
+                             gpointer user_data)
+{
+	GVariant *variant;
 
-void                gsecret_item_set_label                  (GSecretItem *self,
-                                                             const gchar *label,
-                                                             GCancellable *cancellable,
-                                                             GAsyncReadyCallback callback,
-                                                             gpointer user_data);
+	g_return_if_fail (GSECRET_IS_ITEM (self));
+	g_return_if_fail (attributes != NULL);
 
-gboolean            gsecret_item_set_label_finish           (GSecretItem *self,
-                                                             GAsyncResult *result,
-                                                             GError **error);
+	variant = _gsecret_util_variant_for_attributes (attributes);
 
-void                gsecret_item_set_label_sync             (GSecretItem *self,
-                                                             const gchar *label,
-                                                             GCancellable *cancellable,
-                                                             GError **error);
+	_gsecret_util_set_property (G_DBUS_PROXY (self), "Attributes", variant,
+	                            gsecret_item_set_attributes, cancellable,
+	                            callback, user_data);
 
-gboolean            gsecret_item_get_locked                 (GSecretItem *self);
+	g_variant_unref (variant);
+}
 
-guint64             gsecret_item_get_created                (GSecretItem *self);
+gboolean
+gsecret_item_set_attributes_finish (GSecretItem *self,
+                                    GAsyncResult *result,
+                                    GError **error)
+{
+	g_return_val_if_fail (GSECRET_IS_ITEM (self), FALSE);
 
-guint64             gsecret_item_get_modified               (GSecretItem *self);
+	return _gsecret_util_set_property_finish (G_DBUS_PROXY (self),
+	                                          gsecret_item_set_attributes,
+	                                          result, error);
+}
 
-#endif /* UNIMPLEMENTED */
+gboolean
+gsecret_item_set_attributes_sync (GSecretItem *self,
+                                  GHashTable *attributes,
+                                  GCancellable *cancellable,
+                                  GError **error)
+{
+	GVariant *variant;
+	gboolean ret;
+
+	g_return_val_if_fail (GSECRET_IS_ITEM (self), FALSE);
+	g_return_val_if_fail (attributes != NULL, FALSE);
+
+	variant = _gsecret_util_variant_for_attributes (attributes);
+
+	ret = _gsecret_util_set_property_sync (G_DBUS_PROXY (self), "Attributes",
+	                                       variant, cancellable, error);
+
+	g_variant_unref (variant);
+
+	return ret;
+}
+
+gchar *
+gsecret_item_get_label (GSecretItem *self)
+{
+	GVariant *variant;
+	gchar *label;
+
+	g_return_val_if_fail (GSECRET_IS_ITEM (self), NULL);
+
+	variant = g_dbus_proxy_get_cached_property (G_DBUS_PROXY (self), "Label");
+	g_return_val_if_fail (variant != NULL, NULL);
+
+	label = g_variant_dup_string (variant, NULL);
+	g_variant_unref (variant);
+
+	return label;
+}
+
+void
+gsecret_item_set_label (GSecretItem *self,
+                        const gchar *label,
+                        GCancellable *cancellable,
+                        GAsyncReadyCallback callback,
+                        gpointer user_data)
+{
+	g_return_if_fail (GSECRET_IS_ITEM (self));
+	g_return_if_fail (label != NULL);
+
+	_gsecret_util_set_property (G_DBUS_PROXY (self), "Label",
+	                            g_variant_new_string (label),
+	                            gsecret_item_set_label,
+	                            cancellable, callback, user_data);
+}
+
+gboolean
+gsecret_item_set_label_finish (GSecretItem *self,
+                               GAsyncResult *result,
+                               GError **error)
+{
+	g_return_val_if_fail (GSECRET_IS_ITEM (self), FALSE);
+
+	return _gsecret_util_set_property_finish (G_DBUS_PROXY (self),
+	                                          gsecret_item_set_label,
+	                                          result, error);
+}
+
+gboolean
+gsecret_item_set_label_sync (GSecretItem *self,
+                             const gchar *label,
+                             GCancellable *cancellable,
+                             GError **error)
+{
+	g_return_val_if_fail (GSECRET_IS_ITEM (self), FALSE);
+	g_return_val_if_fail (label != NULL, FALSE);
+
+	return _gsecret_util_set_property_sync (G_DBUS_PROXY (self), "Label",
+	                                       g_variant_new_string (label),
+	                                       cancellable, error);
+}
+
+gboolean
+gsecret_item_get_locked (GSecretItem *self)
+{
+	GVariant *variant;
+	gboolean locked;
+
+	g_return_val_if_fail (GSECRET_IS_ITEM (self), TRUE);
+
+	variant = g_dbus_proxy_get_cached_property (G_DBUS_PROXY (self), "Locked");
+	g_return_val_if_fail (variant != NULL, TRUE);
+
+	locked = g_variant_get_boolean (variant);
+	g_variant_unref (variant);
+
+	return locked;
+}
+
+guint64
+gsecret_item_get_created (GSecretItem *self)
+{
+	GVariant *variant;
+	guint64 created;
+
+	g_return_val_if_fail (GSECRET_IS_ITEM (self), TRUE);
+
+	variant = g_dbus_proxy_get_cached_property (G_DBUS_PROXY (self), "Created");
+	g_return_val_if_fail (variant != NULL, 0);
+
+	created = g_variant_get_uint64 (variant);
+	g_variant_unref (variant);
+
+	return created;
+}
+
+guint64
+gsecret_item_get_modified (GSecretItem *self)
+{
+	GVariant *variant;
+	guint64 modified;
+
+	g_return_val_if_fail (GSECRET_IS_ITEM (self), TRUE);
+
+	variant = g_dbus_proxy_get_cached_property (G_DBUS_PROXY (self), "Modified");
+	g_return_val_if_fail (variant != NULL, 0);
+
+	modified = g_variant_get_uint64 (variant);
+	g_variant_unref (variant);
+
+	return modified;
+}

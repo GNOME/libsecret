@@ -37,6 +37,8 @@ typedef struct {
 
 #define             GSECRET_PROMPT_SIGNAL_COMPLETED   "Completed"
 
+#define             GSECRET_PROPERTIES_INTERFACE      "org.freedesktop.DBus.Properties"
+
 GSecretParams *     _gsecret_params_new                        (GCancellable *cancellable,
                                                                 GVariant *in);
 
