@@ -385,12 +385,15 @@ test_service_path (Test *test,
 {
 	GError *error = NULL;
 	GAsyncResult *result = NULL;
+	GSecretPrompt *prompt;
 	gboolean ret;
 
-	gsecret_service_prompt_path (test->service, "/org/freedesktop/secrets/prompts/simple",
-	                             NULL, on_async_result, &result);
+	prompt = gsecret_prompt_instance (test->service, "/org/freedesktop/secrets/prompts/simple");
+
+	gsecret_service_prompt (test->service, prompt, NULL, on_async_result, &result);
 	g_assert (result == NULL);
 
+	g_object_unref (prompt);
 	egg_test_wait ();
 
 	ret = gsecret_service_prompt_finish (test->service, result, &error);

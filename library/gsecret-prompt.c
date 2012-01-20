@@ -21,10 +21,12 @@
 
 #include <gcrypt.h>
 
-struct _GSecretPromptPrivate {
+typedef struct _GSecretPromptPrivate {
+	/* Locked by mutex */
+	GMutex mutex;
 	gint prompted;
 	GVariant *last_result;
-};
+} GSecretPromptPrivate;
 
 G_DEFINE_TYPE (GSecretPrompt, gsecret_prompt, G_TYPE_DBUS_PROXY);
 
@@ -33,6 +35,8 @@ gsecret_prompt_init (GSecretPrompt *self)
 {
 	self->pv = G_TYPE_INSTANCE_GET_PRIVATE (self, GSECRET_TYPE_PROMPT,
 	                                        GSecretPromptPrivate);
+
+	g_mutex_init (&self->pv->mutex);
 }
 
 static void
@@ -40,6 +44,7 @@ gsecret_prompt_finalize (GObject *obj)
 {
 	GSecretPrompt *self = GSECRET_PROMPT (obj);
 
+	g_mutex_clear (&self->pv->mutex);
 	if (self->pv->last_result)
 		g_variant_unref (self->pv->last_result);
 
@@ -234,8 +239,10 @@ on_prompt_completed (GDBusConnection *connection,
 		perform_prompt_complete (res, TRUE);
 
 	} else {
-		g_return_if_fail (self->pv->last_result == NULL);
+		g_mutex_lock (&self->pv->mutex);
 		g_variant_get (parameters, "(bv)", &dismissed, &self->pv->last_result);
+		g_mutex_unlock (&self->pv->mutex);
+
 		perform_prompt_complete (res, dismissed);
 	}
 
@@ -265,10 +272,12 @@ on_prompt_prompted (GObject *source,
 		perform_prompt_complete (res, TRUE);
 
 	} else {
-		g_atomic_int_inc (&self->pv->prompted);
+		g_mutex_lock (&self->pv->mutex);
+		closure->prompting = TRUE;
+		self->pv->prompted = TRUE;
+		g_mutex_unlock (&self->pv->mutex);
 
 		/* And now we wait for the signal */
-		closure->prompting = TRUE;
 	}
 
 	g_object_unref (res);
@@ -341,13 +350,18 @@ gsecret_prompt_perform (GSecretPrompt *self,
 	PerformClosure *closure;
 	const gchar *owner_name;
 	const gchar *object_path;
+	gboolean prompted;
 	GDBusProxy *proxy;
 	gchar *window;
 
 	g_return_if_fail (GSECRET_IS_PROMPT (self));
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
-	if (g_atomic_int_get (&self->pv->prompted)) {
+	g_mutex_lock (&self->pv->mutex);
+	prompted = self->pv->prompted;
+	g_mutex_unlock (&self->pv->mutex);
+
+	if (prompted) {
 		g_warning ("The prompt object has already had its prompt called.");
 		return;
 	}
@@ -425,20 +439,27 @@ GVariant *
 gsecret_prompt_get_result_value (GSecretPrompt *self,
                                  const GVariantType *expected_type)
 {
+	GVariant *last_result;
 	gchar *string;
 
 	g_return_val_if_fail (GSECRET_IS_PROMPT (self), NULL);
 
-	if (!self->pv->last_result)
-		return NULL;
+	g_mutex_lock (&self->pv->mutex);
+	if (self->pv->last_result)
+		last_result = g_variant_ref (self->pv->last_result);
+	else
+		last_result = NULL;
+	g_mutex_unlock (&self->pv->mutex);
 
-	if (expected_type && !g_variant_is_of_type (self->pv->last_result, expected_type)) {
+	if (last_result != NULL && expected_type != NULL &&
+	    !g_variant_is_of_type (last_result, expected_type)) {
 		string = g_variant_type_dup_string (expected_type);
 		g_warning ("received unexpected result type %s from Completed signal instead of expected %s",
-		           g_variant_get_type_string (self->pv->last_result), string);
+		           g_variant_get_type_string (last_result), string);
+		g_variant_unref (last_result);
 		g_free (string);
 		return NULL;
 	}
 
-	return g_variant_ref (self->pv->last_result);
+	return last_result;
 }

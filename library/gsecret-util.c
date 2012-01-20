@@ -17,6 +17,40 @@
 
 #include <string.h>
 
+static void
+list_unref_free (GList *reflist)
+{
+	GList *l;
+	for (l = reflist; l; l = g_list_next (l)) {
+		g_return_if_fail (G_IS_OBJECT (l->data));
+		g_object_unref (l->data);
+	}
+	g_list_free (reflist);
+}
+
+static GList *
+list_ref_copy (GList *reflist)
+{
+	GList *l, *copy = g_list_copy (reflist);
+	for (l = copy; l; l = g_list_next (l)) {
+		g_return_val_if_fail (G_IS_OBJECT (l->data), NULL);
+		g_object_ref (l->data);
+	}
+	return copy;
+}
+
+GType
+_gsecret_list_get_type (void)
+{
+	static GType type = 0;
+	if (!type)
+		type = g_boxed_type_register_static ("GSecretObjectList",
+		                                     (GBoxedCopyFunc)list_ref_copy,
+		                                     (GBoxedFreeFunc)list_unref_free);
+	return type;
+
+}
+
 GQuark
 gsecret_error_get_quark (void)
 {
@@ -29,32 +63,6 @@ gsecret_error_get_quark (void)
 	}
 
 	return quark;
-}
-
-GSecretParams *
-_gsecret_params_new (GCancellable *cancellable,
-                     GVariant *in)
-{
-	GSecretParams *params;
-
-	params = g_slice_new0 (GSecretParams);
-	params->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
-	params->in = g_variant_ref_sink (in);
-
-	return params;
-}
-
-void
-_gsecret_params_free (gpointer data)
-{
-	GSecretParams *params = data;
-
-	g_clear_object (&params->cancellable);
-	if (params->in)
-		g_variant_unref (params->in);
-	if (params->out)
-		g_variant_unref (params->out);
-	g_slice_free (GSecretParams, params);
 }
 
 gchar *
@@ -185,6 +193,103 @@ _gsecret_util_attributes_for_varargs (const GSecretSchema *schema,
 }
 
 static void
+process_get_all_reply (GDBusProxy *proxy,
+                       GVariant *retval)
+{
+	const gchar *invalidated_properties[1] = { NULL };
+	GVariant *changed_properties;
+	GVariantIter *iter;
+	GVariant *value;
+	gchar *key;
+
+	if (!g_variant_is_of_type (retval, G_VARIANT_TYPE ("(a{sv})"))) {
+		g_warning ("Value for GetAll reply with type `%s' does not match `(a{sv})'",
+		           g_variant_get_type_string (retval));
+		return;
+	}
+
+	g_variant_get (retval, "(a{sv})", &iter);
+	while (g_variant_iter_loop (iter, "{sv}", &key, &value))
+		g_dbus_proxy_set_cached_property (proxy, key, value);
+	g_variant_iter_free (iter);
+
+	g_variant_get (retval, "(@a{sv})", &changed_properties);
+	g_signal_emit_by_name (proxy, "properties-changed",
+	                       changed_properties, invalidated_properties);
+	g_variant_unref (changed_properties);
+}
+
+static void
+on_get_properties (GObject *source,
+                   GAsyncResult *result,
+                   gpointer user_data)
+{
+	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (result);
+	GDBusProxy *proxy = G_DBUS_PROXY (g_async_result_get_source_object (user_data));
+	GError *error = NULL;
+	GVariant *retval;
+
+	retval = g_dbus_connection_call_finish (G_DBUS_CONNECTION (source), result, &error);
+
+	if (error == NULL)
+		process_get_all_reply (proxy, retval);
+	else
+		g_simple_async_result_take_error (res, error);
+	if (retval != NULL)
+		g_variant_unref (retval);
+
+	g_simple_async_result_complete (res);
+	g_object_unref (proxy);
+	g_object_unref (res);
+}
+
+void
+_gsecret_util_get_properties (GDBusProxy *proxy,
+                              gpointer result_tag,
+                              GCancellable *cancellable,
+                              GAsyncReadyCallback callback,
+                              gpointer user_data)
+{
+	GSimpleAsyncResult *res;
+
+	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+	res = g_simple_async_result_new (G_OBJECT (proxy), callback, user_data, result_tag);
+
+	g_dbus_connection_call (g_dbus_proxy_get_connection (proxy),
+	                        g_dbus_proxy_get_name (proxy),
+	                        g_dbus_proxy_get_object_path (proxy),
+	                        "org.freedesktop.DBus.Properties", "GetAll",
+	                        g_variant_new ("(s)", g_dbus_proxy_get_interface_name (proxy)),
+	                        G_VARIANT_TYPE ("(a{sv})"),
+	                        G_DBUS_CALL_FLAGS_NONE, -1,
+	                        cancellable, on_get_properties,
+	                        g_object_ref (res));
+
+	g_object_unref (res);
+}
+
+gboolean
+_gsecret_util_get_properties_finish (GDBusProxy *proxy,
+                                     gpointer result_tag,
+                                     GAsyncResult *result,
+                                     GError **error)
+{
+	GSimpleAsyncResult *res;
+
+	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (proxy), result_tag), FALSE);
+	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+
+	res = G_SIMPLE_ASYNC_RESULT (result);
+
+	if (g_simple_async_result_propagate_error (res, error))
+		return FALSE;
+
+	return TRUE;
+}
+
+
+static void
 on_set_property (GObject *source,
                  GAsyncResult *result,
                  gpointer user_data)
@@ -254,7 +359,6 @@ _gsecret_util_set_property_finish (GDBusProxy *proxy,
 	return g_simple_async_result_get_op_res_gboolean (res);
 }
 
-
 gboolean
 _gsecret_util_set_property_sync (GDBusProxy *proxy,
                                  const gchar *property,
@@ -284,4 +388,38 @@ _gsecret_util_set_property_sync (GDBusProxy *proxy,
 		g_variant_unref (retval);
 
 	return (retval != NULL);
+}
+
+GSecretSync *
+_gsecret_sync_new (void)
+{
+	GSecretSync *sync;
+
+	sync = g_new0 (GSecretSync, 1);
+
+	sync->context = g_main_context_new ();
+	sync->loop = g_main_loop_new (sync->context, FALSE);
+
+	return sync;
+}
+
+void
+_gsecret_sync_free (gpointer data)
+{
+	GSecretSync *sync = data;
+
+	g_clear_object (&sync->result);
+	g_main_loop_unref (sync->loop);
+	g_main_context_unref (sync->context);
+}
+
+void
+_gsecret_sync_on_result (GObject *source,
+                         GAsyncResult *result,
+                         gpointer user_data)
+{
+	GSecretSync *sync = user_data;
+	g_assert (sync->result == NULL);
+	sync->result = g_object_ref (result);
+	g_main_loop_quit (sync->loop);
 }

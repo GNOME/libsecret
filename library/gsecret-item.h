@@ -29,23 +29,34 @@ G_BEGIN_DECLS
 #define GSECRET_ITEM_GET_CLASS(inst) (G_TYPE_INSTANCE_GET_CLASS ((inst), GSECRET_TYPE_ITEM, GSecretItemClass))
 
 typedef struct _GSecretItemClass   GSecretItemClass;
-typedef struct _GSecretItemPrivate GSecretItemPrivate;
-
-struct _GSecretItemClass {
-	GDBusProxyClass parent_class;
-};
 
 struct _GSecretItem {
 	GDBusProxy parent_instance;
-	GSecretItemPrivate *pv;
+	gpointer padding;
+};
+
+struct _GSecretItemClass {
+	GDBusProxyClass parent_class;
+	gpointer padding[4];
 };
 
 GType               gsecret_item_get_type                   (void) G_GNUC_CONST;
 
-#if 0
-GSecretItem *       gsecret_item_instance                   (GDBusConnection *connection,
-                                                             const gchar *object_path);
-#endif
+void                gsecret_item_new                        (GSecretService *service,
+                                                             const gchar *item_path,
+                                                             GCancellable *cancellable,
+                                                             GAsyncReadyCallback callback,
+                                                             gpointer user_data);
+
+GSecretItem *       gsecret_item_new_finish                 (GAsyncResult *result,
+                                                             GError **error);
+
+GSecretItem *       gsecret_item_new_sync                   (GSecretService *service,
+                                                             const gchar *item_path,
+                                                             GCancellable *cancellable,
+                                                             GError **error);
+
+void                gsecret_item_refresh                    (GSecretItem *self);
 
 void                gsecret_item_delete                     (GSecretItem *self,
                                                              GCancellable *cancellable,

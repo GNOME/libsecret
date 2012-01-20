@@ -29,15 +29,14 @@ G_BEGIN_DECLS
 typedef struct _GSecretPromptClass   GSecretPromptClass;
 typedef struct _GSecretPromptPrivate GSecretPromptPrivate;
 
-struct _GSecretPromptClass {
-	GDBusProxyClass parent_class;
-
-	gpointer padding[8];
-};
-
 struct _GSecretPrompt {
 	GDBusProxy parent_instance;
 	GSecretPromptPrivate *pv;
+};
+
+struct _GSecretPromptClass {
+	GDBusProxyClass parent_class;
+	gpointer padding[8];
 };
 
 GType               gsecret_prompt_get_type                  (void) G_GNUC_CONST;

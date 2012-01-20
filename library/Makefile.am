@@ -15,12 +15,13 @@ BUILT_SOURCES = \
 	gsecret-dbus-generated.c gsecret-dbus-generated.h
 
 libgsecret_la_SOURCES = \
-	gsecret-value.h gsecret-value.c \
+	gsecret-collection.h gsecret-collection.c \
 	gsecret-item.h gsecret-item.c \
 	gsecret-password.h gsecret-password.c \
 	gsecret-prompt.h gsecret-prompt.c \
 	gsecret-service.h gsecret-service.c \
 	gsecret-util.c \
+	gsecret-value.h gsecret-value.c \
 	$(BUILT_SOURCES) \
 	$(NULL)
 

@@ -523,11 +523,11 @@ test_delete_password_sync (Test *test,
 	GError *error = NULL;
 	gboolean ret;
 
-	ret = gsecret_service_delete_password_sync (test->service, &DELETE_SCHEMA, NULL, &error,
-	                                            "even", FALSE,
-	                                            "string", "one",
-	                                            "number", 1,
-	                                            NULL);
+	ret = gsecret_service_remove_sync (test->service, &DELETE_SCHEMA, NULL, &error,
+	                                   "even", FALSE,
+	                                   "string", "one",
+	                                   "number", 1,
+	                                   NULL);
 
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
@@ -541,18 +541,18 @@ test_delete_password_async (Test *test,
 	GAsyncResult *result = NULL;
 	gboolean ret;
 
-	gsecret_service_delete_password (test->service, &DELETE_SCHEMA, NULL,
-	                                 on_complete_get_result, &result,
-	                                 "even", FALSE,
-	                                 "string", "one",
-	                                 "number", 1,
-	                                 NULL);
+	gsecret_service_remove (test->service, &DELETE_SCHEMA, NULL,
+	                        on_complete_get_result, &result,
+	                        "even", FALSE,
+	                        "string", "one",
+	                        "number", 1,
+	                        NULL);
 
 	g_assert (result == NULL);
 
 	egg_test_wait ();
 
-	ret = gsecret_service_delete_password_finish (test->service, result, &error);
+	ret = gsecret_service_remove_finish (test->service, result, &error);
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
 
@@ -566,11 +566,11 @@ test_delete_password_locked (Test *test,
 	GError *error = NULL;
 	gboolean ret;
 
-	ret = gsecret_service_delete_password_sync (test->service, &DELETE_SCHEMA, NULL, &error,
-	                                            "even", FALSE,
-	                                            "string", "three",
-	                                            "number", 3,
-	                                            NULL);
+	ret = gsecret_service_remove_sync (test->service, &DELETE_SCHEMA, NULL, &error,
+	                                   "even", FALSE,
+	                                   "string", "three",
+	                                   "number", 3,
+	                                   NULL);
 
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
@@ -584,10 +584,10 @@ test_delete_password_no_match (Test *test,
 	gboolean ret;
 
 	/* Won't match anything */
-	ret = gsecret_service_delete_password_sync (test->service, &DELETE_SCHEMA, NULL, &error,
-	                                            "even", TRUE,
-	                                            "string", "one",
-	                                            NULL);
+	ret = gsecret_service_remove_sync (test->service, &DELETE_SCHEMA, NULL, &error,
+	                                   "even", TRUE,
+	                                   "string", "one",
+	                                   NULL);
 
 	g_assert_no_error (error);
 	g_assert (ret == FALSE);

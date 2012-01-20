@@ -87,7 +87,7 @@ test_delete_sync (Test *test,
 	GError *error = NULL;
 	gboolean ret;
 
-	ret = gsecret_password_delete_sync (&DELETE_SCHEMA, NULL, &error,
+	ret = gsecret_password_remove_sync (&DELETE_SCHEMA, NULL, &error,
 	                                    "even", FALSE,
 	                                    "string", "one",
 	                                    "number", 1,
@@ -105,7 +105,7 @@ test_delete_async (Test *test,
 	GAsyncResult *result = NULL;
 	gboolean ret;
 
-	gsecret_password_delete (&DELETE_SCHEMA, NULL,
+	gsecret_password_remove (&DELETE_SCHEMA, NULL,
 	                         on_complete_get_result, &result,
 	                         "even", FALSE,
 	                         "string", "one",
@@ -116,7 +116,7 @@ test_delete_async (Test *test,
 
 	egg_test_wait ();
 
-	ret = gsecret_password_delete_finish (result, &error);
+	ret = gsecret_password_remove_finish (result, &error);
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
 

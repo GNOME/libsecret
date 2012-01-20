@@ -79,26 +79,26 @@ gchar *     gsecret_password_lookupv_sync               (GHashTable *attributes,
                                                          GCancellable *cancellable,
                                                          GError **error);
 
-void        gsecret_password_delete                     (const GSecretSchema *schema,
+void        gsecret_password_remove                     (const GSecretSchema *schema,
                                                          GCancellable *cancellable,
                                                          GAsyncReadyCallback callback,
                                                          gpointer user_data,
                                                          ...) G_GNUC_NULL_TERMINATED;
 
-void        gsecret_password_deletev                    (GHashTable *attributes,
+void        gsecret_password_removev                    (GHashTable *attributes,
                                                          GCancellable *cancellable,
                                                          GAsyncReadyCallback callback,
                                                          gpointer user_data);
 
-gboolean    gsecret_password_delete_finish              (GAsyncResult *result,
+gboolean    gsecret_password_remove_finish              (GAsyncResult *result,
                                                          GError **error);
 
-gboolean    gsecret_password_delete_sync                (const GSecretSchema* schema,
+gboolean    gsecret_password_remove_sync                (const GSecretSchema* schema,
                                                          GCancellable *cancellable,
                                                          GError **error,
                                                          ...) G_GNUC_NULL_TERMINATED;
 
-gboolean    gsecret_password_deletev_sync               (GHashTable *attributes,
+gboolean    gsecret_password_removev_sync               (GHashTable *attributes,
                                                          GCancellable *cancellable,
                                                          GError **error);
 
