@@ -20,6 +20,8 @@
 #include "gsecret-private.h"
 #include "gsecret-prompt.h"
 
+#include "mock-service.h"
+
 #include "egg/egg-testing.h"
 
 #include <glib.h>
@@ -27,10 +29,7 @@
 #include <errno.h>
 #include <stdlib.h>
 
-static gchar *MOCK_NAME = "org.mock.Service";
-
 typedef struct {
-	GPid pid;
 	GDBusConnection *connection;
 	GSecretService *service;
 } Test;
@@ -41,17 +40,9 @@ setup (Test *test,
 {
 	GError *error = NULL;
 	const gchar *mock_script = data;
-	gchar *argv[] = {
-		"python", (gchar *)mock_script,
-		"--name", MOCK_NAME,
-		NULL
-	};
 
-	_gsecret_service_set_default_bus_name (MOCK_NAME);
-
-	g_spawn_async (SRCDIR, argv, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL, &test->pid, &error);
+	mock_service_start (mock_script, &error);
 	g_assert_no_error (error);
-	g_usleep (200 * 1000);
 
 	test->connection = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, &error);
 	g_assert_no_error (error);
@@ -68,12 +59,7 @@ teardown (Test *test,
 	g_object_unref (test->service);
 	egg_assert_not_object (test->service);
 
-	g_assert (test->pid);
-	if (kill (test->pid, SIGTERM) < 0) {
-		if (errno != ESRCH)
-			g_error ("kill() failed: %s", g_strerror (errno));
-	}
-	g_spawn_close_pid (test->pid);
+	mock_service_stop ();
 
 	g_dbus_connection_flush_sync (test->connection, NULL, &error);
 	g_assert_no_error (error);

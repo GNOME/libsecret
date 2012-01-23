@@ -29,6 +29,7 @@ import gobject
 COLLECTION_PREFIX = "/org/freedesktop/secrets/collection/"
 
 bus_name = 'org.freedesktop.Secret.MockService'
+ready_pipe = -1
 objects = { }
 
 class NotSupported(dbus.exceptions.DBusException):
@@ -261,7 +262,12 @@ class SecretService(dbus.service.Object):
 		SecretItem(collection, "item_three", attributes={ "number": "3", "string": "three", "parity": "odd" })
 	
 	def listen(self):
+		global ready_pipe
 		loop = gobject.MainLoop()
+		if ready_pipe >= 0:
+			os.write(ready_pipe, "GO")
+			os.close(ready_pipe)
+			ready_pipe = -1
 		loop.run()
 
 	def add_session(self, session):
@@ -323,15 +329,17 @@ class SecretService(dbus.service.Object):
 
 
 def parse_options(args):
-	global bus_name
+	global bus_name, ready_pipe
 	try:
-		opts, args = getopt.getopt(args, "name", ["name="])
+		opts, args = getopt.getopt(args, "nr", ["name=", "ready="])
 	except getopt.GetoptError, err:
 		print str(err)
 		sys.exit(2)
 	for o, a in opts:
-		if o in ("--name"):
+		if o in ("-n", "--name"):
 			bus_name = a
+		elif o in ("-r", "--ready"):
+			ready_pipe = int(a)
 		else:
 			assert False, "unhandled option"
 	return args

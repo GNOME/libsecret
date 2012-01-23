@@ -5,9 +5,24 @@ INCLUDES = \
 	-DSRCDIR="\"@abs_srcdir@\"" \
 	$(NULL)
 
+noinst_LTLIBRARIES = libmock_service.la
+
+libmock_service_la_SOURCES = \
+	mock-service.c mock-service.h \
+	$(NULL)
+
+libmock_service_la_CFLAGS = \
+	$(LIBGCRYPT_CFLAGS)
+
+libmock_service_la_LIBADD = \
+	$(top_builddir)/egg/libegg.la \
+	$(top_builddir)/library/libgsecret.la \
+	$(LIBGCRYPT_LIBS)
+
 LDADD =  \
 	$(top_builddir)/egg/libegg.la \
 	$(top_builddir)/library/libgsecret.la \
+	$(top_builddir)/library/tests/libmock_service.la \
 	$(NULL)
 
 TEST_PROGS = \
