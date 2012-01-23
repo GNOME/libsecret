@@ -26,6 +26,8 @@ typedef struct {
 	GMainLoop *loop;
 } GSecretSync;
 
+typedef struct _GSecretSession GSecretSession;
+
 #define             GSECRET_SERVICE_PATH              "/org/freedesktop/secrets"
 
 #define             GSECRET_SERVICE_BUS_NAME          "org.freedesktop.Secret.Service"
@@ -93,6 +95,8 @@ gboolean            _gsecret_util_set_property_sync            (GDBusProxy *prox
                                                                 GCancellable *cancellable,
                                                                 GError **error);
 
+gboolean            _gsecret_util_have_cached_properties       (GDBusProxy *proxy);
+
 void                _gsecret_service_set_default_bus_name      (const gchar *bus_name);
 
 GSecretService *    _gsecret_service_bare_instance    (GDBusConnection *connection,
@@ -107,16 +111,10 @@ void                _gsecret_service_bare_connect              (const gchar *bus
 GSecretService *    _gsecret_service_bare_connect_finish       (GAsyncResult *result,
                                                                 GError **error);
 
-GVariant *          _gsecret_service_encode_secret    (GSecretService *self,
-                                                       GSecretValue *value);
+GSecretSession *    _gsecret_service_get_session               (GSecretService *self);
 
-GSecretValue *      _gsecret_service_decode_secret    (GSecretService *service,
-                                                       GVariant *encoded);
-
-const gchar *       _gsecret_service_ensure_session_finish     (GSecretService *self,
-                                                                GAsyncResult *result,
-                                                                GCancellable **cancellable,
-                                                                GError **error);
+void                _gsecret_service_take_session              (GSecretService *self,
+                                                                GSecretSession *session);
 
 GSecretItem *       _gsecret_service_find_item_instance        (GSecretService *self,
                                                                 const gchar *item_path);
@@ -125,6 +123,26 @@ GSecretItem *       _gsecret_collection_find_item_instance     (GSecretCollectio
                                                                 const gchar *item_path);
 
 gchar *             _gsecret_value_unref_to_password           (GSecretValue *value);
+
+void                _gsecret_session_free                      (gpointer data);
+
+const gchar *       _gsecret_session_get_algorithms            (GSecretSession *session);
+
+const gchar *       _gsecret_session_get_path                  (GSecretSession *session);
+
+void                _gsecret_session_open                      (GSecretService *service,
+                                                                GCancellable *cancellable,
+                                                                GAsyncReadyCallback callback,
+                                                                gpointer user_data);
+
+GSecretSession *    _gsecret_session_open_finish               (GAsyncResult *result,
+                                                                GError **error);
+
+GVariant *          _gsecret_session_encode_secret             (GSecretSession *session,
+                                                                GSecretValue *value);
+
+GSecretValue *      _gsecret_session_decode_secret             (GSecretSession *session,
+                                                                GVariant *encoded);
 
 G_END_DECLS
 

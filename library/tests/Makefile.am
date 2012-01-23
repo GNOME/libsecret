@@ -26,10 +26,13 @@ LDADD =  \
 	$(NULL)
 
 TEST_PROGS = \
+	test-value \
 	test-prompt \
 	test-service \
 	test-session \
 	test-password \
+	test-item \
+	test-collection \
 	$(NULL)
 
 check_PROGRAMS = \

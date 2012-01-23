@@ -118,7 +118,7 @@ _gsecret_util_attributes_for_variant (GVariant *variant)
 	attributes = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
 
 	g_variant_iter_init (&iter, variant);
-	while (g_variant_iter_next (&iter, "{sv}", &key, &value))
+	while (g_variant_iter_next (&iter, "{ss}", &key, &value))
 		g_hash_table_insert (attributes, key, value);
 
 	return attributes;
@@ -288,6 +288,20 @@ _gsecret_util_get_properties_finish (GDBusProxy *proxy,
 	return TRUE;
 }
 
+typedef struct {
+	gchar *property;
+	GVariant *value;
+	gboolean result;
+} SetClosure;
+
+static void
+set_closure_free (gpointer data)
+{
+	SetClosure *closure = data;
+	g_free (closure->property);
+	g_variant_unref (closure->value);
+	g_slice_free (SetClosure, closure);
+}
 
 static void
 on_set_property (GObject *source,
@@ -295,6 +309,8 @@ on_set_property (GObject *source,
                  gpointer user_data)
 {
 	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
+	SetClosure *closure = g_simple_async_result_get_op_res_gpointer (res);
+	GDBusProxy *proxy = G_DBUS_PROXY (g_async_result_get_source_object (user_data));
 	GError *error = NULL;
 	GVariant *retval;
 
@@ -304,7 +320,13 @@ on_set_property (GObject *source,
 		g_simple_async_result_take_error (res, error);
 	if (retval != NULL)
 		g_variant_unref (retval);
-	g_simple_async_result_set_op_res_gboolean (res, retval != NULL);
+
+	closure->result = retval != NULL;
+	if (closure->result)
+		g_dbus_proxy_set_cached_property (proxy, closure->property, closure->value);
+
+	g_simple_async_result_complete (res);
+	g_object_unref (proxy);
 	g_object_unref (res);
 }
 
@@ -318,10 +340,15 @@ _gsecret_util_set_property (GDBusProxy *proxy,
                             gpointer user_data)
 {
 	GSimpleAsyncResult *res;
+	SetClosure *closure;
 
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
 	res = g_simple_async_result_new (G_OBJECT (proxy), callback, user_data, result_tag);
+	closure = g_slice_new0 (SetClosure);
+	closure->property = g_strdup (property);
+	closure->value = g_variant_ref_sink (value);
+	g_simple_async_result_set_op_res_gpointer (res, closure, set_closure_free);
 
 	g_dbus_connection_call (g_dbus_proxy_get_connection (proxy),
 	                        g_dbus_proxy_get_name (proxy),
@@ -331,7 +358,7 @@ _gsecret_util_set_property (GDBusProxy *proxy,
 	                        g_variant_new ("(ssv)",
 	                                       g_dbus_proxy_get_interface_name (proxy),
 	                                       property,
-	                                       value),
+	                                       closure->value),
 	                        G_VARIANT_TYPE ("()"),
 	                        G_DBUS_CALL_FLAGS_NO_AUTO_START, -1,
 	                        cancellable, on_set_property,
@@ -347,6 +374,7 @@ _gsecret_util_set_property_finish (GDBusProxy *proxy,
                                    GError **error)
 {
 	GSimpleAsyncResult *res;
+	SetClosure *closure;
 
 	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (proxy), result_tag), FALSE);
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
@@ -356,7 +384,8 @@ _gsecret_util_set_property_finish (GDBusProxy *proxy,
 	if (g_simple_async_result_propagate_error (res, error))
 		return FALSE;
 
-	return g_simple_async_result_get_op_res_gboolean (res);
+	closure = g_simple_async_result_get_op_res_gpointer (res);
+	return closure->result;
 }
 
 gboolean
@@ -366,10 +395,13 @@ _gsecret_util_set_property_sync (GDBusProxy *proxy,
                                  GCancellable *cancellable,
                                  GError **error)
 {
+	gboolean result = FALSE;
 	GVariant *retval;
 
 	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), FALSE);
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+
+	g_variant_ref_sink (value);
 
 	retval = g_dbus_connection_call_sync (g_dbus_proxy_get_connection (proxy),
 	                                      g_dbus_proxy_get_name (proxy),
@@ -384,10 +416,26 @@ _gsecret_util_set_property_sync (GDBusProxy *proxy,
 	                                      G_DBUS_CALL_FLAGS_NO_AUTO_START, -1,
 	                                      cancellable, error);
 
-	if (retval != NULL)
+	if (retval != NULL) {
+		result = TRUE;
 		g_variant_unref (retval);
+		g_dbus_proxy_set_cached_property (proxy, property, value);
+	}
 
-	return (retval != NULL);
+	g_variant_unref (value);
+
+	return result;
+}
+
+gboolean
+_gsecret_util_have_cached_properties (GDBusProxy *proxy)
+{
+	gchar **names;
+
+	names = g_dbus_proxy_get_cached_property_names (proxy);
+	g_strfreev (names);
+
+	return names != NULL;
 }
 
 GSecretSync *

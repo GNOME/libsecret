@@ -1,6 +1,7 @@
 /* GSecret - GLib wrapper for Secret Service
  *
  * Copyright 2011 Collabora Ltd.
+ * Copyright 2012 Red Hat Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published
@@ -72,11 +73,11 @@ GSecretService *     gsecret_service_get_finish                    (GAsyncResult
 GSecretService *     gsecret_service_get_sync                      (GCancellable *cancellable,
                                                                     GError **error);
 
-GList *              gsecret_service_get_collections               (GSecretService *self);
-
 const gchar *        gsecret_service_get_session_algorithms        (GSecretService *self);
 
 const gchar *        gsecret_service_get_session_path              (GSecretService *self);
+
+GList *              gsecret_service_get_collections               (GSecretService *self);
 
 void                 gsecret_service_ensure_session                (GSecretService *self,
                                                                     GCancellable *cancellable,
@@ -88,6 +89,19 @@ const gchar *        gsecret_service_ensure_session_finish         (GSecretServi
                                                                     GError **error);
 
 const gchar *        gsecret_service_ensure_session_sync           (GSecretService *self,
+                                                                    GCancellable *cancellable,
+                                                                    GError **error);
+
+void                 gsecret_service_ensure_collections            (GSecretService *self,
+                                                                    GCancellable *cancellable,
+                                                                    GAsyncReadyCallback callback,
+                                                                    gpointer user_data);
+
+gboolean             gsecret_service_ensure_collections_finish     (GSecretService *self,
+                                                                    GAsyncResult *result,
+                                                                    GError **error);
+
+gboolean             gsecret_service_ensure_collections_sync       (GSecretService *self,
                                                                     GCancellable *cancellable,
                                                                     GError **error);
 

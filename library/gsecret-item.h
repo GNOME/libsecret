@@ -1,6 +1,6 @@
 /* GSecret - GLib wrapper for Secret Service
  *
- * Copyright 2011 Collabora Ltd.
+ * Copyright 2012 Red Hat Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published
@@ -29,10 +29,11 @@ G_BEGIN_DECLS
 #define GSECRET_ITEM_GET_CLASS(inst) (G_TYPE_INSTANCE_GET_CLASS ((inst), GSECRET_TYPE_ITEM, GSecretItemClass))
 
 typedef struct _GSecretItemClass   GSecretItemClass;
+typedef struct _GSecretItemPrivate   GSecretItemPrivate;
 
 struct _GSecretItem {
 	GDBusProxy parent_instance;
-	gpointer padding;
+	GSecretItemPrivate *pv;;
 };
 
 struct _GSecretItemClass {

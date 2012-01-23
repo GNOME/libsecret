@@ -19,7 +19,7 @@
 
 G_BEGIN_DECLS
 
-#define GSECRET_TYPE_VALUE            (gsecret_service_get_type ())
+#define             GSECRET_TYPE_VALUE              (gsecret_value_get_type ())
 
 GType               gsecret_value_get_type          (void) G_GNUC_CONST;
 
