@@ -37,7 +37,18 @@ typedef struct _GSecretItemPrivate {
 	GCancellable *cancellable;
 } GSecretItemPrivate;
 
-G_DEFINE_TYPE (GSecretItem, gsecret_item, G_TYPE_DBUS_PROXY);
+static GInitableIface *gsecret_item_initable_parent_iface = NULL;
+
+static GAsyncInitableIface *gsecret_item_async_initable_parent_iface = NULL;
+
+static void   gsecret_item_initable_iface         (GInitableIface *iface);
+
+static void   gsecret_item_async_initable_iface   (GAsyncInitableIface *iface);
+
+G_DEFINE_TYPE_WITH_CODE (GSecretItem, gsecret_item, G_TYPE_DBUS_PROXY,
+                         G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE, gsecret_item_initable_iface);
+                         G_IMPLEMENT_INTERFACE (G_TYPE_ASYNC_INITABLE, gsecret_item_async_initable_iface);
+);
 
 static void
 gsecret_item_init (GSecretItem *self)
@@ -248,20 +259,102 @@ gsecret_item_class_init (GSecretItemClass *klass)
 	g_type_class_add_private (gobject_class, sizeof (GSecretItemPrivate));
 }
 
-#if 0
-static void
-all_properties_changed (GSecretItem *item)
+static gboolean
+gsecret_item_initable_init (GInitable *initable,
+                            GCancellable *cancellable,
+                            GError **error)
 {
-	GObject *obj = G_OBJECT (item);
-	gchar **property_names;
-	guint i;
+	GDBusProxy *proxy;
 
-	property_names = g_dbus_proxy_get_cached_property_names (G_DBUS_PROXY (item));
-	for (i = 0; property_names != NULL && property_names[i] != NULL; i++)
-		handle_property_changed (obj, property_names[i]);
-	g_strfreev (property_names);
+	if (!gsecret_item_initable_parent_iface->init (initable, cancellable, error))
+		return FALSE;
+
+	proxy = G_DBUS_PROXY (initable);
+
+	if (!_gsecret_util_have_cached_properties (proxy)) {
+		g_set_error (error, G_DBUS_ERROR, G_DBUS_ERROR_UNKNOWN_METHOD,
+		             "No such secret item at path: %s",
+		             g_dbus_proxy_get_object_path (proxy));
+		return FALSE;
+	}
+
+	return TRUE;
 }
-#endif
+
+static void
+gsecret_item_initable_iface (GInitableIface *iface)
+{
+	gsecret_item_initable_parent_iface = g_type_interface_peek_parent (iface);
+
+	iface->init = gsecret_item_initable_init;
+}
+
+static void
+on_init_base (GObject *source,
+              GAsyncResult *result,
+              gpointer user_data)
+{
+	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
+	GSecretItem *self = GSECRET_ITEM (source);
+	GDBusProxy *proxy = G_DBUS_PROXY (self);
+	GError *error = NULL;
+
+	if (!gsecret_item_async_initable_parent_iface->init_finish (G_ASYNC_INITABLE (self),
+	                                                            result, &error)) {
+		g_simple_async_result_take_error (res, error);
+
+	} else if (!_gsecret_util_have_cached_properties (proxy)) {
+		g_simple_async_result_set_error (res, G_DBUS_ERROR, G_DBUS_ERROR_UNKNOWN_METHOD,
+		                                 "No such secret item at path: %s",
+		                                 g_dbus_proxy_get_object_path (proxy));
+	}
+
+	g_simple_async_result_complete (res);
+	g_object_unref (res);
+}
+
+static void
+gsecret_item_async_initable_init_async (GAsyncInitable *initable,
+                                        int io_priority,
+                                        GCancellable *cancellable,
+                                        GAsyncReadyCallback callback,
+                                        gpointer user_data)
+{
+	GSimpleAsyncResult *res;
+
+	res = g_simple_async_result_new (G_OBJECT (initable), callback, user_data,
+	                                 gsecret_item_async_initable_init_async);
+
+	gsecret_item_async_initable_parent_iface->init_async (initable, io_priority,
+	                                                      cancellable,
+	                                                      on_init_base,
+	                                                      g_object_ref (res));
+
+	g_object_unref (res);
+}
+
+static gboolean
+gsecret_item_async_initable_init_finish (GAsyncInitable *initable,
+                                         GAsyncResult *result,
+                                         GError **error)
+{
+	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (initable),
+	                      gsecret_item_async_initable_init_async), FALSE);
+
+	if (g_simple_async_result_propagate_error (G_SIMPLE_ASYNC_RESULT (result), error))
+		return FALSE;
+
+	return TRUE;
+}
+
+static void
+gsecret_item_async_initable_iface (GAsyncInitableIface *iface)
+{
+	gsecret_item_async_initable_parent_iface = g_type_interface_peek_parent (iface);
+
+	iface->init_async = gsecret_item_async_initable_init_async;
+	iface->init_finish = gsecret_item_async_initable_init_finish;
+}
 
 void
 gsecret_item_new (GSecretService *service,
@@ -279,10 +372,7 @@ gsecret_item_new (GSecretService *service,
 	proxy = G_DBUS_PROXY (service);
 
 	g_async_initable_new_async (GSECRET_SERVICE_GET_CLASS (service)->item_gtype,
-	                            G_PRIORITY_DEFAULT,
-	                            cancellable,
-	                            callback,
-	                            user_data,
+	                            G_PRIORITY_DEFAULT, cancellable, callback, user_data,
 	                            "g-flags", G_DBUS_CALL_FLAGS_NONE,
 	                            "g-interface-info", _gsecret_gen_item_interface_info (),
 	                            "g-name", g_dbus_proxy_get_name (proxy),
@@ -299,7 +389,6 @@ gsecret_item_new_finish (GAsyncResult *result,
 {
 	GObject *object;
 	GObject *source_object;
-	GDBusProxy *proxy;
 
 	source_object = g_async_result_get_source_object (result);
 	object = g_async_initable_new_finish (G_ASYNC_INITABLE (source_object),
@@ -308,14 +397,6 @@ gsecret_item_new_finish (GAsyncResult *result,
 
 	if (object == NULL)
 		return NULL;
-
-	proxy = G_DBUS_PROXY (object);
-	if (!_gsecret_util_have_cached_properties (proxy)) {
-		g_set_error (error, G_DBUS_ERROR, G_DBUS_ERROR_UNKNOWN_METHOD,
-		             "No such secret item at path: %s", g_dbus_proxy_get_object_path (proxy));
-		g_object_unref (object);
-		return NULL;
-	}
 
 	return GSECRET_ITEM (object);
 }
@@ -326,29 +407,25 @@ gsecret_item_new_sync (GSecretService *service,
                        GCancellable *cancellable,
                        GError **error)
 {
-	GSecretSync *sync;
-	GSecretItem *item;
+	GDBusProxy *proxy;
 
 	g_return_val_if_fail (GSECRET_IS_SERVICE (service), NULL);
 	g_return_val_if_fail (item_path != NULL, NULL);
 	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
 	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 
-	sync = _gsecret_sync_new ();
-	g_main_context_push_thread_default (sync->context);
+	proxy = G_DBUS_PROXY (service);
 
-	// TODO: xxxxx;
-	gsecret_item_new (service, item_path, cancellable,
-	                  _gsecret_sync_on_result, sync);
-
-	g_main_loop_run (sync->loop);
-
-	item = gsecret_item_new_finish (sync->result, error);
-
-	g_main_context_pop_thread_default (sync->context);
-	_gsecret_sync_free (sync);
-
-	return item;
+	return g_initable_new (GSECRET_SERVICE_GET_CLASS (service)->item_gtype,
+	                       cancellable, error,
+	                       "g-flags", G_DBUS_CALL_FLAGS_NONE,
+	                       "g-interface-info", _gsecret_gen_item_interface_info (),
+	                       "g-name", g_dbus_proxy_get_name (proxy),
+	                       "g-connection", g_dbus_proxy_get_connection (proxy),
+	                       "g-object-path", item_path,
+	                       "g-interface-name", GSECRET_ITEM_INTERFACE,
+	                       "service", service,
+	                       NULL);
 }
 
 void

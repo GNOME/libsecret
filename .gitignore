@@ -40,6 +40,7 @@ stamp*
 !/egg/tests/test-*.c
 
 /library/gsecret-dbus-generated.[ch]
+/library/gsecret-enum-types.[ch]
 /library/tests/test-*
 !/library/tests/test-*.c
 

@@ -27,8 +27,6 @@
 #include <stdlib.h>
 
 typedef struct {
-	GPid pid;
-	GDBusConnection *connection;
 	GSecretService *service;
 } Test;
 
@@ -42,26 +40,18 @@ setup (Test *test,
 	mock_service_start (mock_script, &error);
 	g_assert_no_error (error);
 
-	test->connection = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, &error);
+	test->service = gsecret_service_get_sync (GSECRET_SERVICE_NONE, NULL, &error);
 	g_assert_no_error (error);
-
-	test->service = _gsecret_service_bare_instance (test->connection, NULL);
 }
 
 static void
 teardown (Test *test,
           gconstpointer unused)
 {
-	GError *error = NULL;
-
 	g_object_unref (test->service);
 	egg_assert_not_object (test->service);
 
 	mock_service_stop ();
-
-	g_dbus_connection_flush_sync (test->connection, NULL, &error);
-	g_assert_no_error (error);
-	g_object_unref (test->connection);
 }
 
 static void

@@ -41,6 +41,8 @@ PKG_CHECK_MODULES(GLIB,
 LIBS="$LIBS $GLIB_LIBS"
 CFLAGS="$CFLAGS $GLIB_CFLAGS"
 
+AC_PATH_PROG(GLIB_MKENUMS, glib-mkenums)
+
 # --------------------------------------------------------------------
 # libgcrypt
 #

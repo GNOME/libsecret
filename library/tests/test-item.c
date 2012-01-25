@@ -29,7 +29,6 @@
 #include <stdlib.h>
 
 typedef struct {
-	GDBusConnection *connection;
 	GSecretService *service;
 } Test;
 
@@ -43,26 +42,18 @@ setup (Test *test,
 	mock_service_start (mock_script, &error);
 	g_assert_no_error (error);
 
-	test->connection = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, &error);
+	test->service = gsecret_service_get_sync (GSECRET_SERVICE_NONE, NULL, &error);
 	g_assert_no_error (error);
-
-	test->service = _gsecret_service_bare_instance (test->connection, NULL);
 }
 
 static void
 teardown (Test *test,
           gconstpointer unused)
 {
-	GError *error = NULL;
-
 	g_object_unref (test->service);
 	egg_assert_not_object (test->service);
 
 	mock_service_stop ();
-
-	g_dbus_connection_flush_sync (test->connection, NULL, &error);
-	g_assert_no_error (error);
-	g_object_unref (test->connection);
 }
 
 static void
@@ -87,7 +78,6 @@ on_notify_stop (GObject *obj,
 	g_assert (*sigs > 0);
 	if (--(*sigs) == 0)
 		egg_test_wait_stop ();
-g_printerr ("sigs: %u\n", *sigs);
 }
 
 static void
@@ -520,15 +510,14 @@ main (int argc, char **argv)
 	g_test_add ("/item/properties", Test, "mock-service-normal.py", setup, test_properties, teardown);
 	g_test_add ("/item/set-label-sync", Test, "mock-service-normal.py", setup, test_set_label_sync, teardown);
 	g_test_add ("/item/set-label-async", Test, "mock-service-normal.py", setup, test_set_label_async, teardown);
+	g_test_add ("/item/set-label-prop", Test, "mock-service-normal.py", setup, test_set_label_prop, teardown);
 	g_test_add ("/item/set-attributes-sync", Test, "mock-service-normal.py", setup, test_set_attributes_sync, teardown);
 	g_test_add ("/item/set-attributes-async", Test, "mock-service-normal.py", setup, test_set_attributes_async, teardown);
+	g_test_add ("/item/set-attributes-prop", Test, "mock-service-normal.py", setup, test_set_attributes_prop, teardown);
 	g_test_add ("/item/get-secret-sync", Test, "mock-service-normal.py", setup, test_get_secret_sync, teardown);
 	g_test_add ("/item/get-secret-async", Test, "mock-service-normal.py", setup, test_get_secret_async, teardown);
 	g_test_add ("/item/delete-sync", Test, "mock-service-normal.py", setup, test_delete_sync, teardown);
 	g_test_add ("/item/delete-async", Test, "mock-service-normal.py", setup, test_delete_async, teardown);
-
-	g_test_add ("/item/set-attributes-prop", Test, "mock-service-normal.py", setup, test_set_attributes_prop, teardown);
-	g_test_add ("/item/set-label-prop", Test, "mock-service-normal.py", setup, test_set_label_prop, teardown);
 
 	return egg_tests_run_with_loop ();
 }

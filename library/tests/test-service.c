@@ -25,8 +25,6 @@
 #include <errno.h>
 #include <stdlib.h>
 
-static gchar *MOCK_NAME = "org.mock.Service";
-
 static const GSecretSchema DELETE_SCHEMA = {
 	"org.mock.schema.Delete",
 	{
@@ -37,8 +35,6 @@ static const GSecretSchema DELETE_SCHEMA = {
 };
 
 typedef struct {
-	GPid pid;
-	GDBusConnection *connection;
 	GSecretService *service;
 } Test;
 
@@ -61,10 +57,8 @@ setup (Test *test,
 
 	setup_mock (test, data);
 
-	test->connection = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, &error);
+	test->service = gsecret_service_get_sync (GSECRET_SERVICE_NONE, NULL, &error);
 	g_assert_no_error (error);
-
-	test->service = _gsecret_service_bare_instance (test->connection, NULL);
 }
 
 static void
@@ -82,8 +76,6 @@ teardown (Test *test,
 
 	g_object_unref (test->service);
 	egg_assert_not_object (test->service);
-
-	g_clear_object (&test->connection);
 
 	teardown_mock (test, unused);
 }
@@ -107,15 +99,14 @@ test_instance (void)
 	GSecretService *service2;
 	GSecretService *service3;
 	GError *error = NULL;
-	GDBusConnection *connection;
-
-	connection = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, &error);
-	g_assert_no_error (error);
 
 	/* Both these sohuld point to the same thing */
 
-	service1 = _gsecret_service_bare_instance (connection, MOCK_NAME);
-	service2 = _gsecret_service_bare_instance (connection, MOCK_NAME);
+	service1 = gsecret_service_get_sync (GSECRET_SERVICE_NONE, NULL, &error);
+	g_assert_no_error (error);
+
+	service2 = gsecret_service_get_sync (GSECRET_SERVICE_NONE, NULL, &error);
+	g_assert_no_error (error);
 
 	g_assert (GSECRET_IS_SERVICE (service1));
 	g_assert (service1 == service2);
@@ -127,18 +118,17 @@ test_instance (void)
 	egg_assert_not_object (service2);
 
 	/* Services were unreffed, so this should create a new one */
-	service3 = _gsecret_service_bare_instance (connection, MOCK_NAME);
+	service3 = gsecret_service_get_sync (GSECRET_SERVICE_NONE, NULL, &error);
 	g_assert (GSECRET_IS_SERVICE (service3));
+	g_assert_no_error (error);
 
 	g_object_unref (service3);
 	egg_assert_not_object (service3);
-
-	g_object_unref (connection);
 }
 
 static void
-test_connect_sync (Test *test,
-                   gconstpointer used)
+test_connect_async (Test *test,
+                    gconstpointer used)
 {
 	GError *error = NULL;
 	GAsyncResult *result = NULL;
@@ -146,12 +136,12 @@ test_connect_sync (Test *test,
 	const gchar *path;
 
 	/* Passing false, not session */
-	_gsecret_service_bare_connect (MOCK_NAME, FALSE, NULL, on_complete_get_result, &result);
+	gsecret_service_get (GSECRET_SERVICE_NONE, NULL, on_complete_get_result, &result);
 	g_assert (result == NULL);
 
 	egg_test_wait ();
 
-	service = _gsecret_service_bare_connect_finish (result, &error);
+	service = gsecret_service_get_finish (result, &error);
 	g_assert (GSECRET_IS_SERVICE (service));
 	g_assert_no_error (error);
 	g_object_unref (result);
@@ -164,8 +154,8 @@ test_connect_sync (Test *test,
 }
 
 static void
-test_connect_ensure_sync (Test *test,
-                          gconstpointer used)
+test_connect_ensure_async (Test *test,
+                           gconstpointer used)
 {
 	GError *error = NULL;
 	GAsyncResult *result = NULL;
@@ -173,12 +163,12 @@ test_connect_ensure_sync (Test *test,
 	const gchar *path;
 
 	/* Passing true, ensures session is established */
-	_gsecret_service_bare_connect (MOCK_NAME, TRUE, NULL, on_complete_get_result, &result);
+	gsecret_service_get (GSECRET_SERVICE_OPEN_SESSION, NULL, on_complete_get_result, &result);
 	g_assert (result == NULL);
 
 	egg_test_wait ();
 
-	service = _gsecret_service_bare_connect_finish (result, &error);
+	service = gsecret_service_get_finish (result, &error);
 	g_assert_no_error (error);
 	g_assert (GSECRET_IS_SERVICE (service));
 	g_object_unref (result);
@@ -593,8 +583,8 @@ main (int argc, char **argv)
 
 	g_test_add_func ("/service/instance", test_instance);
 
-	g_test_add ("/service/connect-sync", Test, "mock-service-normal.py", setup_mock, test_connect_sync, teardown_mock);
-	g_test_add ("/service/connect-ensure-sync", Test, "mock-service-normal.py", setup_mock, test_connect_ensure_sync, teardown_mock);
+	g_test_add ("/service/connect-sync", Test, "mock-service-normal.py", setup_mock, test_connect_async, teardown_mock);
+	g_test_add ("/service/connect-ensure-sync", Test, "mock-service-normal.py", setup_mock, test_connect_ensure_async, teardown_mock);
 
 	g_test_add ("/service/search-for-paths", Test, "mock-service-normal.py", setup, test_search_paths, teardown);
 	g_test_add ("/service/search-for-paths-async", Test, "mock-service-normal.py", setup, test_search_paths_async, teardown);

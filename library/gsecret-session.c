@@ -334,20 +334,14 @@ _gsecret_session_open (GSecretService *service,
 	g_object_unref (res);
 }
 
-GSecretSession *
+gboolean
 _gsecret_session_open_finish (GAsyncResult *result,
                               GError **error)
 {
-	OpenSessionClosure *closure;
-	GSecretSession *session;
-
 	if (g_simple_async_result_propagate_error (G_SIMPLE_ASYNC_RESULT (result), error))
-		return NULL;
+		return FALSE;
 
-	closure = g_simple_async_result_get_op_res_gpointer (G_SIMPLE_ASYNC_RESULT (result));
-	session = closure->session;
-	closure->session = NULL;
-	return session;
+	return TRUE;
 }
 
 #ifdef WITH_GCRYPT

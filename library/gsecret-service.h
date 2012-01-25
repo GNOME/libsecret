@@ -22,6 +22,12 @@
 
 G_BEGIN_DECLS
 
+typedef enum {
+	GSECRET_SERVICE_NONE,
+	GSECRET_SERVICE_OPEN_SESSION = 1 << 1,
+	GSECRET_SERVICE_LOAD_COLLECTIONS = 1 << 2,
+} GSecretServiceFlags;
+
 #define GSECRET_TYPE_SERVICE            (gsecret_service_get_type ())
 #define GSECRET_SERVICE(inst)           (G_TYPE_CHECK_INSTANCE_CAST ((inst), GSECRET_TYPE_SERVICE, GSecretService))
 #define GSECRET_SERVICE_CLASS(class)    (G_TYPE_CHECK_CLASS_CAST ((class), GSECRET_TYPE_SERVICE, GSecretServiceClass))
@@ -63,15 +69,33 @@ struct _GSecretServiceClass {
 
 GType                gsecret_service_get_type                      (void) G_GNUC_CONST;
 
-void                 gsecret_service_get                           (GCancellable *cancellable,
+void                 gsecret_service_get                           (GSecretServiceFlags flags,
+                                                                    GCancellable *cancellable,
                                                                     GAsyncReadyCallback callback,
                                                                     gpointer user_data);
 
 GSecretService *     gsecret_service_get_finish                    (GAsyncResult *result,
                                                                     GError **error);
 
-GSecretService *     gsecret_service_get_sync                      (GCancellable *cancellable,
+GSecretService *     gsecret_service_get_sync                      (GSecretServiceFlags flags,
+                                                                    GCancellable *cancellable,
                                                                     GError **error);
+
+void                 gsecret_service_new                           (const gchar *service_bus_name,
+                                                                    GSecretServiceFlags flags,
+                                                                    GCancellable *cancellable,
+                                                                    GAsyncReadyCallback callback,
+                                                                    gpointer user_data);
+
+GSecretService *     gsecret_service_new_finish                    (GAsyncResult *result,
+                                                                    GError **error);
+
+GSecretService *     gsecret_service_new_sync                      (const gchar *service_bus_name,
+                                                                    GSecretServiceFlags flags,
+                                                                    GCancellable *cancellable,
+                                                                    GError **error);
+
+GSecretServiceFlags  gsecret_service_get_flags                     (GSecretService *self);
 
 const gchar *        gsecret_service_get_session_algorithms        (GSecretService *self);
 

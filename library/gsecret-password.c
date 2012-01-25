@@ -68,7 +68,7 @@ on_store_connected (GObject *source,
 	GSecretService *service;
 	GError *error = NULL;
 
-	service = _gsecret_service_bare_connect_finish (result, &error);
+	service = gsecret_service_get_finish (result, &error);
 	if (error == NULL) {
 		gsecret_service_storev (service, closure->schema,
 		                        closure->attributes,
@@ -147,8 +147,8 @@ gsecret_password_storev (const GSecretSchema *schema,
 	closure->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
 	g_simple_async_result_set_op_res_gpointer (res, closure, store_closure_free);
 
-	_gsecret_service_bare_connect (NULL, TRUE, cancellable,
-	                               on_store_connected, g_object_ref (res));
+	gsecret_service_get (GSECRET_SERVICE_OPEN_SESSION, cancellable,
+	                     on_store_connected, g_object_ref (res));
 
 	g_object_unref (res);
 }
@@ -306,7 +306,7 @@ on_lookup_connected (GObject *source,
 	GSecretService *service;
 	GError *error = NULL;
 
-	service = _gsecret_service_bare_connect_finish (result, &error);
+	service = gsecret_service_get_finish (result, &error);
 	if (error != NULL) {
 		g_simple_async_result_take_error (res, error);
 		g_simple_async_result_complete (res);
@@ -338,8 +338,8 @@ gsecret_password_lookupv (GHashTable *attributes,
 	closure->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
 	g_simple_async_result_set_op_res_gpointer (res, closure, lookup_closure_free);
 
-	_gsecret_service_bare_connect (NULL, TRUE, cancellable,
-	                               on_lookup_connected, g_object_ref (res));
+	gsecret_service_get (GSECRET_SERVICE_OPEN_SESSION, cancellable,
+	                     on_lookup_connected, g_object_ref (res));
 
 	g_object_unref (res);
 }
@@ -490,7 +490,7 @@ on_delete_connect (GObject *source,
 	GSecretService *service;
 	GError *error = NULL;
 
-	service = _gsecret_service_bare_connect_finish (result, &error);
+	service = gsecret_service_get_finish (result, &error);
 	if (error == NULL) {
 		gsecret_service_removev (service, closure->attributes,
 		                         closure->cancellable, on_delete_complete,
@@ -524,9 +524,8 @@ gsecret_password_removev (GHashTable *attributes,
 	closure->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
 	g_simple_async_result_set_op_res_gpointer (res, closure, delete_closure_free);
 
-	_gsecret_service_bare_connect (NULL, FALSE, cancellable,
-	                               on_delete_connect,
-	                               g_object_ref (res));
+	gsecret_service_get (GSECRET_SERVICE_NONE, cancellable,
+	                     on_delete_connect, g_object_ref (res));
 
 	g_object_unref (res);
 }

@@ -99,6 +99,7 @@ gboolean            _gsecret_util_have_cached_properties       (GDBusProxy *prox
 
 void                _gsecret_service_set_default_bus_name      (const gchar *bus_name);
 
+#if 0
 GSecretService *    _gsecret_service_bare_instance    (GDBusConnection *connection,
                                                        const gchar *bus_name);
 
@@ -110,6 +111,7 @@ void                _gsecret_service_bare_connect              (const gchar *bus
 
 GSecretService *    _gsecret_service_bare_connect_finish       (GAsyncResult *result,
                                                                 GError **error);
+#endif
 
 GSecretSession *    _gsecret_service_get_session               (GSecretService *self);
 
@@ -135,7 +137,7 @@ void                _gsecret_session_open                      (GSecretService *
                                                                 GAsyncReadyCallback callback,
                                                                 gpointer user_data);
 
-GSecretSession *    _gsecret_session_open_finish               (GAsyncResult *result,
+gboolean            _gsecret_session_open_finish               (GAsyncResult *result,
                                                                 GError **error);
 
 GVariant *          _gsecret_session_encode_secret             (GSecretSession *session,
