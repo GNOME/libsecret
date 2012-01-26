@@ -52,7 +52,7 @@ void                _gsecret_sync_on_result                    (GObject *source,
 GSecretPrompt *     _gsecret_prompt_instance                   (GDBusConnection *connection,
                                                                 const gchar *object_path);
 
-gchar *             _gsecret_util_parent_path         (const gchar *path);
+gchar *             _gsecret_util_parent_path                  (const gchar *path);
 
 gboolean            _gsecret_util_empty_path                   (const gchar *path);
 
@@ -64,6 +64,8 @@ GHashTable *        _gsecret_util_attributes_for_variant       (GVariant *varian
 
 GHashTable *        _gsecret_util_attributes_for_varargs       (const GSecretSchema *schema,
                                                                 va_list va);
+
+GVariant *          _gsecret_util_variant_for_properties       (GHashTable *properties);
 
 void                _gsecret_util_get_properties               (GDBusProxy *proxy,
                                                                 gpointer result_tag,

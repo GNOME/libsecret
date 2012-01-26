@@ -57,6 +57,22 @@ GSecretCollection * gsecret_collection_new_sync                 (GSecretService 
 
 void                gsecret_collection_refresh                  (GSecretCollection *self);
 
+void                gsecret_collection_create                   (GSecretService *service,
+                                                                 const gchar *label,
+                                                                 const gchar *alias,
+                                                                 GCancellable *cancellable,
+                                                                 GAsyncReadyCallback callback,
+                                                                 gpointer user_data);
+
+GSecretCollection * gsecret_collection_create_finish            (GAsyncResult *result,
+                                                                 GError **error);
+
+GSecretCollection * gsecret_collection_create_sync              (GSecretService *service,
+                                                                 const gchar *label,
+                                                                 const gchar *alias,
+                                                                 GCancellable *cancellable,
+                                                                 GError **error);
+
 void                gsecret_collection_delete                   (GSecretCollection *self,
                                                                  GCancellable *cancellable,
                                                                  GAsyncReadyCallback callback,

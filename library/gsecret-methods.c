@@ -2053,3 +2053,399 @@ gsecret_service_removev_sync (GSecretService *self,
 
 	return result;
 }
+
+typedef struct {
+	GCancellable *cancellable;
+	GSecretPrompt *prompt;
+	gchar *collection_path;
+} CollectionClosure;
+
+static void
+collection_closure_free (gpointer data)
+{
+	CollectionClosure *closure = data;
+	g_clear_object (&closure->cancellable);
+	g_clear_object (&closure->prompt);
+
+	g_slice_free (CollectionClosure, closure);
+}
+
+static void
+on_create_collection_prompt (GObject *source,
+                             GAsyncResult *result,
+                             gpointer user_data)
+{
+	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
+	CollectionClosure *closure = g_simple_async_result_get_op_res_gpointer (res);
+	GError *error = NULL;
+	gboolean created;
+	GVariant *value;
+
+	created = gsecret_service_prompt_finish (GSECRET_SERVICE (source), result, &error);
+	if (error != NULL)
+		g_simple_async_result_take_error (res, error);
+
+	if (created) {
+		value = gsecret_prompt_get_result_value (closure->prompt, G_VARIANT_TYPE ("o"));
+		closure->collection_path = g_variant_dup_string (value, NULL);
+		g_variant_unref (value);
+	}
+
+	g_simple_async_result_complete (res);
+	g_object_unref (res);
+}
+
+static void
+on_create_collection_called (GObject *source,
+                             GAsyncResult *result,
+                             gpointer user_data)
+{
+	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
+	CollectionClosure *closure = g_simple_async_result_get_op_res_gpointer (res);
+	GSecretService *self = GSECRET_SERVICE (g_async_result_get_source_object (user_data));
+	const gchar *prompt_path = NULL;
+	const gchar *collection_path = NULL;
+	GError *error = NULL;
+	GVariant *retval;
+
+	retval = g_dbus_connection_call_finish (G_DBUS_CONNECTION (source), result, &error);
+	if (error == NULL) {
+		g_variant_get (retval, "(&o&o)", &collection_path, &prompt_path);
+		if (!_gsecret_util_empty_path (prompt_path)) {
+			closure->prompt = gsecret_prompt_instance (self, prompt_path);
+			gsecret_service_prompt (self, closure->prompt,
+			                        closure->cancellable, on_create_collection_prompt,
+			                        g_object_ref (res));
+
+		} else {
+			closure->collection_path = g_strdup (collection_path);
+			g_simple_async_result_complete (res);
+		}
+
+		g_variant_unref (retval);
+
+	} else {
+		g_simple_async_result_take_error (res, error);
+		g_simple_async_result_complete (res);
+	}
+
+	g_object_unref (self);
+	g_object_unref (res);
+}
+
+void
+gsecret_service_create_collection_path (GSecretService *self,
+                                        GHashTable *properties,
+                                        const gchar *alias,
+                                        GCancellable *cancellable,
+                                        GAsyncReadyCallback callback,
+                                        gpointer user_data)
+{
+	GSimpleAsyncResult *res;
+	CollectionClosure *closure;
+	GVariant *params;
+	GVariant *props;
+	GDBusProxy *proxy;
+
+	g_return_if_fail (GSECRET_IS_SERVICE (self));
+	g_return_if_fail (properties != NULL);
+	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+	if (alias == NULL)
+		alias = "";
+
+	res = g_simple_async_result_new (G_OBJECT (self), callback, user_data,
+	                                 gsecret_service_create_collection_path);
+	closure = g_new0 (CollectionClosure, 1);
+	closure->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
+	g_simple_async_result_set_op_res_gpointer (res, closure, collection_closure_free);
+
+	props = _gsecret_util_variant_for_properties (properties);
+	params = g_variant_new ("(@a{sv}a)", props, alias);
+	proxy = G_DBUS_PROXY (self);
+
+	g_dbus_connection_call (g_dbus_proxy_get_connection (proxy),
+	                        g_dbus_proxy_get_name (proxy),
+	                        g_dbus_proxy_get_object_path (proxy),
+	                        GSECRET_SERVICE_INTERFACE,
+	                        "CreateCollection", params, G_VARIANT_TYPE ("(oo)"),
+	                        G_DBUS_CALL_FLAGS_NONE, -1,
+	                        closure->cancellable,
+	                        on_create_collection_called,
+	                        g_object_ref (res));
+
+	g_object_unref (res);
+
+}
+
+gchar *
+gsecret_service_create_collection_path_finish (GSecretService *self,
+                                               GAsyncResult *result,
+                                               GError **error)
+{
+	GSimpleAsyncResult *res;
+	CollectionClosure *closure;
+	gchar *path;
+
+	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (self),
+	                      gsecret_collection_create), NULL);
+	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
+
+	res = G_SIMPLE_ASYNC_RESULT (result);
+
+	if (g_simple_async_result_propagate_error (res, error))
+		return NULL;
+
+	closure = g_simple_async_result_get_op_res_gpointer (res);
+	path = closure->collection_path;
+	closure->collection_path = NULL;
+	return path;
+}
+
+gchar *
+gsecret_service_create_collection_path_sync (GSecretService *self,
+                                             GHashTable *properties,
+                                             const gchar *alias,
+                                             GCancellable *cancellable,
+                                             GError **error)
+{
+	GSecretSync *sync;
+	gchar *path;
+
+	g_return_val_if_fail (GSECRET_IS_SERVICE (self), NULL);
+	g_return_val_if_fail (properties != NULL, NULL);
+	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
+	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
+
+	sync = _gsecret_sync_new ();
+	g_main_context_push_thread_default (sync->context);
+
+	gsecret_service_create_collection_path (self, properties, alias, cancellable,
+	                                        _gsecret_sync_on_result, sync);
+
+	g_main_loop_run (sync->loop);
+
+	path = gsecret_service_create_collection_path_finish (self, sync->result, error);
+
+	g_main_context_pop_thread_default (sync->context);
+	_gsecret_sync_free (sync);
+
+	return path;
+}
+
+typedef struct {
+	GCancellable *cancellable;
+	GVariant *properties;
+	GSecretValue *value;
+	gboolean replace;
+	gchar *collection_path;
+	GSecretPrompt *prompt;
+	gchar *item_path;
+} ItemClosure;
+
+static void
+item_closure_free (gpointer data)
+{
+	ItemClosure *closure = data;
+	g_variant_unref (closure->properties);
+	gsecret_value_unref (closure->value);
+	g_clear_object (&closure->cancellable);
+	g_free (closure->collection_path);
+	g_clear_object (&closure->prompt);
+	g_slice_free (ItemClosure, closure);
+}
+
+static void
+on_create_item_prompt (GObject *source,
+                       GAsyncResult *result,
+                       gpointer user_data)
+{
+	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
+	ItemClosure *closure = g_simple_async_result_get_op_res_gpointer (res);
+	GError *error = NULL;
+	gboolean created;
+	GVariant *value;
+
+	created = gsecret_service_prompt_finish (GSECRET_SERVICE (source), result, &error);
+	if (error != NULL)
+		g_simple_async_result_take_error (res, error);
+
+	if (created) {
+		value = gsecret_prompt_get_result_value (closure->prompt, G_VARIANT_TYPE ("o"));
+		closure->item_path = g_variant_dup_string (value, NULL);
+		g_variant_unref (value);
+	}
+
+	g_simple_async_result_complete (res);
+	g_object_unref (res);
+}
+
+static void
+on_create_item_called (GObject *source,
+                       GAsyncResult *result,
+                       gpointer user_data)
+{
+	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
+	ItemClosure *closure = g_simple_async_result_get_op_res_gpointer (res);
+	GSecretService *self = GSECRET_SERVICE (g_async_result_get_source_object (user_data));
+	const gchar *prompt_path = NULL;
+	const gchar *item_path = NULL;
+	GError *error = NULL;
+	GVariant *retval;
+
+	retval = g_dbus_connection_call_finish (G_DBUS_CONNECTION (source), result, &error);
+	if (error == NULL) {
+		g_variant_get (retval, "(&o&o)", &item_path, &prompt_path);
+		if (!_gsecret_util_empty_path (prompt_path)) {
+			closure->prompt = gsecret_prompt_instance (self, prompt_path);
+			gsecret_service_prompt (self, closure->prompt,
+			                        closure->cancellable, on_create_item_prompt,
+			                        g_object_ref (res));
+
+		} else {
+			closure->item_path = g_strdup (item_path);
+			g_simple_async_result_complete (res);
+		}
+
+		g_variant_unref (retval);
+
+	} else {
+		g_simple_async_result_take_error (res, error);
+		g_simple_async_result_complete (res);
+	}
+
+	g_object_unref (self);
+	g_object_unref (res);
+}
+
+static void
+on_create_item_session (GObject *source,
+                        GAsyncResult *result,
+                        gpointer user_data)
+{
+	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
+	ItemClosure *closure = g_simple_async_result_get_op_res_gpointer (res);
+	GSecretService *self = GSECRET_SERVICE (source);
+	GSecretSession *session;
+	GVariant *params;
+	GError *error = NULL;
+	GDBusProxy *proxy;
+
+	gsecret_service_ensure_session_finish (self, result, &error);
+	if (error == NULL) {
+		session = _gsecret_service_get_session (self);
+		params = g_variant_new ("@a{sv}@(oayays)b",
+		                        closure->properties,
+		                        _gsecret_session_encode_secret (session, closure->value),
+		                        closure->replace);
+
+		proxy = G_DBUS_PROXY (self);
+		g_dbus_connection_call (g_dbus_proxy_get_connection (proxy),
+		                        g_dbus_proxy_get_name (proxy),
+		                        closure->collection_path,
+		                        GSECRET_COLLECTION_INTERFACE,
+		                        "CreateItem", params, G_VARIANT_TYPE ("(oo)"),
+		                        G_DBUS_CALL_FLAGS_NONE, -1,
+		                        closure->cancellable,
+		                        on_create_item_called,
+		                        g_object_ref (res));
+	} else {
+		g_simple_async_result_take_error (res, error);
+		g_simple_async_result_complete (res);
+	}
+
+	g_object_unref (res);
+}
+
+void
+gsecret_service_create_item_path (GSecretService *self,
+                                  const gchar *collection_path,
+                                  GHashTable *properties,
+                                  GSecretValue *value,
+                                  gboolean replace,
+                                  GCancellable *cancellable,
+                                  GAsyncReadyCallback callback,
+                                  gpointer user_data)
+{
+	GSimpleAsyncResult *res;
+	ItemClosure *closure;
+
+	g_return_if_fail (GSECRET_IS_SERVICE (self));
+	g_return_if_fail (properties != NULL);
+	g_return_if_fail (value != NULL);
+	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+	res = g_simple_async_result_new (G_OBJECT (self), callback, user_data,
+	                                 gsecret_service_create_item_path);
+	closure = g_new0 (ItemClosure, 1);
+	closure->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
+	closure->properties = _gsecret_util_variant_for_properties (properties);
+	g_variant_ref_sink (closure->properties);
+	closure->replace = replace;
+	closure->value = gsecret_value_ref (value);
+	closure->collection_path = g_strdup (collection_path);
+	g_simple_async_result_set_op_res_gpointer (res, closure, item_closure_free);
+
+	gsecret_service_ensure_session (self, cancellable,
+	                                on_create_item_session,
+	                                g_object_ref (res));
+
+	g_object_unref (res);
+}
+
+gchar *
+gsecret_service_create_item_path_finish (GSecretService *self,
+                                         GAsyncResult *result,
+                                         GError **error)
+{
+	GSimpleAsyncResult *res;
+	CollectionClosure *closure;
+	gchar *path;
+
+	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (self),
+	                      gsecret_service_create_item_path), NULL);
+	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
+
+	res = G_SIMPLE_ASYNC_RESULT (result);
+
+	if (g_simple_async_result_propagate_error (res, error))
+		return NULL;
+
+	closure = g_simple_async_result_get_op_res_gpointer (res);
+	path = closure->collection_path;
+	closure->collection_path = NULL;
+	return path;
+}
+
+gchar *
+gsecret_service_create_item_path_sync (GSecretService *self,
+                                       const gchar *collection_path,
+                                       GHashTable *properties,
+                                       GSecretValue *value,
+                                       gboolean replace,
+                                       GCancellable *cancellable,
+                                       GError **error)
+{
+	GSecretSync *sync;
+	gchar *path;
+
+	g_return_val_if_fail (GSECRET_IS_SERVICE (self), NULL);
+	g_return_val_if_fail (properties != NULL, NULL);
+	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
+	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
+
+	sync = _gsecret_sync_new ();
+	g_main_context_push_thread_default (sync->context);
+
+	gsecret_service_create_item_path (self, collection_path, properties, value, replace,
+	                                  cancellable, _gsecret_sync_on_result, sync);
+
+	g_main_loop_run (sync->loop);
+
+	path = gsecret_service_create_collection_path_finish (self, sync->result, error);
+
+	g_main_context_pop_thread_default (sync->context);
+	_gsecret_sync_free (sync);
+
+	return path;
+}

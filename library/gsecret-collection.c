@@ -665,6 +665,162 @@ gsecret_collection_refresh (GSecretCollection *self)
 	                              self->pv->cancellable, NULL, NULL);
 }
 
+typedef struct {
+	GCancellable *cancellable;
+	GSecretCollection *collection;
+} CreateClosure;
+
+static void
+create_closure_free (gpointer data)
+{
+	CreateClosure *closure = data;
+	g_clear_object (&closure->cancellable);
+	g_clear_object (&closure->collection);
+	g_slice_free (CreateClosure, closure);
+}
+
+static void
+on_create_collection (GObject *source,
+                      GAsyncResult *result,
+                      gpointer user_data)
+{
+	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
+	CreateClosure *closure = g_simple_async_result_get_op_res_gpointer (res);
+	GError *error = NULL;
+
+	closure->collection = gsecret_collection_new_finish (result, &error);
+	if (error != NULL)
+		g_simple_async_result_take_error (res, error);
+
+	g_simple_async_result_complete (res);
+	g_object_unref (res);
+}
+
+static void
+on_create_path (GObject *source,
+                GAsyncResult *result,
+                gpointer user_data)
+{
+	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
+	CreateClosure *closure = g_simple_async_result_get_op_res_gpointer (res);
+	GSecretService *service = GSECRET_SERVICE (source);
+	GError *error = NULL;
+	gchar *path;
+
+	path = gsecret_service_create_collection_path_finish (service, result, &error);
+	if (error == NULL) {
+		gsecret_collection_new (service, path, closure->cancellable,
+		                        on_create_collection, g_object_ref (res));
+	} else {
+		g_simple_async_result_take_error (res, error);
+		g_simple_async_result_complete (res);
+	}
+
+	g_object_unref (res);
+}
+
+static GHashTable *
+collection_properties_new (const gchar *label)
+{
+	GHashTable *properties;
+	GVariant *value;
+
+	properties = g_hash_table_new_full (g_str_hash, g_str_equal, NULL,
+	                                    (GDestroyNotify)g_variant_unref);
+	value = g_variant_new_string (label);
+	g_hash_table_insert (properties,
+	                     GSECRET_COLLECTION_INTERFACE "Label",
+	                     g_variant_ref_sink (value));
+
+	return properties;
+}
+
+void
+gsecret_collection_create (GSecretService *service,
+                           const gchar *label,
+                           const gchar *alias,
+                           GCancellable *cancellable,
+                           GAsyncReadyCallback callback,
+                           gpointer user_data)
+{
+	GSimpleAsyncResult *res;
+	CreateClosure *closure;
+	GHashTable *properties;
+
+	g_return_if_fail (GSECRET_IS_SERVICE (service));
+	g_return_if_fail (label != NULL);
+	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+	res = g_simple_async_result_new (NULL, callback, user_data,
+	                                 gsecret_collection_create);
+	closure = g_slice_new0 (CreateClosure);
+	closure->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
+	g_simple_async_result_set_op_res_gpointer (res, closure, create_closure_free);
+
+	properties = collection_properties_new (label);
+
+	gsecret_service_create_collection_path (service, properties, alias, cancellable,
+	                                        on_create_path, g_object_ref (res));
+
+	g_hash_table_unref (properties);
+	g_object_unref (res);
+}
+
+GSecretCollection *
+gsecret_collection_create_finish (GAsyncResult *result,
+                                  GError **error)
+{
+	GSimpleAsyncResult *res;
+	CreateClosure *closure;
+
+	g_return_val_if_fail (g_simple_async_result_is_valid (result, NULL,
+	                      gsecret_collection_create), NULL);
+	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
+
+	res = G_SIMPLE_ASYNC_RESULT (result);
+
+	if (g_simple_async_result_propagate_error (res, error))
+		return NULL;
+
+	closure = g_simple_async_result_get_op_res_gpointer (res);
+	if (closure->collection == NULL)
+		return NULL;
+
+	return g_object_ref (closure->collection);
+}
+
+GSecretCollection *
+gsecret_collection_create_sync (GSecretService *service,
+                                const gchar *label,
+                                const gchar *alias,
+                                GCancellable *cancellable,
+                                GError **error)
+{
+	GSecretCollection *collection;
+	GHashTable *properties;
+	gchar *path;
+
+	g_return_val_if_fail (GSECRET_IS_SERVICE (service), NULL);
+	g_return_val_if_fail (label != NULL, NULL);
+	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
+	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
+
+	properties = collection_properties_new (label);
+
+	path = gsecret_service_create_collection_path_sync (service, properties, alias,
+	                                                    cancellable, error);
+
+	g_hash_table_unref (properties);
+
+	if (path == NULL)
+		return NULL;
+
+	collection = gsecret_collection_new_sync (service, path, cancellable, error);
+	g_free (path);
+
+	return collection;
+}
+
 void
 gsecret_collection_delete (GSecretCollection *self,
                            GCancellable *cancellable,

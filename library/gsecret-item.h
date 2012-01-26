@@ -59,6 +59,28 @@ GSecretItem *       gsecret_item_new_sync                   (GSecretService *ser
 
 void                gsecret_item_refresh                    (GSecretItem *self);
 
+void                gsecret_item_create                     (GSecretCollection *collection,
+                                                             const gchar *schema_name,
+                                                             const gchar *label,
+                                                             GHashTable *attributes,
+                                                             GSecretValue *value,
+                                                             gboolean replace,
+                                                             GCancellable *cancellable,
+                                                             GAsyncReadyCallback callback,
+                                                             gpointer user_data);
+
+GSecretItem *       gsecret_item_create_finish              (GAsyncResult *result,
+                                                             GError **error);
+
+GSecretItem *       gsecret_item_create_sync                (GSecretCollection *collection,
+                                                             const gchar *schema_name,
+                                                             const gchar *label,
+                                                             GHashTable *attributes,
+                                                             GSecretValue *value,
+                                                             gboolean replace,
+                                                             GCancellable *cancellable,
+                                                             GError **error);
+
 void                gsecret_item_delete                     (GSecretItem *self,
                                                              GCancellable *cancellable,
                                                              GAsyncReadyCallback callback,
@@ -82,6 +104,21 @@ GSecretValue *      gsecret_item_get_secret_finish          (GSecretItem *self,
                                                              GError **error);
 
 GSecretValue *      gsecret_item_get_secret_sync            (GSecretItem *self,
+                                                             GCancellable *cancellable,
+                                                             GError **error);
+
+void                gsecret_item_set_secret                 (GSecretItem *self,
+                                                             GSecretValue *value,
+                                                             GCancellable *cancellable,
+                                                             GAsyncReadyCallback callback,
+                                                             gpointer user_data);
+
+gboolean            gsecret_item_set_secret_finish          (GSecretItem *self,
+                                                             GAsyncResult *result,
+                                                             GError **error);
+
+gboolean            gsecret_item_set_secret_sync            (GSecretItem *self,
+                                                             GSecretValue *value,
                                                              GCancellable *cancellable,
                                                              GError **error);
 
@@ -118,6 +155,8 @@ gboolean            gsecret_item_set_label_sync             (GSecretItem *self,
                                                              const gchar *label,
                                                              GCancellable *cancellable,
                                                              GError **error);
+
+gchar *             gsecret_item_get_schema                 (GSecretItem *self);
 
 gboolean            gsecret_item_get_locked                 (GSecretItem *self);
 

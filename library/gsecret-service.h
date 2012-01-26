@@ -408,6 +408,44 @@ gboolean             gsecret_service_removev_sync                  (GSecretServi
                                                                     GCancellable *cancellable,
                                                                     GError **error);
 
+void                 gsecret_service_create_collection_path        (GSecretService *self,
+                                                                    GHashTable *properties,
+                                                                    const gchar *alias,
+                                                                    GCancellable *cancellable,
+                                                                    GAsyncReadyCallback callback,
+                                                                    gpointer user_data);
+
+gchar *              gsecret_service_create_collection_path_finish (GSecretService *self,
+                                                                    GAsyncResult *result,
+                                                                    GError **error);
+
+gchar *              gsecret_service_create_collection_path_sync   (GSecretService *self,
+                                                                    GHashTable *properties,
+                                                                    const gchar *alias,
+                                                                    GCancellable *cancellable,
+                                                                    GError **error);
+
+void                 gsecret_service_create_item_path              (GSecretService *self,
+                                                                    const gchar *collection_path,
+                                                                    GHashTable *properties,
+                                                                    GSecretValue *value,
+                                                                    gboolean replace,
+                                                                    GCancellable *cancellable,
+                                                                    GAsyncReadyCallback callback,
+                                                                    gpointer user_data);
+
+gchar *              gsecret_service_create_item_path_finish       (GSecretService *self,
+                                                                    GAsyncResult *result,
+                                                                    GError **error);
+
+gchar *              gsecret_service_create_item_path_sync         (GSecretService *self,
+                                                                    const gchar *collection_path,
+                                                                    GHashTable *properties,
+                                                                    GSecretValue *value,
+                                                                    gboolean replace,
+                                                                    GCancellable *cancellable,
+                                                                    GError **error);
+
 G_END_DECLS
 
 #endif /* __GSECRET_SERVICE_H___ */

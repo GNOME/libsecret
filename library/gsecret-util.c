@@ -87,6 +87,25 @@ _gsecret_util_empty_path (const gchar *path)
 }
 
 GVariant *
+_gsecret_util_variant_for_properties (GHashTable *properties)
+{
+	GHashTableIter iter;
+	GVariantBuilder builder;
+	const gchar *name;
+	GVariant *value;
+
+	g_return_val_if_fail (properties != NULL, NULL);
+
+	g_variant_builder_init (&builder, G_VARIANT_TYPE ("a{sv}"));
+
+	g_hash_table_iter_init (&iter, properties);
+	while (g_hash_table_iter_next (&iter, (gpointer *)&name, (gpointer *)&value))
+		g_variant_builder_add (&builder, "{sv}", name, value);
+
+	return g_variant_builder_end (&builder);
+}
+
+GVariant *
 _gsecret_util_variant_for_attributes (GHashTable *attributes)
 {
 	GHashTableIter iter;
@@ -103,7 +122,6 @@ _gsecret_util_variant_for_attributes (GHashTable *attributes)
 		g_variant_builder_add (&builder, "{ss}", name, value);
 
 	return g_variant_builder_end (&builder);
-
 }
 
 GHashTable *
