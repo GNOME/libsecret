@@ -29,6 +29,7 @@ BUILT_SOURCES = \
 libgsecret_la_SOURCES = \
 	gsecret-collection.h gsecret-collection.c \
 	gsecret-item.h gsecret-item.c \
+	gsecret-methods.c \
 	gsecret-password.h gsecret-password.c \
 	gsecret-prompt.h gsecret-prompt.c \
 	gsecret-service.h gsecret-service.c \
