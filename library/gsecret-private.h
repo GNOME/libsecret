@@ -99,24 +99,17 @@ gboolean            _gsecret_util_have_cached_properties       (GDBusProxy *prox
 
 void                _gsecret_service_set_default_bus_name      (const gchar *bus_name);
 
-#if 0
-GSecretService *    _gsecret_service_bare_instance    (GDBusConnection *connection,
-                                                       const gchar *bus_name);
-
-void                _gsecret_service_bare_connect              (const gchar *bus_name,
-                                                                gboolean ensure_session,
-                                                                GCancellable *cancellable,
-                                                                GAsyncReadyCallback callback,
-                                                                gpointer user_data);
-
-GSecretService *    _gsecret_service_bare_connect_finish       (GAsyncResult *result,
-                                                                GError **error);
-#endif
-
 GSecretSession *    _gsecret_service_get_session               (GSecretService *self);
 
 void                _gsecret_service_take_session              (GSecretService *self,
                                                                 GSecretSession *session);
+
+void                _gsecret_service_delete_path               (GSecretService *self,
+                                                                const gchar *object_path,
+                                                                gboolean is_an_item,
+                                                                GCancellable *cancellable,
+                                                                GAsyncReadyCallback callback,
+                                                                gpointer user_data);
 
 GSecretItem *       _gsecret_service_find_item_instance        (GSecretService *self,
                                                                 const gchar *item_path);

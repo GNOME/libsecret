@@ -366,7 +366,7 @@ GSecretValue *       gsecret_service_lookupv_sync                  (GSecretServi
                                                                     GError **error);
 
 void                 gsecret_service_delete_path                   (GSecretService *self,
-                                                                    const gchar *item_path,
+                                                                    const gchar *object_path,
                                                                     GCancellable *cancellable,
                                                                     GAsyncReadyCallback callback,
                                                                     gpointer user_data);
@@ -376,7 +376,7 @@ gboolean             gsecret_service_delete_path_finish            (GSecretServi
                                                                     GError **error);
 
 gboolean             gsecret_service_delete_path_sync              (GSecretService *self,
-                                                                    const gchar *item_path,
+                                                                    const gchar *object_path,
                                                                     GCancellable *cancellable,
                                                                     GError **error);
 

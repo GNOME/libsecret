@@ -76,7 +76,6 @@ _gsecret_util_parent_path (const gchar *path)
 	g_return_val_if_fail (pos != NULL, NULL);
 	g_return_val_if_fail (pos != path, NULL);
 
-	pos--;
 	return g_strndup (path, pos - path);
 }
 

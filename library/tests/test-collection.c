@@ -84,7 +84,7 @@ static void
 test_new_sync (Test *test,
                gconstpointer unused)
 {
-	const gchar *collection_path = "/org/freedesktop/secrets/collection/collection";
+	const gchar *collection_path = "/org/freedesktop/secrets/collection/english";
 	GError *error = NULL;
 	GSecretCollection *collection;
 
@@ -98,10 +98,23 @@ test_new_sync (Test *test,
 }
 
 static void
+test_new_sync_noexist (Test *test,
+                       gconstpointer unused)
+{
+	const gchar *collection_path = "/org/freedesktop/secrets/collection/nonexistant";
+	GError *error = NULL;
+	GSecretCollection *collection;
+
+	collection = gsecret_collection_new_sync (test->service, collection_path, NULL, &error);
+	g_assert_error (error, G_DBUS_ERROR, G_DBUS_ERROR_UNKNOWN_METHOD);
+	g_assert (collection == NULL);
+}
+
+static void
 test_new_async (Test *test,
                gconstpointer unused)
 {
-	const gchar *collection_path = "/org/freedesktop/secrets/collection/collection";
+	const gchar *collection_path = "/org/freedesktop/secrets/collection/english";
 	GError *error = NULL;
 	GSecretCollection *collection;
 	GAsyncResult *result = NULL;
@@ -122,12 +135,33 @@ test_new_async (Test *test,
 }
 
 static void
+test_new_async_noexist (Test *test,
+                        gconstpointer unused)
+{
+	const gchar *collection_path = "/org/freedesktop/secrets/collection/nonexistant";
+	GError *error = NULL;
+	GSecretCollection *collection;
+	GAsyncResult *result = NULL;
+
+	gsecret_collection_new (test->service, collection_path, NULL, on_async_result, &result);
+	g_assert (result == NULL);
+
+	egg_test_wait ();
+
+	collection = gsecret_collection_new_finish (result, &error);
+	g_assert_error (error, G_DBUS_ERROR, G_DBUS_ERROR_UNKNOWN_METHOD);
+	g_assert (collection == NULL);
+	g_object_unref (result);
+}
+
+static void
 test_properties (Test *test,
                  gconstpointer unused)
 {
-	const gchar *collection_path = "/org/freedesktop/secrets/collection/collection";
-	GError *error = NULL;
+	const gchar *collection_path = "/org/freedesktop/secrets/collection/english";
 	GSecretCollection *collection;
+	GSecretService *service;
+	GError *error = NULL;
 	guint64 created;
 	guint64 modified;
 	gboolean locked;
@@ -149,6 +183,7 @@ test_properties (Test *test,
 	              "created", &created,
 	              "modified", &modified,
 	              "label", &label,
+	              "service", &service,
 	              NULL);
 
 	g_assert (locked == FALSE);
@@ -158,6 +193,122 @@ test_properties (Test *test,
 	g_assert_cmpstr (label, ==, "Collection One");
 	g_free (label);
 
+	g_assert (service == test->service);
+	g_object_unref (service);
+
+	g_object_unref (collection);
+}
+
+static void
+check_items_equal (GList *items,
+                   ...)
+{
+	GHashTable *paths;
+	gboolean have_item;
+	const gchar *path;
+	guint num_items;
+	va_list va;
+	GList *l;
+
+	va_start (va, items);
+	paths = g_hash_table_new (g_str_hash, g_str_equal);
+	while ((path = va_arg (va, gchar *)) != NULL)
+		g_hash_table_insert (paths, (gpointer)path, (gpointer)path);
+	va_end (va);
+
+	num_items = g_hash_table_size (paths);
+	g_assert_cmpuint (num_items, ==, g_list_length (items));
+
+	for (l = items; l != NULL; l = g_list_next (l)) {
+		path = g_dbus_proxy_get_object_path (l->data);
+		have_item = g_hash_table_remove (paths, path);
+		g_assert (have_item);
+	}
+
+	g_hash_table_destroy (paths);
+}
+
+static void
+test_items (Test *test,
+            gconstpointer unused)
+{
+	const gchar *collection_path = "/org/freedesktop/secrets/collection/english";
+	GSecretCollection *collection;
+	GError *error = NULL;
+	GList *items;
+
+	collection = gsecret_collection_new_sync (test->service, collection_path, NULL, &error);
+	g_assert_no_error (error);
+
+	items = gsecret_collection_get_items (collection);
+	check_items_equal (items,
+	                   "/org/freedesktop/secrets/collection/english/item_one",
+	                   "/org/freedesktop/secrets/collection/english/item_two",
+	                   "/org/freedesktop/secrets/collection/english/item_three",
+	                   NULL);
+	g_list_free_full (items, g_object_unref);
+
+	g_object_get (collection, "items", &items, NULL);
+	check_items_equal (items,
+	                   "/org/freedesktop/secrets/collection/english/item_one",
+	                   "/org/freedesktop/secrets/collection/english/item_two",
+	                   "/org/freedesktop/secrets/collection/english/item_three",
+	                   NULL);
+	g_list_free_full (items, g_object_unref);
+
+	g_object_unref (collection);
+}
+
+static void
+test_items_empty (Test *test,
+                  gconstpointer unused)
+{
+	const gchar *collection_path = "/org/freedesktop/secrets/collection/empty";
+	GSecretCollection *collection;
+	GError *error = NULL;
+	GList *items;
+
+	collection = gsecret_collection_new_sync (test->service, collection_path, NULL, &error);
+	g_assert_no_error (error);
+
+	items = gsecret_collection_get_items (collection);
+	check_items_equal (items, NULL);
+	g_list_free_full (items, g_object_unref);
+
+	g_object_get (collection, "items", &items, NULL);
+	check_items_equal (items, NULL);
+	g_list_free_full (items, g_object_unref);
+
+	g_object_unref (collection);
+}
+
+static void
+test_items_empty_async (Test *test,
+                        gconstpointer unused)
+{
+	const gchar *collection_path = "/org/freedesktop/secrets/collection/empty";
+	GSecretCollection *collection;
+	GAsyncResult *result = NULL;
+	GError *error = NULL;
+	GList *items;
+
+	gsecret_collection_new (test->service, collection_path, NULL, on_async_result, &result);
+	g_assert (result == NULL);
+
+	egg_test_wait ();
+
+	collection = gsecret_collection_new_finish (result, &error);
+	g_assert_no_error (error);
+	g_object_unref (result);
+
+	items = gsecret_collection_get_items (collection);
+	check_items_equal (items, NULL);
+	g_list_free_full (items, g_object_unref);
+
+	g_object_get (collection, "items", &items, NULL);
+	check_items_equal (items, NULL);
+	g_list_free_full (items, g_object_unref);
+
 	g_object_unref (collection);
 }
 
@@ -165,7 +316,7 @@ static void
 test_set_label_sync (Test *test,
                      gconstpointer unused)
 {
-	const gchar *collection_path = "/org/freedesktop/secrets/collection/collection";
+	const gchar *collection_path = "/org/freedesktop/secrets/collection/english";
 	GError *error = NULL;
 	GSecretCollection *collection;
 	gboolean ret;
@@ -193,7 +344,7 @@ static void
 test_set_label_async (Test *test,
                       gconstpointer unused)
 {
-	const gchar *collection_path = "/org/freedesktop/secrets/collection/collection";
+	const gchar *collection_path = "/org/freedesktop/secrets/collection/english";
 	GAsyncResult *result = NULL;
 	GError *error = NULL;
 	GSecretCollection *collection;
@@ -228,7 +379,7 @@ static void
 test_set_label_prop (Test *test,
                      gconstpointer unused)
 {
-	const gchar *collection_path = "/org/freedesktop/secrets/collection/collection";
+	const gchar *collection_path = "/org/freedesktop/secrets/collection/english";
 	GError *error = NULL;
 	GSecretCollection *collection;
 	guint sigs = 2;
@@ -254,59 +405,58 @@ test_set_label_prop (Test *test,
 	g_object_unref (collection);
 }
 
-#if 0
 static void
 test_delete_sync (Test *test,
                   gconstpointer unused)
 {
-	const gchar *item_path = "/org/freedesktop/secrets/collection/collection/item_one";
+	const gchar *collection_path = "/org/freedesktop/secrets/collection/english";
+	GSecretCollection *collection;
 	GError *error = NULL;
-	GSecretItem *item;
 	gboolean ret;
 
-	item = gsecret_item_new_sync (test->service, item_path, NULL, &error);
+	collection = gsecret_collection_new_sync (test->service, collection_path, NULL, &error);
 	g_assert_no_error (error);
 
-	ret = gsecret_item_delete_sync (item, NULL, &error);
+	ret = gsecret_collection_delete_sync (collection, NULL, &error);
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
 
-	g_object_unref (item);
+	g_object_unref (collection);
 
-	item = gsecret_item_new_sync (test->service, item_path, NULL, &error);
+	collection = gsecret_collection_new_sync (test->service, collection_path, NULL, &error);
 	g_assert_error (error, G_DBUS_ERROR, G_DBUS_ERROR_UNKNOWN_METHOD);
-	g_assert (item == NULL);
+	g_assert (collection == NULL);
 }
 
 static void
 test_delete_async (Test *test,
                    gconstpointer unused)
 {
-	const gchar *item_path = "/org/freedesktop/secrets/collection/collection/item_one";
+	const gchar *collection_path = "/org/freedesktop/secrets/collection/english";
+	GSecretCollection *collection;
 	GAsyncResult *result = NULL;
 	GError *error = NULL;
-	GSecretItem *item;
 	gboolean ret;
 
-	item = gsecret_item_new_sync (test->service, item_path, NULL, &error);
+	collection = gsecret_collection_new_sync (test->service, collection_path, NULL, &error);
 	g_assert_no_error (error);
 
-	gsecret_item_delete (item, NULL, on_async_result, &result);
+	gsecret_collection_delete (collection, NULL, on_async_result, &result);
 	g_assert (result == NULL);
 
 	egg_test_wait ();
 
-	ret = gsecret_item_delete_finish (item, result, &error);
+	ret = gsecret_collection_delete_finish (collection, result, &error);
 	g_assert_no_error (error);
+	g_object_unref (result);
 	g_assert (ret == TRUE);
 
-	g_object_unref (item);
+	g_object_unref (collection);
 
-	item = gsecret_item_new_sync (test->service, item_path, NULL, &error);
+	collection = gsecret_collection_new_sync (test->service, collection_path, NULL, &error);
 	g_assert_error (error, G_DBUS_ERROR, G_DBUS_ERROR_UNKNOWN_METHOD);
-	g_assert (item == NULL);
+	g_assert (collection == NULL);
 }
-#endif
 
 int
 main (int argc, char **argv)
@@ -316,15 +466,18 @@ main (int argc, char **argv)
 	g_type_init ();
 
 	g_test_add ("/collection/new-sync", Test, "mock-service-normal.py", setup, test_new_sync, teardown);
+	g_test_add ("/collection/new-sync-noexist", Test, "mock-service-normal.py", setup, test_new_sync_noexist, teardown);
 	g_test_add ("/collection/new-async", Test, "mock-service-normal.py", setup, test_new_async, teardown);
+	g_test_add ("/collection/new-async-noexist", Test, "mock-service-normal.py", setup, test_new_async_noexist, teardown);
 	g_test_add ("/collection/properties", Test, "mock-service-normal.py", setup, test_properties, teardown);
+	g_test_add ("/collection/items", Test, "mock-service-normal.py", setup, test_items, teardown);
+	g_test_add ("/collection/items-empty", Test, "mock-service-normal.py", setup, test_items_empty, teardown);
+	g_test_add ("/collection/items-empty-async", Test, "mock-service-normal.py", setup, test_items_empty_async, teardown);
 	g_test_add ("/collection/set-label-sync", Test, "mock-service-normal.py", setup, test_set_label_sync, teardown);
 	g_test_add ("/collection/set-label-async", Test, "mock-service-normal.py", setup, test_set_label_async, teardown);
 	g_test_add ("/collection/set-label-prop", Test, "mock-service-normal.py", setup, test_set_label_prop, teardown);
-#if 0
-	g_test_add ("/item/delete-sync", Test, "mock-service-normal.py", setup, test_delete_sync, teardown);
-	g_test_add ("/item/delete-async", Test, "mock-service-normal.py", setup, test_delete_async, teardown);
-#endif
+	g_test_add ("/collection/delete-sync", Test, "mock-service-normal.py", setup, test_delete_sync, teardown);
+	g_test_add ("/collection/delete-async", Test, "mock-service-normal.py", setup, test_delete_async, teardown);
 
 	return egg_tests_run_with_loop ();
 }

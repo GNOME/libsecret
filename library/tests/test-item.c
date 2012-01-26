@@ -84,7 +84,7 @@ static void
 test_new_sync (Test *test,
                gconstpointer unused)
 {
-	const gchar *item_path = "/org/freedesktop/secrets/collection/collection/item_one";
+	const gchar *item_path = "/org/freedesktop/secrets/collection/english/item_one";
 	GError *error = NULL;
 	GSecretItem *item;
 
@@ -97,10 +97,23 @@ test_new_sync (Test *test,
 }
 
 static void
-test_new_async (Test *test,
-               gconstpointer unused)
+test_new_sync_noexist (Test *test,
+                       gconstpointer unused)
 {
-	const gchar *item_path = "/org/freedesktop/secrets/collection/collection/item_one";
+	const gchar *item_path = "/org/freedesktop/secrets/collection/english/nonexistant";
+	GError *error = NULL;
+	GSecretItem *item;
+
+	item = gsecret_item_new_sync (test->service, item_path, NULL, &error);
+	g_assert_error (error, G_DBUS_ERROR, G_DBUS_ERROR_UNKNOWN_METHOD);
+	g_assert (item == NULL);
+}
+
+static void
+test_new_async (Test *test,
+                gconstpointer unused)
+{
+	const gchar *item_path = "/org/freedesktop/secrets/collection/english/item_one";
 	GAsyncResult *result = NULL;
 	GError *error = NULL;
 	GSecretItem *item;
@@ -120,12 +133,33 @@ test_new_async (Test *test,
 }
 
 static void
+test_new_async_noexist (Test *test,
+                        gconstpointer unused)
+{
+	const gchar *item_path = "/org/freedesktop/secrets/collection/english/nonexistant";
+	GAsyncResult *result = NULL;
+	GError *error = NULL;
+	GSecretItem *item;
+
+	gsecret_item_new (test->service, item_path, NULL, on_async_result, &result);
+	g_assert (result == NULL);
+
+	egg_test_wait ();
+
+	item = gsecret_item_new_finish (result, &error);
+	g_assert_error (error, G_DBUS_ERROR, G_DBUS_ERROR_UNKNOWN_METHOD);
+	g_assert (item == NULL);
+	g_object_unref (result);
+}
+
+static void
 test_properties (Test *test,
                  gconstpointer unused)
 {
-	const gchar *item_path = "/org/freedesktop/secrets/collection/collection/item_one";
+	const gchar *item_path = "/org/freedesktop/secrets/collection/english/item_one";
 	GError *error = NULL;
 	GHashTable *attributes;
+	GSecretService *service;
 	GSecretItem *item;
 	guint64 created;
 	guint64 modified;
@@ -146,7 +180,7 @@ test_properties (Test *test,
 	attributes = gsecret_item_get_attributes (item);
 	g_assert_cmpstr (g_hash_table_lookup (attributes, "string"), ==, "one");
 	g_assert_cmpstr (g_hash_table_lookup (attributes, "number"), ==, "1");
-	g_assert_cmpstr (g_hash_table_lookup (attributes, "parity"), ==, "odd");
+	g_assert_cmpstr (g_hash_table_lookup (attributes, "even"), ==, "false");
 	g_assert_cmpuint (g_hash_table_size (attributes), ==, 3);
 	g_hash_table_unref (attributes);
 
@@ -156,6 +190,7 @@ test_properties (Test *test,
 	              "modified", &modified,
 	              "label", &label,
 	              "attributes", &attributes,
+	              "service", &service,
 	              NULL);
 
 	g_assert (locked == FALSE);
@@ -167,9 +202,12 @@ test_properties (Test *test,
 
 	g_assert_cmpstr (g_hash_table_lookup (attributes, "string"), ==, "one");
 	g_assert_cmpstr (g_hash_table_lookup (attributes, "number"), ==, "1");
-	g_assert_cmpstr (g_hash_table_lookup (attributes, "parity"), ==, "odd");
+	g_assert_cmpstr (g_hash_table_lookup (attributes, "even"), ==, "false");
 	g_assert_cmpuint (g_hash_table_size (attributes), ==, 3);
 	g_hash_table_unref (attributes);
+
+	g_assert (service == test->service);
+	g_object_unref (service);
 
 	g_object_unref (item);
 }
@@ -178,7 +216,7 @@ static void
 test_set_label_sync (Test *test,
                      gconstpointer unused)
 {
-	const gchar *item_path = "/org/freedesktop/secrets/collection/collection/item_one";
+	const gchar *item_path = "/org/freedesktop/secrets/collection/english/item_one";
 	GError *error = NULL;
 	GSecretItem *item;
 	gboolean ret;
@@ -206,7 +244,7 @@ static void
 test_set_label_async (Test *test,
                       gconstpointer unused)
 {
-	const gchar *item_path = "/org/freedesktop/secrets/collection/collection/item_one";
+	const gchar *item_path = "/org/freedesktop/secrets/collection/english/item_one";
 	GAsyncResult *result = NULL;
 	GError *error = NULL;
 	GSecretItem *item;
@@ -241,7 +279,7 @@ static void
 test_set_label_prop (Test *test,
                      gconstpointer unused)
 {
-	const gchar *item_path = "/org/freedesktop/secrets/collection/collection/item_one";
+	const gchar *item_path = "/org/freedesktop/secrets/collection/english/item_one";
 	GError *error = NULL;
 	GSecretItem *item;
 	guint sigs = 2;
@@ -271,7 +309,7 @@ static void
 test_set_attributes_sync (Test *test,
                            gconstpointer unused)
 {
-	const gchar *item_path = "/org/freedesktop/secrets/collection/collection/item_one";
+	const gchar *item_path = "/org/freedesktop/secrets/collection/english/item_one";
 	GError *error = NULL;
 	GSecretItem *item;
 	gboolean ret;
@@ -283,7 +321,7 @@ test_set_attributes_sync (Test *test,
 	attributes = gsecret_item_get_attributes (item);
 	g_assert_cmpstr (g_hash_table_lookup (attributes, "string"), ==, "one");
 	g_assert_cmpstr (g_hash_table_lookup (attributes, "number"), ==, "1");
-	g_assert_cmpstr (g_hash_table_lookup (attributes, "parity"), ==, "odd");
+	g_assert_cmpstr (g_hash_table_lookup (attributes, "even"), ==, "false");
 	g_assert_cmpuint (g_hash_table_size (attributes), ==, 3);
 	g_hash_table_unref (attributes);
 
@@ -308,7 +346,7 @@ static void
 test_set_attributes_async (Test *test,
                            gconstpointer unused)
 {
-	const gchar *item_path = "/org/freedesktop/secrets/collection/collection/item_one";
+	const gchar *item_path = "/org/freedesktop/secrets/collection/english/item_one";
 	GHashTable *attributes;
 	GError *error = NULL;
 	GAsyncResult *result = NULL;
@@ -321,7 +359,7 @@ test_set_attributes_async (Test *test,
 	attributes = gsecret_item_get_attributes (item);
 	g_assert_cmpstr (g_hash_table_lookup (attributes, "string"), ==, "one");
 	g_assert_cmpstr (g_hash_table_lookup (attributes, "number"), ==, "1");
-	g_assert_cmpstr (g_hash_table_lookup (attributes, "parity"), ==, "odd");
+	g_assert_cmpstr (g_hash_table_lookup (attributes, "even"), ==, "false");
 	g_assert_cmpuint (g_hash_table_size (attributes), ==, 3);
 	g_hash_table_unref (attributes);
 
@@ -351,7 +389,7 @@ static void
 test_set_attributes_prop (Test *test,
                           gconstpointer unused)
 {
-	const gchar *item_path = "/org/freedesktop/secrets/collection/collection/item_one";
+	const gchar *item_path = "/org/freedesktop/secrets/collection/english/item_one";
 	GError *error = NULL;
 	GSecretItem *item;
 	GHashTable *attributes;
@@ -363,7 +401,7 @@ test_set_attributes_prop (Test *test,
 	attributes = gsecret_item_get_attributes (item);
 	g_assert_cmpstr (g_hash_table_lookup (attributes, "string"), ==, "one");
 	g_assert_cmpstr (g_hash_table_lookup (attributes, "number"), ==, "1");
-	g_assert_cmpstr (g_hash_table_lookup (attributes, "parity"), ==, "odd");
+	g_assert_cmpstr (g_hash_table_lookup (attributes, "even"), ==, "false");
 	g_assert_cmpuint (g_hash_table_size (attributes), ==, 3);
 	g_hash_table_unref (attributes);
 
@@ -391,7 +429,7 @@ static void
 test_get_secret_sync (Test *test,
                       gconstpointer unused)
 {
-	const gchar *item_path = "/org/freedesktop/secrets/collection/collection/item_one";
+	const gchar *item_path = "/org/freedesktop/secrets/collection/english/item_one";
 	GError *error = NULL;
 	GSecretItem *item;
 	GSecretValue *value;
@@ -406,7 +444,7 @@ test_get_secret_sync (Test *test,
 	g_assert (value != NULL);
 
 	data = gsecret_value_get (value, &length);
-	egg_assert_cmpmem (data, length, ==, "uno", 3);
+	egg_assert_cmpmem (data, length, ==, "111", 3);
 
 	gsecret_value_unref (value);
 
@@ -417,7 +455,7 @@ static void
 test_get_secret_async (Test *test,
                        gconstpointer unused)
 {
-	const gchar *item_path = "/org/freedesktop/secrets/collection/collection/item_one";
+	const gchar *item_path = "/org/freedesktop/secrets/collection/english/item_one";
 	GAsyncResult *result = NULL;
 	GError *error = NULL;
 	GSecretItem *item;
@@ -439,7 +477,7 @@ test_get_secret_async (Test *test,
 	g_object_unref (result);
 
 	data = gsecret_value_get (value, &length);
-	egg_assert_cmpmem (data, length, ==, "uno", 3);
+	egg_assert_cmpmem (data, length, ==, "111", 3);
 
 	gsecret_value_unref (value);
 
@@ -450,7 +488,7 @@ static void
 test_delete_sync (Test *test,
                   gconstpointer unused)
 {
-	const gchar *item_path = "/org/freedesktop/secrets/collection/collection/item_one";
+	const gchar *item_path = "/org/freedesktop/secrets/collection/english/item_one";
 	GError *error = NULL;
 	GSecretItem *item;
 	gboolean ret;
@@ -473,7 +511,7 @@ static void
 test_delete_async (Test *test,
                    gconstpointer unused)
 {
-	const gchar *item_path = "/org/freedesktop/secrets/collection/collection/item_one";
+	const gchar *item_path = "/org/freedesktop/secrets/collection/english/item_one";
 	GAsyncResult *result = NULL;
 	GError *error = NULL;
 	GSecretItem *item;
@@ -506,7 +544,9 @@ main (int argc, char **argv)
 	g_type_init ();
 
 	g_test_add ("/item/new-sync", Test, "mock-service-normal.py", setup, test_new_sync, teardown);
+	g_test_add ("/item/new-sync-noexist", Test, "mock-service-normal.py", setup, test_new_sync_noexist, teardown);
 	g_test_add ("/item/new-async", Test, "mock-service-normal.py", setup, test_new_async, teardown);
+	g_test_add ("/item/new-async-noexist", Test, "mock-service-normal.py", setup, test_new_async_noexist, teardown);
 	g_test_add ("/item/properties", Test, "mock-service-normal.py", setup, test_properties, teardown);
 	g_test_add ("/item/set-label-sync", Test, "mock-service-normal.py", setup, test_set_label_sync, teardown);
 	g_test_add ("/item/set-label-async", Test, "mock-service-normal.py", setup, test_set_label_async, teardown);

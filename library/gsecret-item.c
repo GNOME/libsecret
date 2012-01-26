@@ -476,8 +476,8 @@ gsecret_item_delete (GSecretItem *self,
 	res = g_simple_async_result_new (G_OBJECT (self), callback, user_data,
 	                                 gsecret_item_delete);
 
-	gsecret_service_delete_path (self->pv->service, object_path, cancellable,
-	                             on_item_deleted, g_object_ref (res));
+	_gsecret_service_delete_path (self->pv->service, object_path, TRUE,
+	                              cancellable, on_item_deleted, g_object_ref (res));
 
 	g_object_unref (res);
 }

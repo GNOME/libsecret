@@ -394,7 +394,6 @@ gsecret_collection_properties_changed (GDBusProxy *proxy,
 
 	g_variant_iter_init (&iter, changed_properties);
 	while (g_variant_iter_loop (&iter, "{sv}", &property_name, &value))
-		// TODO: zzzz;
 		handle_property_changed (self, property_name, value);
 
 	g_object_thaw_notify (G_OBJECT (self));
@@ -678,8 +677,8 @@ gsecret_collection_delete (GSecretCollection *self,
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
 	object_path = g_dbus_proxy_get_object_path (G_DBUS_PROXY (self));
-	gsecret_service_delete_path (self->pv->service, object_path, cancellable,
-	                             callback, user_data);
+	_gsecret_service_delete_path (self->pv->service, object_path, FALSE,
+	                              cancellable, callback, user_data);
 }
 
 gboolean
