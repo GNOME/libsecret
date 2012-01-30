@@ -30,6 +30,7 @@ TEST_PROGS = \
 	test-prompt \
 	test-service \
 	test-session \
+	test-methods \
 	test-password \
 	test-item \
 	test-collection \
