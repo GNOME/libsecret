@@ -1467,6 +1467,162 @@ test_lookup_no_match (Test *test,
 	g_assert (value == NULL);
 }
 
+static void
+test_store_sync (Test *test,
+                 gconstpointer used)
+{
+	const gchar *collection_path = "/org/freedesktop/secrets/collection/english";
+	GSecretValue *value = gsecret_value_new ("apassword", -1, "text/plain");
+	GHashTable *attributes;
+	GError *error = NULL;
+	gchar **paths;
+	gboolean ret;
+	gsize length;
+
+	ret = gsecret_service_store_sync (test->service, &STORE_SCHEMA, collection_path,
+	                                  "New Item Label", value, NULL, &error,
+	                                  "even", FALSE,
+	                                  "string", "seventeen",
+	                                  "number", 17,
+	                                  NULL);
+	g_assert_no_error (error);
+	gsecret_value_unref (value);
+
+	attributes = g_hash_table_new (g_str_hash, g_str_equal);
+	g_hash_table_insert (attributes, "even", "false");
+	g_hash_table_insert (attributes, "string", "seventeen");
+	g_hash_table_insert (attributes, "number", "17");
+
+	ret = gsecret_service_search_for_paths_sync (test->service, attributes, NULL,
+	                                             &paths, NULL, &error);
+	g_hash_table_unref (attributes);
+	g_assert (ret == TRUE);
+
+	g_assert (paths != NULL);
+	g_assert (paths[0] != NULL);
+	g_assert (paths[1] == NULL);
+
+	value = gsecret_service_get_secret_for_path_sync (test->service, paths[0],
+	                                                  NULL, &error);
+	g_assert_no_error (error);
+
+	g_assert (value != NULL);
+	g_assert_cmpstr (gsecret_value_get (value, &length), ==, "apassword");
+	g_assert_cmpuint (length, ==, 9);
+
+	gsecret_value_unref (value);
+	g_strfreev (paths);
+}
+
+static void
+test_store_replace (Test *test,
+                    gconstpointer used)
+{
+	const gchar *collection_path = "/org/freedesktop/secrets/collection/english";
+	GSecretValue *value = gsecret_value_new ("apassword", -1, "text/plain");
+	GHashTable *attributes;
+	GError *error = NULL;
+	gchar **paths;
+	gboolean ret;
+	gsize length;
+
+	ret = gsecret_service_store_sync (test->service, &STORE_SCHEMA, collection_path,
+	                                  "New Item Label", value, NULL, &error,
+	                                  "even", FALSE,
+	                                  "string", "seventeen",
+	                                  "number", 17,
+	                                  NULL);
+	g_assert_no_error (error);
+
+	ret = gsecret_service_store_sync (test->service, &STORE_SCHEMA, collection_path,
+	                                  "Another Label", value, NULL, &error,
+	                                  "even", FALSE,
+	                                  "string", "seventeen",
+	                                  "number", 17,
+	                                  NULL);
+	g_assert_no_error (error);
+	gsecret_value_unref (value);
+
+	attributes = g_hash_table_new (g_str_hash, g_str_equal);
+	g_hash_table_insert (attributes, "even", "false");
+	g_hash_table_insert (attributes, "string", "seventeen");
+	g_hash_table_insert (attributes, "number", "17");
+
+	ret = gsecret_service_search_for_paths_sync (test->service, attributes, NULL,
+	                                             &paths, NULL, &error);
+	g_hash_table_unref (attributes);
+	g_assert (ret == TRUE);
+
+	g_assert (paths != NULL);
+	g_assert (paths[0] != NULL);
+	g_assert (paths[1] == NULL);
+
+	value = gsecret_service_get_secret_for_path_sync (test->service, paths[0],
+	                                                  NULL, &error);
+	g_assert_no_error (error);
+
+	g_assert (value != NULL);
+	g_assert_cmpstr (gsecret_value_get (value, &length), ==, "apassword");
+	g_assert_cmpuint (length, ==, 9);
+
+	gsecret_value_unref (value);
+	g_strfreev (paths);
+}
+
+static void
+test_store_async (Test *test,
+                  gconstpointer used)
+{
+	const gchar *collection_path = "/org/freedesktop/secrets/collection/english";
+	GSecretValue *value = gsecret_value_new ("apassword", -1, "text/plain");
+	GAsyncResult *result = NULL;
+	GHashTable *attributes;
+	GError *error = NULL;
+	gchar **paths;
+	gboolean ret;
+	gsize length;
+
+	gsecret_service_store (test->service, &STORE_SCHEMA, collection_path,
+	                             "New Item Label", value, NULL, on_complete_get_result, &result,
+	                             "even", FALSE,
+	                             "string", "seventeen",
+	                             "number", 17,
+	                             NULL);
+	g_assert (result == NULL);
+	gsecret_value_unref (value);
+
+	egg_test_wait ();
+
+	ret = gsecret_service_store_finish (test->service, result, &error);
+	g_assert_no_error (error);
+	g_object_unref (result);
+
+	attributes = g_hash_table_new (g_str_hash, g_str_equal);
+	g_hash_table_insert (attributes, "even", "false");
+	g_hash_table_insert (attributes, "string", "seventeen");
+	g_hash_table_insert (attributes, "number", "17");
+
+	ret = gsecret_service_search_for_paths_sync (test->service, attributes, NULL,
+	                                             &paths, NULL, &error);
+	g_hash_table_unref (attributes);
+	g_assert (ret == TRUE);
+
+	g_assert (paths != NULL);
+	g_assert (paths[0] != NULL);
+	g_assert (paths[1] == NULL);
+
+	value = gsecret_service_get_secret_for_path_sync (test->service, paths[0],
+	                                                  NULL, &error);
+	g_assert_no_error (error);
+
+	g_assert (value != NULL);
+	g_assert_cmpstr (gsecret_value_get (value, &length), ==, "apassword");
+	g_assert_cmpuint (length, ==, 9);
+
+	gsecret_value_unref (value);
+	g_strfreev (paths);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -1524,6 +1680,10 @@ main (int argc, char **argv)
 	g_test_add ("/service/remove-async", Test, "mock-service-delete.py", setup, test_remove_async, teardown);
 	g_test_add ("/service/remove-locked", Test, "mock-service-delete.py", setup, test_remove_locked, teardown);
 	g_test_add ("/service/remove-no-match", Test, "mock-service-delete.py", setup, test_remove_no_match, teardown);
+
+	g_test_add ("/service/store-sync", Test, "mock-service-normal.py", setup, test_store_sync, teardown);
+	g_test_add ("/service/store-async", Test, "mock-service-normal.py", setup, test_store_async, teardown);
+	g_test_add ("/service/store-replace", Test, "mock-service-normal.py", setup, test_store_replace, teardown);
 
 	return egg_tests_run_with_loop ();
 }

@@ -45,10 +45,10 @@ class IsLocked(dbus.exceptions.DBusException):
 		dbus.exceptions.DBusException.__init__(self, msg, name="org.freedesktop.Secret.Error.IsLocked")
 
 unique_identifier = 0
-def next_identifier():
+def next_identifier(prefix='x'):
 	global unique_identifier
 	unique_identifier += 1
-	return unique_identifier
+	return "%s%d" % (prefix, unique_identifier)
 
 def hex_encode(string):
 	return "".join([hex(ord(c))[2:].zfill(2) for c in string])
@@ -63,6 +63,11 @@ class PlainAlgorithm():
 
 	def encrypt(self, key, data):
 		return ("", data)
+
+	def decrypt(self, param, data):
+		if params == "":
+			raise InvalidArgs("invalid secret plain parameter")
+		return data
 
 
 class AesAlgorithm():
@@ -91,6 +96,16 @@ class AesAlgorithm():
 		return ("".join([chr(i) for i in iv]),
 		        "".join([chr(i) for i in ciph]))
 
+	def decrypt(self, key, param, data):
+		key = map(ord, key)
+		keysize = len(key)
+		iv = map(ord, param[:16])
+		data = map(ord, data)
+		moo = aes.AESModeOfOperation()
+		mode = aes.AESModeOfOperation.modeOfOperation["CBC"]
+		decr = moo.decrypt(data, None, mode, key, keysize, iv)
+		return aes.strip_PKCS7_padding(decr)
+
 
 class SecretPrompt(dbus.service.Object):
 	def __init__(self, service, sender, prompt_name=None, delay=0,
@@ -106,7 +121,7 @@ class SecretPrompt(dbus.service.Object):
 		if prompt_name:
 			self.path = "/org/freedesktop/secrets/prompts/%s" % prompt_name
 		else:
-			self.path = "/org/freedesktop/secrets/prompts/p%d" % next_identifier()
+			self.path = "/org/freedesktop/secrets/prompts/%s" % next_identifier('p')
 		dbus.service.Object.__init__(self, service.bus_name, self.path)
 		service.add_prompt(self)
 		assert self.path not in objects
@@ -140,7 +155,7 @@ class SecretSession(dbus.service.Object):
 		self.service = service
 		self.algorithm = algorithm
 		self.key = key
-		self.path = "/org/freedesktop/secrets/sessions/%d" % next_identifier()
+		self.path = "/org/freedesktop/secrets/sessions/%s" % next_identifier('s')
 		dbus.service.Object.__init__(self, service.bus_name, self.path)
 		service.add_session(self)
 		objects[self.path] = self
@@ -152,6 +167,10 @@ class SecretSession(dbus.service.Object):
 		return dbus.Struct((dbus.ObjectPath(self.path), dbus.ByteArray(params),
 		                    dbus.ByteArray(data), dbus.String(content_type)),
 		                   signature="oayays")
+
+	def decode_secret(self, value):
+		plain = self.algorithm.decrypt(self.key, value[1], value[2])
+		return (plain, value[3])
 
 	@dbus.service.method('org.freedesktop.Secret.Session')
 	def Close(self):
@@ -281,6 +300,33 @@ class SecretCollection(dbus.service.Object):
 		del self.service.collections[self.identifier]
 		del objects[self.path]
 		self.remove_from_connection()
+
+	@dbus.service.method('org.freedesktop.Secret.Collection', byte_arrays=True, sender_keyword='sender')
+	def CreateItem(self, properties, value, replace, sender=None):
+		session_path = value[0]
+		session = objects.get(session_path, None)
+		if not session or session.sender != sender:
+			raise InvalidArgs("session invalid: %s" % session_path)
+
+		attributes = properties.get("org.freedesktop.Secret.Item.Attributes", None)
+		label = properties.get("org.freedesktop.Secret.Item.Label", None)
+		schema = properties.get("org.freedesktop.Secret.Item.Schema", None)
+		(secret, content_type) = session.decode_secret(value)
+		item = None
+
+		if replace and attributes:
+			items = self.search_items(attributes)
+			if items:
+				item = items[0]
+		if item is None:
+			item = SecretItem(self, next_identifier('i'), label, attributes,
+			                  secret=secret, confirm=False, content_type=content_type)
+		else:
+			item.label = label
+			item.secret = secret
+			item.attributes = attributes
+			item.content_type = content_type
+		return (dbus.ObjectPath(item.path), dbus.ObjectPath("/"))
 
 	@dbus.service.method('org.freedesktop.Secret.Collection', sender_keyword='sender')
 	def Delete(self, sender=None):

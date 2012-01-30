@@ -729,7 +729,7 @@ collection_properties_new (const gchar *label)
 	                                    (GDestroyNotify)g_variant_unref);
 	value = g_variant_new_string (label);
 	g_hash_table_insert (properties,
-	                     GSECRET_COLLECTION_INTERFACE "Label",
+	                     GSECRET_COLLECTION_INTERFACE ".Label",
 	                     g_variant_ref_sink (value));
 
 	return properties;

@@ -583,11 +583,9 @@ service_encode_aes_secret (GSecretSession *session,
 
 	child = g_variant_new_from_data (G_VARIANT_TYPE ("ay"), iv, 16, TRUE, g_free, iv);
 	g_variant_builder_add_value (builder, child);
-	g_variant_unref (child);
 
 	child = g_variant_new_from_data (G_VARIANT_TYPE ("ay"), padded, n_padded, TRUE, egg_secure_free, padded);
 	g_variant_builder_add_value (builder, child);
-	g_variant_unref (child);
 
 	g_variant_builder_add (builder, "s", gsecret_value_get_content_type (value));
 	return TRUE;

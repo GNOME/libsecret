@@ -518,17 +518,17 @@ item_properties_new (const gchar *schema_name,
 
 	value = g_variant_new_string (label);
 	g_hash_table_insert (properties,
-	                     GSECRET_COLLECTION_INTERFACE "Label",
+	                     GSECRET_ITEM_INTERFACE ".Label",
 	                     g_variant_ref_sink (value));
 
 	value = g_variant_new_string (schema_name);
 	g_hash_table_insert (properties,
-	                     GSECRET_COLLECTION_INTERFACE "Schema",
+	                     GSECRET_ITEM_INTERFACE ".Schema",
 	                     g_variant_ref_sink (value));
 
 	value = _gsecret_util_variant_for_attributes (attributes);
 	g_hash_table_insert (properties,
-	                     GSECRET_COLLECTION_INTERFACE "Attributes",
+	                     GSECRET_ITEM_INTERFACE ".Attributes",
 	                     g_variant_ref_sink (value));
 
 	return properties;

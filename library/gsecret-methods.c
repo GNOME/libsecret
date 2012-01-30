@@ -1201,25 +1201,6 @@ gsecret_service_unlock_sync (GSecretService *self,
 	return count;
 }
 
-typedef struct {
-	gchar *collection_path;
-	GSecretValue *value;
-	GCancellable *cancellable;
-	GSecretPrompt *prompt;
-	gboolean created;
-} StoreClosure;
-
-static void
-store_closure_free (gpointer data)
-{
-	StoreClosure *closure = data;
-	g_free (closure->collection_path);
-	gsecret_value_unref (closure->value);
-	g_clear_object (&closure->cancellable);
-	g_clear_object (&closure->prompt);
-	g_free (closure);
-}
-
 void
 gsecret_service_store (GSecretService *self,
                        const GSecretSchema *schema,
@@ -1250,59 +1231,6 @@ gsecret_service_store (GSecretService *self,
 	g_hash_table_unref (attributes);
 }
 
-static void
-on_store_prompt (GObject *source,
-                 GAsyncResult *result,
-                 gpointer user_data)
-{
-	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
-	StoreClosure *closure = g_simple_async_result_get_op_res_gpointer (res);
-	GError *error = NULL;
-
-	closure->created = gsecret_service_prompt_finish (GSECRET_SERVICE (source), result, &error);
-	if (error != NULL)
-		g_simple_async_result_take_error (res, error);
-
-	g_simple_async_result_complete (res);
-	g_object_unref (res);
-}
-
-static void
-on_store_create (GObject *source,
-                 GAsyncResult *result,
-                 gpointer user_data)
-{
-	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
-	StoreClosure *closure = g_simple_async_result_get_op_res_gpointer (res);
-	GSecretService *self = GSECRET_SERVICE (g_async_result_get_source_object (result));
-	const gchar *prompt_path = NULL;
-	const gchar *item_path = NULL;
-	GError *error = NULL;
-	GVariant *retval;
-
-	retval = g_dbus_connection_call_finish (G_DBUS_CONNECTION (source), result, &error);
-	if (error == NULL) {
-		g_variant_get (retval, "(&o&o)", &item_path, &prompt_path);
-		if (!_gsecret_util_empty_path (prompt_path)) {
-			closure->prompt = gsecret_prompt_instance (self, prompt_path);
-			gsecret_service_prompt (self, closure->prompt, closure->cancellable,
-			                        on_store_prompt, g_object_ref (res));
-
-		} else {
-			g_simple_async_result_complete (res);
-		}
-
-		g_variant_unref (retval);
-
-	} else {
-		g_simple_async_result_take_error (res, error);
-		g_simple_async_result_complete (res);
-	}
-
-	g_object_unref (self);
-	g_object_unref (res);
-}
-
 void
 gsecret_service_storev (GSecretService *self,
                         const GSecretSchema *schema,
@@ -1314,13 +1242,8 @@ gsecret_service_storev (GSecretService *self,
                         GAsyncReadyCallback callback,
                         gpointer user_data)
 {
-	GSimpleAsyncResult *res;
-	GSecretSession *session;
-	GVariant *attrs;
-	StoreClosure *closure;
-	GVariantBuilder builder;
-	GVariant *params;
-	GDBusProxy *proxy;
+	GHashTable *properties;
+	GVariant *propval;
 
 	g_return_if_fail (GSECRET_IS_SERVICE (self));
 	g_return_if_fail (schema != NULL);
@@ -1330,39 +1253,28 @@ gsecret_service_storev (GSecretService *self,
 	g_return_if_fail (value != NULL);
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
-	/* Build up the attributes */
-	attrs = _gsecret_util_variant_for_attributes (attributes);
+	properties = g_hash_table_new_full (g_str_hash, g_str_equal, NULL,
+	                                    (GDestroyNotify)g_variant_unref);
 
-	/* Build up the various properties */
-	g_variant_builder_init (&builder, G_VARIANT_TYPE ("a{sv}"));
-	g_variant_builder_add (&builder, "{sv}", GSECRET_SERVICE_INTERFACE "Attributes", attrs);
-	g_variant_builder_add (&builder, "{sv}", GSECRET_SERVICE_INTERFACE "Label", g_variant_new_string (label));
-	g_variant_builder_add (&builder, "{sv}", GSECRET_SERVICE_INTERFACE "Schema", g_variant_new_string (schema->schema_name));
+	propval = g_variant_new_string (label);
+	g_hash_table_insert (properties,
+	                     GSECRET_ITEM_INTERFACE ".Label",
+	                     g_variant_ref_sink (propval));
 
-	res = g_simple_async_result_new (G_OBJECT (self), callback, user_data,
-	                                 gsecret_service_storev);
-	closure = g_new0 (StoreClosure, 1);
-	closure->collection_path = g_strdup (collection_path);
-	closure->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
-	g_simple_async_result_set_op_res_gpointer (res, closure, store_closure_free);
+	propval = g_variant_new_string (schema->schema_name);
+	g_hash_table_insert (properties,
+	                     GSECRET_ITEM_INTERFACE ".Schema",
+	                     g_variant_ref_sink (propval));
 
-	session = _gsecret_service_get_session (self);
-	params = g_variant_new ("(&a{sv}&(oayays)b)",
-	                        g_variant_builder_end (&builder),
-	                        _gsecret_session_encode_secret (session, value),
-	                        TRUE);
+	propval = _gsecret_util_variant_for_attributes (attributes);
+	g_hash_table_insert (properties,
+	                     GSECRET_ITEM_INTERFACE ".Attributes",
+	                     g_variant_ref_sink (propval));
 
-	proxy = G_DBUS_PROXY (self);
-	g_dbus_connection_call (g_dbus_proxy_get_connection (proxy),
-	                        g_dbus_proxy_get_name (proxy),
-	                        closure->collection_path,
-	                        GSECRET_COLLECTION_INTERFACE,
-	                        "CreateItem", params, G_VARIANT_TYPE ("(oo)"),
-	                        G_DBUS_CALL_FLAGS_NO_AUTO_START, -1,
-	                        closure->cancellable, on_store_create,
-	                        g_object_ref (res));
+	gsecret_service_create_item_path (self, collection_path, properties, value,
+	                                  TRUE, cancellable, callback, user_data);
 
-	g_object_unref (res);
+	g_hash_table_unref (properties);
 }
 
 gboolean
@@ -1370,20 +1282,15 @@ gsecret_service_store_finish (GSecretService *self,
                               GAsyncResult *result,
                               GError **error)
 {
-	GSimpleAsyncResult *res;
-	StoreClosure *closure;
+	gchar *path;
 
 	g_return_val_if_fail (GSECRET_IS_SERVICE (self), FALSE);
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
-	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (self),
-	                      gsecret_service_storev), FALSE);
 
-	res = G_SIMPLE_ASYNC_RESULT (result);
-	if (!g_simple_async_result_propagate_error (res, error))
-		return FALSE;
+	path = gsecret_service_create_item_path_finish (self, result, error);
 
-	closure = g_simple_async_result_get_op_res_gpointer (res);
-	return closure->created;
+	g_free (path);
+	return path != NULL;
 }
 
 gboolean
@@ -2334,7 +2241,7 @@ on_create_item_session (GObject *source,
 	gsecret_service_ensure_session_finish (self, result, &error);
 	if (error == NULL) {
 		session = _gsecret_service_get_session (self);
-		params = g_variant_new ("@a{sv}@(oayays)b",
+		params = g_variant_new ("(@a{sv}@(oayays)b)",
 		                        closure->properties,
 		                        _gsecret_session_encode_secret (session, closure->value),
 		                        closure->replace);
@@ -2377,7 +2284,7 @@ gsecret_service_create_item_path (GSecretService *self,
 
 	res = g_simple_async_result_new (G_OBJECT (self), callback, user_data,
 	                                 gsecret_service_create_item_path);
-	closure = g_new0 (ItemClosure, 1);
+	closure = g_slice_new0 (ItemClosure);
 	closure->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
 	closure->properties = _gsecret_util_variant_for_properties (properties);
 	g_variant_ref_sink (closure->properties);
@@ -2399,7 +2306,7 @@ gsecret_service_create_item_path_finish (GSecretService *self,
                                          GError **error)
 {
 	GSimpleAsyncResult *res;
-	CollectionClosure *closure;
+	ItemClosure *closure;
 	gchar *path;
 
 	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (self),
@@ -2412,8 +2319,8 @@ gsecret_service_create_item_path_finish (GSecretService *self,
 		return NULL;
 
 	closure = g_simple_async_result_get_op_res_gpointer (res);
-	path = closure->collection_path;
-	closure->collection_path = NULL;
+	path = closure->item_path;
+	closure->item_path = NULL;
 	return path;
 }
 
