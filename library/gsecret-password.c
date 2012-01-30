@@ -336,6 +336,7 @@ gsecret_password_lookupv (GHashTable *attributes,
 	                                 gsecret_password_lookupv);
 	closure = g_slice_new0 (LookupClosure);
 	closure->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
+	closure->attributes = g_hash_table_ref (attributes);
 	g_simple_async_result_set_op_res_gpointer (res, closure, lookup_closure_free);
 
 	gsecret_service_get (GSECRET_SERVICE_OPEN_SESSION, cancellable,
@@ -411,7 +412,7 @@ gsecret_password_lookupv_sync (GHashTable *attributes,
 	sync = _gsecret_sync_new ();
 	g_main_context_push_thread_default (sync->context);
 
-	gsecret_password_removev (attributes, cancellable,
+	gsecret_password_lookupv (attributes, cancellable,
 	                          _gsecret_sync_on_result, sync);
 
 	g_main_loop_run (sync->loop);
