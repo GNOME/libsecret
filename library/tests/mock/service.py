@@ -179,11 +179,13 @@ class SecretSession(dbus.service.Object):
 
 class SecretItem(dbus.service.Object):
 	def __init__(self, collection, identifier, label="Item", attributes={ },
-	             secret="", confirm=False, content_type="text/plain"):
+	             secret="", confirm=False, content_type="text/plain",
+	             schema="org.freedesktop.Secret.Generic"):
 		self.collection = collection
 		self.identifier = identifier
-		self.label = label
+		self.label = label or "Unnamed item"
 		self.secret = secret
+		self.schema = schema
 		self.attributes = attributes
 		self.content_type = content_type
 		self.path = "%s/%s" % (collection.path, identifier)
@@ -219,6 +221,15 @@ class SecretItem(dbus.service.Object):
 			raise IsLocked("secret is locked: %s" % self.path)
 		return session.encode_secret(self.secret, self.content_type)
 
+	@dbus.service.method('org.freedesktop.Secret.Item', sender_keyword='sender', byte_arrays=True)
+	def SetSecret(self, secret, sender=None):
+		session = objects.get(secret[0], None)
+		if not session or session.sender != sender:
+			raise InvalidArgs("session invalid: %s" % secret[0]) 
+		if self.get_locked():
+			raise IsLocked("secret is locked: %s" % self.path)
+		(self.secret, self.content_type) = session.decode_secret(secret)
+
 	@dbus.service.method('org.freedesktop.Secret.Item', sender_keyword='sender')
 	def Delete(self, sender=None):
 		item = self
@@ -242,10 +253,11 @@ class SecretItem(dbus.service.Object):
 		if interface_name == 'org.freedesktop.Secret.Item':
 			return {
 				'Locked': self.get_locked(),
-				'Attributes': dbus.Dictionary(self.attributes, signature='ss'),
+				'Attributes': dbus.Dictionary(self.attributes, signature='ss', variant_level=1),
 				'Label': self.label,
 				'Created': dbus.UInt64(self.created),
-				'Modified': dbus.UInt64(self.modified)
+				'Modified': dbus.UInt64(self.modified),
+				'Schema': self.schema
 			}
 		else:
 			raise InvalidArgs('Unknown %s interface' % interface_name)
@@ -271,7 +283,7 @@ class SecretCollection(dbus.service.Object):
 	def __init__(self, service, identifier, label="Collection", locked=False, confirm=False):
 		self.service = service
 		self.identifier = identifier
-		self.label = label
+		self.label = label or "Unnamed collection"
 		self.locked = locked
 		self.items = { }
 		self.confirm = confirm
@@ -357,7 +369,7 @@ class SecretCollection(dbus.service.Object):
 				'Label': self.label,
 				'Created': dbus.UInt64(self.created),
 				'Modified': dbus.UInt64(self.modified),
-				'Items': dbus.Array([dbus.ObjectPath(i.path) for i in self.items.values()], signature='o')
+				'Items': dbus.Array([dbus.ObjectPath(i.path) for i in self.items.values()], signature='o', variant_level=1)
 			}
 		else:
 			raise InvalidArgs('Unknown %s interface' % interface_name)
@@ -405,7 +417,9 @@ class SecretService(dbus.service.Object):
 
 	def add_standard_objects(self):
 		collection = SecretCollection(self, "english", label="Collection One", locked=False)
-		SecretItem(collection, "item_one", label="Item One", attributes={ "number": "1", "string": "one", "even": "false" }, secret="111")
+		SecretItem(collection, "item_one", label="Item One",
+		           attributes={ "number": "1", "string": "one", "even": "false" },
+		           secret="111", schema="org.mock.schema.Store")
 		SecretItem(collection, "item_two", attributes={ "number": "2", "string": "two", "even": "true" }, secret="222")
 		SecretItem(collection, "item_three", attributes={ "number": "3", "string": "three", "even": "false" }, secret="3333")
 
@@ -489,7 +503,7 @@ class SecretService(dbus.service.Object):
 
 	@dbus.service.method('org.freedesktop.Secret.Service', sender_keyword='sender')
 	def CreateCollection(self, properties, alias, sender=None):
-		label = properties.get("org.freedesktop.Secret.Item.Label", None)
+		label = properties.get("org.freedesktop.Secret.Collection.Label", None)
 		service = self
 		def prompt_callback():
 			collection = SecretCollection(service, next_identifier('c'), label, locked=False, confirm=True)
@@ -530,7 +544,7 @@ class SecretService(dbus.service.Object):
 	def GetAll(self, interface_name):
 		if interface_name == 'org.freedesktop.Secret.Service':
 			return {
-				'Collections': dbus.Array([dbus.ObjectPath(c.path) for c in self.collections.values()], signature='o')
+				'Collections': dbus.Array([dbus.ObjectPath(c.path) for c in self.collections.values()], signature='o', variant_level=1)
 			}
 		else:
 			raise InvalidArgs('Unknown %s interface' % interface_name)

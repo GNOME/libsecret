@@ -98,19 +98,6 @@ test_new_sync (Test *test,
 }
 
 static void
-test_new_sync_noexist (Test *test,
-                       gconstpointer unused)
-{
-	const gchar *collection_path = "/org/freedesktop/secrets/collection/nonexistant";
-	GError *error = NULL;
-	GSecretCollection *collection;
-
-	collection = gsecret_collection_new_sync (test->service, collection_path, NULL, &error);
-	g_assert_error (error, G_DBUS_ERROR, G_DBUS_ERROR_UNKNOWN_METHOD);
-	g_assert (collection == NULL);
-}
-
-static void
 test_new_async (Test *test,
                gconstpointer unused)
 {
@@ -135,6 +122,19 @@ test_new_async (Test *test,
 }
 
 static void
+test_new_sync_noexist (Test *test,
+                       gconstpointer unused)
+{
+	const gchar *collection_path = "/org/freedesktop/secrets/collection/nonexistant";
+	GError *error = NULL;
+	GSecretCollection *collection;
+
+	collection = gsecret_collection_new_sync (test->service, collection_path, NULL, &error);
+	g_assert_error (error, G_DBUS_ERROR, G_DBUS_ERROR_UNKNOWN_METHOD);
+	g_assert (collection == NULL);
+}
+
+static void
 test_new_async_noexist (Test *test,
                         gconstpointer unused)
 {
@@ -152,6 +152,50 @@ test_new_async_noexist (Test *test,
 	g_assert_error (error, G_DBUS_ERROR, G_DBUS_ERROR_UNKNOWN_METHOD);
 	g_assert (collection == NULL);
 	g_object_unref (result);
+}
+
+
+static void
+test_create_sync (Test *test,
+                  gconstpointer unused)
+{
+	GError *error = NULL;
+	GSecretCollection *collection;
+
+	collection = gsecret_collection_create_sync (test->service, "Train", NULL, NULL, &error);
+	g_assert_no_error (error);
+
+	g_assert (g_str_has_prefix (g_dbus_proxy_get_object_path (G_DBUS_PROXY (collection)), "/org/freedesktop/secrets/collection"));
+	g_assert_cmpstr (gsecret_collection_get_label (collection), ==, "Train");
+	g_assert (gsecret_collection_get_locked (collection) == FALSE);
+
+	g_object_unref (collection);
+	egg_assert_not_object (collection);
+}
+
+static void
+test_create_async (Test *test,
+                   gconstpointer unused)
+{
+	GError *error = NULL;
+	GSecretCollection *collection;
+	GAsyncResult *result = NULL;
+
+	gsecret_collection_create (test->service, "Train", NULL, NULL, on_async_result, &result);
+	g_assert (result == NULL);
+
+	egg_test_wait ();
+
+	collection = gsecret_collection_create_finish (result, &error);
+	g_assert_no_error (error);
+	g_object_unref (result);
+
+	g_assert (g_str_has_prefix (g_dbus_proxy_get_object_path (G_DBUS_PROXY (collection)), "/org/freedesktop/secrets/collection"));
+	g_assert_cmpstr (gsecret_collection_get_label (collection), ==, "Train");
+	g_assert (gsecret_collection_get_locked (collection) == FALSE);
+
+	g_object_unref (collection);
+	egg_assert_not_object (collection);
 }
 
 static void
@@ -466,9 +510,11 @@ main (int argc, char **argv)
 	g_type_init ();
 
 	g_test_add ("/collection/new-sync", Test, "mock-service-normal.py", setup, test_new_sync, teardown);
-	g_test_add ("/collection/new-sync-noexist", Test, "mock-service-normal.py", setup, test_new_sync_noexist, teardown);
 	g_test_add ("/collection/new-async", Test, "mock-service-normal.py", setup, test_new_async, teardown);
+	g_test_add ("/collection/new-sync-noexist", Test, "mock-service-normal.py", setup, test_new_sync_noexist, teardown);
 	g_test_add ("/collection/new-async-noexist", Test, "mock-service-normal.py", setup, test_new_async_noexist, teardown);
+	g_test_add ("/collection/create-sync", Test, "mock-service-normal.py", setup, test_create_sync, teardown);
+	g_test_add ("/collection/create-async", Test, "mock-service-normal.py", setup, test_create_async, teardown);
 	g_test_add ("/collection/properties", Test, "mock-service-normal.py", setup, test_properties, teardown);
 	g_test_add ("/collection/items", Test, "mock-service-normal.py", setup, test_items, teardown);
 	g_test_add ("/collection/items-empty", Test, "mock-service-normal.py", setup, test_items_empty, teardown);

@@ -962,6 +962,7 @@ gsecret_item_set_secret (GSecretItem *self,
 	                                 user_data, gsecret_item_set_secret);
 	closure = g_slice_new0 (SetClosure);
 	closure->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
+	closure->value = gsecret_value_ref (value);
 	g_simple_async_result_set_op_res_gpointer (res, closure, set_closure_free);
 
 	gsecret_service_ensure_session (self->pv->service, cancellable,

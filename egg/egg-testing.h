@@ -53,6 +53,9 @@ void       egg_assertion_message_cmpmem        (const char *domain, const char *
                                                 gsize n_arg1, const char *cmp,
                                                 gconstpointer arg2, gsize n_arg2);
 
+gchar *    egg_test_escape_data                (const guchar *data,
+                                                gsize size);
+
 void       egg_test_wait_stop                  (void);
 
 #define    egg_test_wait()                     g_assert (egg_test_wait_until (20000) != FALSE)

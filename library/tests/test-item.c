@@ -15,6 +15,7 @@
 
 #include "config.h"
 
+#include "gsecret-collection.h"
 #include "gsecret-item.h"
 #include "gsecret-service.h"
 #include "gsecret-private.h"
@@ -153,6 +154,89 @@ test_new_async_noexist (Test *test,
 }
 
 static void
+test_create_sync (Test *test,
+                  gconstpointer unused)
+{
+	const gchar *collection_path = "/org/freedesktop/secrets/collection/english";
+	GSecretCollection *collection;
+	GError *error = NULL;
+	GSecretItem *item;
+	GHashTable *attributes;
+	GSecretValue *value;
+
+	collection = gsecret_collection_new_sync (test->service, collection_path, NULL, &error);
+	g_assert_no_error (error);
+
+	attributes = g_hash_table_new (g_str_hash, g_str_equal);
+	g_hash_table_insert (attributes, "even", "true");
+	g_hash_table_insert (attributes, "string", "ten");
+	g_hash_table_insert (attributes, "number", "10");
+
+	value = gsecret_value_new ("Hoohah", -1, "text/plain");
+
+	item = gsecret_item_create_sync (collection, "org.mock.Schema", "Tunnel",
+	                                 attributes, value, FALSE, NULL, &error);
+	g_assert_no_error (error);
+
+	g_hash_table_unref (attributes);
+	g_object_unref (collection);
+	gsecret_value_unref (value);
+
+	g_assert (g_str_has_prefix (g_dbus_proxy_get_object_path (G_DBUS_PROXY (item)), collection_path));
+	g_assert_cmpstr (gsecret_item_get_label (item), ==, "Tunnel");
+	g_assert (gsecret_item_get_locked (item) == FALSE);
+	g_assert_cmpstr (gsecret_item_get_schema (item), ==, "org.freedesktop.Secret.Generic");
+
+	g_object_unref (item);
+	egg_assert_not_object (item);
+}
+
+static void
+test_create_async (Test *test,
+                   gconstpointer unused)
+{
+	const gchar *collection_path = "/org/freedesktop/secrets/collection/english";
+	GSecretCollection *collection;
+	GAsyncResult *result = NULL;
+	GError *error = NULL;
+	GSecretItem *item;
+	GHashTable *attributes;
+	GSecretValue *value;
+
+	collection = gsecret_collection_new_sync (test->service, collection_path, NULL, &error);
+	g_assert_no_error (error);
+
+	attributes = g_hash_table_new (g_str_hash, g_str_equal);
+	g_hash_table_insert (attributes, "even", "true");
+	g_hash_table_insert (attributes, "string", "ten");
+	g_hash_table_insert (attributes, "number", "10");
+
+	value = gsecret_value_new ("Hoohah", -1, "text/plain");
+
+	gsecret_item_create (collection, "org.mock.Schema", "Tunnel",
+	                     attributes, value, FALSE, NULL, on_async_result, &result);
+	g_assert_no_error (error);
+
+	g_hash_table_unref (attributes);
+	g_object_unref (collection);
+	gsecret_value_unref (value);
+
+	egg_test_wait ();
+
+	item = gsecret_item_create_finish (result, &error);
+	g_assert_no_error (error);
+	g_object_unref (result);
+
+	g_assert (g_str_has_prefix (g_dbus_proxy_get_object_path (G_DBUS_PROXY (item)), collection_path));
+	g_assert_cmpstr (gsecret_item_get_label (item), ==, "Tunnel");
+	g_assert (gsecret_item_get_locked (item) == FALSE);
+	g_assert_cmpstr (gsecret_item_get_schema (item), ==, "org.freedesktop.Secret.Generic");
+
+	g_object_unref (item);
+	egg_assert_not_object (item);
+}
+
+static void
 test_properties (Test *test,
                  gconstpointer unused)
 {
@@ -164,6 +248,7 @@ test_properties (Test *test,
 	guint64 created;
 	guint64 modified;
 	gboolean locked;
+	gchar *schema;
 	gchar *label;
 
 	item = gsecret_item_new_sync (test->service, item_path, NULL, &error);
@@ -172,6 +257,10 @@ test_properties (Test *test,
 	g_assert (gsecret_item_get_locked (item) == FALSE);
 	g_assert_cmpuint (gsecret_item_get_created (item), <=, time (NULL));
 	g_assert_cmpuint (gsecret_item_get_modified (item), <=, time (NULL));
+
+	schema = gsecret_item_get_schema (item);
+	g_assert_cmpstr (schema, ==, "org.mock.schema.Store");
+	g_free (schema);
 
 	label = gsecret_item_get_label (item);
 	g_assert_cmpstr (label, ==, "Item One");
@@ -189,6 +278,7 @@ test_properties (Test *test,
 	              "created", &created,
 	              "modified", &modified,
 	              "label", &label,
+	              "schema", &schema,
 	              "attributes", &attributes,
 	              "service", &service,
 	              NULL);
@@ -199,6 +289,9 @@ test_properties (Test *test,
 
 	g_assert_cmpstr (label, ==, "Item One");
 	g_free (label);
+
+	g_assert_cmpstr (schema, ==, "org.mock.schema.Store");
+	g_free (schema);
 
 	g_assert_cmpstr (g_hash_table_lookup (attributes, "string"), ==, "one");
 	g_assert_cmpstr (g_hash_table_lookup (attributes, "number"), ==, "1");
@@ -485,6 +578,41 @@ test_get_secret_async (Test *test,
 }
 
 static void
+test_set_secret_sync (Test *test,
+                      gconstpointer unused)
+{
+	const gchar *item_path = "/org/freedesktop/secrets/collection/english/item_one";
+	GError *error = NULL;
+	GSecretItem *item;
+	gconstpointer data;
+	GSecretValue *value;
+	gsize length;
+	gboolean ret;
+
+	value = gsecret_value_new ("Sinking", -1, "strange/content-type");
+
+	item = gsecret_item_new_sync (test->service, item_path, NULL, &error);
+	g_assert_no_error (error);
+
+	ret = gsecret_item_set_secret_sync (item, value, NULL, &error);
+	g_assert_no_error (error);
+	g_assert (ret == TRUE);
+
+	gsecret_value_unref (value);
+
+	value = gsecret_item_get_secret_sync (item, NULL, &error);
+	g_assert_no_error (error);
+	g_assert (value != NULL);
+
+	data = gsecret_value_get (value, &length);
+	egg_assert_cmpmem (data, length, ==, "Sinking", 7);
+	g_assert_cmpstr (gsecret_value_get_content_type (value), ==, "strange/content-type");
+
+	gsecret_value_unref (value);
+	g_object_unref (item);
+}
+
+static void
 test_delete_sync (Test *test,
                   gconstpointer unused)
 {
@@ -544,9 +672,11 @@ main (int argc, char **argv)
 	g_type_init ();
 
 	g_test_add ("/item/new-sync", Test, "mock-service-normal.py", setup, test_new_sync, teardown);
-	g_test_add ("/item/new-sync-noexist", Test, "mock-service-normal.py", setup, test_new_sync_noexist, teardown);
 	g_test_add ("/item/new-async", Test, "mock-service-normal.py", setup, test_new_async, teardown);
+	g_test_add ("/item/new-sync-noexist", Test, "mock-service-normal.py", setup, test_new_sync_noexist, teardown);
 	g_test_add ("/item/new-async-noexist", Test, "mock-service-normal.py", setup, test_new_async_noexist, teardown);
+	g_test_add ("/item/create-sync", Test, "mock-service-normal.py", setup, test_create_sync, teardown);
+	g_test_add ("/item/create-async", Test, "mock-service-normal.py", setup, test_create_async, teardown);
 	g_test_add ("/item/properties", Test, "mock-service-normal.py", setup, test_properties, teardown);
 	g_test_add ("/item/set-label-sync", Test, "mock-service-normal.py", setup, test_set_label_sync, teardown);
 	g_test_add ("/item/set-label-async", Test, "mock-service-normal.py", setup, test_set_label_async, teardown);
@@ -556,6 +686,7 @@ main (int argc, char **argv)
 	g_test_add ("/item/set-attributes-prop", Test, "mock-service-normal.py", setup, test_set_attributes_prop, teardown);
 	g_test_add ("/item/get-secret-sync", Test, "mock-service-normal.py", setup, test_get_secret_sync, teardown);
 	g_test_add ("/item/get-secret-async", Test, "mock-service-normal.py", setup, test_get_secret_async, teardown);
+	g_test_add ("/item/set-secret-sync", Test, "mock-service-normal.py", setup, test_set_secret_sync, teardown);
 	g_test_add ("/item/delete-sync", Test, "mock-service-normal.py", setup, test_delete_sync, teardown);
 	g_test_add ("/item/delete-async", Test, "mock-service-normal.py", setup, test_delete_async, teardown);
 

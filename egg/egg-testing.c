@@ -38,23 +38,29 @@
 
 static const char HEXC[] = "0123456789ABCDEF";
 
-static gchar*
-hex_dump (const guchar *data, gsize n_data)
+gchar *
+egg_test_escape_data (const guchar *data,
+                      gsize n_data)
 {
 	GString *result;
+	gchar c;
 	gsize i;
 	guchar j;
 
-	g_assert (data);
+	g_assert (data != NULL);
 
 	result = g_string_sized_new (n_data * 2 + 1);
 	for (i = 0; i < n_data; ++i) {
-		g_string_append (result, "\\x");
-
-		j = data[i] >> 4 & 0xf;
-		g_string_append_c (result, HEXC[j]);
-		j = data[i] & 0xf;
-		g_string_append_c (result, HEXC[j]);
+		c = data[i];
+		if (g_ascii_isprint (c) && !strchr ("\n\r\v", c)) {
+			g_string_append_c (result, c);
+		} else {
+			g_string_append (result, "\\x");
+			j = c >> 4 & 0xf;
+			g_string_append_c (result, HEXC[j]);
+			j = c & 0xf;
+			g_string_append_c (result, HEXC[j]);
+		}
 	}
 
 	return g_string_free (result, FALSE);
@@ -109,8 +115,8 @@ egg_assertion_message_cmpmem (const char     *domain,
                               gsize           n_arg2)
 {
   char *a1, *a2, *s;
-  a1 = arg1 ? hex_dump (arg1, n_arg1) : g_strdup ("NULL");
-  a2 = arg2 ? hex_dump (arg2, n_arg2) : g_strdup ("NULL");
+  a1 = arg1 ? egg_test_escape_data (arg1, n_arg1) : g_strdup ("NULL");
+  a2 = arg2 ? egg_test_escape_data (arg2, n_arg2) : g_strdup ("NULL");
   s = g_strdup_printf ("assertion failed (%s): (%s %s %s)", expr, a1, cmp, a2);
   g_free (a1);
   g_free (a2);
