@@ -109,13 +109,12 @@ class AesAlgorithm():
 
 class SecretPrompt(dbus.service.Object):
 	def __init__(self, service, sender, prompt_name=None, delay=0,
-	             dismiss=False, result=dbus.String("", variant_level=1),
-	             action=None):
+	             dismiss=False, action=None):
 		self.sender = sender
 		self.service = service
 		self.delay = 0
 		self.dismiss = False
-		self.result = result
+		self.result = dbus.String("", variant_level=1)
 		self.action = action
 		self.completed = False
 		if prompt_name:
@@ -137,7 +136,7 @@ class SecretPrompt(dbus.service.Object):
 	@dbus.service.method('org.freedesktop.Secret.Prompt')
 	def Prompt(self, window_id):
 		if self.action:
-			self.action()
+			self.result = self.action()
 		gobject.timeout_add(self.delay * 1000, self._complete)
 
 	@dbus.service.method('org.freedesktop.Secret.Prompt')
@@ -222,9 +221,13 @@ class SecretItem(dbus.service.Object):
 
 	@dbus.service.method('org.freedesktop.Secret.Item', sender_keyword='sender')
 	def Delete(self, sender=None):
+		item = self
+		def prompt_callback():
+			item.perform_delete()
+			return dbus.String("", variant_level=1)
 		if self.confirm:
 			prompt = SecretPrompt(self.collection.service, sender,
-			                      dismiss=False, action=self.perform_delete)
+			                      dismiss=False, action=prompt_callback)
 			return dbus.ObjectPath(prompt.path)
 		else:
 			self.perform_delete()
@@ -330,9 +333,13 @@ class SecretCollection(dbus.service.Object):
 
 	@dbus.service.method('org.freedesktop.Secret.Collection', sender_keyword='sender')
 	def Delete(self, sender=None):
+		collection = self
+		def prompt_callback():
+			collection.perform_delete()
+			return dbus.String("", variant_level=1)
 		if self.confirm:
 			prompt = SecretPrompt(self.collection.service, sender,
-			                      dismiss=False, action=self.perform_delete)
+			                      dismiss=False, action=prompt_callback)
 			return dbus.ObjectPath(prompt.path)
 		else:
 			self.perform_delete()
@@ -459,10 +466,10 @@ class SecretService(dbus.service.Object):
 		def prompt_callback():
 			for object in prompts:
 				object.perform_xlock(lock)
+			return dbus.Array([o.path for o in prompts], signature='o')
 		locked = dbus.Array(locked, signature='o')
 		if prompts:
-			prompt = SecretPrompt(self, sender, dismiss=False, action=prompt_callback,
-			                      result=dbus.Array([o.path for o in prompts], signature='o'))
+			prompt = SecretPrompt(self, sender, dismiss=False, action=prompt_callback)
 			return (locked, dbus.ObjectPath(prompt.path))
 		else:
 			return (locked, dbus.ObjectPath("/"))
@@ -479,6 +486,16 @@ class SecretService(dbus.service.Object):
 			raise NotSupported("algorithm %s is not supported" % algorithm)
 
 		return self.algorithms[algorithm].negotiate(self, sender, param)
+
+	@dbus.service.method('org.freedesktop.Secret.Service', sender_keyword='sender')
+	def CreateCollection(self, properties, alias, sender=None):
+		label = properties.get("org.freedesktop.Secret.Item.Label", None)
+		service = self
+		def prompt_callback():
+			collection = SecretCollection(service, next_identifier('c'), label, locked=False, confirm=True)
+			return dbus.ObjectPath(collection.path, variant_level=1)
+		prompt = SecretPrompt(self, sender, dismiss=False, action=prompt_callback)
+		return (dbus.ObjectPath("/"), dbus.ObjectPath(prompt.path))
 
 	@dbus.service.method('org.freedesktop.Secret.Service')
 	def SearchItems(self, attributes):

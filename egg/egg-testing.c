@@ -29,7 +29,11 @@
 
 #include <valgrind/valgrind.h>
 
+#include <glib.h>
+#include <glib/gstdio.h>
+
 #include <errno.h>
+#include <fcntl.h>
 #include <unistd.h>
 
 static const char HEXC[] = "0123456789ABCDEF";
@@ -56,6 +60,19 @@ hex_dump (const guchar *data, gsize n_data)
 	return g_string_free (result, FALSE);
 }
 
+static gboolean
+is_readable_ptr (gpointer was_object)
+{
+	static gint test_memory_fd = -1;
+
+	/* First make sure this memory is still accessible */
+	if (test_memory_fd < 0)
+		test_memory_fd = g_open ("/dev/null", O_WRONLY, 0);
+	if (write (test_memory_fd, was_object, 1) > 0)
+		return TRUE;
+	return (errno != EFAULT);
+}
+
 void
 egg_assertion_not_object (const char *domain,
                           const char *file,
@@ -68,6 +85,10 @@ egg_assertion_not_object (const char *domain,
 
 	if (RUNNING_ON_VALGRIND)
 		return;
+
+	if (!is_readable_ptr (was_object))
+		return;
+
 	if (G_IS_OBJECT (was_object)) {
 		s = g_strdup_printf ("assertion failed: %s is still referenced", expr);
 		g_assertion_message (domain, file, line, func, s);

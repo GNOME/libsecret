@@ -1973,7 +1973,6 @@ collection_closure_free (gpointer data)
 	CollectionClosure *closure = data;
 	g_clear_object (&closure->cancellable);
 	g_clear_object (&closure->prompt);
-
 	g_slice_free (CollectionClosure, closure);
 }
 
@@ -2063,12 +2062,12 @@ gsecret_service_create_collection_path (GSecretService *self,
 
 	res = g_simple_async_result_new (G_OBJECT (self), callback, user_data,
 	                                 gsecret_service_create_collection_path);
-	closure = g_new0 (CollectionClosure, 1);
+	closure = g_slice_new0 (CollectionClosure);
 	closure->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
 	g_simple_async_result_set_op_res_gpointer (res, closure, collection_closure_free);
 
 	props = _gsecret_util_variant_for_properties (properties);
-	params = g_variant_new ("(@a{sv}a)", props, alias);
+	params = g_variant_new ("(@a{sv}s)", props, alias);
 	proxy = G_DBUS_PROXY (self);
 
 	g_dbus_connection_call (g_dbus_proxy_get_connection (proxy),
@@ -2095,7 +2094,7 @@ gsecret_service_create_collection_path_finish (GSecretService *self,
 	gchar *path;
 
 	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (self),
-	                      gsecret_collection_create), NULL);
+	                      gsecret_service_create_collection_path), NULL);
 	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 
 	res = G_SIMPLE_ASYNC_RESULT (result);
@@ -2349,7 +2348,7 @@ gsecret_service_create_item_path_sync (GSecretService *self,
 
 	g_main_loop_run (sync->loop);
 
-	path = gsecret_service_create_collection_path_finish (self, sync->result, error);
+	path = gsecret_service_create_item_path_finish (self, sync->result, error);
 
 	g_main_context_pop_thread_default (sync->context);
 	_gsecret_sync_free (sync);

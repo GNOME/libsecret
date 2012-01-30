@@ -820,6 +820,156 @@ test_unlock_sync (Test *test,
 }
 
 static void
+test_collection_sync (Test *test,
+                      gconstpointer used)
+{
+	GHashTable *properties;
+	GError *error = NULL;
+	gchar *path;
+
+	properties = g_hash_table_new_full (g_str_hash, g_str_equal, NULL,
+	                                    (GDestroyNotify)g_variant_unref);
+	g_hash_table_insert (properties, GSECRET_COLLECTION_INTERFACE ".Label",
+	                     g_variant_ref_sink (g_variant_new_string ("Wheeee")));
+
+	path = gsecret_service_create_collection_path_sync (test->service, properties,
+	                                                   NULL, NULL, &error);
+
+	g_hash_table_unref (properties);
+
+	g_assert_no_error (error);
+	g_assert (path != NULL);
+	g_assert (g_str_has_prefix (path, "/org/freedesktop/secrets/collection/"));
+
+	g_free (path);
+}
+
+static void
+test_collection_async (Test *test,
+                       gconstpointer used)
+{
+	GAsyncResult *result = NULL;
+	GHashTable *properties;
+	GError *error = NULL;
+	gchar *path;
+
+	properties = g_hash_table_new_full (g_str_hash, g_str_equal, NULL,
+	                                    (GDestroyNotify)g_variant_unref);
+	g_hash_table_insert (properties, GSECRET_COLLECTION_INTERFACE ".Label",
+	                     g_variant_ref_sink (g_variant_new_string ("Wheeee")));
+
+	gsecret_service_create_collection_path (test->service, properties,
+	                                        NULL, NULL, on_complete_get_result, &result);
+
+	g_hash_table_unref (properties);
+	g_assert (result == NULL);
+
+	egg_test_wait ();
+
+	path = gsecret_service_create_collection_path_finish (test->service, result, &error);
+	g_object_unref (result);
+
+	g_assert_no_error (error);
+	g_assert (path != NULL);
+	g_assert (g_str_has_prefix (path, "/org/freedesktop/secrets/collection/"));
+
+	g_free (path);
+}
+
+static void
+test_item_sync (Test *test,
+                gconstpointer used)
+{
+	const gchar *collection_path = "/org/freedesktop/secrets/collection/english";
+	GHashTable *properties;
+	GHashTable *attributes;
+	GSecretValue *value;
+	GError *error = NULL;
+	gchar *path;
+
+	attributes = g_hash_table_new (g_str_hash, g_str_equal);
+	g_hash_table_insert (attributes, "even", "true");
+	g_hash_table_insert (attributes, "string", "ten");
+	g_hash_table_insert (attributes, "number", "10");
+
+	properties = g_hash_table_new_full (g_str_hash, g_str_equal, NULL,
+	                                    (GDestroyNotify)g_variant_unref);
+	g_hash_table_insert (properties, GSECRET_COLLECTION_INTERFACE ".Label",
+	                     g_variant_ref_sink (g_variant_new_string ("Wheeee")));
+	g_hash_table_insert (properties, GSECRET_COLLECTION_INTERFACE ".Attributes",
+	                     g_variant_ref_sink (_gsecret_util_variant_for_attributes (attributes)));
+	g_hash_table_insert (properties, GSECRET_COLLECTION_INTERFACE ".Schema",
+	                     g_variant_ref_sink (g_variant_new_string ("org.gnome.Test")));
+
+	g_hash_table_unref (attributes);
+
+	value = gsecret_value_new ("andmoreandmore", -1, "text/plain");
+
+	path = gsecret_service_create_item_path_sync (test->service, collection_path,
+	                                              properties, value, FALSE,
+	                                              NULL, &error);
+
+	gsecret_value_unref (value);
+	g_hash_table_unref (properties);
+
+	g_assert_no_error (error);
+	g_assert (path != NULL);
+	g_assert (g_str_has_prefix (path, collection_path));
+
+	g_free (path);
+}
+
+static void
+test_item_async (Test *test,
+                       gconstpointer used)
+{
+	const gchar *collection_path = "/org/freedesktop/secrets/collection/english";
+	GHashTable *properties;
+	GHashTable *attributes;
+	GSecretValue *value;
+	GError *error = NULL;
+	GAsyncResult *result = NULL;
+	gchar *path;
+
+	attributes = g_hash_table_new (g_str_hash, g_str_equal);
+	g_hash_table_insert (attributes, "even", "true");
+	g_hash_table_insert (attributes, "string", "ten");
+	g_hash_table_insert (attributes, "number", "10");
+
+	properties = g_hash_table_new_full (g_str_hash, g_str_equal, NULL,
+	                                    (GDestroyNotify)g_variant_unref);
+	g_hash_table_insert (properties, GSECRET_COLLECTION_INTERFACE ".Label",
+	                     g_variant_ref_sink (g_variant_new_string ("Wheeee")));
+	g_hash_table_insert (properties, GSECRET_COLLECTION_INTERFACE ".Attributes",
+	                     g_variant_ref_sink (_gsecret_util_variant_for_attributes (attributes)));
+	g_hash_table_insert (properties, GSECRET_COLLECTION_INTERFACE ".Schema",
+	                     g_variant_ref_sink (g_variant_new_string ("org.gnome.Test")));
+
+	g_hash_table_unref (attributes);
+
+	value = gsecret_value_new ("andmoreandmore", -1, "text/plain");
+
+	gsecret_service_create_item_path (test->service, collection_path,
+	                                  properties, value, FALSE,
+	                                  NULL, on_complete_get_result, &result);
+
+	g_assert (result == NULL);
+	gsecret_value_unref (value);
+	g_hash_table_unref (properties);
+
+	egg_test_wait ();
+
+	path = gsecret_service_create_item_path_finish (test->service, result, &error);
+	g_object_unref (result);
+
+	g_assert_no_error (error);
+	g_assert (path != NULL);
+	g_assert (g_str_has_prefix (path, collection_path));
+
+	g_free (path);
+}
+
+static void
 test_remove_sync (Test *test,
                   gconstpointer used)
 {
@@ -1047,7 +1197,6 @@ test_store_replace (Test *test,
 	GError *error = NULL;
 	gchar **paths;
 	gboolean ret;
-	gsize length;
 
 	ret = gsecret_service_store_sync (test->service, &STORE_SCHEMA, collection_path,
 	                                  "New Item Label", value, NULL, &error,
@@ -1080,15 +1229,6 @@ test_store_replace (Test *test,
 	g_assert (paths[0] != NULL);
 	g_assert (paths[1] == NULL);
 
-	value = gsecret_service_get_secret_for_path_sync (test->service, paths[0],
-	                                                  NULL, &error);
-	g_assert_no_error (error);
-
-	g_assert (value != NULL);
-	g_assert_cmpstr (gsecret_value_get (value, &length), ==, "apassword");
-	g_assert_cmpuint (length, ==, 9);
-
-	gsecret_value_unref (value);
 	g_strfreev (paths);
 }
 
@@ -1106,11 +1246,11 @@ test_store_async (Test *test,
 	gsize length;
 
 	gsecret_service_store (test->service, &STORE_SCHEMA, collection_path,
-	                             "New Item Label", value, NULL, on_complete_get_result, &result,
-	                             "even", FALSE,
-	                             "string", "seventeen",
-	                             "number", 17,
-	                             NULL);
+	                       "New Item Label", value, NULL, on_complete_get_result, &result,
+	                       "even", FALSE,
+	                       "string", "seventeen",
+	                       "number", 17,
+	                       NULL);
 	g_assert (result == NULL);
 	gsecret_value_unref (value);
 
@@ -1178,6 +1318,12 @@ main (int argc, char **argv)
 	g_test_add ("/service/unlock-paths-sync", Test, "mock-service-lock.py", setup, test_unlock_paths_sync, teardown);
 	g_test_add ("/service/unlock-prompt-sync", Test, "mock-service-lock.py", setup, test_unlock_prompt_sync, teardown);
 	g_test_add ("/service/unlock-sync", Test, "mock-service-lock.py", setup, test_unlock_sync, teardown);
+
+	g_test_add ("/service/create-collection-sync", Test, "mock-service-normal.py", setup, test_collection_sync, teardown);
+	g_test_add ("/service/create-collection-async", Test, "mock-service-normal.py", setup, test_collection_async, teardown);
+
+	g_test_add ("/service/create-item-sync", Test, "mock-service-normal.py", setup, test_item_sync, teardown);
+	g_test_add ("/service/create-item-async", Test, "mock-service-normal.py", setup, test_item_async, teardown);
 
 	g_test_add ("/service/lookup-sync", Test, "mock-service-normal.py", setup, test_lookup_sync, teardown);
 	g_test_add ("/service/lookup-async", Test, "mock-service-normal.py", setup, test_lookup_async, teardown);
