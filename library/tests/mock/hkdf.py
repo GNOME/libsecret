@@ -73,7 +73,7 @@ class HKDF(object):
             temp = h.digest()
             i += 1
             T += temp
-    
+
         self.okm = T[0:self.keylen]
         return self.okm
 

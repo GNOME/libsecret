@@ -789,6 +789,23 @@ gsecret_collection_create_finish (GAsyncResult *result,
 	return g_object_ref (closure->collection);
 }
 
+/**
+ * gsecret_collection_create_sync:
+ * @service: a secret service object
+ * @label: label for the new collection
+ * @alias: (allow-none): alias to assign to the collection
+ * @cancellable: optional cancellation object
+ * @error: location to place an error on failure
+ *
+ * Create a new collection.
+ * Delete this collection.
+ *
+ * This method may block indefinitely. The secret service may prompt the
+ * user. gsecret_service_prompt() will be used to handle any prompts that
+ * show up.
+ *
+ * Returns: whether the item was successfully deleted or not
+ */
 GSecretCollection *
 gsecret_collection_create_sync (GSecretService *service,
                                 const gchar *label,
@@ -821,6 +838,21 @@ gsecret_collection_create_sync (GSecretService *service,
 	return collection;
 }
 
+/**
+ * gsecret_collection_delete:
+ * @self: a collection
+ * @cancellable: optional cancellation object
+ * @callback: called when the operation completes
+ * @user_data: data to pass to the callback
+ *
+ * Delete this collection.
+ *
+ * This method returns immediately and completes asynchronously. The secret
+ * service may prompt the user. gsecret_service_prompt() will be used to handle
+ * any prompts that show up.
+ *
+ * Returns: whether the item was successfully deleted or not
+ */
 void
 gsecret_collection_delete (GSecretCollection *self,
                            GCancellable *cancellable,
@@ -837,6 +869,16 @@ gsecret_collection_delete (GSecretCollection *self,
 	                              cancellable, callback, user_data);
 }
 
+/**
+ * gsecret_collection_delete_finish:
+ * @self: a collection
+ * @result: asynchronous result passed to the callback
+ * @error: location to place an error on failure
+ *
+ * Complete operation to delete this collection.
+ *
+ * Returns: whether the item was successfully deleted or not
+ */
 gboolean
 gsecret_collection_delete_finish (GSecretCollection *self,
                                   GAsyncResult *result,
@@ -848,6 +890,20 @@ gsecret_collection_delete_finish (GSecretCollection *self,
 	return gsecret_service_delete_path_finish (self->pv->service, result, error);
 }
 
+/**
+ * gsecret_collection_delete_sync:
+ * @self: a collection
+ * @cancellable: optional cancellation object
+ * @error: location to place an error on failure
+ *
+ * Delete this collection.
+ *
+ * This method may block indefinitely. The secret service may prompt the
+ * user. gsecret_service_prompt() will be used to handle any prompts that
+ * show up.
+ *
+ * Returns: whether the item was successfully deleted or not
+ */
 gboolean
 gsecret_collection_delete_sync (GSecretCollection *self,
                                 GCancellable *cancellable,
@@ -875,6 +931,16 @@ gsecret_collection_delete_sync (GSecretCollection *self,
 	return ret;
 }
 
+/**
+ * gsecret_collection_get_items:
+ * @self: a collection
+ *
+ * Get the list of items in this collection.
+ *
+ * Returns: (transfer full) (element-type GSecret.Item): a list of items,
+ * when done, the list should be freed with g_list_free, and each item should
+ * be released with g_object_unref()
+ */
 GList *
 gsecret_collection_get_items (GSecretCollection *self)
 {
@@ -906,6 +972,14 @@ _gsecret_collection_find_item_instance (GSecretCollection *self,
 	return item;
 }
 
+/**
+ * gsecret_collection_get_label:
+ * @self: a collection
+ *
+ * Get the label of this collection.
+ *
+ * Returns: (transfer full): the label, which should be freed with g_free()
+ */
 gchar *
 gsecret_collection_get_label (GSecretCollection *self)
 {
@@ -923,6 +997,18 @@ gsecret_collection_get_label (GSecretCollection *self)
 	return label;
 }
 
+/**
+ * gsecret_collection_set_label:
+ * @self: a collection
+ * @label: a new label
+ * @cancellable: optional cancellation object
+ * @callback: called when the operation completes
+ * @user_data: data to pass to the callback
+ *
+ * Set the label of this collection.
+ *
+ * This function returns immediately and completes asynchronously.
+ */
 void
 gsecret_collection_set_label (GSecretCollection *self,
                               const gchar *label,
@@ -939,6 +1025,16 @@ gsecret_collection_set_label (GSecretCollection *self,
 	                            cancellable, callback, user_data);
 }
 
+/**
+ * gsecret_collection_set_label_finish:
+ * @self: a collection
+ * @result: asynchronous result passed to callback
+ * @error: location to place error on failure
+ *
+ * Complete asynchronous operation to set the label of this collection.
+ *
+ * Returns: whether the change was successful or not
+ */
 gboolean
 gsecret_collection_set_label_finish (GSecretCollection *self,
                                      GAsyncResult *result,
@@ -951,6 +1047,20 @@ gsecret_collection_set_label_finish (GSecretCollection *self,
 	                                          result, error);
 }
 
+/**
+ * gsecret_collection_set_label_sync:
+ * @self: a collection
+ * @label: a new label
+ * @cancellable: optional cancellation object
+ * @error: location to place error on failure
+ *
+ * Set the label of this collection.
+ *
+ * This function may block indefinetely. Use the asynchronous version
+ * in user interface threads.
+ *
+ * Returns: whether the change was successful or not
+ */
 gboolean
 gsecret_collection_set_label_sync (GSecretCollection *self,
                                    const gchar *label,
@@ -965,6 +1075,14 @@ gsecret_collection_set_label_sync (GSecretCollection *self,
 	                                        cancellable, error);
 }
 
+/**
+ * gsecret_collection_get_locked:
+ * @self: a collection
+ *
+ * Get whether the collection is locked or not.
+ *
+ * Returns: whether the collection is locked or not
+ */
 gboolean
 gsecret_collection_get_locked (GSecretCollection *self)
 {
@@ -982,6 +1100,15 @@ gsecret_collection_get_locked (GSecretCollection *self)
 	return locked;
 }
 
+/**
+ * gsecret_collection_get_created:
+ * @self: a collection
+ *
+ * Get the created date and time of the collection. The return value is
+ * the number of seconds since the unix epoch, January 1st 1970.
+ *
+ * Returns: the created date and time
+ */
 guint64
 gsecret_collection_get_created (GSecretCollection *self)
 {
@@ -999,6 +1126,15 @@ gsecret_collection_get_created (GSecretCollection *self)
 	return created;
 }
 
+/**
+ * gsecret_collection_get_modified:
+ * @self: a collection
+ *
+ * Get the modified date and time of the collection. The return value is
+ * the number of seconds since the unix epoch, January 1st 1970.
+ *
+ * Returns: the modified date and time
+ */
 guint64
 gsecret_collection_get_modified (GSecretCollection *self)
 {

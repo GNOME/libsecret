@@ -44,15 +44,26 @@ class IsLocked(dbus.exceptions.DBusException):
 	def __init__(self, msg):
 		dbus.exceptions.DBusException.__init__(self, msg, name="org.freedesktop.Secret.Error.IsLocked")
 
-unique_identifier = 0
-def next_identifier(prefix='x'):
+class NoSuchObject(dbus.exceptions.DBusException):
+	def __init__(self, msg):
+		dbus.exceptions.DBusException.__init__(self, msg, name="org.freedesktop.Secret.Error.NoSuchObject")
+
+
+unique_identifier = 111
+def next_identifier(prefix=''):
 	global unique_identifier
 	unique_identifier += 1
 	return "%s%d" % (prefix, unique_identifier)
 
+def encode_identifier(value):
+	return "".join([(c.isalpha() or c.isdigit()) and c or "_%02x" % ord(c) \
+	                       for c in value.encode('utf-8')])
+
 def hex_encode(string):
 	return "".join([hex(ord(c))[2:].zfill(2) for c in string])
 
+def alias_path(name):
+	return "/org/freedesktop/secrets/aliases/%s" % name
 
 class PlainAlgorithm():
 	def negotiate(self, service, sender, param):
@@ -178,22 +189,36 @@ class SecretSession(dbus.service.Object):
 
 
 class SecretItem(dbus.service.Object):
-	def __init__(self, collection, identifier, label="Item", attributes={ },
-	             secret="", confirm=False, content_type="text/plain",
-	             schema="org.freedesktop.Secret.Generic"):
+	SUPPORTS_MULTIPLE_OBJECT_PATHS = True
+
+	def __init__(self, collection, identifier=None, label="Item", attributes={ },
+	             secret="", confirm=False, content_type="text/plain", type=None):
+		if identifier is None:
+			identifier = next_identifier()
+		identifier = encode_identifier(identifier)
 		self.collection = collection
 		self.identifier = identifier
 		self.label = label or "Unnamed item"
 		self.secret = secret
-		self.schema = schema
+		self.type = type or "org.freedesktop.Secret.Generic"
 		self.attributes = attributes
 		self.content_type = content_type
 		self.path = "%s/%s" % (collection.path, identifier)
 		self.confirm = confirm
 		self.created = self.modified = time.time()
 		dbus.service.Object.__init__(self, collection.service.bus_name, self.path)
-		collection.items[identifier] = self
+		self.collection.add_item(self)
 		objects[self.path] = self
+
+	def add_alias(self, name):
+		path = "%s/%s" % (alias_path(name), self.identifier)
+		objects[path] = self
+		self.add_to_connection(self.connection, path)
+
+	def remove_alias(self, name):
+		path = "%s/%s" % (alias_path(name), self.identifier)
+		del objects[path]
+		self.remove_from_connection(self.connection, path)
 
 	def match_attributes(self, attributes):
 		for (key, value) in attributes.items():
@@ -208,7 +233,7 @@ class SecretItem(dbus.service.Object):
 		return self.collection.perform_xlock(lock)
 
 	def perform_delete(self):
-		del self.collection.items[self.identifier]
+		self.collection.remove_item(self)
 		del objects[self.path]
 		self.remove_from_connection()
 
@@ -216,7 +241,7 @@ class SecretItem(dbus.service.Object):
 	def GetSecret(self, session_path, sender=None):
 		session = objects.get(session_path, None)
 		if not session or session.sender != sender:
-			raise InvalidArgs("session invalid: %s" % session_path) 
+			raise InvalidArgs("session invalid: %s" % session_path)
 		if self.get_locked():
 			raise IsLocked("secret is locked: %s" % self.path)
 		return session.encode_secret(self.secret, self.content_type)
@@ -225,7 +250,7 @@ class SecretItem(dbus.service.Object):
 	def SetSecret(self, secret, sender=None):
 		session = objects.get(secret[0], None)
 		if not session or session.sender != sender:
-			raise InvalidArgs("session invalid: %s" % secret[0]) 
+			raise InvalidArgs("session invalid: %s" % secret[0])
 		if self.get_locked():
 			raise IsLocked("secret is locked: %s" % self.path)
 		(self.secret, self.content_type) = session.decode_secret(secret)
@@ -257,7 +282,7 @@ class SecretItem(dbus.service.Object):
 				'Label': self.label,
 				'Created': dbus.UInt64(self.created),
 				'Modified': dbus.UInt64(self.modified),
-				'Schema': self.schema
+				'Type': self.type
 			}
 		else:
 			raise InvalidArgs('Unknown %s interface' % interface_name)
@@ -270,8 +295,10 @@ class SecretItem(dbus.service.Object):
 			self.label = str(new_value)
 		elif property_name == "Attributes":
 			self.attributes = dict(new_value)
+		elif property_name == "Type":
+			self.type = str(new_value)
 		else:
-			raise InvalidArgs('Unknown %s interface' % property_name)
+			raise InvalidArgs('Not writable %s property' % property_name)
 		self.PropertiesChanged(interface_name, { property_name: new_value }, [])
 
 	@dbus.service.signal(dbus.PROPERTIES_IFACE, signature='sa{sv}as')
@@ -280,18 +307,56 @@ class SecretItem(dbus.service.Object):
 
 
 class SecretCollection(dbus.service.Object):
-	def __init__(self, service, identifier, label="Collection", locked=False, confirm=False):
+	SUPPORTS_MULTIPLE_OBJECT_PATHS = True
+
+	def __init__(self, service, identifier=None, label="Collection", locked=False,
+	             confirm=False, master=None):
+		if identifier is None:
+			identifier = label
+		identifier = encode_identifier(identifier)
 		self.service = service
 		self.identifier = identifier
 		self.label = label or "Unnamed collection"
 		self.locked = locked
 		self.items = { }
 		self.confirm = confirm
+		self.master = None
 		self.created = self.modified = time.time()
+		self.aliased = set()
 		self.path = "%s%s" % (COLLECTION_PREFIX, identifier)
 		dbus.service.Object.__init__(self, service.bus_name, self.path)
-		service.collections[identifier] = self
+		self.service.add_collection(self)
 		objects[self.path] = self
+
+	def add_item(self, item):
+		self.items[item.path] = item
+		for alias in self.aliased:
+			item.add_alias(alias)
+
+	def remove_item(self, item):
+		for alias in self.aliased:
+			item.remove_alias(alias)
+		del self.items[item.path]
+
+	def add_alias(self, name):
+		if name in self.aliased:
+			return
+		self.aliased.add(name)
+		for item in self.items.values():
+			item.add_alias(name)
+		path = alias_path(name)
+		objects[path] = self
+		self.add_to_connection(self.connection, path)
+
+	def remove_alias(self, name):
+		if name not in self.aliased:
+			return
+		path = alias_path(name)
+		self.aliased.remove(name)
+		del objects[path]
+		self.remove_from_connection(self.connection, path)
+		for item in self.items.values():
+			item.remove_alias(name)
 
 	def search_items(self, attributes):
 		results = []
@@ -312,8 +377,10 @@ class SecretCollection(dbus.service.Object):
 	def perform_delete(self):
 		for item in self.items.values():
 			item.perform_delete()
-		del self.service.collections[self.identifier]
 		del objects[self.path]
+		self.service.remove_collection(self)
+		for alias in list(self.aliased):
+			self.remove_alias(alias)
 		self.remove_from_connection()
 
 	@dbus.service.method('org.freedesktop.Secret.Collection', byte_arrays=True, sender_keyword='sender')
@@ -325,19 +392,20 @@ class SecretCollection(dbus.service.Object):
 
 		attributes = properties.get("org.freedesktop.Secret.Item.Attributes", None)
 		label = properties.get("org.freedesktop.Secret.Item.Label", None)
-		schema = properties.get("org.freedesktop.Secret.Item.Schema", None)
+		type = properties.get("org.freedesktop.Secret.Item.Type", None)
 		(secret, content_type) = session.decode_secret(value)
 		item = None
 
-		if replace and attributes:
+		if replace:
 			items = self.search_items(attributes)
 			if items:
 				item = items[0]
 		if item is None:
-			item = SecretItem(self, next_identifier('i'), label, attributes,
+			item = SecretItem(self, next_identifier(), label, attributes, type=type,
 			                  secret=secret, confirm=False, content_type=content_type)
 		else:
 			item.label = label
+			item.type = type
 			item.secret = secret
 			item.attributes = attributes
 			item.content_type = content_type
@@ -350,8 +418,8 @@ class SecretCollection(dbus.service.Object):
 			collection.perform_delete()
 			return dbus.String("", variant_level=1)
 		if self.confirm:
-			prompt = SecretPrompt(self.collection.service, sender,
-			                      dismiss=False, action=prompt_callback)
+			prompt = SecretPrompt(self.service, sender, dismiss=False,
+			                      action=prompt_callback)
 			return dbus.ObjectPath(prompt.path)
 		else:
 			self.perform_delete()
@@ -405,6 +473,8 @@ class SecretService(dbus.service.Object):
 		self.sessions = { }
 		self.prompts = { }
 		self.collections = { }
+		self.aliases = { }
+		self.aliased = { }
 
 		def on_name_owner_changed(owned, old_owner, new_owner):
 			if not new_owner:
@@ -417,19 +487,22 @@ class SecretService(dbus.service.Object):
 
 	def add_standard_objects(self):
 		collection = SecretCollection(self, "english", label="Collection One", locked=False)
-		SecretItem(collection, "item_one", label="Item One",
+		SecretItem(collection, "1", label="Item One",
 		           attributes={ "number": "1", "string": "one", "even": "false" },
-		           secret="111", schema="org.mock.schema.Store")
-		SecretItem(collection, "item_two", attributes={ "number": "2", "string": "two", "even": "true" }, secret="222")
-		SecretItem(collection, "item_three", attributes={ "number": "3", "string": "three", "even": "false" }, secret="3333")
+		           secret="111", type="org.mock.type.Store")
+		SecretItem(collection, "2", attributes={ "number": "2", "string": "two", "even": "true" }, secret="222")
+		SecretItem(collection, "3", attributes={ "number": "3", "string": "three", "even": "false" }, secret="3333")
+
+		self.set_alias('default', collection)
 
 		collection = SecretCollection(self, "spanish", locked=True)
-		SecretItem(collection, "item_one", attributes={ "number": "1", "string": "uno", "even": "false" }, secret="111")
-		SecretItem(collection, "item_two", attributes={ "number": "2", "string": "dos", "even": "true" }, secret="222")
-		SecretItem(collection, "item_three", attributes={ "number": "3", "string": "tres", "even": "false" }, secret="3333")
-	
+		SecretItem(collection, "10", attributes={ "number": "1", "string": "uno", "even": "false" }, secret="111")
+		SecretItem(collection, "20", attributes={ "number": "2", "string": "dos", "even": "true" }, secret="222")
+		SecretItem(collection, "30", attributes={ "number": "3", "string": "tres", "even": "false" }, secret="3333")
+
 		collection = SecretCollection(self, "empty", locked=False)
-	
+		collection = SecretCollection(self, "session", label="Session Keyring", locked=False)
+
 	def listen(self):
 		global ready_pipe
 		loop = gobject.MainLoop()
@@ -447,6 +520,25 @@ class SecretService(dbus.service.Object):
 	def remove_session(self, session):
 		self.sessions[session.sender].remove(session)
 
+	def add_collection(self, collection):
+		self.collections[collection.path] = collection
+
+	def remove_collection(self, collection):
+		for alias in list(collection.aliased):
+			self.remove_alias(alias)
+		del self.collections[collection.path]
+
+	def set_alias(self, name, collection):
+		self.remove_alias(name)
+		collection.add_alias(name)
+		self.aliases[name] = collection
+
+	def remove_alias(self, name):
+		if name in self.aliases:
+			collection = self.aliases[name]
+			collection.remove_alias(name)
+			del self.aliases[name]
+
 	def add_prompt(self, prompt):
 		if prompt.sender not in self.prompts:
 			self.prompts[prompt.sender] = []
@@ -456,10 +548,9 @@ class SecretService(dbus.service.Object):
 		self.prompts[prompt.sender].remove(prompt)
 
 	def find_item(self, object):
-		if object.startswith(COLLECTION_PREFIX):
-			parts = object[len(COLLECTION_PREFIX):].split("/", 1)
-			if len(parts) == 2 and parts[0] in self.collections:
-				return self.collections[parts[0]].get(parts[1], None)
+		parts = object.rsplit("/", 1)
+		if len(parts) == 2 and parts[0] in self.collections:
+			return self.collections[parts[0]].get(parts[1], None)
 		return None
 
 	@dbus.service.method('org.freedesktop.Secret.Service', sender_keyword='sender')
@@ -506,7 +597,7 @@ class SecretService(dbus.service.Object):
 		label = properties.get("org.freedesktop.Secret.Collection.Label", None)
 		service = self
 		def prompt_callback():
-			collection = SecretCollection(service, next_identifier('c'), label, locked=False, confirm=True)
+			collection = SecretCollection(service, None, label, locked=False, confirm=True)
 			return dbus.ObjectPath(collection.path, variant_level=1)
 		prompt = SecretPrompt(self, sender, dismiss=False, action=prompt_callback)
 		return (dbus.ObjectPath("/"), dbus.ObjectPath(prompt.path))
@@ -519,22 +610,34 @@ class SecretService(dbus.service.Object):
 		for collection in self.collections.values():
 			items = collection.search_items(attributes)
 			if collection.get_locked():
-				locked.extend(items)
+				locked.extend([item.path for item in items])
 			else:
-				unlocked.extend(items)
+				unlocked.extend([item.path for item in items])
 		return (dbus.Array(unlocked, "o"), dbus.Array(locked, "o"))
 
 	@dbus.service.method('org.freedesktop.Secret.Service', sender_keyword='sender')
 	def GetSecrets(self, item_paths, session_path, sender=None):
 		session = objects.get(session_path, None)
 		if not session or session.sender != sender:
-			raise InvalidArgs("session invalid: %s" % session_path) 
+			raise InvalidArgs("session invalid: %s" % session_path)
 		results = dbus.Dictionary(signature="o(oayays)")
 		for item_path in item_paths:
 			item = objects.get(item_path, None)
 			if item and not item.get_locked():
 				results[item_path] = item.GetSecret(session_path, sender)
 		return results
+
+	@dbus.service.method('org.freedesktop.Secret.Service')
+	def ReadAlias(self, name):
+		if name not in self.aliases:
+			return dbus.ObjectPath("/")
+		return dbus.ObjectPath(self.aliases[name].path)
+
+	@dbus.service.method('org.freedesktop.Secret.Service')
+	def SetAlias(self, name, collection):
+		if collection not in self.collections:
+			raise NoSuchObject("no such Collection")
+		self.set_alias(name, self.collections[collection])
 
 	@dbus.service.method(dbus.PROPERTIES_IFACE, in_signature='ss', out_signature='v')
 	def Get(self, interface_name, property_name):

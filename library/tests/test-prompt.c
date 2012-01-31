@@ -57,7 +57,6 @@ teardown (Test *test,
 	mock_service_stop ();
 }
 
-
 static void
 on_async_result (GObject *source,
                  GAsyncResult *result,
@@ -187,11 +186,11 @@ test_perform_cancel (Test *test,
 	g_assert (ret == TRUE);
 
 	g_object_unref (result);
-
-	/* Make sure everything completes */
-	egg_test_wait_idle ();
-
 	g_object_unref (prompt);
+
+	/* Due to GDBus threading races */
+	egg_test_wait_until (100);
+
 	egg_assert_not_object (prompt);
 }
 

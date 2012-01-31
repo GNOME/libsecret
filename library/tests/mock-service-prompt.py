@@ -33,7 +33,7 @@ service = mock.SecretService()
 service.add_standard_objects()
 
 mock.SecretPrompt(service, None, "simple")
-mock.SecretPrompt(service, None, "delay", delay=0.5)
+mock.SecretPrompt(service, None, "delay", delay=0.1)
 def prompt_callback():
 	return dbus.String("Special Result", variant_level=1)
 mock.SecretPrompt(service, None, "result", action=prompt_callback)

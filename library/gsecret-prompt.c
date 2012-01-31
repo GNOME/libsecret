@@ -312,6 +312,8 @@ on_prompt_dismissed (GObject *source,
 		g_variant_unref (retval);
 	if (closure->vanished)
 		g_clear_error (&error);
+	if (g_error_matches (error, G_DBUS_ERROR, G_DBUS_ERROR_UNKNOWN_METHOD))
+		g_clear_error (&error);
 
 	if (error != NULL) {
 		g_simple_async_result_take_error (res, error);

@@ -37,7 +37,7 @@ static const GSecretSchema DELETE_SCHEMA = {
 };
 
 static const GSecretSchema STORE_SCHEMA = {
-	"org.mock.schema.Store",
+	"org.mock.type.Store",
 	{
 		{ "number", GSECRET_ATTRIBUTE_INTEGER },
 		{ "string", GSECRET_ATTRIBUTE_STRING },
@@ -122,10 +122,10 @@ test_search_paths_sync (Test *test,
 	g_assert (ret == TRUE);
 
 	g_assert (locked);
-	g_assert_cmpstr (locked[0], ==, "/org/freedesktop/secrets/collection/spanish/item_one");
+	g_assert_cmpstr (locked[0], ==, "/org/freedesktop/secrets/collection/spanish/10");
 
 	g_assert (unlocked);
-	g_assert_cmpstr (unlocked[0], ==, "/org/freedesktop/secrets/collection/english/item_one");
+	g_assert_cmpstr (unlocked[0], ==, "/org/freedesktop/secrets/collection/english/1");
 
 	g_strfreev (unlocked);
 	g_strfreev (locked);
@@ -159,10 +159,10 @@ test_search_paths_async (Test *test,
 	g_assert (ret == TRUE);
 
 	g_assert (locked);
-	g_assert_cmpstr (locked[0], ==, "/org/freedesktop/secrets/collection/spanish/item_one");
+	g_assert_cmpstr (locked[0], ==, "/org/freedesktop/secrets/collection/spanish/10");
 
 	g_assert (unlocked);
-	g_assert_cmpstr (unlocked[0], ==, "/org/freedesktop/secrets/collection/english/item_one");
+	g_assert_cmpstr (unlocked[0], ==, "/org/freedesktop/secrets/collection/english/1");
 
 	g_strfreev (unlocked);
 	g_strfreev (locked);
@@ -189,7 +189,7 @@ test_search_paths_nulls (Test *test,
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
 	g_assert (paths != NULL);
-	g_assert_cmpstr (paths[0], ==, "/org/freedesktop/secrets/collection/english/item_one");
+	g_assert_cmpstr (paths[0], ==, "/org/freedesktop/secrets/collection/english/1");
 	g_strfreev (paths);
 
 	ret = gsecret_service_search_for_paths_sync (test->service, attributes, NULL,
@@ -197,7 +197,7 @@ test_search_paths_nulls (Test *test,
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
 	g_assert (paths != NULL);
-	g_assert_cmpstr (paths[0], ==, "/org/freedesktop/secrets/collection/spanish/item_one");
+	g_assert_cmpstr (paths[0], ==, "/org/freedesktop/secrets/collection/spanish/10");
 	g_strfreev (paths);
 
 	ret = gsecret_service_search_for_paths_sync (test->service, attributes, NULL,
@@ -214,7 +214,7 @@ test_search_paths_nulls (Test *test,
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
 	g_assert (paths != NULL);
-	g_assert_cmpstr (paths[0], ==, "/org/freedesktop/secrets/collection/english/item_one");
+	g_assert_cmpstr (paths[0], ==, "/org/freedesktop/secrets/collection/english/1");
 	g_strfreev (paths);
 	g_clear_object (&result);
 
@@ -227,7 +227,7 @@ test_search_paths_nulls (Test *test,
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
 	g_assert (paths != NULL);
-	g_assert_cmpstr (paths[0], ==, "/org/freedesktop/secrets/collection/spanish/item_one");
+	g_assert_cmpstr (paths[0], ==, "/org/freedesktop/secrets/collection/spanish/10");
 	g_strfreev (paths);
 	g_clear_object (&result);
 
@@ -263,10 +263,10 @@ test_search_sync (Test *test,
 	g_assert (ret == TRUE);
 
 	g_assert (locked != NULL);
-	g_assert_cmpstr (g_dbus_proxy_get_object_path (locked->data), ==, "/org/freedesktop/secrets/collection/spanish/item_one");
+	g_assert_cmpstr (g_dbus_proxy_get_object_path (locked->data), ==, "/org/freedesktop/secrets/collection/spanish/10");
 
 	g_assert (unlocked != NULL);
-	g_assert_cmpstr (g_dbus_proxy_get_object_path (unlocked->data), ==, "/org/freedesktop/secrets/collection/english/item_one");
+	g_assert_cmpstr (g_dbus_proxy_get_object_path (unlocked->data), ==, "/org/freedesktop/secrets/collection/english/1");
 
 	g_list_free_full (unlocked, g_object_unref);
 	g_list_free_full (locked, g_object_unref);
@@ -300,10 +300,10 @@ test_search_async (Test *test,
 	g_assert (ret == TRUE);
 
 	g_assert (locked != NULL);
-	g_assert_cmpstr (g_dbus_proxy_get_object_path (locked->data), ==, "/org/freedesktop/secrets/collection/spanish/item_one");
+	g_assert_cmpstr (g_dbus_proxy_get_object_path (locked->data), ==, "/org/freedesktop/secrets/collection/spanish/10");
 
 	g_assert (unlocked != NULL);
-	g_assert_cmpstr (g_dbus_proxy_get_object_path (unlocked->data), ==, "/org/freedesktop/secrets/collection/english/item_one");
+	g_assert_cmpstr (g_dbus_proxy_get_object_path (unlocked->data), ==, "/org/freedesktop/secrets/collection/english/1");
 
 	g_list_free_full (unlocked, g_object_unref);
 	g_list_free_full (locked, g_object_unref);
@@ -330,7 +330,7 @@ test_search_nulls (Test *test,
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
 	g_assert (items != NULL);
-	g_assert_cmpstr (g_dbus_proxy_get_object_path (items->data), ==, "/org/freedesktop/secrets/collection/english/item_one");
+	g_assert_cmpstr (g_dbus_proxy_get_object_path (items->data), ==, "/org/freedesktop/secrets/collection/english/1");
 	g_list_free_full (items, g_object_unref);
 
 	ret = gsecret_service_search_sync (test->service, attributes, NULL,
@@ -338,7 +338,7 @@ test_search_nulls (Test *test,
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
 	g_assert (items != NULL);
-	g_assert_cmpstr (g_dbus_proxy_get_object_path (items->data), ==, "/org/freedesktop/secrets/collection/spanish/item_one");
+	g_assert_cmpstr (g_dbus_proxy_get_object_path (items->data), ==, "/org/freedesktop/secrets/collection/spanish/10");
 	g_list_free_full (items, g_object_unref);
 
 	ret = gsecret_service_search_sync (test->service, attributes, NULL,
@@ -355,7 +355,7 @@ test_search_nulls (Test *test,
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
 	g_assert (items != NULL);
-	g_assert_cmpstr (g_dbus_proxy_get_object_path (items->data), ==, "/org/freedesktop/secrets/collection/english/item_one");
+	g_assert_cmpstr (g_dbus_proxy_get_object_path (items->data), ==, "/org/freedesktop/secrets/collection/english/1");
 	g_list_free_full (items, g_object_unref);
 	g_clear_object (&result);
 
@@ -368,7 +368,7 @@ test_search_nulls (Test *test,
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
 	g_assert (items != NULL);
-	g_assert_cmpstr (g_dbus_proxy_get_object_path (items->data), ==, "/org/freedesktop/secrets/collection/spanish/item_one");
+	g_assert_cmpstr (g_dbus_proxy_get_object_path (items->data), ==, "/org/freedesktop/secrets/collection/spanish/10");
 	g_list_free_full (items, g_object_unref);
 	g_clear_object (&result);
 
@@ -395,7 +395,7 @@ test_secret_for_path_sync (Test *test,
 	const gchar *password;
 	gsize length;
 
-	path = "/org/freedesktop/secrets/collection/english/item_one";
+	path = "/org/freedesktop/secrets/collection/english/1";
 	value = gsecret_service_get_secret_for_path_sync (test->service, path, NULL, &error);
 	g_assert_no_error (error);
 	g_assert (value != NULL);
@@ -421,7 +421,7 @@ test_secret_for_path_async (Test *test,
 	GAsyncResult *result = NULL;
 	gsize length;
 
-	path = "/org/freedesktop/secrets/collection/english/item_one";
+	path = "/org/freedesktop/secrets/collection/english/1";
 	gsecret_service_get_secret_for_path (test->service, path, NULL,
 	                                     on_complete_get_result, &result);
 	g_assert (result == NULL);
@@ -446,14 +446,14 @@ static void
 test_secrets_for_paths_sync (Test *test,
                              gconstpointer used)
 {
-	const gchar *path_item_one = "/org/freedesktop/secrets/collection/english/item_one";
-	const gchar *path_item_two = "/org/freedesktop/secrets/collection/english/item_two";
+	const gchar *path_item_one = "/org/freedesktop/secrets/collection/english/1";
+	const gchar *path_item_two = "/org/freedesktop/secrets/collection/english/2";
 	const gchar *paths[] = {
 		path_item_one,
 		path_item_two,
 
 		/* This one is locked, and not returned */
-		"/org/freedesktop/secrets/collection/spanish/item_one",
+		"/org/freedesktop/secrets/collection/spanish/10",
 		NULL
 	};
 
@@ -488,14 +488,14 @@ static void
 test_secrets_for_paths_async (Test *test,
                               gconstpointer used)
 {
-	const gchar *path_item_one = "/org/freedesktop/secrets/collection/english/item_one";
-	const gchar *path_item_two = "/org/freedesktop/secrets/collection/english/item_two";
+	const gchar *path_item_one = "/org/freedesktop/secrets/collection/english/1";
+	const gchar *path_item_two = "/org/freedesktop/secrets/collection/english/2";
 	const gchar *paths[] = {
 		path_item_one,
 		path_item_two,
 
 		/* This one is locked, and not returned */
-		"/org/freedesktop/secrets/collection/spanish/item_one",
+		"/org/freedesktop/secrets/collection/spanish/10",
 		NULL
 	};
 
@@ -537,9 +537,9 @@ static void
 test_secrets_sync (Test *test,
                    gconstpointer used)
 {
-	const gchar *path_item_one = "/org/freedesktop/secrets/collection/english/item_one";
-	const gchar *path_item_two = "/org/freedesktop/secrets/collection/english/item_two";
-	const gchar *path_item_three = "/org/freedesktop/secrets/collection/spanish/item_one";
+	const gchar *path_item_one = "/org/freedesktop/secrets/collection/english/1";
+	const gchar *path_item_two = "/org/freedesktop/secrets/collection/english/2";
+	const gchar *path_item_three = "/org/freedesktop/secrets/collection/spanish/10";
 
 	GSecretValue *value;
 	GHashTable *values;
@@ -583,9 +583,9 @@ static void
 test_secrets_async (Test *test,
                               gconstpointer used)
 {
-	const gchar *path_item_one = "/org/freedesktop/secrets/collection/english/item_one";
-	const gchar *path_item_two = "/org/freedesktop/secrets/collection/english/item_two";
-	const gchar *path_item_three = "/org/freedesktop/secrets/collection/spanish/item_one";
+	const gchar *path_item_one = "/org/freedesktop/secrets/collection/english/1";
+	const gchar *path_item_two = "/org/freedesktop/secrets/collection/english/2";
+	const gchar *path_item_three = "/org/freedesktop/secrets/collection/spanish/10";
 
 	GSecretValue *value;
 	GHashTable *values;
@@ -597,8 +597,14 @@ test_secrets_async (Test *test,
 	gsize length;
 
 	item_one = gsecret_item_new_sync (test->service, path_item_one, NULL, &error);
+	g_assert_no_error (error);
+
 	item_two = gsecret_item_new_sync (test->service, path_item_two, NULL, &error);
+	g_assert_no_error (error);
+
 	item_three = gsecret_item_new_sync (test->service, path_item_three, NULL, &error);
+	g_assert_no_error (error);
+
 
 	items = g_list_append (items, item_one);
 	items = g_list_append (items, item_two);
@@ -642,7 +648,7 @@ test_delete_for_path_sync (Test *test,
                            gconstpointer used)
 
 {
-	const gchar *path_item_one = "/org/freedesktop/secrets/collection/to_delete/item";
+	const gchar *path_item_one = "/org/freedesktop/secrets/collection/todelete/item";
 	GError *error = NULL;
 	gboolean ret;
 
@@ -656,7 +662,7 @@ test_delete_for_path_sync_prompt (Test *test,
                                   gconstpointer used)
 
 {
-	const gchar *path_item_one = "/org/freedesktop/secrets/collection/to_delete/confirm";
+	const gchar *path_item_one = "/org/freedesktop/secrets/collection/todelete/confirm";
 	GError *error = NULL;
 	gboolean ret;
 
@@ -669,7 +675,7 @@ static void
 test_lock_paths_sync (Test *test,
                       gconstpointer used)
 {
-	const gchar *collection_path = "/org/freedesktop/secrets/collection/lock_one";
+	const gchar *collection_path = "/org/freedesktop/secrets/collection/lockone";
 	const gchar *paths[] = {
 		collection_path,
 		NULL,
@@ -693,7 +699,7 @@ static void
 test_lock_prompt_sync (Test *test,
                        gconstpointer used)
 {
-	const gchar *collection_path = "/org/freedesktop/secrets/collection/lock_prompt";
+	const gchar *collection_path = "/org/freedesktop/secrets/collection/lockprompt";
 	const gchar *paths[] = {
 		collection_path,
 		NULL,
@@ -717,7 +723,7 @@ static void
 test_lock_sync (Test *test,
                 gconstpointer used)
 {
-	const gchar *collection_path = "/org/freedesktop/secrets/collection/lock_one";
+	const gchar *collection_path = "/org/freedesktop/secrets/collection/lockone";
 	GSecretCollection *collection;
 	GError *error = NULL;
 	GList *locked;
@@ -746,7 +752,7 @@ static void
 test_unlock_paths_sync (Test *test,
                         gconstpointer used)
 {
-	const gchar *collection_path = "/org/freedesktop/secrets/collection/lock_one";
+	const gchar *collection_path = "/org/freedesktop/secrets/collection/lockone";
 	const gchar *paths[] = {
 		collection_path,
 		NULL,
@@ -770,7 +776,7 @@ static void
 test_unlock_prompt_sync (Test *test,
                          gconstpointer used)
 {
-	const gchar *collection_path = "/org/freedesktop/secrets/collection/lock_prompt";
+	const gchar *collection_path = "/org/freedesktop/secrets/collection/lockprompt";
 	const gchar *paths[] = {
 		collection_path,
 		NULL,
@@ -794,7 +800,7 @@ static void
 test_unlock_sync (Test *test,
                   gconstpointer used)
 {
-	const gchar *collection_path = "/org/freedesktop/secrets/collection/lock_one";
+	const gchar *collection_path = "/org/freedesktop/secrets/collection/lockone";
 	GSecretCollection *collection;
 	GError *error = NULL;
 	GList *unlocked;
@@ -898,7 +904,7 @@ test_item_sync (Test *test,
 	                     g_variant_ref_sink (g_variant_new_string ("Wheeee")));
 	g_hash_table_insert (properties, GSECRET_COLLECTION_INTERFACE ".Attributes",
 	                     g_variant_ref_sink (_gsecret_util_variant_for_attributes (attributes)));
-	g_hash_table_insert (properties, GSECRET_COLLECTION_INTERFACE ".Schema",
+	g_hash_table_insert (properties, GSECRET_COLLECTION_INTERFACE ".Type",
 	                     g_variant_ref_sink (g_variant_new_string ("org.gnome.Test")));
 
 	g_hash_table_unref (attributes);
@@ -942,7 +948,7 @@ test_item_async (Test *test,
 	                     g_variant_ref_sink (g_variant_new_string ("Wheeee")));
 	g_hash_table_insert (properties, GSECRET_COLLECTION_INTERFACE ".Attributes",
 	                     g_variant_ref_sink (_gsecret_util_variant_for_attributes (attributes)));
-	g_hash_table_insert (properties, GSECRET_COLLECTION_INTERFACE ".Schema",
+	g_hash_table_insert (properties, GSECRET_COLLECTION_INTERFACE ".Type",
 	                     g_variant_ref_sink (g_variant_new_string ("org.gnome.Test")));
 
 	g_hash_table_unref (attributes);

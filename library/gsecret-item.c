@@ -195,7 +195,7 @@ handle_property_changed (GObject *object,
 	else if (g_str_equal (property_name, "Label"))
 		g_object_notify (object, "label");
 
-	else if (g_str_equal (property_name, "Schema"))
+	else if (g_str_equal (property_name, "Type"))
 		g_object_notify (object, "schema");
 
 	else if (g_str_equal (property_name, "Locked"))
@@ -1084,8 +1084,9 @@ gsecret_item_get_schema (GSecretItem *self)
 
 	g_return_val_if_fail (GSECRET_IS_ITEM (self), NULL);
 
-	variant = g_dbus_proxy_get_cached_property (G_DBUS_PROXY (self), "Schema");
-	g_return_val_if_fail (variant != NULL, NULL);
+	variant = g_dbus_proxy_get_cached_property (G_DBUS_PROXY (self), "Type");
+	if (variant == NULL)
+		return NULL;
 
 	label = g_variant_dup_string (variant, NULL);
 	g_variant_unref (variant);

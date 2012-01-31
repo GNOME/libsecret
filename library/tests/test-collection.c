@@ -286,17 +286,17 @@ test_items (Test *test,
 
 	items = gsecret_collection_get_items (collection);
 	check_items_equal (items,
-	                   "/org/freedesktop/secrets/collection/english/item_one",
-	                   "/org/freedesktop/secrets/collection/english/item_two",
-	                   "/org/freedesktop/secrets/collection/english/item_three",
+	                   "/org/freedesktop/secrets/collection/english/1",
+	                   "/org/freedesktop/secrets/collection/english/2",
+	                   "/org/freedesktop/secrets/collection/english/3",
 	                   NULL);
 	g_list_free_full (items, g_object_unref);
 
 	g_object_get (collection, "items", &items, NULL);
 	check_items_equal (items,
-	                   "/org/freedesktop/secrets/collection/english/item_one",
-	                   "/org/freedesktop/secrets/collection/english/item_two",
-	                   "/org/freedesktop/secrets/collection/english/item_three",
+	                   "/org/freedesktop/secrets/collection/english/1",
+	                   "/org/freedesktop/secrets/collection/english/2",
+	                   "/org/freedesktop/secrets/collection/english/3",
 	                   NULL);
 	g_list_free_full (items, g_object_unref);
 

@@ -634,9 +634,9 @@ def decryptData(key, data, mode=AESModeOfOperation.modeOfOperation["CBC"]):
 
 def generateRandomKey(keysize):
     """Generates a key from random data of length `keysize`.
-    
+
     The returned key is a string of bytes.
-    
+
     """
     if keysize not in (16, 24, 32):
         emsg = 'Invalid keysize, %s. Should be one of (16, 24, 32).'

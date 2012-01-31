@@ -85,7 +85,7 @@ static void
 test_new_sync (Test *test,
                gconstpointer unused)
 {
-	const gchar *item_path = "/org/freedesktop/secrets/collection/english/item_one";
+	const gchar *item_path = "/org/freedesktop/secrets/collection/english/1";
 	GError *error = NULL;
 	GSecretItem *item;
 
@@ -101,7 +101,7 @@ static void
 test_new_sync_noexist (Test *test,
                        gconstpointer unused)
 {
-	const gchar *item_path = "/org/freedesktop/secrets/collection/english/nonexistant";
+	const gchar *item_path = "/org/freedesktop/secrets/collection/english/0000";
 	GError *error = NULL;
 	GSecretItem *item;
 
@@ -114,7 +114,7 @@ static void
 test_new_async (Test *test,
                 gconstpointer unused)
 {
-	const gchar *item_path = "/org/freedesktop/secrets/collection/english/item_one";
+	const gchar *item_path = "/org/freedesktop/secrets/collection/english/1";
 	GAsyncResult *result = NULL;
 	GError *error = NULL;
 	GSecretItem *item;
@@ -137,7 +137,7 @@ static void
 test_new_async_noexist (Test *test,
                         gconstpointer unused)
 {
-	const gchar *item_path = "/org/freedesktop/secrets/collection/english/nonexistant";
+	const gchar *item_path = "/org/freedesktop/secrets/collection/english/0000";
 	GAsyncResult *result = NULL;
 	GError *error = NULL;
 	GSecretItem *item;
@@ -240,7 +240,7 @@ static void
 test_properties (Test *test,
                  gconstpointer unused)
 {
-	const gchar *item_path = "/org/freedesktop/secrets/collection/english/item_one";
+	const gchar *item_path = "/org/freedesktop/secrets/collection/english/1";
 	GError *error = NULL;
 	GHashTable *attributes;
 	GSecretService *service;
@@ -259,7 +259,7 @@ test_properties (Test *test,
 	g_assert_cmpuint (gsecret_item_get_modified (item), <=, time (NULL));
 
 	schema = gsecret_item_get_schema (item);
-	g_assert_cmpstr (schema, ==, "org.mock.schema.Store");
+	g_assert_cmpstr (schema, ==, "org.mock.type.Store");
 	g_free (schema);
 
 	label = gsecret_item_get_label (item);
@@ -290,7 +290,7 @@ test_properties (Test *test,
 	g_assert_cmpstr (label, ==, "Item One");
 	g_free (label);
 
-	g_assert_cmpstr (schema, ==, "org.mock.schema.Store");
+	g_assert_cmpstr (schema, ==, "org.mock.type.Store");
 	g_free (schema);
 
 	g_assert_cmpstr (g_hash_table_lookup (attributes, "string"), ==, "one");
@@ -309,7 +309,7 @@ static void
 test_set_label_sync (Test *test,
                      gconstpointer unused)
 {
-	const gchar *item_path = "/org/freedesktop/secrets/collection/english/item_one";
+	const gchar *item_path = "/org/freedesktop/secrets/collection/english/1";
 	GError *error = NULL;
 	GSecretItem *item;
 	gboolean ret;
@@ -337,7 +337,7 @@ static void
 test_set_label_async (Test *test,
                       gconstpointer unused)
 {
-	const gchar *item_path = "/org/freedesktop/secrets/collection/english/item_one";
+	const gchar *item_path = "/org/freedesktop/secrets/collection/english/1";
 	GAsyncResult *result = NULL;
 	GError *error = NULL;
 	GSecretItem *item;
@@ -372,7 +372,7 @@ static void
 test_set_label_prop (Test *test,
                      gconstpointer unused)
 {
-	const gchar *item_path = "/org/freedesktop/secrets/collection/english/item_one";
+	const gchar *item_path = "/org/freedesktop/secrets/collection/english/1";
 	GError *error = NULL;
 	GSecretItem *item;
 	guint sigs = 2;
@@ -402,7 +402,7 @@ static void
 test_set_attributes_sync (Test *test,
                            gconstpointer unused)
 {
-	const gchar *item_path = "/org/freedesktop/secrets/collection/english/item_one";
+	const gchar *item_path = "/org/freedesktop/secrets/collection/english/1";
 	GError *error = NULL;
 	GSecretItem *item;
 	gboolean ret;
@@ -439,7 +439,7 @@ static void
 test_set_attributes_async (Test *test,
                            gconstpointer unused)
 {
-	const gchar *item_path = "/org/freedesktop/secrets/collection/english/item_one";
+	const gchar *item_path = "/org/freedesktop/secrets/collection/english/1";
 	GHashTable *attributes;
 	GError *error = NULL;
 	GAsyncResult *result = NULL;
@@ -482,7 +482,7 @@ static void
 test_set_attributes_prop (Test *test,
                           gconstpointer unused)
 {
-	const gchar *item_path = "/org/freedesktop/secrets/collection/english/item_one";
+	const gchar *item_path = "/org/freedesktop/secrets/collection/english/1";
 	GError *error = NULL;
 	GSecretItem *item;
 	GHashTable *attributes;
@@ -522,7 +522,7 @@ static void
 test_get_secret_sync (Test *test,
                       gconstpointer unused)
 {
-	const gchar *item_path = "/org/freedesktop/secrets/collection/english/item_one";
+	const gchar *item_path = "/org/freedesktop/secrets/collection/english/1";
 	GError *error = NULL;
 	GSecretItem *item;
 	GSecretValue *value;
@@ -548,7 +548,7 @@ static void
 test_get_secret_async (Test *test,
                        gconstpointer unused)
 {
-	const gchar *item_path = "/org/freedesktop/secrets/collection/english/item_one";
+	const gchar *item_path = "/org/freedesktop/secrets/collection/english/1";
 	GAsyncResult *result = NULL;
 	GError *error = NULL;
 	GSecretItem *item;
@@ -581,7 +581,7 @@ static void
 test_set_secret_sync (Test *test,
                       gconstpointer unused)
 {
-	const gchar *item_path = "/org/freedesktop/secrets/collection/english/item_one";
+	const gchar *item_path = "/org/freedesktop/secrets/collection/english/1";
 	GError *error = NULL;
 	GSecretItem *item;
 	gconstpointer data;
@@ -616,7 +616,7 @@ static void
 test_delete_sync (Test *test,
                   gconstpointer unused)
 {
-	const gchar *item_path = "/org/freedesktop/secrets/collection/english/item_one";
+	const gchar *item_path = "/org/freedesktop/secrets/collection/english/1";
 	GError *error = NULL;
 	GSecretItem *item;
 	gboolean ret;
@@ -639,7 +639,7 @@ static void
 test_delete_async (Test *test,
                    gconstpointer unused)
 {
-	const gchar *item_path = "/org/freedesktop/secrets/collection/english/item_one";
+	const gchar *item_path = "/org/freedesktop/secrets/collection/english/1";
 	GAsyncResult *result = NULL;
 	GError *error = NULL;
 	GSecretItem *item;

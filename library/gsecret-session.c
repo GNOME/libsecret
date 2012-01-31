@@ -77,7 +77,7 @@ request_open_session_aes (GSecretSession *session)
 	g_assert (session->publi == NULL);
 
 	/* Initialize our local parameters and values */
-	if (!egg_dh_default_params ("ietf-ike-grp-modp-1536",
+	if (!egg_dh_default_params ("ietf-ike-grp-modp-1024",
 	                            &session->prime, &base))
 		g_return_val_if_reached (NULL);
 
