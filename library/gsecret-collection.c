@@ -21,6 +21,14 @@
 
 #include <glib/gi18n-lib.h>
 
+/**
+ * SECTION:gsecret-collection
+ */
+
+/**
+ * GSecretCollection:
+ */
+
 enum {
 	PROP_0,
 	PROP_SERVICE,
@@ -580,6 +588,21 @@ gsecret_collection_async_initable_iface (GAsyncInitableIface *iface)
 	iface->init_finish = gsecret_collection_async_initable_init_finish;
 }
 
+/**
+ * gsecret_collection_new:
+ * @service: a secret service object
+ * @collection_path: the dbus path of the collection
+ * @cancellable: optional cancellation object
+ * @callback: called when the operation completes
+ * @user_data: data to be passed to the callback
+ *
+ * Get a new collection proxy for a collection in the secret service.
+ *
+ * This method will return immediately and complete asynchronously.
+ *
+ * Returns: (transfer full): the new collection, which should be unreferenced
+ *          with g_object_unref()
+ */
 void
 gsecret_collection_new (GSecretService *service,
                         const gchar *collection_path,
@@ -607,6 +630,18 @@ gsecret_collection_new (GSecretService *service,
 	                            NULL);
 }
 
+/**
+ * gsecret_collection_new_finish:
+ * @result: the asynchronous result passed to the callback
+ * @error: location to place an error on failure
+ *
+ * Finish asynchronous operation to get a new collection proxy for a
+ * collection in the secret service.
+ *
+ * Returns: (transfer full): the new collection, which should be unreferenced
+ *          with g_object_unref()
+ */
+
 GSecretCollection *
 gsecret_collection_new_finish (GAsyncResult *result,
                                GError **error)
@@ -628,6 +663,20 @@ gsecret_collection_new_finish (GAsyncResult *result,
 	return GSECRET_COLLECTION (object);
 }
 
+/**
+ * gsecret_collection_new_sync:
+ * @service: a secret service object
+ * @collection_path: the dbus path of the collection
+ * @cancellable: optional cancellation object
+ * @error: location to place an error on failure
+ *
+ * Get a new collection proxy for a collection in the secret service.
+ *
+ * This method may block indefinitely.
+ *
+ * Returns: (transfer full): the new collection, which should be unreferenced
+ *          with g_object_unref()
+ */
 GSecretCollection *
 gsecret_collection_new_sync (GSecretService *service,
                              const gchar *collection_path,
@@ -735,6 +784,21 @@ collection_properties_new (const gchar *label)
 	return properties;
 }
 
+/**
+ * gsecret_collection_create:
+ * @service: a secret service object
+ * @label: label for the new collection
+ * @alias: (allow-none): alias to assign to the collection
+ * @cancellable: optional cancellation object
+ * @callback: called when the operation completes
+ * @user_data: data to pass to the callback
+ *
+ * Create a new collection in the secret service.
+ *
+ * This method returns immediately and completes asynchronously. The secret
+ * service may prompt the user. gsecret_service_prompt() will be used to handle
+ * any prompts that are required.
+ */
 void
 gsecret_collection_create (GSecretService *service,
                            const gchar *label,
@@ -766,6 +830,16 @@ gsecret_collection_create (GSecretService *service,
 	g_object_unref (res);
 }
 
+/**
+ * gsecret_collection_create_finish:
+ * @result: the asynchronous result passed to the callback
+ * @error: location to place an error on failure
+ *
+ * Finish operation to create a new collection in the secret service.
+ *
+ * Returns: (transfer full): the new collection, which should be unreferenced
+ *          with g_object_unref()
+ */
 GSecretCollection *
 gsecret_collection_create_finish (GAsyncResult *result,
                                   GError **error)
@@ -797,14 +871,14 @@ gsecret_collection_create_finish (GAsyncResult *result,
  * @cancellable: optional cancellation object
  * @error: location to place an error on failure
  *
- * Create a new collection.
- * Delete this collection.
+ * Create a new collection in the secret service.
  *
  * This method may block indefinitely. The secret service may prompt the
  * user. gsecret_service_prompt() will be used to handle any prompts that
- * show up.
+ * are required.
  *
- * Returns: whether the item was successfully deleted or not
+ * Returns: (transfer full): the new collection, which should be unreferenced
+ *          with g_object_unref()
  */
 GSecretCollection *
 gsecret_collection_create_sync (GSecretService *service,
