@@ -1,4 +1,4 @@
-/* GSecret - GLib wrapper for Secret Service
+/* libsecret - GLib wrapper for Secret Service
  *
  * Copyright 2012 Red Hat Inc.
  *
@@ -10,159 +10,159 @@
  * See the included COPYING file for more information.
  */
 
-#ifndef __GSECRET_ITEM_H__
-#define __GSECRET_ITEM_H__
+#ifndef __SECRET_ITEM_H__
+#define __SECRET_ITEM_H__
 
 #include <gio/gio.h>
 
-#include "gsecret-item.h"
-#include "gsecret-service.h"
-#include "gsecret-value.h"
+#include "secret-item.h"
+#include "secret-service.h"
+#include "secret-value.h"
 
 G_BEGIN_DECLS
 
-#define GSECRET_TYPE_ITEM            (gsecret_item_get_type ())
-#define GSECRET_ITEM(inst)           (G_TYPE_CHECK_INSTANCE_CAST ((inst), GSECRET_TYPE_ITEM, GSecretItem))
-#define GSECRET_ITEM_CLASS(class)    (G_TYPE_CHECK_CLASS_CAST ((class), GSECRET_TYPE_ITEM, GSecretItemClass))
-#define GSECRET_IS_ITEM(inst)        (G_TYPE_CHECK_INSTANCE_TYPE ((inst), GSECRET_TYPE_ITEM))
-#define GSECRET_IS_ITEM_CLASS(class) (G_TYPE_CHECK_CLASS_TYPE ((class), GSECRET_TYPE_ITEM))
-#define GSECRET_ITEM_GET_CLASS(inst) (G_TYPE_INSTANCE_GET_CLASS ((inst), GSECRET_TYPE_ITEM, GSecretItemClass))
+#define SECRET_TYPE_ITEM            (secret_item_get_type ())
+#define SECRET_ITEM(inst)           (G_TYPE_CHECK_INSTANCE_CAST ((inst), SECRET_TYPE_ITEM, SecretItem))
+#define SECRET_ITEM_CLASS(class)    (G_TYPE_CHECK_CLASS_CAST ((class), SECRET_TYPE_ITEM, SecretItemClass))
+#define SECRET_IS_ITEM(inst)        (G_TYPE_CHECK_INSTANCE_TYPE ((inst), SECRET_TYPE_ITEM))
+#define SECRET_IS_ITEM_CLASS(class) (G_TYPE_CHECK_CLASS_TYPE ((class), SECRET_TYPE_ITEM))
+#define SECRET_ITEM_GET_CLASS(inst) (G_TYPE_INSTANCE_GET_CLASS ((inst), SECRET_TYPE_ITEM, SecretItemClass))
 
-typedef struct _GSecretItemClass   GSecretItemClass;
-typedef struct _GSecretItemPrivate   GSecretItemPrivate;
+typedef struct _SecretItemClass   SecretItemClass;
+typedef struct _SecretItemPrivate   SecretItemPrivate;
 
-struct _GSecretItem {
+struct _SecretItem {
 	GDBusProxy parent_instance;
-	GSecretItemPrivate *pv;;
+	SecretItemPrivate *pv;;
 };
 
-struct _GSecretItemClass {
+struct _SecretItemClass {
 	GDBusProxyClass parent_class;
 	gpointer padding[4];
 };
 
-GType               gsecret_item_get_type                   (void) G_GNUC_CONST;
+GType               secret_item_get_type                   (void) G_GNUC_CONST;
 
-void                gsecret_item_new                        (GSecretService *service,
+void                secret_item_new                        (SecretService *service,
                                                              const gchar *item_path,
                                                              GCancellable *cancellable,
                                                              GAsyncReadyCallback callback,
                                                              gpointer user_data);
 
-GSecretItem *       gsecret_item_new_finish                 (GAsyncResult *result,
+SecretItem *       secret_item_new_finish                 (GAsyncResult *result,
                                                              GError **error);
 
-GSecretItem *       gsecret_item_new_sync                   (GSecretService *service,
+SecretItem *       secret_item_new_sync                   (SecretService *service,
                                                              const gchar *item_path,
                                                              GCancellable *cancellable,
                                                              GError **error);
 
-void                gsecret_item_refresh                    (GSecretItem *self);
+void                secret_item_refresh                    (SecretItem *self);
 
-void                gsecret_item_create                     (GSecretCollection *collection,
+void                secret_item_create                     (SecretCollection *collection,
                                                              const gchar *schema_name,
                                                              const gchar *label,
                                                              GHashTable *attributes,
-                                                             GSecretValue *value,
+                                                             SecretValue *value,
                                                              gboolean replace,
                                                              GCancellable *cancellable,
                                                              GAsyncReadyCallback callback,
                                                              gpointer user_data);
 
-GSecretItem *       gsecret_item_create_finish              (GAsyncResult *result,
+SecretItem *       secret_item_create_finish              (GAsyncResult *result,
                                                              GError **error);
 
-GSecretItem *       gsecret_item_create_sync                (GSecretCollection *collection,
+SecretItem *       secret_item_create_sync                (SecretCollection *collection,
                                                              const gchar *schema_name,
                                                              const gchar *label,
                                                              GHashTable *attributes,
-                                                             GSecretValue *value,
+                                                             SecretValue *value,
                                                              gboolean replace,
                                                              GCancellable *cancellable,
                                                              GError **error);
 
-void                gsecret_item_delete                     (GSecretItem *self,
+void                secret_item_delete                     (SecretItem *self,
                                                              GCancellable *cancellable,
                                                              GAsyncReadyCallback callback,
                                                              gpointer user_data);
 
-gboolean            gsecret_item_delete_finish              (GSecretItem *self,
+gboolean            secret_item_delete_finish              (SecretItem *self,
                                                              GAsyncResult *result,
                                                              GError **error);
 
-gboolean            gsecret_item_delete_sync                (GSecretItem *self,
+gboolean            secret_item_delete_sync                (SecretItem *self,
                                                              GCancellable *cancellable,
                                                              GError **error);
 
-void                gsecret_item_get_secret                 (GSecretItem *self,
+void                secret_item_get_secret                 (SecretItem *self,
                                                              GCancellable *cancellable,
                                                              GAsyncReadyCallback callback,
                                                              gpointer user_data);
 
-GSecretValue *      gsecret_item_get_secret_finish          (GSecretItem *self,
+SecretValue *      secret_item_get_secret_finish          (SecretItem *self,
                                                              GAsyncResult *result,
                                                              GError **error);
 
-GSecretValue *      gsecret_item_get_secret_sync            (GSecretItem *self,
+SecretValue *      secret_item_get_secret_sync            (SecretItem *self,
                                                              GCancellable *cancellable,
                                                              GError **error);
 
-void                gsecret_item_set_secret                 (GSecretItem *self,
-                                                             GSecretValue *value,
+void                secret_item_set_secret                 (SecretItem *self,
+                                                             SecretValue *value,
                                                              GCancellable *cancellable,
                                                              GAsyncReadyCallback callback,
                                                              gpointer user_data);
 
-gboolean            gsecret_item_set_secret_finish          (GSecretItem *self,
+gboolean            secret_item_set_secret_finish          (SecretItem *self,
                                                              GAsyncResult *result,
                                                              GError **error);
 
-gboolean            gsecret_item_set_secret_sync            (GSecretItem *self,
-                                                             GSecretValue *value,
+gboolean            secret_item_set_secret_sync            (SecretItem *self,
+                                                             SecretValue *value,
                                                              GCancellable *cancellable,
                                                              GError **error);
 
-GHashTable*         gsecret_item_get_attributes             (GSecretItem *self);
+GHashTable*         secret_item_get_attributes             (SecretItem *self);
 
-void                gsecret_item_set_attributes             (GSecretItem *self,
+void                secret_item_set_attributes             (SecretItem *self,
                                                              GHashTable *attributes,
                                                              GCancellable *cancellable,
                                                              GAsyncReadyCallback callback,
                                                              gpointer user_data);
 
-gboolean            gsecret_item_set_attributes_finish      (GSecretItem *self,
+gboolean            secret_item_set_attributes_finish      (SecretItem *self,
                                                              GAsyncResult *result,
                                                              GError **error);
 
-gboolean            gsecret_item_set_attributes_sync        (GSecretItem *self,
+gboolean            secret_item_set_attributes_sync        (SecretItem *self,
                                                              GHashTable *attributes,
                                                              GCancellable *cancellable,
                                                              GError **error);
 
-gchar *             gsecret_item_get_label                  (GSecretItem *self);
+gchar *             secret_item_get_label                  (SecretItem *self);
 
-void                gsecret_item_set_label                  (GSecretItem *self,
+void                secret_item_set_label                  (SecretItem *self,
                                                              const gchar *label,
                                                              GCancellable *cancellable,
                                                              GAsyncReadyCallback callback,
                                                              gpointer user_data);
 
-gboolean            gsecret_item_set_label_finish           (GSecretItem *self,
+gboolean            secret_item_set_label_finish           (SecretItem *self,
                                                              GAsyncResult *result,
                                                              GError **error);
 
-gboolean            gsecret_item_set_label_sync             (GSecretItem *self,
+gboolean            secret_item_set_label_sync             (SecretItem *self,
                                                              const gchar *label,
                                                              GCancellable *cancellable,
                                                              GError **error);
 
-gchar *             gsecret_item_get_schema                 (GSecretItem *self);
+gchar *             secret_item_get_schema                 (SecretItem *self);
 
-gboolean            gsecret_item_get_locked                 (GSecretItem *self);
+gboolean            secret_item_get_locked                 (SecretItem *self);
 
-guint64             gsecret_item_get_created                (GSecretItem *self);
+guint64             secret_item_get_created                (SecretItem *self);
 
-guint64             gsecret_item_get_modified               (GSecretItem *self);
+guint64             secret_item_get_modified               (SecretItem *self);
 
 G_END_DECLS
 

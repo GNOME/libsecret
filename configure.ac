@@ -1,9 +1,9 @@
 AC_PREREQ(2.65)
 AC_CONFIG_MACRO_DIR([build/m4])
 
-AC_INIT([gsecret],[0.1],[http://bugzilla.gnome.org/enter_bug.cgi?product=gsecret])
+AC_INIT([libsecret],[0.1],[http://bugzilla.gnome.org/enter_bug.cgi?product=libsecret])
 
-AC_CONFIG_SRCDIR([library/gsecret-value.c])
+AC_CONFIG_SRCDIR([library/secret-value.c])
 AC_CONFIG_HEADERS([config.h])
 
 dnl Other initialization
@@ -24,7 +24,7 @@ AC_CHECK_FUNCS(mlock)
 #
 
 IT_PROG_INTLTOOL([0.35.0])
-GETTEXT_PACKAGE=gsecret
+GETTEXT_PACKAGE=libsecret
 
 AC_SUBST([GETTEXT_PACKAGE])
 AC_DEFINE_UNQUOTED([GETTEXT_PACKAGE],["$GETTEXT_PACKAGE"],[The gettext domain name])

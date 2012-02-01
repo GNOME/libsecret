@@ -1,4 +1,4 @@
-/* GSecret - GLib wrapper for Secret Service
+/* libsecret - GLib wrapper for Secret Service
  *
  * Copyright 2011 Collabora Ltd.
  * Copyright 2012 Red Hat Inc.
@@ -13,7 +13,7 @@
 
 #include "config.h"
 
-#include "gsecret-private.h"
+#include "secret-private.h"
 
 #ifdef WITH_GCRYPT
 #include "egg/egg-dh.h"
@@ -31,7 +31,7 @@ EGG_SECURE_DECLARE (secret_session);
 #define ALGORITHMS_AES    "dh-ietf1024-sha256-aes128-cbc-pkcs7"
 #define ALGORITHMS_PLAIN  "plain"
 
-struct _GSecretSession {
+struct _SecretSession {
 	gchar *path;
 	const gchar *algorithms;
 #ifdef WITH_GCRYPT
@@ -44,9 +44,9 @@ struct _GSecretSession {
 };
 
 void
-_gsecret_session_free (gpointer data)
+_secret_session_free (gpointer data)
 {
-	GSecretSession *session = data;
+	SecretSession *session = data;
 
 	if (session == NULL)
 		return;
@@ -64,7 +64,7 @@ _gsecret_session_free (gpointer data)
 #ifdef WITH_GCRYPT
 
 static GVariant *
-request_open_session_aes (GSecretSession *session)
+request_open_session_aes (SecretSession *session)
 {
 	gcry_error_t gcry;
 	gcry_mpi_t base;
@@ -104,7 +104,7 @@ request_open_session_aes (GSecretSession *session)
 }
 
 static gboolean
-response_open_session_aes (GSecretSession *session,
+response_open_session_aes (SecretSession *session,
                            GVariant *response)
 {
 	gconstpointer buffer;
@@ -168,14 +168,14 @@ response_open_session_aes (GSecretSession *session,
 #endif /* WITH_GCRYPT */
 
 static GVariant *
-request_open_session_plain (GSecretSession *session)
+request_open_session_plain (SecretSession *session)
 {
 	GVariant *argument = g_variant_new_string ("");
 	return g_variant_new ("(sv)", "plain", argument);
 }
 
 static gboolean
-response_open_session_plain (GSecretSession *session,
+response_open_session_plain (SecretSession *session,
                              GVariant *response)
 {
 	GVariant *argument;
@@ -203,7 +203,7 @@ response_open_session_plain (GSecretSession *session,
 
 typedef struct {
 	GCancellable *cancellable;
-	GSecretSession *session;
+	SecretSession *session;
 } OpenSessionClosure;
 
 static void
@@ -212,7 +212,7 @@ open_session_closure_free (gpointer data)
 	OpenSessionClosure *closure = data;
 	g_assert (closure);
 	g_clear_object (&closure->cancellable);
-	_gsecret_session_free (closure->session);
+	_secret_session_free (closure->session);
 	g_free (closure);
 }
 
@@ -223,7 +223,7 @@ on_service_open_session_plain (GObject *source,
 {
 	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
 	OpenSessionClosure *closure = g_simple_async_result_get_op_res_gpointer (res);
-	GSecretService *service = GSECRET_SERVICE (source);
+	SecretService *service = SECRET_SERVICE (source);
 	GError *error = NULL;
 	GVariant *response;
 
@@ -232,11 +232,11 @@ on_service_open_session_plain (GObject *source,
 	/* A successful response, decode it */
 	if (response != NULL) {
 		if (response_open_session_plain (closure->session, response)) {
-			_gsecret_service_take_session (service, closure->session);
+			_secret_service_take_session (service, closure->session);
 			closure->session = NULL;
 
 		} else {
-			g_simple_async_result_set_error (res, GSECRET_ERROR, GSECRET_ERROR_PROTOCOL,
+			g_simple_async_result_set_error (res, SECRET_ERROR, SECRET_ERROR_PROTOCOL,
 			                                 _("Couldn't communicate with the secret storage"));
 		}
 
@@ -260,7 +260,7 @@ on_service_open_session_aes (GObject *source,
 {
 	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
 	OpenSessionClosure * closure = g_simple_async_result_get_op_res_gpointer (res);
-	GSecretService *service = GSECRET_SERVICE (source);
+	SecretService *service = SECRET_SERVICE (source);
 	GError *error = NULL;
 	GVariant *response;
 
@@ -269,11 +269,11 @@ on_service_open_session_aes (GObject *source,
 	/* A successful response, decode it */
 	if (response != NULL) {
 		if (response_open_session_aes (closure->session, response)) {
-			_gsecret_service_take_session (service, closure->session);
+			_secret_service_take_session (service, closure->session);
 			closure->session = NULL;
 
 		} else {
-			g_simple_async_result_set_error (res, GSECRET_ERROR, GSECRET_ERROR_PROTOCOL,
+			g_simple_async_result_set_error (res, SECRET_ERROR, SECRET_ERROR_PROTOCOL,
 			                                 _("Couldn't communicate with the secret storage"));
 		}
 
@@ -304,7 +304,7 @@ on_service_open_session_aes (GObject *source,
 
 
 void
-_gsecret_session_open (GSecretService *service,
+_secret_session_open (SecretService *service,
                        GCancellable *cancellable,
                        GAsyncReadyCallback callback,
                        gpointer user_data)
@@ -313,10 +313,10 @@ _gsecret_session_open (GSecretService *service,
 	OpenSessionClosure *closure;
 
 	res = g_simple_async_result_new (G_OBJECT (service), callback, user_data,
-	                                 _gsecret_session_open);
+	                                 _secret_session_open);
 	closure = g_new (OpenSessionClosure, 1);
 	closure->cancellable = cancellable ? g_object_ref (cancellable) : cancellable;
-	closure->session = g_new0 (GSecretSession, 1);
+	closure->session = g_new0 (SecretSession, 1);
 	g_simple_async_result_set_op_res_gpointer (res, closure, open_session_closure_free);
 
 	g_dbus_proxy_call (G_DBUS_PROXY (service), "OpenSession",
@@ -335,7 +335,7 @@ _gsecret_session_open (GSecretService *service,
 }
 
 gboolean
-_gsecret_session_open_finish (GAsyncResult *result,
+_secret_session_open_finish (GAsyncResult *result,
                               GError **error)
 {
 	if (g_simple_async_result_propagate_error (G_SIMPLE_ASYNC_RESULT (result), error))
@@ -376,8 +376,8 @@ pkcs7_unpad_bytes_in_place (guchar *padded,
 	return TRUE;
 }
 
-static GSecretValue *
-service_decode_aes_secret (GSecretSession *session,
+static SecretValue *
+service_decode_aes_secret (SecretSession *session,
                            gconstpointer param,
                            gsize n_param,
                            gconstpointer value,
@@ -441,13 +441,13 @@ service_decode_aes_secret (GSecretSession *session,
 		return FALSE;
 	}
 
-	return gsecret_value_new_full ((gchar *)padded, n_padded, content_type, egg_secure_free);
+	return secret_value_new_full ((gchar *)padded, n_padded, content_type, egg_secure_free);
 }
 
 #endif /* WITH_GCRYPT */
 
-static GSecretValue *
-service_decode_plain_secret (GSecretSession *session,
+static SecretValue *
+service_decode_plain_secret (SecretSession *session,
                              gconstpointer param,
                              gsize n_param,
                              gconstpointer value,
@@ -459,14 +459,14 @@ service_decode_plain_secret (GSecretSession *session,
 		return NULL;
 	}
 
-	return gsecret_value_new (value, n_value, content_type);
+	return secret_value_new (value, n_value, content_type);
 }
 
-GSecretValue *
-_gsecret_session_decode_secret (GSecretSession *session,
+SecretValue *
+_secret_session_decode_secret (SecretSession *session,
                                 GVariant *encoded)
 {
-	GSecretValue *result;
+	SecretValue *result;
 	gconstpointer param;
 	gconstpointer value;
 	gchar *session_path;
@@ -535,8 +535,8 @@ pkcs7_pad_bytes_in_secure_memory (gconstpointer secret,
 }
 
 static gboolean
-service_encode_aes_secret (GSecretSession *session,
-                           GSecretValue *value,
+service_encode_aes_secret (SecretSession *session,
+                           SecretValue *value,
                            GVariantBuilder *builder)
 {
 	gcry_cipher_hd_t cih;
@@ -557,7 +557,7 @@ service_encode_aes_secret (GSecretSession *session,
 		return FALSE;
 	}
 
-	secret = gsecret_value_get (value, &n_secret);
+	secret = secret_value_get (value, &n_secret);
 
 	/* Perform the encoding here */
 	padded = pkcs7_pad_bytes_in_secure_memory (secret, n_secret, &n_padded);
@@ -587,15 +587,15 @@ service_encode_aes_secret (GSecretSession *session,
 	child = g_variant_new_from_data (G_VARIANT_TYPE ("ay"), padded, n_padded, TRUE, egg_secure_free, padded);
 	g_variant_builder_add_value (builder, child);
 
-	g_variant_builder_add (builder, "s", gsecret_value_get_content_type (value));
+	g_variant_builder_add (builder, "s", secret_value_get_content_type (value));
 	return TRUE;
 }
 
 #endif /* WITH_GCRYPT */
 
 static gboolean
-service_encode_plain_secret (GSecretSession *session,
-                             GSecretValue *value,
+service_encode_plain_secret (SecretSession *session,
+                             SecretValue *value,
                              GVariantBuilder *builder)
 {
 	gconstpointer secret;
@@ -604,24 +604,24 @@ service_encode_plain_secret (GSecretSession *session,
 
 	g_variant_builder_add (builder, "o", session->path);
 
-	secret = gsecret_value_get (value, &n_secret);
+	secret = secret_value_get (value, &n_secret);
 
 	child = g_variant_new_from_data (G_VARIANT_TYPE ("ay"), "", 0, TRUE, NULL, NULL);
 	g_variant_builder_add_value (builder, child);
 	g_variant_unref (child);
 
 	child = g_variant_new_from_data (G_VARIANT_TYPE ("ay"), secret, n_secret, TRUE,
-	                                 gsecret_value_unref, gsecret_value_ref (value));
+	                                 secret_value_unref, secret_value_ref (value));
 	g_variant_builder_add_value (builder, child);
 	g_variant_unref (child);
 
-	g_variant_builder_add (builder, "s", gsecret_value_get_content_type (value));
+	g_variant_builder_add (builder, "s", secret_value_get_content_type (value));
 	return TRUE;
 }
 
 GVariant *
-_gsecret_session_encode_secret (GSecretSession *session,
-                                GSecretValue *value)
+_secret_session_encode_secret (SecretSession *session,
+                                SecretValue *value)
 {
 	GVariantBuilder *builder;
 	GVariant *result = NULL;
@@ -649,14 +649,14 @@ _gsecret_session_encode_secret (GSecretSession *session,
 }
 
 const gchar *
-_gsecret_session_get_algorithms (GSecretSession *session)
+_secret_session_get_algorithms (SecretSession *session)
 {
 	g_return_val_if_fail (session != NULL, NULL);
 	return session->algorithms;
 }
 
 const gchar *
-_gsecret_session_get_path (GSecretSession *session)
+_secret_session_get_path (SecretSession *session)
 {
 	g_return_val_if_fail (session != NULL, NULL);
 	return session->path;

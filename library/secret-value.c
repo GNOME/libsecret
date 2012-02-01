@@ -1,4 +1,4 @@
-/* GSecret - GLib wrapper for Secret Service
+/* libsecret - GLib wrapper for Secret Service
  *
  * Copyright 2011 Collabora Ltd.
  *
@@ -12,16 +12,16 @@
 
 #include "config.h"
 
-#include "gsecret-private.h"
-#include "gsecret-value.h"
+#include "secret-private.h"
+#include "secret-value.h"
 
 #include "egg/egg-secure-memory.h"
 
 #include <string.h>
 
-EGG_SECURE_DECLARE (gsecret_value);
+EGG_SECURE_DECLARE (secret_value);
 
-struct _GSecretValue {
+struct _SecretValue {
 	gint refs;
 	gpointer secret;
 	gsize length;
@@ -30,23 +30,23 @@ struct _GSecretValue {
 };
 
 GType
-gsecret_value_get_type (void)
+secret_value_get_type (void)
 {
 	static gsize initialized = 0;
 	static GType type = 0;
 
 	if (g_once_init_enter (&initialized)) {
-		type = g_boxed_type_register_static ("GSecretValue",
-		                                     (GBoxedCopyFunc)gsecret_value_ref,
-		                                     (GBoxedFreeFunc)gsecret_value_unref);
+		type = g_boxed_type_register_static ("SecretValue",
+		                                     (GBoxedCopyFunc)secret_value_ref,
+		                                     (GBoxedFreeFunc)secret_value_unref);
 		g_once_init_leave (&initialized, 1);
 	}
 
 	return type;
 }
 
-GSecretValue*
-gsecret_value_new (const gchar *secret, gssize length, const gchar *content_type)
+SecretValue*
+secret_value_new (const gchar *secret, gssize length, const gchar *content_type)
 {
 	gchar *copy;
 
@@ -59,14 +59,14 @@ gsecret_value_new (const gchar *secret, gssize length, const gchar *content_type
 	copy = egg_secure_alloc (length + 1);
 	memcpy (copy, secret, length);
 	copy[length] = 0;
-	return gsecret_value_new_full (copy, length, content_type, egg_secure_free);
+	return secret_value_new_full (copy, length, content_type, egg_secure_free);
 }
 
-GSecretValue*
-gsecret_value_new_full (gchar *secret, gssize length,
+SecretValue*
+secret_value_new_full (gchar *secret, gssize length,
                         const gchar *content_type, GDestroyNotify destroy)
 {
-	GSecretValue *value;
+	SecretValue *value;
 
 	g_return_val_if_fail (secret == NULL || length != 0, NULL);
 	g_return_val_if_fail (content_type, NULL);
@@ -74,7 +74,7 @@ gsecret_value_new_full (gchar *secret, gssize length,
 	if (length < 0)
 		length = strlen (secret);
 
-	value = g_slice_new0 (GSecretValue);
+	value = g_slice_new0 (SecretValue);
 	value->refs = 1;
 	value->content_type = g_strdup (content_type);
 	value->destroy = destroy;
@@ -85,7 +85,7 @@ gsecret_value_new_full (gchar *secret, gssize length,
 }
 
 const gchar*
-gsecret_value_get (GSecretValue *value, gsize *length)
+secret_value_get (SecretValue *value, gsize *length)
 {
 	g_return_val_if_fail (value, NULL);
 	if (length)
@@ -94,14 +94,14 @@ gsecret_value_get (GSecretValue *value, gsize *length)
 }
 
 const gchar*
-gsecret_value_get_content_type (GSecretValue *value)
+secret_value_get_content_type (SecretValue *value)
 {
 	g_return_val_if_fail (value, NULL);
 	return value->content_type;
 }
 
-GSecretValue*
-gsecret_value_ref (GSecretValue *value)
+SecretValue*
+secret_value_ref (SecretValue *value)
 {
 	g_return_val_if_fail (value, NULL);
 	g_atomic_int_inc (&value->refs);
@@ -109,9 +109,9 @@ gsecret_value_ref (GSecretValue *value)
 }
 
 void
-gsecret_value_unref (gpointer value)
+secret_value_unref (gpointer value)
 {
-	GSecretValue *val = value;
+	SecretValue *val = value;
 
 	g_return_if_fail (value != NULL);
 
@@ -119,20 +119,20 @@ gsecret_value_unref (gpointer value)
 		g_free (val->content_type);
 		if (val->destroy)
 			(val->destroy) (val->secret);
-		g_slice_free (GSecretValue, val);
+		g_slice_free (SecretValue, val);
 	}
 }
 
 gchar *
-_gsecret_value_unref_to_password (GSecretValue *value)
+_secret_value_unref_to_password (SecretValue *value)
 {
-	GSecretValue *val = value;
+	SecretValue *val = value;
 	gchar *result;
 
 	g_return_val_if_fail (value != NULL, NULL);
 
 	if (val->content_type && !g_str_equal (val->content_type, "text/plain")) {
-		gsecret_value_unref (value);
+		secret_value_unref (value);
 		return NULL;
 	}
 
@@ -146,7 +146,7 @@ _gsecret_value_unref_to_password (GSecretValue *value)
 				(val->destroy) (val->secret);
 		}
 		g_free (val->content_type);
-		g_slice_free (GSecretValue, val);
+		g_slice_free (SecretValue, val);
 
 	} else {
 		result = egg_secure_strdup (val->secret);

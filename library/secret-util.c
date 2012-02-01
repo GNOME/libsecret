@@ -1,4 +1,4 @@
-/* GSecret - GLib wrapper for Secret Service
+/* libsecret - GLib wrapper for Secret Service
  *
  * Copyright 2011 Collabora Ltd.
  *
@@ -12,8 +12,8 @@
 
 #include "config.h"
 
-#include "gsecret-private.h"
-#include "gsecret-types.h"
+#include "secret-private.h"
+#include "secret-types.h"
 
 #include <string.h>
 
@@ -40,11 +40,11 @@ list_ref_copy (GList *reflist)
 }
 
 GType
-_gsecret_list_get_type (void)
+_secret_list_get_type (void)
 {
 	static GType type = 0;
 	if (!type)
-		type = g_boxed_type_register_static ("GSecretObjectList",
+		type = g_boxed_type_register_static ("SecretObjectList",
 		                                     (GBoxedCopyFunc)list_ref_copy,
 		                                     (GBoxedFreeFunc)list_unref_free);
 	return type;
@@ -52,13 +52,13 @@ _gsecret_list_get_type (void)
 }
 
 GQuark
-gsecret_error_get_quark (void)
+secret_error_get_quark (void)
 {
 	static volatile gsize initialized = 0;
 	static GQuark quark = 0;
 
 	if (g_once_init_enter (&initialized)) {
-		quark = g_quark_from_static_string ("gsecret-error");
+		quark = g_quark_from_static_string ("secret-error");
 		g_once_init_leave (&initialized, 1);
 	}
 
@@ -66,7 +66,7 @@ gsecret_error_get_quark (void)
 }
 
 gchar *
-_gsecret_util_parent_path (const gchar *path)
+_secret_util_parent_path (const gchar *path)
 {
 	const gchar *pos;
 
@@ -80,14 +80,14 @@ _gsecret_util_parent_path (const gchar *path)
 }
 
 gboolean
-_gsecret_util_empty_path (const gchar *path)
+_secret_util_empty_path (const gchar *path)
 {
 	g_return_val_if_fail (path != NULL, TRUE);
 	return (g_str_equal (path, "") || g_str_equal (path, "/"));
 }
 
 GVariant *
-_gsecret_util_variant_for_properties (GHashTable *properties)
+_secret_util_variant_for_properties (GHashTable *properties)
 {
 	GHashTableIter iter;
 	GVariantBuilder builder;
@@ -106,7 +106,7 @@ _gsecret_util_variant_for_properties (GHashTable *properties)
 }
 
 GVariant *
-_gsecret_util_variant_for_attributes (GHashTable *attributes)
+_secret_util_variant_for_attributes (GHashTable *attributes)
 {
 	GHashTableIter iter;
 	GVariantBuilder builder;
@@ -125,7 +125,7 @@ _gsecret_util_variant_for_attributes (GHashTable *attributes)
 }
 
 GHashTable *
-_gsecret_util_attributes_for_variant (GVariant *variant)
+_secret_util_attributes_for_variant (GVariant *variant)
 {
 	GVariantIter iter;
 	GHashTable *attributes;
@@ -142,11 +142,11 @@ _gsecret_util_attributes_for_variant (GVariant *variant)
 }
 
 GHashTable *
-_gsecret_util_attributes_for_varargs (const GSecretSchema *schema,
+_secret_util_attributes_for_varargs (const SecretSchema *schema,
                                       va_list args)
 {
 	const gchar *attribute_name;
-	GSecretSchemaType type;
+	SecretSchemaType type;
 	GHashTable *attributes;
 	const gchar *string;
 	gboolean type_found;
@@ -180,11 +180,11 @@ _gsecret_util_attributes_for_varargs (const GSecretSchema *schema,
 		}
 
 		switch (type) {
-		case GSECRET_ATTRIBUTE_BOOLEAN:
+		case SECRET_ATTRIBUTE_BOOLEAN:
 			boolean = va_arg (args, gboolean);
 			value = g_strdup (boolean ? "true" : "false");
 			break;
-		case GSECRET_ATTRIBUTE_STRING:
+		case SECRET_ATTRIBUTE_STRING:
 			string = va_arg (args, gchar *);
 			if (!g_utf8_validate (string, -1, NULL)) {
 				g_warning ("The value for attribute '%s' was not a valid utf-8 string.", attribute_name);
@@ -193,7 +193,7 @@ _gsecret_util_attributes_for_varargs (const GSecretSchema *schema,
 			}
 			value = g_strdup (string);
 			break;
-		case GSECRET_ATTRIBUTE_INTEGER:
+		case SECRET_ATTRIBUTE_INTEGER:
 			integer = va_arg (args, gint);
 			value = g_strdup_printf ("%d", integer);
 			break;
@@ -261,7 +261,7 @@ on_get_properties (GObject *source,
 }
 
 void
-_gsecret_util_get_properties (GDBusProxy *proxy,
+_secret_util_get_properties (GDBusProxy *proxy,
                               gpointer result_tag,
                               GCancellable *cancellable,
                               GAsyncReadyCallback callback,
@@ -287,7 +287,7 @@ _gsecret_util_get_properties (GDBusProxy *proxy,
 }
 
 gboolean
-_gsecret_util_get_properties_finish (GDBusProxy *proxy,
+_secret_util_get_properties_finish (GDBusProxy *proxy,
                                      gpointer result_tag,
                                      GAsyncResult *result,
                                      GError **error)
@@ -348,7 +348,7 @@ on_set_property (GObject *source,
 }
 
 void
-_gsecret_util_set_property (GDBusProxy *proxy,
+_secret_util_set_property (GDBusProxy *proxy,
                             const gchar *property,
                             GVariant *value,
                             gpointer result_tag,
@@ -370,7 +370,7 @@ _gsecret_util_set_property (GDBusProxy *proxy,
 	g_dbus_connection_call (g_dbus_proxy_get_connection (proxy),
 	                        g_dbus_proxy_get_name (proxy),
 	                        g_dbus_proxy_get_object_path (proxy),
-	                        GSECRET_PROPERTIES_INTERFACE,
+	                        SECRET_PROPERTIES_INTERFACE,
 	                        "Set",
 	                        g_variant_new ("(ssv)",
 	                                       g_dbus_proxy_get_interface_name (proxy),
@@ -385,7 +385,7 @@ _gsecret_util_set_property (GDBusProxy *proxy,
 }
 
 gboolean
-_gsecret_util_set_property_finish (GDBusProxy *proxy,
+_secret_util_set_property_finish (GDBusProxy *proxy,
                                    gpointer result_tag,
                                    GAsyncResult *result,
                                    GError **error)
@@ -406,7 +406,7 @@ _gsecret_util_set_property_finish (GDBusProxy *proxy,
 }
 
 gboolean
-_gsecret_util_set_property_sync (GDBusProxy *proxy,
+_secret_util_set_property_sync (GDBusProxy *proxy,
                                  const gchar *property,
                                  GVariant *value,
                                  GCancellable *cancellable,
@@ -423,7 +423,7 @@ _gsecret_util_set_property_sync (GDBusProxy *proxy,
 	retval = g_dbus_connection_call_sync (g_dbus_proxy_get_connection (proxy),
 	                                      g_dbus_proxy_get_name (proxy),
 	                                      g_dbus_proxy_get_object_path (proxy),
-	                                      GSECRET_PROPERTIES_INTERFACE,
+	                                      SECRET_PROPERTIES_INTERFACE,
 	                                      "Set",
 	                                      g_variant_new ("(ssv)",
 	                                                     g_dbus_proxy_get_interface_name (proxy),
@@ -445,7 +445,7 @@ _gsecret_util_set_property_sync (GDBusProxy *proxy,
 }
 
 gboolean
-_gsecret_util_have_cached_properties (GDBusProxy *proxy)
+_secret_util_have_cached_properties (GDBusProxy *proxy)
 {
 	gchar **names;
 
@@ -455,12 +455,12 @@ _gsecret_util_have_cached_properties (GDBusProxy *proxy)
 	return names != NULL;
 }
 
-GSecretSync *
-_gsecret_sync_new (void)
+SecretSync *
+_secret_sync_new (void)
 {
-	GSecretSync *sync;
+	SecretSync *sync;
 
-	sync = g_new0 (GSecretSync, 1);
+	sync = g_new0 (SecretSync, 1);
 
 	sync->context = g_main_context_new ();
 	sync->loop = g_main_loop_new (sync->context, FALSE);
@@ -469,9 +469,9 @@ _gsecret_sync_new (void)
 }
 
 void
-_gsecret_sync_free (gpointer data)
+_secret_sync_free (gpointer data)
 {
-	GSecretSync *sync = data;
+	SecretSync *sync = data;
 
 	g_clear_object (&sync->result);
 	g_main_loop_unref (sync->loop);
@@ -479,11 +479,11 @@ _gsecret_sync_free (gpointer data)
 }
 
 void
-_gsecret_sync_on_result (GObject *source,
+_secret_sync_on_result (GObject *source,
                          GAsyncResult *result,
                          gpointer user_data)
 {
-	GSecretSync *sync = user_data;
+	SecretSync *sync = user_data;
 	g_assert (sync->result == NULL);
 	sync->result = g_object_ref (result);
 	g_main_loop_quit (sync->loop);

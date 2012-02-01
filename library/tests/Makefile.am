@@ -16,12 +16,12 @@ libmock_service_la_CFLAGS = \
 
 libmock_service_la_LIBADD = \
 	$(top_builddir)/egg/libegg.la \
-	$(top_builddir)/library/libgsecret.la \
+	$(top_builddir)/library/libsecret.la \
 	$(LIBGCRYPT_LIBS)
 
 LDADD =  \
 	$(top_builddir)/egg/libegg.la \
-	$(top_builddir)/library/libgsecret.la \
+	$(top_builddir)/library/libsecret.la \
 	$(top_builddir)/library/tests/libmock_service.la \
 	$(NULL)
 

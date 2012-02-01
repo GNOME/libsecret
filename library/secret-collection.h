@@ -1,4 +1,4 @@
-/* GSecret - GLib wrapper for Secret Service
+/* libsecret - GLib wrapper for Secret Service
  *
  * Copyright 2012 Red Hat Inc.
  *
@@ -10,107 +10,107 @@
  * See the included COPYING file for more information.
  */
 
-#ifndef __GSECRET_COLLECTION_H__
-#define __GSECRET_COLLECTION_H__
+#ifndef __SECRET_COLLECTION_H__
+#define __SECRET_COLLECTION_H__
 
 #include <gio/gio.h>
 
-#include "gsecret-types.h"
+#include "secret-types.h"
 
 G_BEGIN_DECLS
 
-#define GSECRET_TYPE_COLLECTION            (gsecret_collection_get_type ())
-#define GSECRET_COLLECTION(inst)           (G_TYPE_CHECK_INSTANCE_CAST ((inst), GSECRET_TYPE_COLLECTION, GSecretCollection))
-#define GSECRET_COLLECTION_CLASS(class)    (G_TYPE_CHECK_CLASS_CAST ((class), GSECRET_TYPE_COLLECTION, GSecretCollectionClass))
-#define GSECRET_IS_COLLECTION(inst)        (G_TYPE_CHECK_INSTANCE_TYPE ((inst), GSECRET_TYPE_COLLECTION))
-#define GSECRET_IS_COLLECTION_CLASS(class) (G_TYPE_CHECK_CLASS_TYPE ((class), GSECRET_TYPE_COLLECTION))
-#define GSECRET_COLLECTION_GET_CLASS(inst) (G_TYPE_INSTANCE_GET_CLASS ((inst), GSECRET_TYPE_COLLECTION, GSecretCollectionClass))
+#define SECRET_TYPE_COLLECTION            (secret_collection_get_type ())
+#define SECRET_COLLECTION(inst)           (G_TYPE_CHECK_INSTANCE_CAST ((inst), SECRET_TYPE_COLLECTION, SecretCollection))
+#define SECRET_COLLECTION_CLASS(class)    (G_TYPE_CHECK_CLASS_CAST ((class), SECRET_TYPE_COLLECTION, SecretCollectionClass))
+#define SECRET_IS_COLLECTION(inst)        (G_TYPE_CHECK_INSTANCE_TYPE ((inst), SECRET_TYPE_COLLECTION))
+#define SECRET_IS_COLLECTION_CLASS(class) (G_TYPE_CHECK_CLASS_TYPE ((class), SECRET_TYPE_COLLECTION))
+#define SECRET_COLLECTION_GET_CLASS(inst) (G_TYPE_INSTANCE_GET_CLASS ((inst), SECRET_TYPE_COLLECTION, SecretCollectionClass))
 
-typedef struct _GSecretCollectionClass   GSecretCollectionClass;
-typedef struct _GSecretCollectionPrivate GSecretCollectionPrivate;
+typedef struct _SecretCollectionClass   SecretCollectionClass;
+typedef struct _SecretCollectionPrivate SecretCollectionPrivate;
 
-struct _GSecretCollection {
+struct _SecretCollection {
 	GDBusProxy parent;
-	GSecretCollectionPrivate *pv;
+	SecretCollectionPrivate *pv;
 };
 
-struct _GSecretCollectionClass {
+struct _SecretCollectionClass {
 	GDBusProxyClass parent_class;
 	gpointer padding[8];
 };
 
-GType               gsecret_collection_get_type                 (void) G_GNUC_CONST;
+GType               secret_collection_get_type                 (void) G_GNUC_CONST;
 
-void                gsecret_collection_new                      (GSecretService *service,
+void                secret_collection_new                      (SecretService *service,
                                                                  const gchar *collection_path,
                                                                  GCancellable *cancellable,
                                                                  GAsyncReadyCallback callback,
                                                                  gpointer user_data);
 
-GSecretCollection * gsecret_collection_new_finish               (GAsyncResult *result,
+SecretCollection * secret_collection_new_finish               (GAsyncResult *result,
                                                                  GError **error);
 
-GSecretCollection * gsecret_collection_new_sync                 (GSecretService *service,
+SecretCollection * secret_collection_new_sync                 (SecretService *service,
                                                                  const gchar *collection_path,
                                                                  GCancellable *cancellable,
                                                                  GError **error);
 
-void                gsecret_collection_refresh                  (GSecretCollection *self);
+void                secret_collection_refresh                  (SecretCollection *self);
 
-void                gsecret_collection_create                   (GSecretService *service,
+void                secret_collection_create                   (SecretService *service,
                                                                  const gchar *label,
                                                                  const gchar *alias,
                                                                  GCancellable *cancellable,
                                                                  GAsyncReadyCallback callback,
                                                                  gpointer user_data);
 
-GSecretCollection * gsecret_collection_create_finish            (GAsyncResult *result,
+SecretCollection * secret_collection_create_finish            (GAsyncResult *result,
                                                                  GError **error);
 
-GSecretCollection * gsecret_collection_create_sync              (GSecretService *service,
+SecretCollection * secret_collection_create_sync              (SecretService *service,
                                                                  const gchar *label,
                                                                  const gchar *alias,
                                                                  GCancellable *cancellable,
                                                                  GError **error);
 
-void                gsecret_collection_delete                   (GSecretCollection *self,
+void                secret_collection_delete                   (SecretCollection *self,
                                                                  GCancellable *cancellable,
                                                                  GAsyncReadyCallback callback,
                                                                  gpointer user_data);
 
-gboolean            gsecret_collection_delete_finish            (GSecretCollection *self,
+gboolean            secret_collection_delete_finish            (SecretCollection *self,
                                                                  GAsyncResult *result,
                                                                  GError **error);
 
-gboolean            gsecret_collection_delete_sync              (GSecretCollection *self,
+gboolean            secret_collection_delete_sync              (SecretCollection *self,
                                                                  GCancellable *cancellable,
                                                                  GError **error);
 
-GList *             gsecret_collection_get_items                (GSecretCollection *self);
+GList *             secret_collection_get_items                (SecretCollection *self);
 
-gchar *             gsecret_collection_get_label                (GSecretCollection *self);
+gchar *             secret_collection_get_label                (SecretCollection *self);
 
-void                gsecret_collection_set_label                (GSecretCollection *self,
+void                secret_collection_set_label                (SecretCollection *self,
                                                                  const gchar *label,
                                                                  GCancellable *cancellable,
                                                                  GAsyncReadyCallback callback,
                                                                  gpointer user_data);
 
-gboolean            gsecret_collection_set_label_finish         (GSecretCollection *self,
+gboolean            secret_collection_set_label_finish         (SecretCollection *self,
                                                                  GAsyncResult *result,
                                                                  GError **error);
 
-gboolean            gsecret_collection_set_label_sync           (GSecretCollection *self,
+gboolean            secret_collection_set_label_sync           (SecretCollection *self,
                                                                  const gchar *label,
                                                                  GCancellable *cancellable,
                                                                  GError **error);
 
-gboolean            gsecret_collection_get_locked               (GSecretCollection *self);
+gboolean            secret_collection_get_locked               (SecretCollection *self);
 
-guint64             gsecret_collection_get_created              (GSecretCollection *self);
+guint64             secret_collection_get_created              (SecretCollection *self);
 
-guint64             gsecret_collection_get_modified             (GSecretCollection *self);
+guint64             secret_collection_get_modified             (SecretCollection *self);
 
 G_END_DECLS
 
-#endif /* __GSECRET_COLLECTION_H___ */
+#endif /* __SECRET_COLLECTION_H___ */

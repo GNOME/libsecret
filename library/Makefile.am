@@ -7,42 +7,42 @@ module_flags = \
 	-avoid-version \
 	-module \
 	-no-undefined \
-	-export-symbols-regex '^gsecret_'
+	-export-symbols-regex '^secret_'
 
 INCLUDES = \
-	-DGSECRET_COMPILATION
+	-DSECRET_COMPILATION
 
-lib_LTLIBRARIES = libgsecret.la
+lib_LTLIBRARIES = libsecret.la
 
 HEADER_FILES = \
-	gsecret-collection.h \
-	gsecret-item.h \
-	gsecret-password.h \
-	gsecret-prompt.h \
-	gsecret-service.h \
-	gsecret-value.h
+	secret-collection.h \
+	secret-item.h \
+	secret-password.h \
+	secret-prompt.h \
+	secret-service.h \
+	secret-value.h
 
 BUILT_SOURCES = \
-	gsecret-dbus-generated.c gsecret-dbus-generated.h \
-	gsecret-enum-types.c gsecret-enum-types.h
+	secret-dbus-generated.c secret-dbus-generated.h \
+	secret-enum-types.c secret-enum-types.h
 
-libgsecret_la_SOURCES = \
-	gsecret-collection.h gsecret-collection.c \
-	gsecret-item.h gsecret-item.c \
-	gsecret-methods.c \
-	gsecret-password.h gsecret-password.c \
-	gsecret-prompt.h gsecret-prompt.c \
-	gsecret-service.h gsecret-service.c \
-	gsecret-session.h gsecret-session.c \
-	gsecret-util.c \
-	gsecret-value.h gsecret-value.c \
+libsecret_la_SOURCES = \
+	secret-collection.h secret-collection.c \
+	secret-item.h secret-item.c \
+	secret-methods.c \
+	secret-password.h secret-password.c \
+	secret-prompt.h secret-prompt.c \
+	secret-service.h secret-service.c \
+	secret-session.h secret-session.c \
+	secret-util.c \
+	secret-value.h secret-value.c \
 	$(BUILT_SOURCES) \
 	$(NULL)
 
-libgsecret_la_CFLAGS = \
+libsecret_la_CFLAGS = \
 	$(LIBGCRYPT_CFLAGS)
 
-libgsecret_la_LIBADD = \
+libsecret_la_LIBADD = \
 	$(top_builddir)/egg/libegg.la \
 	$(LIBGCRYPT_LIBS) \
 	$(LIBS)
@@ -50,23 +50,23 @@ libgsecret_la_LIBADD = \
 DBUS_XML_DEFINITIONS = \
 	org.freedesktop.Secrets.xml
 
-gsecret-dbus-generated.c: $(DBUS_XML_DEFINITIONS) Makefile.am
+secret-dbus-generated.c: $(DBUS_XML_DEFINITIONS) Makefile.am
 	$(AM_V_GEN) gdbus-codegen --interface-prefix org.freedesktop.Secret. \
-		--generate-c-code gsecret-dbus-generated --c-namespace GSecretGen \
+		--generate-c-code secret-dbus-generated --c-namespace SecretGen \
 		$(DBUS_XML_DEFINITIONS)
-	$(AM_V_GEN) sed -i -e 's/gsecret_gen_/_gsecret_gen_/g' gsecret-dbus-generated.[ch]
-	$(AM_V_GEN) sed -i -e '1i #define GLIB_DISABLE_DEPRECATION_WARNINGS' gsecret-dbus-generated.c
-gsecret-dbus-generated.h: gsecret-dbus-generated.c
+	$(AM_V_GEN) sed -i -e 's/secret_gen_/_secret_gen_/g' secret-dbus-generated.[ch]
+	$(AM_V_GEN) sed -i -e '1i #define GLIB_DISABLE_DEPRECATION_WARNINGS' secret-dbus-generated.c
+secret-dbus-generated.h: secret-dbus-generated.c
 
-gsecret-enum-types.h: gsecret-enum-types.h.template $(HEADER_FILES)
+secret-enum-types.h: secret-enum-types.h.template $(HEADER_FILES)
 	$(AM_V_GEN) $(GLIB_MKENUMS) --template $^ > $@
 
-gsecret-enum-types.c: gsecret-enum-types.c.template $(HEADER_FILES)
+secret-enum-types.c: secret-enum-types.c.template $(HEADER_FILES)
 	$(AM_V_GEN) $(GLIB_MKENUMS) --template $^ > $@
 
 EXTRA_DIST = \
-	gsecret-enum-types.h.template \
-	gsecret-enum-types.c.template
+	secret-enum-types.h.template \
+	secret-enum-types.c.template
 
 check-memory:
 	make -C tests check-memory

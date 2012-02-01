@@ -1,2 +1,2 @@
-library/gsecret-item.c
-library/gsecret-session.c
+library/secret-item.c
+library/secret-session.c

@@ -1,4 +1,4 @@
-/* GSecret - GLib wrapper for Secret Service
+/* libsecret - GLib wrapper for Secret Service
  *
  * Copyright 2011 Red Hat Inc.
  *
@@ -17,7 +17,7 @@
 
 #include "mock-service.h"
 
-#include "gsecret-private.h"
+#include "secret-private.h"
 
 #include <errno.h>
 #include <stdio.h>
@@ -45,7 +45,7 @@ mock_service_start (const gchar *mock_script,
 	g_return_val_if_fail (mock_script != NULL, FALSE);
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
-	_gsecret_service_set_default_bus_name (MOCK_SERVICE_NAME);
+	_secret_service_set_default_bus_name (MOCK_SERVICE_NAME);
 
 	if (pipe (wait_pipe) < 0) {
 		g_set_error_literal (error, G_IO_ERROR, g_io_error_from_errno (errno),

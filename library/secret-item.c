@@ -1,4 +1,4 @@
-/* GSecret - GLib wrapper for Secret Service
+/* libsecret - GLib wrapper for Secret Service
  *
  * Copyright 2012 Red Hat Inc.
  *
@@ -12,13 +12,13 @@
 
 #include "config.h"
 
-#include "gsecret-collection.h"
-#include "gsecret-dbus-generated.h"
-#include "gsecret-item.h"
-#include "gsecret-private.h"
-#include "gsecret-service.h"
-#include "gsecret-types.h"
-#include "gsecret-value.h"
+#include "secret-collection.h"
+#include "secret-dbus-generated.h"
+#include "secret-item.h"
+#include "secret-private.h"
+#include "secret-service.h"
+#include "secret-types.h"
+#include "secret-value.h"
 
 #include <glib/gi18n-lib.h>
 
@@ -34,28 +34,28 @@ enum {
 };
 
 /* Thread safe: no changes between construct and finalize */
-typedef struct _GSecretItemPrivate {
-	GSecretService *service;
+typedef struct _SecretItemPrivate {
+	SecretService *service;
 	GCancellable *cancellable;
-} GSecretItemPrivate;
+} SecretItemPrivate;
 
-static GInitableIface *gsecret_item_initable_parent_iface = NULL;
+static GInitableIface *secret_item_initable_parent_iface = NULL;
 
-static GAsyncInitableIface *gsecret_item_async_initable_parent_iface = NULL;
+static GAsyncInitableIface *secret_item_async_initable_parent_iface = NULL;
 
-static void   gsecret_item_initable_iface         (GInitableIface *iface);
+static void   secret_item_initable_iface         (GInitableIface *iface);
 
-static void   gsecret_item_async_initable_iface   (GAsyncInitableIface *iface);
+static void   secret_item_async_initable_iface   (GAsyncInitableIface *iface);
 
-G_DEFINE_TYPE_WITH_CODE (GSecretItem, gsecret_item, G_TYPE_DBUS_PROXY,
-                         G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE, gsecret_item_initable_iface);
-                         G_IMPLEMENT_INTERFACE (G_TYPE_ASYNC_INITABLE, gsecret_item_async_initable_iface);
+G_DEFINE_TYPE_WITH_CODE (SecretItem, secret_item, G_TYPE_DBUS_PROXY,
+                         G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE, secret_item_initable_iface);
+                         G_IMPLEMENT_INTERFACE (G_TYPE_ASYNC_INITABLE, secret_item_async_initable_iface);
 );
 
 static void
-gsecret_item_init (GSecretItem *self)
+secret_item_init (SecretItem *self)
 {
-	self->pv = G_TYPE_INSTANCE_GET_PRIVATE (self, GSECRET_TYPE_ITEM, GSecretItemPrivate);
+	self->pv = G_TYPE_INSTANCE_GET_PRIVATE (self, SECRET_TYPE_ITEM, SecretItemPrivate);
 	self->pv->cancellable = g_cancellable_new ();
 }
 
@@ -64,12 +64,12 @@ on_set_attributes (GObject *source,
                    GAsyncResult *result,
                    gpointer user_data)
 {
-	GSecretItem *self = GSECRET_ITEM (user_data);
+	SecretItem *self = SECRET_ITEM (user_data);
 	GError *error = NULL;
 
-	gsecret_item_set_attributes_finish (self, result, &error);
+	secret_item_set_attributes_finish (self, result, &error);
 	if (error != NULL) {
-		g_warning ("couldn't set GSecretItem Attributes: %s", error->message);
+		g_warning ("couldn't set SecretItem Attributes: %s", error->message);
 		g_error_free (error);
 	}
 
@@ -81,12 +81,12 @@ on_set_label (GObject *source,
               GAsyncResult *result,
               gpointer user_data)
 {
-	GSecretItem *self = GSECRET_ITEM (user_data);
+	SecretItem *self = SECRET_ITEM (user_data);
 	GError *error = NULL;
 
-	gsecret_item_set_label_finish (self, result, &error);
+	secret_item_set_label_finish (self, result, &error);
 	if (error != NULL) {
-		g_warning ("couldn't set GSecretItem Label: %s", error->message);
+		g_warning ("couldn't set SecretItem Label: %s", error->message);
 		g_error_free (error);
 	}
 
@@ -94,12 +94,12 @@ on_set_label (GObject *source,
 }
 
 static void
-gsecret_item_set_property (GObject *obj,
+secret_item_set_property (GObject *obj,
                            guint prop_id,
                            const GValue *value,
                            GParamSpec *pspec)
 {
-	GSecretItem *self = GSECRET_ITEM (obj);
+	SecretItem *self = SECRET_ITEM (obj);
 
 	switch (prop_id) {
 	case PROP_SERVICE:
@@ -110,12 +110,12 @@ gsecret_item_set_property (GObject *obj,
 			                           (gpointer *)&self->pv->service);
 		break;
 	case PROP_ATTRIBUTES:
-		gsecret_item_set_attributes (self, g_value_get_boxed (value),
+		secret_item_set_attributes (self, g_value_get_boxed (value),
 		                             self->pv->cancellable, on_set_attributes,
 		                             g_object_ref (self));
 		break;
 	case PROP_LABEL:
-		gsecret_item_set_label (self, g_value_get_string (value),
+		secret_item_set_label (self, g_value_get_string (value),
 		                        self->pv->cancellable, on_set_label,
 		                        g_object_ref (self));
 		break;
@@ -126,34 +126,34 @@ gsecret_item_set_property (GObject *obj,
 }
 
 static void
-gsecret_item_get_property (GObject *obj,
+secret_item_get_property (GObject *obj,
                            guint prop_id,
                            GValue *value,
                            GParamSpec *pspec)
 {
-	GSecretItem *self = GSECRET_ITEM (obj);
+	SecretItem *self = SECRET_ITEM (obj);
 
 	switch (prop_id) {
 	case PROP_SERVICE:
 		g_value_set_object (value, self->pv->service);
 		break;
 	case PROP_ATTRIBUTES:
-		g_value_take_boxed (value, gsecret_item_get_attributes (self));
+		g_value_take_boxed (value, secret_item_get_attributes (self));
 		break;
 	case PROP_LABEL:
-		g_value_take_string (value, gsecret_item_get_label (self));
+		g_value_take_string (value, secret_item_get_label (self));
 		break;
 	case PROP_SCHEMA:
-		g_value_take_string (value, gsecret_item_get_schema (self));
+		g_value_take_string (value, secret_item_get_schema (self));
 		break;
 	case PROP_LOCKED:
-		g_value_set_boolean (value, gsecret_item_get_locked (self));
+		g_value_set_boolean (value, secret_item_get_locked (self));
 		break;
 	case PROP_CREATED:
-		g_value_set_uint64 (value, gsecret_item_get_created (self));
+		g_value_set_uint64 (value, secret_item_get_created (self));
 		break;
 	case PROP_MODIFIED:
-		g_value_set_uint64 (value, gsecret_item_get_modified (self));
+		g_value_set_uint64 (value, secret_item_get_modified (self));
 		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (obj, prop_id, pspec);
@@ -162,19 +162,19 @@ gsecret_item_get_property (GObject *obj,
 }
 
 static void
-gsecret_item_dispose (GObject *obj)
+secret_item_dispose (GObject *obj)
 {
-	GSecretItem *self = GSECRET_ITEM (obj);
+	SecretItem *self = SECRET_ITEM (obj);
 
 	g_cancellable_cancel (self->pv->cancellable);
 
-	G_OBJECT_CLASS (gsecret_item_parent_class)->dispose (obj);
+	G_OBJECT_CLASS (secret_item_parent_class)->dispose (obj);
 }
 
 static void
-gsecret_item_finalize (GObject *obj)
+secret_item_finalize (GObject *obj)
 {
-	GSecretItem *self = GSECRET_ITEM (obj);
+	SecretItem *self = SECRET_ITEM (obj);
 
 	if (self->pv->service)
 		g_object_remove_weak_pointer (G_OBJECT (self->pv->service),
@@ -182,7 +182,7 @@ gsecret_item_finalize (GObject *obj)
 
 	g_object_unref (self->pv->cancellable);
 
-	G_OBJECT_CLASS (gsecret_item_parent_class)->finalize (obj);
+	G_OBJECT_CLASS (secret_item_parent_class)->finalize (obj);
 }
 
 static void
@@ -209,7 +209,7 @@ handle_property_changed (GObject *object,
 }
 
 static void
-gsecret_item_properties_changed (GDBusProxy *proxy,
+secret_item_properties_changed (GDBusProxy *proxy,
                                  GVariant *changed_properties,
                                  const gchar* const *invalidated_properties)
 {
@@ -228,21 +228,21 @@ gsecret_item_properties_changed (GDBusProxy *proxy,
 }
 
 static void
-gsecret_item_class_init (GSecretItemClass *klass)
+secret_item_class_init (SecretItemClass *klass)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
 	GDBusProxyClass *proxy_class = G_DBUS_PROXY_CLASS (klass);
 
-	gobject_class->get_property = gsecret_item_get_property;
-	gobject_class->set_property = gsecret_item_set_property;
-	gobject_class->dispose = gsecret_item_dispose;
-	gobject_class->finalize = gsecret_item_finalize;
+	gobject_class->get_property = secret_item_get_property;
+	gobject_class->set_property = secret_item_set_property;
+	gobject_class->dispose = secret_item_dispose;
+	gobject_class->finalize = secret_item_finalize;
 
-	proxy_class->g_properties_changed = gsecret_item_properties_changed;
+	proxy_class->g_properties_changed = secret_item_properties_changed;
 
 	g_object_class_install_property (gobject_class, PROP_SERVICE,
 	            g_param_spec_object ("service", "Service", "Secret Service",
-	                                 GSECRET_TYPE_SERVICE, G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS));
+	                                 SECRET_TYPE_SERVICE, G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS));
 
 	g_object_class_install_property (gobject_class, PROP_ATTRIBUTES,
 	             g_param_spec_boxed ("attributes", "Attributes", "Item attributes",
@@ -268,22 +268,22 @@ gsecret_item_class_init (GSecretItemClass *klass)
 	            g_param_spec_uint64 ("modified", "Modified", "Item modified date",
 	                                 0UL, G_MAXUINT64, 0UL, G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
-	g_type_class_add_private (gobject_class, sizeof (GSecretItemPrivate));
+	g_type_class_add_private (gobject_class, sizeof (SecretItemPrivate));
 }
 
 static gboolean
-gsecret_item_initable_init (GInitable *initable,
+secret_item_initable_init (GInitable *initable,
                             GCancellable *cancellable,
                             GError **error)
 {
 	GDBusProxy *proxy;
 
-	if (!gsecret_item_initable_parent_iface->init (initable, cancellable, error))
+	if (!secret_item_initable_parent_iface->init (initable, cancellable, error))
 		return FALSE;
 
 	proxy = G_DBUS_PROXY (initable);
 
-	if (!_gsecret_util_have_cached_properties (proxy)) {
+	if (!_secret_util_have_cached_properties (proxy)) {
 		g_set_error (error, G_DBUS_ERROR, G_DBUS_ERROR_UNKNOWN_METHOD,
 		             "No such secret item at path: %s",
 		             g_dbus_proxy_get_object_path (proxy));
@@ -294,11 +294,11 @@ gsecret_item_initable_init (GInitable *initable,
 }
 
 static void
-gsecret_item_initable_iface (GInitableIface *iface)
+secret_item_initable_iface (GInitableIface *iface)
 {
-	gsecret_item_initable_parent_iface = g_type_interface_peek_parent (iface);
+	secret_item_initable_parent_iface = g_type_interface_peek_parent (iface);
 
-	iface->init = gsecret_item_initable_init;
+	iface->init = secret_item_initable_init;
 }
 
 static void
@@ -307,15 +307,15 @@ on_init_base (GObject *source,
               gpointer user_data)
 {
 	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
-	GSecretItem *self = GSECRET_ITEM (source);
+	SecretItem *self = SECRET_ITEM (source);
 	GDBusProxy *proxy = G_DBUS_PROXY (self);
 	GError *error = NULL;
 
-	if (!gsecret_item_async_initable_parent_iface->init_finish (G_ASYNC_INITABLE (self),
+	if (!secret_item_async_initable_parent_iface->init_finish (G_ASYNC_INITABLE (self),
 	                                                            result, &error)) {
 		g_simple_async_result_take_error (res, error);
 
-	} else if (!_gsecret_util_have_cached_properties (proxy)) {
+	} else if (!_secret_util_have_cached_properties (proxy)) {
 		g_simple_async_result_set_error (res, G_DBUS_ERROR, G_DBUS_ERROR_UNKNOWN_METHOD,
 		                                 "No such secret item at path: %s",
 		                                 g_dbus_proxy_get_object_path (proxy));
@@ -326,7 +326,7 @@ on_init_base (GObject *source,
 }
 
 static void
-gsecret_item_async_initable_init_async (GAsyncInitable *initable,
+secret_item_async_initable_init_async (GAsyncInitable *initable,
                                         int io_priority,
                                         GCancellable *cancellable,
                                         GAsyncReadyCallback callback,
@@ -335,9 +335,9 @@ gsecret_item_async_initable_init_async (GAsyncInitable *initable,
 	GSimpleAsyncResult *res;
 
 	res = g_simple_async_result_new (G_OBJECT (initable), callback, user_data,
-	                                 gsecret_item_async_initable_init_async);
+	                                 secret_item_async_initable_init_async);
 
-	gsecret_item_async_initable_parent_iface->init_async (initable, io_priority,
+	secret_item_async_initable_parent_iface->init_async (initable, io_priority,
 	                                                      cancellable,
 	                                                      on_init_base,
 	                                                      g_object_ref (res));
@@ -346,12 +346,12 @@ gsecret_item_async_initable_init_async (GAsyncInitable *initable,
 }
 
 static gboolean
-gsecret_item_async_initable_init_finish (GAsyncInitable *initable,
+secret_item_async_initable_init_finish (GAsyncInitable *initable,
                                          GAsyncResult *result,
                                          GError **error)
 {
 	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (initable),
-	                      gsecret_item_async_initable_init_async), FALSE);
+	                      secret_item_async_initable_init_async), FALSE);
 
 	if (g_simple_async_result_propagate_error (G_SIMPLE_ASYNC_RESULT (result), error))
 		return FALSE;
@@ -360,16 +360,16 @@ gsecret_item_async_initable_init_finish (GAsyncInitable *initable,
 }
 
 static void
-gsecret_item_async_initable_iface (GAsyncInitableIface *iface)
+secret_item_async_initable_iface (GAsyncInitableIface *iface)
 {
-	gsecret_item_async_initable_parent_iface = g_type_interface_peek_parent (iface);
+	secret_item_async_initable_parent_iface = g_type_interface_peek_parent (iface);
 
-	iface->init_async = gsecret_item_async_initable_init_async;
-	iface->init_finish = gsecret_item_async_initable_init_finish;
+	iface->init_async = secret_item_async_initable_init_async;
+	iface->init_finish = secret_item_async_initable_init_finish;
 }
 
 void
-gsecret_item_new (GSecretService *service,
+secret_item_new (SecretService *service,
                   const gchar *item_path,
                   GCancellable *cancellable,
                   GAsyncReadyCallback callback,
@@ -377,26 +377,26 @@ gsecret_item_new (GSecretService *service,
 {
 	GDBusProxy *proxy;
 
-	g_return_if_fail (GSECRET_IS_SERVICE (service));
+	g_return_if_fail (SECRET_IS_SERVICE (service));
 	g_return_if_fail (item_path != NULL);
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
 	proxy = G_DBUS_PROXY (service);
 
-	g_async_initable_new_async (GSECRET_SERVICE_GET_CLASS (service)->item_gtype,
+	g_async_initable_new_async (SECRET_SERVICE_GET_CLASS (service)->item_gtype,
 	                            G_PRIORITY_DEFAULT, cancellable, callback, user_data,
 	                            "g-flags", G_DBUS_CALL_FLAGS_NONE,
-	                            "g-interface-info", _gsecret_gen_item_interface_info (),
+	                            "g-interface-info", _secret_gen_item_interface_info (),
 	                            "g-name", g_dbus_proxy_get_name (proxy),
 	                            "g-connection", g_dbus_proxy_get_connection (proxy),
 	                            "g-object-path", item_path,
-	                            "g-interface-name", GSECRET_ITEM_INTERFACE,
+	                            "g-interface-name", SECRET_ITEM_INTERFACE,
 	                            "service", service,
 	                            NULL);
 }
 
-GSecretItem *
-gsecret_item_new_finish (GAsyncResult *result,
+SecretItem *
+secret_item_new_finish (GAsyncResult *result,
                          GError **error)
 {
 	GObject *object;
@@ -410,50 +410,50 @@ gsecret_item_new_finish (GAsyncResult *result,
 	if (object == NULL)
 		return NULL;
 
-	return GSECRET_ITEM (object);
+	return SECRET_ITEM (object);
 }
 
-GSecretItem *
-gsecret_item_new_sync (GSecretService *service,
+SecretItem *
+secret_item_new_sync (SecretService *service,
                        const gchar *item_path,
                        GCancellable *cancellable,
                        GError **error)
 {
 	GDBusProxy *proxy;
 
-	g_return_val_if_fail (GSECRET_IS_SERVICE (service), NULL);
+	g_return_val_if_fail (SECRET_IS_SERVICE (service), NULL);
 	g_return_val_if_fail (item_path != NULL, NULL);
 	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
 	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 
 	proxy = G_DBUS_PROXY (service);
 
-	return g_initable_new (GSECRET_SERVICE_GET_CLASS (service)->item_gtype,
+	return g_initable_new (SECRET_SERVICE_GET_CLASS (service)->item_gtype,
 	                       cancellable, error,
 	                       "g-flags", G_DBUS_CALL_FLAGS_NONE,
-	                       "g-interface-info", _gsecret_gen_item_interface_info (),
+	                       "g-interface-info", _secret_gen_item_interface_info (),
 	                       "g-name", g_dbus_proxy_get_name (proxy),
 	                       "g-connection", g_dbus_proxy_get_connection (proxy),
 	                       "g-object-path", item_path,
-	                       "g-interface-name", GSECRET_ITEM_INTERFACE,
+	                       "g-interface-name", SECRET_ITEM_INTERFACE,
 	                       "service", service,
 	                       NULL);
 }
 
 void
-gsecret_item_refresh (GSecretItem *self)
+secret_item_refresh (SecretItem *self)
 {
-	g_return_if_fail (GSECRET_IS_ITEM (self));
+	g_return_if_fail (SECRET_IS_ITEM (self));
 
-	_gsecret_util_get_properties (G_DBUS_PROXY (self),
-	                              gsecret_item_refresh,
+	_secret_util_get_properties (G_DBUS_PROXY (self),
+	                              secret_item_refresh,
 	                              NULL, NULL, NULL);
 }
 
 
 typedef struct {
 	GCancellable *cancellable;
-	GSecretItem *item;
+	SecretItem *item;
 } CreateClosure;
 
 static void
@@ -474,7 +474,7 @@ on_create_item (GObject *source,
 	CreateClosure *closure = g_simple_async_result_get_op_res_gpointer (res);
 	GError *error = NULL;
 
-	closure->item = gsecret_item_new_finish (result, &error);
+	closure->item = secret_item_new_finish (result, &error);
 	if (error != NULL)
 		g_simple_async_result_take_error (res, error);
 
@@ -489,13 +489,13 @@ on_create_path (GObject *source,
 {
 	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
 	CreateClosure *closure = g_simple_async_result_get_op_res_gpointer (res);
-	GSecretService *service = GSECRET_SERVICE (source);
+	SecretService *service = SECRET_SERVICE (source);
 	GError *error = NULL;
 	gchar *path;
 
-	path = gsecret_service_create_item_path_finish (service, result, &error);
+	path = secret_service_create_item_path_finish (service, result, &error);
 	if (error == NULL) {
-		gsecret_item_new (service, path, closure->cancellable,
+		secret_item_new (service, path, closure->cancellable,
 		                  on_create_item, g_object_ref (res));
 	} else {
 		g_simple_async_result_take_error (res, error);
@@ -518,47 +518,47 @@ item_properties_new (const gchar *schema_name,
 
 	value = g_variant_new_string (label);
 	g_hash_table_insert (properties,
-	                     GSECRET_ITEM_INTERFACE ".Label",
+	                     SECRET_ITEM_INTERFACE ".Label",
 	                     g_variant_ref_sink (value));
 
 	value = g_variant_new_string (schema_name);
 	g_hash_table_insert (properties,
-	                     GSECRET_ITEM_INTERFACE ".Schema",
+	                     SECRET_ITEM_INTERFACE ".Schema",
 	                     g_variant_ref_sink (value));
 
-	value = _gsecret_util_variant_for_attributes (attributes);
+	value = _secret_util_variant_for_attributes (attributes);
 	g_hash_table_insert (properties,
-	                     GSECRET_ITEM_INTERFACE ".Attributes",
+	                     SECRET_ITEM_INTERFACE ".Attributes",
 	                     g_variant_ref_sink (value));
 
 	return properties;
 }
 
 void
-gsecret_item_create (GSecretCollection *collection,
+secret_item_create (SecretCollection *collection,
                      const gchar *schema_name,
                      const gchar *label,
                      GHashTable *attributes,
-                     GSecretValue *value,
+                     SecretValue *value,
                      gboolean replace,
                      GCancellable *cancellable,
                      GAsyncReadyCallback callback,
                      gpointer user_data)
 {
-	GSecretService *service = NULL;
+	SecretService *service = NULL;
 	const gchar *collection_path;
 	GSimpleAsyncResult *res;
 	CreateClosure *closure;
 	GHashTable *properties;
 
-	g_return_if_fail (GSECRET_IS_COLLECTION (collection));
+	g_return_if_fail (SECRET_IS_COLLECTION (collection));
 	g_return_if_fail (label != NULL);
 	g_return_if_fail (attributes != NULL);
 	g_return_if_fail (value != NULL);
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
 	res = g_simple_async_result_new (NULL, callback, user_data,
-	                                 gsecret_item_create);
+	                                 secret_item_create);
 	closure = g_slice_new0 (CreateClosure);
 	closure->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
 	g_simple_async_result_set_op_res_gpointer (res, closure, create_closure_free);
@@ -568,7 +568,7 @@ gsecret_item_create (GSecretCollection *collection,
 
 	collection_path = g_dbus_proxy_get_object_path (G_DBUS_PROXY (collection));
 
-	gsecret_service_create_item_path (service, collection_path, properties,
+	secret_service_create_item_path (service, collection_path, properties,
 	                                  value, replace, cancellable,
 	                                  on_create_path, g_object_ref (res));
 
@@ -577,15 +577,15 @@ gsecret_item_create (GSecretCollection *collection,
 	g_object_unref (res);
 }
 
-GSecretItem *
-gsecret_item_create_finish (GAsyncResult *result,
+SecretItem *
+secret_item_create_finish (GAsyncResult *result,
                             GError **error)
 {
 	GSimpleAsyncResult *res;
 	CreateClosure *closure;
 
 	g_return_val_if_fail (g_simple_async_result_is_valid (result, NULL,
-	                      gsecret_item_create), NULL);
+	                      secret_item_create), NULL);
 	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 
 	res = G_SIMPLE_ASYNC_RESULT (result);
@@ -600,23 +600,23 @@ gsecret_item_create_finish (GAsyncResult *result,
 	return g_object_ref (closure->item);
 }
 
-GSecretItem *
-gsecret_item_create_sync (GSecretCollection *collection,
+SecretItem *
+secret_item_create_sync (SecretCollection *collection,
                           const gchar *schema_name,
                           const gchar *label,
                           GHashTable *attributes,
-                          GSecretValue *value,
+                          SecretValue *value,
                           gboolean replace,
                           GCancellable *cancellable,
                           GError **error)
 {
-	GSecretService *service = NULL;
+	SecretService *service = NULL;
 	const gchar *collection_path;
-	GSecretItem *item = NULL;
+	SecretItem *item = NULL;
 	GHashTable *properties;
 	gchar *path;
 
-	g_return_val_if_fail (GSECRET_IS_COLLECTION (collection), NULL);
+	g_return_val_if_fail (SECRET_IS_COLLECTION (collection), NULL);
 	g_return_val_if_fail (label != NULL, NULL);
 	g_return_val_if_fail (attributes != NULL, NULL);
 	g_return_val_if_fail (value != NULL, NULL);
@@ -628,11 +628,11 @@ gsecret_item_create_sync (GSecretCollection *collection,
 
 	collection_path = g_dbus_proxy_get_object_path (G_DBUS_PROXY (collection));
 
-	path = gsecret_service_create_item_path_sync (service, collection_path, properties,
+	path = secret_service_create_item_path_sync (service, collection_path, properties,
 	                                              value, replace, cancellable, error);
 
 	if (path != NULL) {
-		item = gsecret_item_new_sync (service, path, cancellable, error);
+		item = secret_item_new_sync (service, path, cancellable, error);
 		g_free (path);
 	}
 
@@ -648,10 +648,10 @@ on_item_deleted (GObject *source,
                  gpointer user_data)
 {
 	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
-	GSecretItem *self = GSECRET_ITEM (g_async_result_get_source_object (user_data));
+	SecretItem *self = SECRET_ITEM (g_async_result_get_source_object (user_data));
 	GError *error = NULL;
 
-	if (gsecret_service_delete_path_finish (GSECRET_SERVICE (source), result, &error)) {
+	if (secret_service_delete_path_finish (SECRET_SERVICE (source), result, &error)) {
 		g_simple_async_result_set_op_res_gboolean (res, TRUE);
 		g_object_run_dispose (G_OBJECT (self));
 	}
@@ -665,7 +665,7 @@ on_item_deleted (GObject *source,
 }
 
 void
-gsecret_item_delete (GSecretItem *self,
+secret_item_delete (SecretItem *self,
                      GCancellable *cancellable,
                      GAsyncReadyCallback callback,
                      gpointer user_data)
@@ -673,30 +673,30 @@ gsecret_item_delete (GSecretItem *self,
 	GSimpleAsyncResult *res;
 	const gchar *object_path;
 
-	g_return_if_fail (GSECRET_IS_ITEM (self));
+	g_return_if_fail (SECRET_IS_ITEM (self));
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
 	object_path = g_dbus_proxy_get_object_path (G_DBUS_PROXY (self));
 	res = g_simple_async_result_new (G_OBJECT (self), callback, user_data,
-	                                 gsecret_item_delete);
+	                                 secret_item_delete);
 
-	_gsecret_service_delete_path (self->pv->service, object_path, TRUE,
+	_secret_service_delete_path (self->pv->service, object_path, TRUE,
 	                              cancellable, on_item_deleted, g_object_ref (res));
 
 	g_object_unref (res);
 }
 
 gboolean
-gsecret_item_delete_finish (GSecretItem *self,
+secret_item_delete_finish (SecretItem *self,
                             GAsyncResult *result,
                             GError **error)
 {
 	GSimpleAsyncResult *res;
 
-	g_return_val_if_fail (GSECRET_IS_ITEM (self), FALSE);
+	g_return_val_if_fail (SECRET_IS_ITEM (self), FALSE);
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (self),
-	                      gsecret_item_delete), FALSE);
+	                      secret_item_delete), FALSE);
 
 	res = G_SIMPLE_ASYNC_RESULT (result);
 
@@ -707,35 +707,35 @@ gsecret_item_delete_finish (GSecretItem *self,
 }
 
 gboolean
-gsecret_item_delete_sync (GSecretItem *self,
+secret_item_delete_sync (SecretItem *self,
                           GCancellable *cancellable,
                           GError **error)
 {
-	GSecretSync *sync;
+	SecretSync *sync;
 	gboolean ret;
 
-	g_return_val_if_fail (GSECRET_IS_ITEM (self), FALSE);
+	g_return_val_if_fail (SECRET_IS_ITEM (self), FALSE);
 	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), FALSE);
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
-	sync = _gsecret_sync_new ();
+	sync = _secret_sync_new ();
 	g_main_context_push_thread_default (sync->context);
 
-	gsecret_item_delete (self, cancellable, _gsecret_sync_on_result, sync);
+	secret_item_delete (self, cancellable, _secret_sync_on_result, sync);
 
 	g_main_loop_run (sync->loop);
 
-	ret = gsecret_item_delete_finish (self, sync->result, error);
+	ret = secret_item_delete_finish (self, sync->result, error);
 
 	g_main_context_pop_thread_default (sync->context);
-	_gsecret_sync_free (sync);
+	_secret_sync_free (sync);
 
 	return ret;
 }
 
 typedef struct {
 	GCancellable *cancellable;
-	GSecretValue *value;
+	SecretValue *value;
 } GetClosure;
 
 static void
@@ -743,7 +743,7 @@ get_closure_free (gpointer data)
 {
 	GetClosure *closure = data;
 	g_clear_object (&closure->cancellable);
-	gsecret_value_unref (closure->value);
+	secret_value_unref (closure->value);
 	g_slice_free (GetClosure, closure);
 }
 
@@ -753,9 +753,9 @@ on_item_get_secret (GObject *source,
                     gpointer user_data)
 {
 	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
-	GSecretItem *self = GSECRET_ITEM (g_async_result_get_source_object (user_data));
+	SecretItem *self = SECRET_ITEM (g_async_result_get_source_object (user_data));
 	GetClosure *closure = g_simple_async_result_get_op_res_gpointer (res);
-	GSecretSession *session;
+	SecretSession *session;
 	GError *error = NULL;
 	GVariant *retval;
 	GVariant *child;
@@ -765,12 +765,12 @@ on_item_get_secret (GObject *source,
 		child = g_variant_get_child_value (retval, 0);
 		g_variant_unref (retval);
 
-		session = _gsecret_service_get_session (self->pv->service);
-		closure->value = _gsecret_session_decode_secret (session, child);
+		session = _secret_service_get_session (self->pv->service);
+		closure->value = _secret_session_decode_secret (session, child);
 		g_variant_unref (child);
 
 		if (closure->value == NULL)
-			g_set_error (&error, GSECRET_ERROR, GSECRET_ERROR_PROTOCOL,
+			g_set_error (&error, SECRET_ERROR, SECRET_ERROR_PROTOCOL,
 			             _("Received invalid secret from the secret storage"));
 	}
 
@@ -787,12 +787,12 @@ on_get_ensure_session (GObject *source,
                        gpointer user_data)
 {
 	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
-	GSecretItem *self = GSECRET_ITEM (g_async_result_get_source_object (user_data));
+	SecretItem *self = SECRET_ITEM (g_async_result_get_source_object (user_data));
 	GetClosure *closure = g_simple_async_result_get_op_res_gpointer (res);
 	const gchar *session_path;
 	GError *error = NULL;
 
-	session_path = gsecret_service_ensure_session_finish (self->pv->service, result, &error);
+	session_path = secret_service_ensure_session_finish (self->pv->service, result, &error);
 	if (error != NULL) {
 		g_simple_async_result_take_error (res, error);
 		g_simple_async_result_complete (res);
@@ -810,7 +810,7 @@ on_get_ensure_session (GObject *source,
 }
 
 void
-gsecret_item_get_secret (GSecretItem *self,
+secret_item_get_secret (SecretItem *self,
                          GCancellable *cancellable,
                          GAsyncReadyCallback callback,
                          gpointer user_data)
@@ -818,24 +818,24 @@ gsecret_item_get_secret (GSecretItem *self,
 	GSimpleAsyncResult *res;
 	GetClosure *closure;
 
-	g_return_if_fail (GSECRET_IS_ITEM (self));
+	g_return_if_fail (SECRET_IS_ITEM (self));
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
 	res = g_simple_async_result_new (G_OBJECT (self), callback,
-	                                 user_data, gsecret_item_get_secret);
+	                                 user_data, secret_item_get_secret);
 	closure = g_slice_new0 (GetClosure);
 	closure->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
 	g_simple_async_result_set_op_res_gpointer (res, closure, get_closure_free);
 
-	gsecret_service_ensure_session (self->pv->service, cancellable,
+	secret_service_ensure_session (self->pv->service, cancellable,
 	                                on_get_ensure_session,
 	                                g_object_ref (res));
 
 	g_object_unref (res);
 }
 
-GSecretValue*
-gsecret_item_get_secret_finish (GSecretItem *self,
+SecretValue*
+secret_item_get_secret_finish (SecretItem *self,
                                 GAsyncResult *result,
                                 GError **error)
 {
@@ -843,46 +843,46 @@ gsecret_item_get_secret_finish (GSecretItem *self,
 	GetClosure *closure;
 
 	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (self),
-	                      gsecret_item_get_secret), NULL);
+	                      secret_item_get_secret), NULL);
 
 	res = G_SIMPLE_ASYNC_RESULT (result);
 	if (g_simple_async_result_propagate_error (res, error))
 		return NULL;
 
 	closure = g_simple_async_result_get_op_res_gpointer (res);
-	return closure->value ? gsecret_value_ref (closure->value) : NULL;
+	return closure->value ? secret_value_ref (closure->value) : NULL;
 }
 
-GSecretValue*
-gsecret_item_get_secret_sync (GSecretItem *self,
+SecretValue*
+secret_item_get_secret_sync (SecretItem *self,
                               GCancellable *cancellable,
                               GError **error)
 {
-	GSecretSync *sync;
-	GSecretValue *value;
+	SecretSync *sync;
+	SecretValue *value;
 
-	g_return_val_if_fail (GSECRET_IS_ITEM (self), FALSE);
+	g_return_val_if_fail (SECRET_IS_ITEM (self), FALSE);
 	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), FALSE);
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
-	sync = _gsecret_sync_new ();
+	sync = _secret_sync_new ();
 	g_main_context_push_thread_default (sync->context);
 
-	gsecret_item_get_secret (self, cancellable, _gsecret_sync_on_result, sync);
+	secret_item_get_secret (self, cancellable, _secret_sync_on_result, sync);
 
 	g_main_loop_run (sync->loop);
 
-	value = gsecret_item_get_secret_finish (self, sync->result, error);
+	value = secret_item_get_secret_finish (self, sync->result, error);
 
 	g_main_context_pop_thread_default (sync->context);
-	_gsecret_sync_free (sync);
+	_secret_sync_free (sync);
 
 	return value;
 }
 
 typedef struct {
 	GCancellable *cancellable;
-	GSecretValue *value;
+	SecretValue *value;
 } SetClosure;
 
 static void
@@ -890,7 +890,7 @@ set_closure_free (gpointer data)
 {
 	GetClosure *closure = data;
 	g_clear_object (&closure->cancellable);
-	gsecret_value_unref (closure->value);
+	secret_value_unref (closure->value);
 	g_slice_free (GetClosure, closure);
 }
 
@@ -920,20 +920,20 @@ on_set_ensure_session (GObject *source,
                        gpointer user_data)
 {
 	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
-	GSecretItem *self = GSECRET_ITEM (g_async_result_get_source_object (user_data));
+	SecretItem *self = SECRET_ITEM (g_async_result_get_source_object (user_data));
 	SetClosure *closure = g_simple_async_result_get_op_res_gpointer (res);
-	GSecretSession *session;
+	SecretSession *session;
 	GVariant *encoded;
 	GError *error = NULL;
 
-	gsecret_service_ensure_session_finish (self->pv->service, result, &error);
+	secret_service_ensure_session_finish (self->pv->service, result, &error);
 	if (error != NULL) {
 		g_simple_async_result_take_error (res, error);
 		g_simple_async_result_complete (res);
 
 	} else {
-		session = _gsecret_service_get_session (self->pv->service);
-		encoded = _gsecret_session_encode_secret (session, closure->value);
+		session = _secret_service_get_session (self->pv->service);
+		encoded = _secret_session_encode_secret (session, closure->value);
 		g_dbus_proxy_call (G_DBUS_PROXY (self), "SetSecret",
 		                   g_variant_new ("(@(oayays))", encoded),
 		                   G_DBUS_CALL_FLAGS_NO_AUTO_START, -1, closure->cancellable,
@@ -945,8 +945,8 @@ on_set_ensure_session (GObject *source,
 }
 
 void
-gsecret_item_set_secret (GSecretItem *self,
-                         GSecretValue *value,
+secret_item_set_secret (SecretItem *self,
+                         SecretValue *value,
                          GCancellable *cancellable,
                          GAsyncReadyCallback callback,
                          gpointer user_data)
@@ -954,18 +954,18 @@ gsecret_item_set_secret (GSecretItem *self,
 	GSimpleAsyncResult *res;
 	SetClosure *closure;
 
-	g_return_if_fail (GSECRET_IS_ITEM (self));
+	g_return_if_fail (SECRET_IS_ITEM (self));
 	g_return_if_fail (value != NULL);
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
 	res = g_simple_async_result_new (G_OBJECT (self), callback,
-	                                 user_data, gsecret_item_set_secret);
+	                                 user_data, secret_item_set_secret);
 	closure = g_slice_new0 (SetClosure);
 	closure->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
-	closure->value = gsecret_value_ref (value);
+	closure->value = secret_value_ref (value);
 	g_simple_async_result_set_op_res_gpointer (res, closure, set_closure_free);
 
-	gsecret_service_ensure_session (self->pv->service, cancellable,
+	secret_service_ensure_session (self->pv->service, cancellable,
 	                                on_set_ensure_session,
 	                                g_object_ref (res));
 
@@ -973,14 +973,14 @@ gsecret_item_set_secret (GSecretItem *self,
 }
 
 gboolean
-gsecret_item_set_secret_finish (GSecretItem *self,
+secret_item_set_secret_finish (SecretItem *self,
                                 GAsyncResult *result,
                                 GError **error)
 {
 	GSimpleAsyncResult *res;
 
 	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (self),
-	                      gsecret_item_set_secret), FALSE);
+	                      secret_item_set_secret), FALSE);
 
 	res = G_SIMPLE_ASYNC_RESULT (result);
 	if (g_simple_async_result_propagate_error (res, error))
@@ -990,99 +990,99 @@ gsecret_item_set_secret_finish (GSecretItem *self,
 }
 
 gboolean
-gsecret_item_set_secret_sync (GSecretItem *self,
-                              GSecretValue *value,
+secret_item_set_secret_sync (SecretItem *self,
+                              SecretValue *value,
                               GCancellable *cancellable,
                               GError **error)
 {
-	GSecretSync *sync;
+	SecretSync *sync;
 	gboolean ret;
 
-	g_return_val_if_fail (GSECRET_IS_ITEM (self), FALSE);
+	g_return_val_if_fail (SECRET_IS_ITEM (self), FALSE);
 	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), FALSE);
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
-	sync = _gsecret_sync_new ();
+	sync = _secret_sync_new ();
 	g_main_context_push_thread_default (sync->context);
 
-	gsecret_item_set_secret (self, value, cancellable, _gsecret_sync_on_result, sync);
+	secret_item_set_secret (self, value, cancellable, _secret_sync_on_result, sync);
 
 	g_main_loop_run (sync->loop);
 
-	ret = gsecret_item_set_secret_finish (self, sync->result, error);
+	ret = secret_item_set_secret_finish (self, sync->result, error);
 
 	g_main_context_pop_thread_default (sync->context);
-	_gsecret_sync_free (sync);
+	_secret_sync_free (sync);
 
 	return ret;
 }
 
 GHashTable *
-gsecret_item_get_attributes (GSecretItem *self)
+secret_item_get_attributes (SecretItem *self)
 {
 	GHashTable *attributes;
 	GVariant *variant;
 
-	g_return_val_if_fail (GSECRET_IS_ITEM (self), NULL);
+	g_return_val_if_fail (SECRET_IS_ITEM (self), NULL);
 
 	variant = g_dbus_proxy_get_cached_property (G_DBUS_PROXY (self), "Attributes");
 	g_return_val_if_fail (variant != NULL, NULL);
 
-	attributes = _gsecret_util_attributes_for_variant (variant);
+	attributes = _secret_util_attributes_for_variant (variant);
 	g_variant_unref (variant);
 
 	return attributes;
 }
 
 void
-gsecret_item_set_attributes (GSecretItem *self,
+secret_item_set_attributes (SecretItem *self,
                              GHashTable *attributes,
                              GCancellable *cancellable,
                              GAsyncReadyCallback callback,
                              gpointer user_data)
 {
-	g_return_if_fail (GSECRET_IS_ITEM (self));
+	g_return_if_fail (SECRET_IS_ITEM (self));
 	g_return_if_fail (attributes != NULL);
 
-	_gsecret_util_set_property (G_DBUS_PROXY (self), "Attributes",
-	                            _gsecret_util_variant_for_attributes (attributes),
-	                            gsecret_item_set_attributes, cancellable,
+	_secret_util_set_property (G_DBUS_PROXY (self), "Attributes",
+	                            _secret_util_variant_for_attributes (attributes),
+	                            secret_item_set_attributes, cancellable,
 	                            callback, user_data);
 }
 
 gboolean
-gsecret_item_set_attributes_finish (GSecretItem *self,
+secret_item_set_attributes_finish (SecretItem *self,
                                     GAsyncResult *result,
                                     GError **error)
 {
-	g_return_val_if_fail (GSECRET_IS_ITEM (self), FALSE);
+	g_return_val_if_fail (SECRET_IS_ITEM (self), FALSE);
 
-	return _gsecret_util_set_property_finish (G_DBUS_PROXY (self),
-	                                          gsecret_item_set_attributes,
+	return _secret_util_set_property_finish (G_DBUS_PROXY (self),
+	                                          secret_item_set_attributes,
 	                                          result, error);
 }
 
 gboolean
-gsecret_item_set_attributes_sync (GSecretItem *self,
+secret_item_set_attributes_sync (SecretItem *self,
                                   GHashTable *attributes,
                                   GCancellable *cancellable,
                                   GError **error)
 {
-	g_return_val_if_fail (GSECRET_IS_ITEM (self), FALSE);
+	g_return_val_if_fail (SECRET_IS_ITEM (self), FALSE);
 	g_return_val_if_fail (attributes != NULL, FALSE);
 
-	return _gsecret_util_set_property_sync (G_DBUS_PROXY (self), "Attributes",
-	                                        _gsecret_util_variant_for_attributes (attributes),
+	return _secret_util_set_property_sync (G_DBUS_PROXY (self), "Attributes",
+	                                        _secret_util_variant_for_attributes (attributes),
 	                                        cancellable, error);
 }
 
 gchar *
-gsecret_item_get_schema (GSecretItem *self)
+secret_item_get_schema (SecretItem *self)
 {
 	GVariant *variant;
 	gchar *label;
 
-	g_return_val_if_fail (GSECRET_IS_ITEM (self), NULL);
+	g_return_val_if_fail (SECRET_IS_ITEM (self), NULL);
 
 	variant = g_dbus_proxy_get_cached_property (G_DBUS_PROXY (self), "Type");
 	if (variant == NULL)
@@ -1095,12 +1095,12 @@ gsecret_item_get_schema (GSecretItem *self)
 }
 
 gchar *
-gsecret_item_get_label (GSecretItem *self)
+secret_item_get_label (SecretItem *self)
 {
 	GVariant *variant;
 	gchar *label;
 
-	g_return_val_if_fail (GSECRET_IS_ITEM (self), NULL);
+	g_return_val_if_fail (SECRET_IS_ITEM (self), NULL);
 
 	variant = g_dbus_proxy_get_cached_property (G_DBUS_PROXY (self), "Label");
 	g_return_val_if_fail (variant != NULL, NULL);
@@ -1112,54 +1112,54 @@ gsecret_item_get_label (GSecretItem *self)
 }
 
 void
-gsecret_item_set_label (GSecretItem *self,
+secret_item_set_label (SecretItem *self,
                         const gchar *label,
                         GCancellable *cancellable,
                         GAsyncReadyCallback callback,
                         gpointer user_data)
 {
-	g_return_if_fail (GSECRET_IS_ITEM (self));
+	g_return_if_fail (SECRET_IS_ITEM (self));
 	g_return_if_fail (label != NULL);
 
-	_gsecret_util_set_property (G_DBUS_PROXY (self), "Label",
+	_secret_util_set_property (G_DBUS_PROXY (self), "Label",
 	                            g_variant_new_string (label),
-	                            gsecret_item_set_label,
+	                            secret_item_set_label,
 	                            cancellable, callback, user_data);
 }
 
 gboolean
-gsecret_item_set_label_finish (GSecretItem *self,
+secret_item_set_label_finish (SecretItem *self,
                                GAsyncResult *result,
                                GError **error)
 {
-	g_return_val_if_fail (GSECRET_IS_ITEM (self), FALSE);
+	g_return_val_if_fail (SECRET_IS_ITEM (self), FALSE);
 
-	return _gsecret_util_set_property_finish (G_DBUS_PROXY (self),
-	                                          gsecret_item_set_label,
+	return _secret_util_set_property_finish (G_DBUS_PROXY (self),
+	                                          secret_item_set_label,
 	                                          result, error);
 }
 
 gboolean
-gsecret_item_set_label_sync (GSecretItem *self,
+secret_item_set_label_sync (SecretItem *self,
                              const gchar *label,
                              GCancellable *cancellable,
                              GError **error)
 {
-	g_return_val_if_fail (GSECRET_IS_ITEM (self), FALSE);
+	g_return_val_if_fail (SECRET_IS_ITEM (self), FALSE);
 	g_return_val_if_fail (label != NULL, FALSE);
 
-	return _gsecret_util_set_property_sync (G_DBUS_PROXY (self), "Label",
+	return _secret_util_set_property_sync (G_DBUS_PROXY (self), "Label",
 	                                       g_variant_new_string (label),
 	                                       cancellable, error);
 }
 
 gboolean
-gsecret_item_get_locked (GSecretItem *self)
+secret_item_get_locked (SecretItem *self)
 {
 	GVariant *variant;
 	gboolean locked;
 
-	g_return_val_if_fail (GSECRET_IS_ITEM (self), TRUE);
+	g_return_val_if_fail (SECRET_IS_ITEM (self), TRUE);
 
 	variant = g_dbus_proxy_get_cached_property (G_DBUS_PROXY (self), "Locked");
 	g_return_val_if_fail (variant != NULL, TRUE);
@@ -1171,12 +1171,12 @@ gsecret_item_get_locked (GSecretItem *self)
 }
 
 guint64
-gsecret_item_get_created (GSecretItem *self)
+secret_item_get_created (SecretItem *self)
 {
 	GVariant *variant;
 	guint64 created;
 
-	g_return_val_if_fail (GSECRET_IS_ITEM (self), TRUE);
+	g_return_val_if_fail (SECRET_IS_ITEM (self), TRUE);
 
 	variant = g_dbus_proxy_get_cached_property (G_DBUS_PROXY (self), "Created");
 	g_return_val_if_fail (variant != NULL, 0);
@@ -1188,12 +1188,12 @@ gsecret_item_get_created (GSecretItem *self)
 }
 
 guint64
-gsecret_item_get_modified (GSecretItem *self)
+secret_item_get_modified (SecretItem *self)
 {
 	GVariant *variant;
 	guint64 modified;
 
-	g_return_val_if_fail (GSECRET_IS_ITEM (self), TRUE);
+	g_return_val_if_fail (SECRET_IS_ITEM (self), TRUE);
 
 	variant = g_dbus_proxy_get_cached_property (G_DBUS_PROXY (self), "Modified");
 	g_return_val_if_fail (variant != NULL, 0);

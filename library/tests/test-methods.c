@@ -1,4 +1,4 @@
-/* GSecret - GLib wrapper for Secret Service
+/* libsecret - GLib wrapper for Secret Service
  *
  * Copyright 2011 Collabora Ltd.
  *
@@ -13,10 +13,10 @@
 
 #include "config.h"
 
-#include "gsecret-collection.h"
-#include "gsecret-item.h"
-#include "gsecret-service.h"
-#include "gsecret-private.h"
+#include "secret-collection.h"
+#include "secret-item.h"
+#include "secret-service.h"
+#include "secret-private.h"
 
 #include "mock-service.h"
 
@@ -27,26 +27,26 @@
 #include <errno.h>
 #include <stdlib.h>
 
-static const GSecretSchema DELETE_SCHEMA = {
+static const SecretSchema DELETE_SCHEMA = {
 	"org.mock.schema.Delete",
 	{
-		{ "number", GSECRET_ATTRIBUTE_INTEGER },
-		{ "string", GSECRET_ATTRIBUTE_STRING },
-		{ "even", GSECRET_ATTRIBUTE_BOOLEAN },
+		{ "number", SECRET_ATTRIBUTE_INTEGER },
+		{ "string", SECRET_ATTRIBUTE_STRING },
+		{ "even", SECRET_ATTRIBUTE_BOOLEAN },
 	}
 };
 
-static const GSecretSchema STORE_SCHEMA = {
+static const SecretSchema STORE_SCHEMA = {
 	"org.mock.type.Store",
 	{
-		{ "number", GSECRET_ATTRIBUTE_INTEGER },
-		{ "string", GSECRET_ATTRIBUTE_STRING },
-		{ "even", GSECRET_ATTRIBUTE_BOOLEAN },
+		{ "number", SECRET_ATTRIBUTE_INTEGER },
+		{ "string", SECRET_ATTRIBUTE_STRING },
+		{ "even", SECRET_ATTRIBUTE_BOOLEAN },
 	}
 };
 
 typedef struct {
-	GSecretService *service;
+	SecretService *service;
 } Test;
 
 static void
@@ -68,7 +68,7 @@ setup (Test *test,
 
 	setup_mock (test, data);
 
-	test->service = gsecret_service_get_sync (GSECRET_SERVICE_NONE, NULL, &error);
+	test->service = secret_service_get_sync (SECRET_SERVICE_NONE, NULL, &error);
 	g_assert_no_error (error);
 }
 
@@ -116,7 +116,7 @@ test_search_paths_sync (Test *test,
 	attributes = g_hash_table_new (g_str_hash, g_str_equal);
 	g_hash_table_insert (attributes, "number", "1");
 
-	ret = gsecret_service_search_for_paths_sync (test->service, attributes, NULL,
+	ret = secret_service_search_for_paths_sync (test->service, attributes, NULL,
 	                                             &unlocked, &locked, &error);
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
@@ -147,12 +147,12 @@ test_search_paths_async (Test *test,
 	attributes = g_hash_table_new (g_str_hash, g_str_equal);
 	g_hash_table_insert (attributes, "number", "1");
 
-	gsecret_service_search_for_paths (test->service, attributes, NULL,
+	secret_service_search_for_paths (test->service, attributes, NULL,
 	                                  on_complete_get_result, &result);
 	egg_test_wait ();
 
 	g_assert (G_IS_ASYNC_RESULT (result));
-	ret = gsecret_service_search_for_paths_finish (test->service, result,
+	ret = secret_service_search_for_paths_finish (test->service, result,
 	                                               &unlocked, &locked,
 	                                               &error);
 	g_assert_no_error (error);
@@ -184,7 +184,7 @@ test_search_paths_nulls (Test *test,
 	attributes = g_hash_table_new (g_str_hash, g_str_equal);
 	g_hash_table_insert (attributes, "number", "1");
 
-	ret = gsecret_service_search_for_paths_sync (test->service, attributes, NULL,
+	ret = secret_service_search_for_paths_sync (test->service, attributes, NULL,
 	                                             &paths, NULL, &error);
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
@@ -192,7 +192,7 @@ test_search_paths_nulls (Test *test,
 	g_assert_cmpstr (paths[0], ==, "/org/freedesktop/secrets/collection/english/1");
 	g_strfreev (paths);
 
-	ret = gsecret_service_search_for_paths_sync (test->service, attributes, NULL,
+	ret = secret_service_search_for_paths_sync (test->service, attributes, NULL,
 	                                             NULL, &paths, &error);
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
@@ -200,16 +200,16 @@ test_search_paths_nulls (Test *test,
 	g_assert_cmpstr (paths[0], ==, "/org/freedesktop/secrets/collection/spanish/10");
 	g_strfreev (paths);
 
-	ret = gsecret_service_search_for_paths_sync (test->service, attributes, NULL,
+	ret = secret_service_search_for_paths_sync (test->service, attributes, NULL,
 	                                             NULL, NULL, &error);
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
 
-	gsecret_service_search_for_paths (test->service, attributes, NULL,
+	secret_service_search_for_paths (test->service, attributes, NULL,
 	                                  on_complete_get_result, &result);
 	egg_test_wait ();
 	g_assert (G_IS_ASYNC_RESULT (result));
-	ret = gsecret_service_search_for_paths_finish (test->service, result,
+	ret = secret_service_search_for_paths_finish (test->service, result,
 	                                               &paths, NULL, &error);
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
@@ -218,11 +218,11 @@ test_search_paths_nulls (Test *test,
 	g_strfreev (paths);
 	g_clear_object (&result);
 
-	gsecret_service_search_for_paths (test->service, attributes, NULL,
+	secret_service_search_for_paths (test->service, attributes, NULL,
 	                                  on_complete_get_result, &result);
 	egg_test_wait ();
 	g_assert (G_IS_ASYNC_RESULT (result));
-	ret = gsecret_service_search_for_paths_finish (test->service, result,
+	ret = secret_service_search_for_paths_finish (test->service, result,
 	                                               NULL, &paths, &error);
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
@@ -231,11 +231,11 @@ test_search_paths_nulls (Test *test,
 	g_strfreev (paths);
 	g_clear_object (&result);
 
-	gsecret_service_search_for_paths (test->service, attributes, NULL,
+	secret_service_search_for_paths (test->service, attributes, NULL,
 	                                  on_complete_get_result, &result);
 	egg_test_wait ();
 	g_assert (G_IS_ASYNC_RESULT (result));
-	ret = gsecret_service_search_for_paths_finish (test->service, result,
+	ret = secret_service_search_for_paths_finish (test->service, result,
 	                                               NULL, NULL, &error);
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
@@ -257,7 +257,7 @@ test_search_sync (Test *test,
 	attributes = g_hash_table_new (g_str_hash, g_str_equal);
 	g_hash_table_insert (attributes, "number", "1");
 
-	ret = gsecret_service_search_sync (test->service, attributes, NULL,
+	ret = secret_service_search_sync (test->service, attributes, NULL,
 	                                   &unlocked, &locked, &error);
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
@@ -288,12 +288,12 @@ test_search_async (Test *test,
 	attributes = g_hash_table_new (g_str_hash, g_str_equal);
 	g_hash_table_insert (attributes, "number", "1");
 
-	gsecret_service_search (test->service, attributes, NULL,
+	secret_service_search (test->service, attributes, NULL,
 	                        on_complete_get_result, &result);
 	egg_test_wait ();
 
 	g_assert (G_IS_ASYNC_RESULT (result));
-	ret = gsecret_service_search_finish (test->service, result,
+	ret = secret_service_search_finish (test->service, result,
 	                                     &unlocked, &locked,
 	                                     &error);
 	g_assert_no_error (error);
@@ -325,7 +325,7 @@ test_search_nulls (Test *test,
 	attributes = g_hash_table_new (g_str_hash, g_str_equal);
 	g_hash_table_insert (attributes, "number", "1");
 
-	ret = gsecret_service_search_sync (test->service, attributes, NULL,
+	ret = secret_service_search_sync (test->service, attributes, NULL,
 	                                   &items, NULL, &error);
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
@@ -333,7 +333,7 @@ test_search_nulls (Test *test,
 	g_assert_cmpstr (g_dbus_proxy_get_object_path (items->data), ==, "/org/freedesktop/secrets/collection/english/1");
 	g_list_free_full (items, g_object_unref);
 
-	ret = gsecret_service_search_sync (test->service, attributes, NULL,
+	ret = secret_service_search_sync (test->service, attributes, NULL,
 	                                   NULL, &items, &error);
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
@@ -341,16 +341,16 @@ test_search_nulls (Test *test,
 	g_assert_cmpstr (g_dbus_proxy_get_object_path (items->data), ==, "/org/freedesktop/secrets/collection/spanish/10");
 	g_list_free_full (items, g_object_unref);
 
-	ret = gsecret_service_search_sync (test->service, attributes, NULL,
+	ret = secret_service_search_sync (test->service, attributes, NULL,
 	                                   NULL, NULL, &error);
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
 
-	gsecret_service_search (test->service, attributes, NULL,
+	secret_service_search (test->service, attributes, NULL,
 	                        on_complete_get_result, &result);
 	egg_test_wait ();
 	g_assert (G_IS_ASYNC_RESULT (result));
-	ret = gsecret_service_search_finish (test->service, result,
+	ret = secret_service_search_finish (test->service, result,
 	                                     &items, NULL, &error);
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
@@ -359,11 +359,11 @@ test_search_nulls (Test *test,
 	g_list_free_full (items, g_object_unref);
 	g_clear_object (&result);
 
-	gsecret_service_search (test->service, attributes, NULL,
+	secret_service_search (test->service, attributes, NULL,
 	                        on_complete_get_result, &result);
 	egg_test_wait ();
 	g_assert (G_IS_ASYNC_RESULT (result));
-	ret = gsecret_service_search_finish (test->service, result,
+	ret = secret_service_search_finish (test->service, result,
 	                                     NULL, &items, &error);
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
@@ -372,11 +372,11 @@ test_search_nulls (Test *test,
 	g_list_free_full (items, g_object_unref);
 	g_clear_object (&result);
 
-	gsecret_service_search (test->service, attributes, NULL,
+	secret_service_search (test->service, attributes, NULL,
 	                        on_complete_get_result, &result);
 	egg_test_wait ();
 	g_assert (G_IS_ASYNC_RESULT (result));
-	ret = gsecret_service_search_finish (test->service, result,
+	ret = secret_service_search_finish (test->service, result,
 	                                     NULL, NULL, &error);
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
@@ -389,32 +389,32 @@ static void
 test_secret_for_path_sync (Test *test,
                            gconstpointer used)
 {
-	GSecretValue *value;
+	SecretValue *value;
 	GError *error = NULL;
 	const gchar *path;
 	const gchar *password;
 	gsize length;
 
 	path = "/org/freedesktop/secrets/collection/english/1";
-	value = gsecret_service_get_secret_for_path_sync (test->service, path, NULL, &error);
+	value = secret_service_get_secret_for_path_sync (test->service, path, NULL, &error);
 	g_assert_no_error (error);
 	g_assert (value != NULL);
 
-	password = gsecret_value_get (value, &length);
+	password = secret_value_get (value, &length);
 	g_assert_cmpuint (length, ==, 3);
 	g_assert_cmpstr (password, ==, "111");
 
-	password = gsecret_value_get (value, NULL);
+	password = secret_value_get (value, NULL);
 	g_assert_cmpstr (password, ==, "111");
 
-	gsecret_value_unref (value);
+	secret_value_unref (value);
 }
 
 static void
 test_secret_for_path_async (Test *test,
                             gconstpointer used)
 {
-	GSecretValue *value;
+	SecretValue *value;
 	GError *error = NULL;
 	const gchar *path;
 	const gchar *password;
@@ -422,24 +422,24 @@ test_secret_for_path_async (Test *test,
 	gsize length;
 
 	path = "/org/freedesktop/secrets/collection/english/1";
-	gsecret_service_get_secret_for_path (test->service, path, NULL,
+	secret_service_get_secret_for_path (test->service, path, NULL,
 	                                     on_complete_get_result, &result);
 	g_assert (result == NULL);
 	egg_test_wait ();
 
-	value = gsecret_service_get_secret_for_path_finish (test->service, result, &error);
+	value = secret_service_get_secret_for_path_finish (test->service, result, &error);
 	g_assert_no_error (error);
 	g_assert (value != NULL);
 	g_object_unref (result);
 
-	password = gsecret_value_get (value, &length);
+	password = secret_value_get (value, &length);
 	g_assert_cmpuint (length, ==, 3);
 	g_assert_cmpstr (password, ==, "111");
 
-	password = gsecret_value_get (value, NULL);
+	password = secret_value_get (value, NULL);
 	g_assert_cmpstr (password, ==, "111");
 
-	gsecret_value_unref (value);
+	secret_value_unref (value);
 }
 
 static void
@@ -457,13 +457,13 @@ test_secrets_for_paths_sync (Test *test,
 		NULL
 	};
 
-	GSecretValue *value;
+	SecretValue *value;
 	GHashTable *values;
 	GError *error = NULL;
 	const gchar *password;
 	gsize length;
 
-	values = gsecret_service_get_secrets_for_paths_sync (test->service, paths, NULL, &error);
+	values = secret_service_get_secrets_for_paths_sync (test->service, paths, NULL, &error);
 	g_assert_no_error (error);
 
 	g_assert (values != NULL);
@@ -471,13 +471,13 @@ test_secrets_for_paths_sync (Test *test,
 
 	value = g_hash_table_lookup (values, path_item_one);
 	g_assert (value != NULL);
-	password = gsecret_value_get (value, &length);
+	password = secret_value_get (value, &length);
 	g_assert_cmpuint (length, ==, 3);
 	g_assert_cmpstr (password, ==, "111");
 
 	value = g_hash_table_lookup (values, path_item_two);
 	g_assert (value != NULL);
-	password = gsecret_value_get (value, &length);
+	password = secret_value_get (value, &length);
 	g_assert_cmpuint (length, ==, 3);
 	g_assert_cmpstr (password, ==, "222");
 
@@ -499,19 +499,19 @@ test_secrets_for_paths_async (Test *test,
 		NULL
 	};
 
-	GSecretValue *value;
+	SecretValue *value;
 	GHashTable *values;
 	GError *error = NULL;
 	const gchar *password;
 	GAsyncResult *result = NULL;
 	gsize length;
 
-	gsecret_service_get_secrets_for_paths (test->service, paths, NULL,
+	secret_service_get_secrets_for_paths (test->service, paths, NULL,
 	                                       on_complete_get_result, &result);
 	g_assert (result == NULL);
 	egg_test_wait ();
 
-	values = gsecret_service_get_secrets_for_paths_finish (test->service, result, &error);
+	values = secret_service_get_secrets_for_paths_finish (test->service, result, &error);
 	g_assert_no_error (error);
 	g_object_unref (result);
 
@@ -520,13 +520,13 @@ test_secrets_for_paths_async (Test *test,
 
 	value = g_hash_table_lookup (values, path_item_one);
 	g_assert (value != NULL);
-	password = gsecret_value_get (value, &length);
+	password = secret_value_get (value, &length);
 	g_assert_cmpuint (length, ==, 3);
 	g_assert_cmpstr (password, ==, "111");
 
 	value = g_hash_table_lookup (values, path_item_two);
 	g_assert (value != NULL);
-	password = gsecret_value_get (value, &length);
+	password = secret_value_get (value, &length);
 	g_assert_cmpuint (length, ==, 3);
 	g_assert_cmpstr (password, ==, "222");
 
@@ -541,23 +541,23 @@ test_secrets_sync (Test *test,
 	const gchar *path_item_two = "/org/freedesktop/secrets/collection/english/2";
 	const gchar *path_item_three = "/org/freedesktop/secrets/collection/spanish/10";
 
-	GSecretValue *value;
+	SecretValue *value;
 	GHashTable *values;
 	GError *error = NULL;
 	const gchar *password;
-	GSecretItem *item_one, *item_two, *item_three;
+	SecretItem *item_one, *item_two, *item_three;
 	GList *items = NULL;
 	gsize length;
 
-	item_one = gsecret_item_new_sync (test->service, path_item_one, NULL, &error);
-	item_two = gsecret_item_new_sync (test->service, path_item_two, NULL, &error);
-	item_three = gsecret_item_new_sync (test->service, path_item_three, NULL, &error);
+	item_one = secret_item_new_sync (test->service, path_item_one, NULL, &error);
+	item_two = secret_item_new_sync (test->service, path_item_two, NULL, &error);
+	item_three = secret_item_new_sync (test->service, path_item_three, NULL, &error);
 
 	items = g_list_append (items, item_one);
 	items = g_list_append (items, item_two);
 	items = g_list_append (items, item_three);
 
-	values = gsecret_service_get_secrets_sync (test->service, items, NULL, &error);
+	values = secret_service_get_secrets_sync (test->service, items, NULL, &error);
 	g_list_free_full (items, g_object_unref);
 	g_assert_no_error (error);
 
@@ -566,13 +566,13 @@ test_secrets_sync (Test *test,
 
 	value = g_hash_table_lookup (values, item_one);
 	g_assert (value != NULL);
-	password = gsecret_value_get (value, &length);
+	password = secret_value_get (value, &length);
 	g_assert_cmpuint (length, ==, 3);
 	g_assert_cmpstr (password, ==, "111");
 
 	value = g_hash_table_lookup (values, item_two);
 	g_assert (value != NULL);
-	password = gsecret_value_get (value, &length);
+	password = secret_value_get (value, &length);
 	g_assert_cmpuint (length, ==, 3);
 	g_assert_cmpstr (password, ==, "222");
 
@@ -587,22 +587,22 @@ test_secrets_async (Test *test,
 	const gchar *path_item_two = "/org/freedesktop/secrets/collection/english/2";
 	const gchar *path_item_three = "/org/freedesktop/secrets/collection/spanish/10";
 
-	GSecretValue *value;
+	SecretValue *value;
 	GHashTable *values;
 	GError *error = NULL;
 	const gchar *password;
 	GAsyncResult *result = NULL;
-	GSecretItem *item_one, *item_two, *item_three;
+	SecretItem *item_one, *item_two, *item_three;
 	GList *items = NULL;
 	gsize length;
 
-	item_one = gsecret_item_new_sync (test->service, path_item_one, NULL, &error);
+	item_one = secret_item_new_sync (test->service, path_item_one, NULL, &error);
 	g_assert_no_error (error);
 
-	item_two = gsecret_item_new_sync (test->service, path_item_two, NULL, &error);
+	item_two = secret_item_new_sync (test->service, path_item_two, NULL, &error);
 	g_assert_no_error (error);
 
-	item_three = gsecret_item_new_sync (test->service, path_item_three, NULL, &error);
+	item_three = secret_item_new_sync (test->service, path_item_three, NULL, &error);
 	g_assert_no_error (error);
 
 
@@ -610,14 +610,14 @@ test_secrets_async (Test *test,
 	items = g_list_append (items, item_two);
 	items = g_list_append (items, item_three);
 
-	gsecret_service_get_secrets (test->service, items, NULL,
+	secret_service_get_secrets (test->service, items, NULL,
 	                             on_complete_get_result, &result);
 	g_assert (result == NULL);
 	g_list_free (items);
 
 	egg_test_wait ();
 
-	values = gsecret_service_get_secrets_finish (test->service, result, &error);
+	values = secret_service_get_secrets_finish (test->service, result, &error);
 	g_assert_no_error (error);
 	g_object_unref (result);
 
@@ -626,13 +626,13 @@ test_secrets_async (Test *test,
 
 	value = g_hash_table_lookup (values, item_one);
 	g_assert (value != NULL);
-	password = gsecret_value_get (value, &length);
+	password = secret_value_get (value, &length);
 	g_assert_cmpuint (length, ==, 3);
 	g_assert_cmpstr (password, ==, "111");
 
 	value = g_hash_table_lookup (values, item_two);
 	g_assert (value != NULL);
-	password = gsecret_value_get (value, &length);
+	password = secret_value_get (value, &length);
 	g_assert_cmpuint (length, ==, 3);
 	g_assert_cmpstr (password, ==, "222");
 
@@ -652,7 +652,7 @@ test_delete_for_path_sync (Test *test,
 	GError *error = NULL;
 	gboolean ret;
 
-	ret = gsecret_service_delete_path_sync (test->service, path_item_one, NULL, &error);
+	ret = secret_service_delete_path_sync (test->service, path_item_one, NULL, &error);
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
 }
@@ -666,7 +666,7 @@ test_delete_for_path_sync_prompt (Test *test,
 	GError *error = NULL;
 	gboolean ret;
 
-	ret = gsecret_service_delete_path_sync (test->service, path_item_one, NULL, &error);
+	ret = secret_service_delete_path_sync (test->service, path_item_one, NULL, &error);
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
 }
@@ -685,7 +685,7 @@ test_lock_paths_sync (Test *test,
 	gchar **locked = NULL;
 	gboolean ret;
 
-	ret = gsecret_service_lock_paths_sync (test->service, paths, NULL, &locked, &error);
+	ret = secret_service_lock_paths_sync (test->service, paths, NULL, &locked, &error);
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
 
@@ -709,7 +709,7 @@ test_lock_prompt_sync (Test *test,
 	gchar **locked = NULL;
 	gboolean ret;
 
-	ret = gsecret_service_lock_paths_sync (test->service, paths, NULL, &locked, &error);
+	ret = secret_service_lock_paths_sync (test->service, paths, NULL, &locked, &error);
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
 
@@ -724,18 +724,18 @@ test_lock_sync (Test *test,
                 gconstpointer used)
 {
 	const gchar *collection_path = "/org/freedesktop/secrets/collection/lockone";
-	GSecretCollection *collection;
+	SecretCollection *collection;
 	GError *error = NULL;
 	GList *locked;
 	GList *objects;
 	gboolean ret;
 
-	collection = gsecret_collection_new_sync (test->service, collection_path, NULL, &error);
+	collection = secret_collection_new_sync (test->service, collection_path, NULL, &error);
 	g_assert_no_error (error);
 
 	objects = g_list_append (NULL, collection);
 
-	ret = gsecret_service_lock_sync (test->service, objects, NULL, &locked, &error);
+	ret = secret_service_lock_sync (test->service, objects, NULL, &locked, &error);
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
 
@@ -762,7 +762,7 @@ test_unlock_paths_sync (Test *test,
 	gchar **unlocked = NULL;
 	gboolean ret;
 
-	ret = gsecret_service_unlock_paths_sync (test->service, paths, NULL, &unlocked, &error);
+	ret = secret_service_unlock_paths_sync (test->service, paths, NULL, &unlocked, &error);
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
 
@@ -786,7 +786,7 @@ test_unlock_prompt_sync (Test *test,
 	gchar **unlocked = NULL;
 	gboolean ret;
 
-	ret = gsecret_service_unlock_paths_sync (test->service, paths, NULL, &unlocked, &error);
+	ret = secret_service_unlock_paths_sync (test->service, paths, NULL, &unlocked, &error);
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
 
@@ -801,18 +801,18 @@ test_unlock_sync (Test *test,
                   gconstpointer used)
 {
 	const gchar *collection_path = "/org/freedesktop/secrets/collection/lockone";
-	GSecretCollection *collection;
+	SecretCollection *collection;
 	GError *error = NULL;
 	GList *unlocked;
 	GList *objects;
 	gboolean ret;
 
-	collection = gsecret_collection_new_sync (test->service, collection_path, NULL, &error);
+	collection = secret_collection_new_sync (test->service, collection_path, NULL, &error);
 	g_assert_no_error (error);
 
 	objects = g_list_append (NULL, collection);
 
-	ret = gsecret_service_unlock_sync (test->service, objects, NULL, &unlocked, &error);
+	ret = secret_service_unlock_sync (test->service, objects, NULL, &unlocked, &error);
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
 
@@ -835,10 +835,10 @@ test_collection_sync (Test *test,
 
 	properties = g_hash_table_new_full (g_str_hash, g_str_equal, NULL,
 	                                    (GDestroyNotify)g_variant_unref);
-	g_hash_table_insert (properties, GSECRET_COLLECTION_INTERFACE ".Label",
+	g_hash_table_insert (properties, SECRET_COLLECTION_INTERFACE ".Label",
 	                     g_variant_ref_sink (g_variant_new_string ("Wheeee")));
 
-	path = gsecret_service_create_collection_path_sync (test->service, properties,
+	path = secret_service_create_collection_path_sync (test->service, properties,
 	                                                   NULL, NULL, &error);
 
 	g_hash_table_unref (properties);
@@ -861,10 +861,10 @@ test_collection_async (Test *test,
 
 	properties = g_hash_table_new_full (g_str_hash, g_str_equal, NULL,
 	                                    (GDestroyNotify)g_variant_unref);
-	g_hash_table_insert (properties, GSECRET_COLLECTION_INTERFACE ".Label",
+	g_hash_table_insert (properties, SECRET_COLLECTION_INTERFACE ".Label",
 	                     g_variant_ref_sink (g_variant_new_string ("Wheeee")));
 
-	gsecret_service_create_collection_path (test->service, properties,
+	secret_service_create_collection_path (test->service, properties,
 	                                        NULL, NULL, on_complete_get_result, &result);
 
 	g_hash_table_unref (properties);
@@ -872,7 +872,7 @@ test_collection_async (Test *test,
 
 	egg_test_wait ();
 
-	path = gsecret_service_create_collection_path_finish (test->service, result, &error);
+	path = secret_service_create_collection_path_finish (test->service, result, &error);
 	g_object_unref (result);
 
 	g_assert_no_error (error);
@@ -889,7 +889,7 @@ test_item_sync (Test *test,
 	const gchar *collection_path = "/org/freedesktop/secrets/collection/english";
 	GHashTable *properties;
 	GHashTable *attributes;
-	GSecretValue *value;
+	SecretValue *value;
 	GError *error = NULL;
 	gchar *path;
 
@@ -900,22 +900,22 @@ test_item_sync (Test *test,
 
 	properties = g_hash_table_new_full (g_str_hash, g_str_equal, NULL,
 	                                    (GDestroyNotify)g_variant_unref);
-	g_hash_table_insert (properties, GSECRET_COLLECTION_INTERFACE ".Label",
+	g_hash_table_insert (properties, SECRET_COLLECTION_INTERFACE ".Label",
 	                     g_variant_ref_sink (g_variant_new_string ("Wheeee")));
-	g_hash_table_insert (properties, GSECRET_COLLECTION_INTERFACE ".Attributes",
-	                     g_variant_ref_sink (_gsecret_util_variant_for_attributes (attributes)));
-	g_hash_table_insert (properties, GSECRET_COLLECTION_INTERFACE ".Type",
+	g_hash_table_insert (properties, SECRET_COLLECTION_INTERFACE ".Attributes",
+	                     g_variant_ref_sink (_secret_util_variant_for_attributes (attributes)));
+	g_hash_table_insert (properties, SECRET_COLLECTION_INTERFACE ".Type",
 	                     g_variant_ref_sink (g_variant_new_string ("org.gnome.Test")));
 
 	g_hash_table_unref (attributes);
 
-	value = gsecret_value_new ("andmoreandmore", -1, "text/plain");
+	value = secret_value_new ("andmoreandmore", -1, "text/plain");
 
-	path = gsecret_service_create_item_path_sync (test->service, collection_path,
+	path = secret_service_create_item_path_sync (test->service, collection_path,
 	                                              properties, value, FALSE,
 	                                              NULL, &error);
 
-	gsecret_value_unref (value);
+	secret_value_unref (value);
 	g_hash_table_unref (properties);
 
 	g_assert_no_error (error);
@@ -932,7 +932,7 @@ test_item_async (Test *test,
 	const gchar *collection_path = "/org/freedesktop/secrets/collection/english";
 	GHashTable *properties;
 	GHashTable *attributes;
-	GSecretValue *value;
+	SecretValue *value;
 	GError *error = NULL;
 	GAsyncResult *result = NULL;
 	gchar *path;
@@ -944,28 +944,28 @@ test_item_async (Test *test,
 
 	properties = g_hash_table_new_full (g_str_hash, g_str_equal, NULL,
 	                                    (GDestroyNotify)g_variant_unref);
-	g_hash_table_insert (properties, GSECRET_COLLECTION_INTERFACE ".Label",
+	g_hash_table_insert (properties, SECRET_COLLECTION_INTERFACE ".Label",
 	                     g_variant_ref_sink (g_variant_new_string ("Wheeee")));
-	g_hash_table_insert (properties, GSECRET_COLLECTION_INTERFACE ".Attributes",
-	                     g_variant_ref_sink (_gsecret_util_variant_for_attributes (attributes)));
-	g_hash_table_insert (properties, GSECRET_COLLECTION_INTERFACE ".Type",
+	g_hash_table_insert (properties, SECRET_COLLECTION_INTERFACE ".Attributes",
+	                     g_variant_ref_sink (_secret_util_variant_for_attributes (attributes)));
+	g_hash_table_insert (properties, SECRET_COLLECTION_INTERFACE ".Type",
 	                     g_variant_ref_sink (g_variant_new_string ("org.gnome.Test")));
 
 	g_hash_table_unref (attributes);
 
-	value = gsecret_value_new ("andmoreandmore", -1, "text/plain");
+	value = secret_value_new ("andmoreandmore", -1, "text/plain");
 
-	gsecret_service_create_item_path (test->service, collection_path,
+	secret_service_create_item_path (test->service, collection_path,
 	                                  properties, value, FALSE,
 	                                  NULL, on_complete_get_result, &result);
 
 	g_assert (result == NULL);
-	gsecret_value_unref (value);
+	secret_value_unref (value);
 	g_hash_table_unref (properties);
 
 	egg_test_wait ();
 
-	path = gsecret_service_create_item_path_finish (test->service, result, &error);
+	path = secret_service_create_item_path_finish (test->service, result, &error);
 	g_object_unref (result);
 
 	g_assert_no_error (error);
@@ -982,7 +982,7 @@ test_remove_sync (Test *test,
 	GError *error = NULL;
 	gboolean ret;
 
-	ret = gsecret_service_remove_sync (test->service, &DELETE_SCHEMA, NULL, &error,
+	ret = secret_service_remove_sync (test->service, &DELETE_SCHEMA, NULL, &error,
 	                                   "even", FALSE,
 	                                   "string", "one",
 	                                   "number", 1,
@@ -1000,7 +1000,7 @@ test_remove_async (Test *test,
 	GAsyncResult *result = NULL;
 	gboolean ret;
 
-	gsecret_service_remove (test->service, &DELETE_SCHEMA, NULL,
+	secret_service_remove (test->service, &DELETE_SCHEMA, NULL,
 	                        on_complete_get_result, &result,
 	                        "even", FALSE,
 	                        "string", "one",
@@ -1011,7 +1011,7 @@ test_remove_async (Test *test,
 
 	egg_test_wait ();
 
-	ret = gsecret_service_remove_finish (test->service, result, &error);
+	ret = secret_service_remove_finish (test->service, result, &error);
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
 
@@ -1025,7 +1025,7 @@ test_remove_locked (Test *test,
 	GError *error = NULL;
 	gboolean ret;
 
-	ret = gsecret_service_remove_sync (test->service, &DELETE_SCHEMA, NULL, &error,
+	ret = secret_service_remove_sync (test->service, &DELETE_SCHEMA, NULL, &error,
 	                                   "even", FALSE,
 	                                   "string", "tres",
 	                                   "number", 3,
@@ -1043,7 +1043,7 @@ test_remove_no_match (Test *test,
 	gboolean ret;
 
 	/* Won't match anything */
-	ret = gsecret_service_remove_sync (test->service, &DELETE_SCHEMA, NULL, &error,
+	ret = secret_service_remove_sync (test->service, &DELETE_SCHEMA, NULL, &error,
 	                                   "even", TRUE,
 	                                   "string", "one",
 	                                   NULL);
@@ -1057,10 +1057,10 @@ test_lookup_sync (Test *test,
                   gconstpointer used)
 {
 	GError *error = NULL;
-	GSecretValue *value;
+	SecretValue *value;
 	gsize length;
 
-	value = gsecret_service_lookup_sync (test->service, &STORE_SCHEMA, NULL, &error,
+	value = secret_service_lookup_sync (test->service, &STORE_SCHEMA, NULL, &error,
 	                                     "even", FALSE,
 	                                     "string", "one",
 	                                     "number", 1,
@@ -1069,10 +1069,10 @@ test_lookup_sync (Test *test,
 	g_assert_no_error (error);
 
 	g_assert (value != NULL);
-	g_assert_cmpstr (gsecret_value_get (value, &length), ==, "111");
+	g_assert_cmpstr (secret_value_get (value, &length), ==, "111");
 	g_assert_cmpuint (length, ==, 3);
 
-	gsecret_value_unref (value);
+	secret_value_unref (value);
 }
 
 static void
@@ -1081,10 +1081,10 @@ test_lookup_async (Test *test,
 {
 	GError *error = NULL;
 	GAsyncResult *result = NULL;
-	GSecretValue *value;
+	SecretValue *value;
 	gsize length;
 
-	gsecret_service_lookup (test->service, &STORE_SCHEMA, NULL,
+	secret_service_lookup (test->service, &STORE_SCHEMA, NULL,
 	                        on_complete_get_result, &result,
 	                        "even", FALSE,
 	                        "string", "one",
@@ -1095,14 +1095,14 @@ test_lookup_async (Test *test,
 
 	egg_test_wait ();
 
-	value = gsecret_service_lookup_finish (test->service, result, &error);
+	value = secret_service_lookup_finish (test->service, result, &error);
 	g_assert_no_error (error);
 
 	g_assert (value != NULL);
-	g_assert_cmpstr (gsecret_value_get (value, &length), ==, "111");
+	g_assert_cmpstr (secret_value_get (value, &length), ==, "111");
 	g_assert_cmpuint (length, ==, 3);
 
-	gsecret_value_unref (value);
+	secret_value_unref (value);
 	g_object_unref (result);
 }
 
@@ -1111,10 +1111,10 @@ test_lookup_locked (Test *test,
                     gconstpointer used)
 {
 	GError *error = NULL;
-	GSecretValue *value;
+	SecretValue *value;
 	gsize length;
 
-	value = gsecret_service_lookup_sync (test->service, &STORE_SCHEMA, NULL, &error,
+	value = secret_service_lookup_sync (test->service, &STORE_SCHEMA, NULL, &error,
 	                                     "even", FALSE,
 	                                     "string", "tres",
 	                                     "number", 3,
@@ -1123,10 +1123,10 @@ test_lookup_locked (Test *test,
 	g_assert_no_error (error);
 
 	g_assert (value != NULL);
-	g_assert_cmpstr (gsecret_value_get (value, &length), ==, "3333");
+	g_assert_cmpstr (secret_value_get (value, &length), ==, "3333");
 	g_assert_cmpuint (length, ==, 4);
 
-	gsecret_value_unref (value);
+	secret_value_unref (value);
 }
 
 static void
@@ -1134,10 +1134,10 @@ test_lookup_no_match (Test *test,
                       gconstpointer used)
 {
 	GError *error = NULL;
-	GSecretValue *value;
+	SecretValue *value;
 
 	/* Won't match anything */
-	value = gsecret_service_lookup_sync (test->service, &STORE_SCHEMA, NULL, &error,
+	value = secret_service_lookup_sync (test->service, &STORE_SCHEMA, NULL, &error,
 	                                     "even", TRUE,
 	                                     "string", "one",
 	                                     NULL);
@@ -1151,28 +1151,28 @@ test_store_sync (Test *test,
                  gconstpointer used)
 {
 	const gchar *collection_path = "/org/freedesktop/secrets/collection/english";
-	GSecretValue *value = gsecret_value_new ("apassword", -1, "text/plain");
+	SecretValue *value = secret_value_new ("apassword", -1, "text/plain");
 	GHashTable *attributes;
 	GError *error = NULL;
 	gchar **paths;
 	gboolean ret;
 	gsize length;
 
-	ret = gsecret_service_store_sync (test->service, &STORE_SCHEMA, collection_path,
+	ret = secret_service_store_sync (test->service, &STORE_SCHEMA, collection_path,
 	                                  "New Item Label", value, NULL, &error,
 	                                  "even", FALSE,
 	                                  "string", "seventeen",
 	                                  "number", 17,
 	                                  NULL);
 	g_assert_no_error (error);
-	gsecret_value_unref (value);
+	secret_value_unref (value);
 
 	attributes = g_hash_table_new (g_str_hash, g_str_equal);
 	g_hash_table_insert (attributes, "even", "false");
 	g_hash_table_insert (attributes, "string", "seventeen");
 	g_hash_table_insert (attributes, "number", "17");
 
-	ret = gsecret_service_search_for_paths_sync (test->service, attributes, NULL,
+	ret = secret_service_search_for_paths_sync (test->service, attributes, NULL,
 	                                             &paths, NULL, &error);
 	g_hash_table_unref (attributes);
 	g_assert (ret == TRUE);
@@ -1181,15 +1181,15 @@ test_store_sync (Test *test,
 	g_assert (paths[0] != NULL);
 	g_assert (paths[1] == NULL);
 
-	value = gsecret_service_get_secret_for_path_sync (test->service, paths[0],
+	value = secret_service_get_secret_for_path_sync (test->service, paths[0],
 	                                                  NULL, &error);
 	g_assert_no_error (error);
 
 	g_assert (value != NULL);
-	g_assert_cmpstr (gsecret_value_get (value, &length), ==, "apassword");
+	g_assert_cmpstr (secret_value_get (value, &length), ==, "apassword");
 	g_assert_cmpuint (length, ==, 9);
 
-	gsecret_value_unref (value);
+	secret_value_unref (value);
 	g_strfreev (paths);
 }
 
@@ -1198,13 +1198,13 @@ test_store_replace (Test *test,
                     gconstpointer used)
 {
 	const gchar *collection_path = "/org/freedesktop/secrets/collection/english";
-	GSecretValue *value = gsecret_value_new ("apassword", -1, "text/plain");
+	SecretValue *value = secret_value_new ("apassword", -1, "text/plain");
 	GHashTable *attributes;
 	GError *error = NULL;
 	gchar **paths;
 	gboolean ret;
 
-	ret = gsecret_service_store_sync (test->service, &STORE_SCHEMA, collection_path,
+	ret = secret_service_store_sync (test->service, &STORE_SCHEMA, collection_path,
 	                                  "New Item Label", value, NULL, &error,
 	                                  "even", FALSE,
 	                                  "string", "seventeen",
@@ -1212,21 +1212,21 @@ test_store_replace (Test *test,
 	                                  NULL);
 	g_assert_no_error (error);
 
-	ret = gsecret_service_store_sync (test->service, &STORE_SCHEMA, collection_path,
+	ret = secret_service_store_sync (test->service, &STORE_SCHEMA, collection_path,
 	                                  "Another Label", value, NULL, &error,
 	                                  "even", FALSE,
 	                                  "string", "seventeen",
 	                                  "number", 17,
 	                                  NULL);
 	g_assert_no_error (error);
-	gsecret_value_unref (value);
+	secret_value_unref (value);
 
 	attributes = g_hash_table_new (g_str_hash, g_str_equal);
 	g_hash_table_insert (attributes, "even", "false");
 	g_hash_table_insert (attributes, "string", "seventeen");
 	g_hash_table_insert (attributes, "number", "17");
 
-	ret = gsecret_service_search_for_paths_sync (test->service, attributes, NULL,
+	ret = secret_service_search_for_paths_sync (test->service, attributes, NULL,
 	                                             &paths, NULL, &error);
 	g_hash_table_unref (attributes);
 	g_assert (ret == TRUE);
@@ -1243,7 +1243,7 @@ test_store_async (Test *test,
                   gconstpointer used)
 {
 	const gchar *collection_path = "/org/freedesktop/secrets/collection/english";
-	GSecretValue *value = gsecret_value_new ("apassword", -1, "text/plain");
+	SecretValue *value = secret_value_new ("apassword", -1, "text/plain");
 	GAsyncResult *result = NULL;
 	GHashTable *attributes;
 	GError *error = NULL;
@@ -1251,18 +1251,18 @@ test_store_async (Test *test,
 	gboolean ret;
 	gsize length;
 
-	gsecret_service_store (test->service, &STORE_SCHEMA, collection_path,
+	secret_service_store (test->service, &STORE_SCHEMA, collection_path,
 	                       "New Item Label", value, NULL, on_complete_get_result, &result,
 	                       "even", FALSE,
 	                       "string", "seventeen",
 	                       "number", 17,
 	                       NULL);
 	g_assert (result == NULL);
-	gsecret_value_unref (value);
+	secret_value_unref (value);
 
 	egg_test_wait ();
 
-	ret = gsecret_service_store_finish (test->service, result, &error);
+	ret = secret_service_store_finish (test->service, result, &error);
 	g_assert_no_error (error);
 	g_object_unref (result);
 
@@ -1271,7 +1271,7 @@ test_store_async (Test *test,
 	g_hash_table_insert (attributes, "string", "seventeen");
 	g_hash_table_insert (attributes, "number", "17");
 
-	ret = gsecret_service_search_for_paths_sync (test->service, attributes, NULL,
+	ret = secret_service_search_for_paths_sync (test->service, attributes, NULL,
 	                                             &paths, NULL, &error);
 	g_hash_table_unref (attributes);
 	g_assert (ret == TRUE);
@@ -1280,15 +1280,15 @@ test_store_async (Test *test,
 	g_assert (paths[0] != NULL);
 	g_assert (paths[1] == NULL);
 
-	value = gsecret_service_get_secret_for_path_sync (test->service, paths[0],
+	value = secret_service_get_secret_for_path_sync (test->service, paths[0],
 	                                                  NULL, &error);
 	g_assert_no_error (error);
 
 	g_assert (value != NULL);
-	g_assert_cmpstr (gsecret_value_get (value, &length), ==, "apassword");
+	g_assert_cmpstr (secret_value_get (value, &length), ==, "apassword");
 	g_assert_cmpuint (length, ==, 9);
 
-	gsecret_value_unref (value);
+	secret_value_unref (value);
 	g_strfreev (paths);
 }
 

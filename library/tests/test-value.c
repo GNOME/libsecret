@@ -1,4 +1,4 @@
-/* GSecret - GLib wrapper for Secret Service
+/* libsecret - GLib wrapper for Secret Service
  *
  * Copyright 2012 Red Hat Inc.
  *
@@ -13,8 +13,8 @@
 
 #include "config.h"
 
-#include "gsecret-value.h"
-#include "gsecret-private.h"
+#include "secret-value.h"
+#include "secret-private.h"
 
 #include "egg/egg-testing.h"
 #include "egg/egg-secure-memory.h"
@@ -29,115 +29,115 @@ EGG_SECURE_DECLARE (test_value);
 static void
 test_new (void)
 {
-	GSecretValue *value;
+	SecretValue *value;
 	gsize length;
 
-	value = gsecret_value_new ("blahblah", 4, "text/plain");
+	value = secret_value_new ("blahblah", 4, "text/plain");
 
-	g_assert_cmpstr (gsecret_value_get (value, &length), ==, "blah");
+	g_assert_cmpstr (secret_value_get (value, &length), ==, "blah");
 	g_assert_cmpuint (length, ==, 4);
 
-	g_assert_cmpstr (gsecret_value_get_content_type (value), ==, "text/plain");
+	g_assert_cmpstr (secret_value_get_content_type (value), ==, "text/plain");
 
-	gsecret_value_unref (value);
+	secret_value_unref (value);
 }
 
 static void
 test_new_terminated (void)
 {
-	GSecretValue *value;
+	SecretValue *value;
 	gsize length;
 
-	value = gsecret_value_new ("blah", -1, "text/plain");
+	value = secret_value_new ("blah", -1, "text/plain");
 
-	g_assert_cmpstr (gsecret_value_get (value, &length), ==, "blah");
+	g_assert_cmpstr (secret_value_get (value, &length), ==, "blah");
 	g_assert_cmpuint (length, ==, 4);
 
-	g_assert_cmpstr (gsecret_value_get_content_type (value), ==, "text/plain");
+	g_assert_cmpstr (secret_value_get_content_type (value), ==, "text/plain");
 
-	gsecret_value_unref (value);
+	secret_value_unref (value);
 }
 
 static void
 test_new_full (void)
 {
-	GSecretValue *value;
+	SecretValue *value;
 	gchar *data = g_strdup ("blah");
 	gsize length;
 
-	value = gsecret_value_new_full (data, 4, "text/plain", g_free);
+	value = secret_value_new_full (data, 4, "text/plain", g_free);
 
-	g_assert_cmpstr (gsecret_value_get (value, &length), ==, "blah");
+	g_assert_cmpstr (secret_value_get (value, &length), ==, "blah");
 	g_assert_cmpuint (length, ==, 4);
 
 	/* No copy done here */
-	g_assert (gsecret_value_get (value, NULL) == data);
+	g_assert (secret_value_get (value, NULL) == data);
 
-	gsecret_value_unref (value);
+	secret_value_unref (value);
 }
 
 static void
 test_new_full_terminated (void)
 {
-	GSecretValue *value;
+	SecretValue *value;
 	gchar *data = g_strdup ("blah");
 	gsize length;
 
-	value = gsecret_value_new_full (data, -1, "text/plain", g_free);
+	value = secret_value_new_full (data, -1, "text/plain", g_free);
 
-	g_assert_cmpstr (gsecret_value_get (value, &length), ==, "blah");
+	g_assert_cmpstr (secret_value_get (value, &length), ==, "blah");
 	g_assert_cmpuint (length, ==, 4);
 
 	/* No copy done here */
-	g_assert (gsecret_value_get (value, NULL) == data);
+	g_assert (secret_value_get (value, NULL) == data);
 
-	gsecret_value_unref (value);
+	secret_value_unref (value);
 }
 
 static void
 test_ref_unref (void)
 {
-	GSecretValue *value;
-	GSecretValue *value2;
+	SecretValue *value;
+	SecretValue *value2;
 	gsize length;
 
-	value = gsecret_value_new ("blah", 4, "text/plain");
-	value2 = gsecret_value_ref(value);
-	gsecret_value_unref (value);
+	value = secret_value_new ("blah", 4, "text/plain");
+	value2 = secret_value_ref(value);
+	secret_value_unref (value);
 
-	g_assert_cmpstr (gsecret_value_get (value2, &length), ==, "blah");
+	g_assert_cmpstr (secret_value_get (value2, &length), ==, "blah");
 	g_assert_cmpuint (length, ==, 4);
 
-	gsecret_value_unref (value2);
+	secret_value_unref (value2);
 }
 
 static void
 test_boxed (void)
 {
-	GSecretValue *value;
-	GSecretValue *value2;
+	SecretValue *value;
+	SecretValue *value2;
 	gsize length;
 
-	value = gsecret_value_new ("blah", 4, "text/plain");
-	value2 = g_boxed_copy (GSECRET_TYPE_VALUE, value);
-	g_boxed_free (GSECRET_TYPE_VALUE, value);
+	value = secret_value_new ("blah", 4, "text/plain");
+	value2 = g_boxed_copy (SECRET_TYPE_VALUE, value);
+	g_boxed_free (SECRET_TYPE_VALUE, value);
 
-	g_assert_cmpstr (gsecret_value_get (value2, &length), ==, "blah");
+	g_assert_cmpstr (secret_value_get (value2, &length), ==, "blah");
 	g_assert_cmpuint (length, ==, 4);
 
-	g_boxed_free (GSECRET_TYPE_VALUE, value2);
+	g_boxed_free (SECRET_TYPE_VALUE, value2);
 }
 
 static void
 test_to_password (void)
 {
-	GSecretValue *value;
+	SecretValue *value;
 	gchar *password;
 
-	value = gsecret_value_new_full (egg_secure_strdup ("blah"), -1,
+	value = secret_value_new_full (egg_secure_strdup ("blah"), -1,
 	                                "text/plain", egg_secure_free);
 
-	password = _gsecret_value_unref_to_password (value);
+	password = _secret_value_unref_to_password (value);
 	g_assert_cmpstr (password, ==, "blah");
 
 	egg_secure_free (password);
@@ -146,13 +146,13 @@ test_to_password (void)
 static void
 test_to_password_bad_destroy (void)
 {
-	GSecretValue *value;
+	SecretValue *value;
 	gchar *password;
 
-	value = gsecret_value_new_full (g_strdup ("blah"), -1,
+	value = secret_value_new_full (g_strdup ("blah"), -1,
 	                                "text/plain", g_free);
 
-	password = _gsecret_value_unref_to_password (value);
+	password = _secret_value_unref_to_password (value);
 	g_assert_cmpstr (password, ==, "blah");
 
 	egg_secure_free (password);
@@ -161,31 +161,31 @@ test_to_password_bad_destroy (void)
 static void
 test_to_password_bad_content (void)
 {
-	GSecretValue *value;
+	SecretValue *value;
 	gchar *password;
 
-	value = gsecret_value_new_full (g_strdup ("wooowhee"), -1,
+	value = secret_value_new_full (g_strdup ("wooowhee"), -1,
 	                                "application/octet-stream", g_free);
 
-	password = _gsecret_value_unref_to_password (value);
+	password = _secret_value_unref_to_password (value);
 	g_assert_cmpstr (password, ==, NULL);
 }
 
 static void
 test_to_password_extra_ref (void)
 {
-	GSecretValue *value;
+	SecretValue *value;
 	gchar *password;
 
-	value = gsecret_value_new_full (egg_secure_strdup ("blah"), -1,
+	value = secret_value_new_full (egg_secure_strdup ("blah"), -1,
 	                                "text/plain", egg_secure_free);
-	gsecret_value_ref (value);
+	secret_value_ref (value);
 
-	password = _gsecret_value_unref_to_password (value);
+	password = _secret_value_unref_to_password (value);
 	g_assert_cmpstr (password, ==, "blah");
 
 	egg_secure_free (password);
-	gsecret_value_unref (value);
+	secret_value_unref (value);
 }
 
 int

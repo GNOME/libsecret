@@ -1,4 +1,4 @@
-/* GSecret - GLib wrapper for Secret Service
+/* libsecret - GLib wrapper for Secret Service
  *
  * Copyright 2011 Collabora Ltd.
  *
@@ -10,32 +10,32 @@
  * See the included COPYING file for more information.
  */
 
-#ifndef __GSECRET_TYPES_H__
-#define __GSECRET_TYPES_H__
+#ifndef __SECRET_TYPES_H__
+#define __SECRET_TYPES_H__
 
 #include <glib.h>
 
 G_BEGIN_DECLS
 
-#define         GSECRET_ERROR                (gsecret_error_get_quark ())
+#define         SECRET_ERROR                (secret_error_get_quark ())
 
-GQuark          gsecret_error_get_quark      (void) G_GNUC_CONST;
-
-typedef enum {
-	GSECRET_ERROR_PROTOCOL = 1,
-} GSecretError;
+GQuark          secret_error_get_quark      (void) G_GNUC_CONST;
 
 typedef enum {
-	GSECRET_ATTRIBUTE_BOOLEAN,
-	GSECRET_ATTRIBUTE_STRING,
-	GSECRET_ATTRIBUTE_INTEGER
-} GSecretSchemaType;
+	SECRET_ERROR_PROTOCOL = 1,
+} SecretError;
+
+typedef enum {
+	SECRET_ATTRIBUTE_BOOLEAN,
+	SECRET_ATTRIBUTE_STRING,
+	SECRET_ATTRIBUTE_INTEGER
+} SecretSchemaType;
 
 typedef struct {
 	const gchar *schema_name;
 	struct {
 		const gchar* name;
-		GSecretSchemaType type;
+		SecretSchemaType type;
 	} attributes[32];
 
 	/* <private> */
@@ -47,13 +47,13 @@ typedef struct {
 	gpointer reserved6;
 	gpointer reserved7;
 	gpointer reserved8;
-} GSecretSchema;
+} SecretSchema;
 
-typedef struct _GSecretCollection  GSecretCollection;
-typedef struct _GSecretItem        GSecretItem;
-typedef struct _GSecretPrompt      GSecretPrompt;
-typedef struct _GSecretService     GSecretService;
-typedef struct _GSecretValue       GSecretValue;
+typedef struct _SecretCollection  SecretCollection;
+typedef struct _SecretItem        SecretItem;
+typedef struct _SecretPrompt      SecretPrompt;
+typedef struct _SecretService     SecretService;
+typedef struct _SecretValue       SecretValue;
 
 G_END_DECLS
 

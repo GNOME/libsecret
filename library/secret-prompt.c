@@ -1,4 +1,4 @@
-/* GSecret - GLib wrapper for Secret Prompt
+/* libsecret - GLib wrapper for Secret Prompt
  *
  * Copyright 2011 Collabora Ltd.
  *
@@ -12,53 +12,53 @@
 
 #include "config.h"
 
-#include "gsecret-dbus-generated.h"
-#include "gsecret-private.h"
-#include "gsecret-prompt.h"
+#include "secret-dbus-generated.h"
+#include "secret-private.h"
+#include "secret-prompt.h"
 
 #include <glib.h>
 #include <glib/gi18n-lib.h>
 
 #include <gcrypt.h>
 
-typedef struct _GSecretPromptPrivate {
+typedef struct _SecretPromptPrivate {
 	/* Locked by mutex */
 	GMutex mutex;
 	gint prompted;
 	GVariant *last_result;
-} GSecretPromptPrivate;
+} SecretPromptPrivate;
 
-G_DEFINE_TYPE (GSecretPrompt, gsecret_prompt, G_TYPE_DBUS_PROXY);
+G_DEFINE_TYPE (SecretPrompt, secret_prompt, G_TYPE_DBUS_PROXY);
 
 static void
-gsecret_prompt_init (GSecretPrompt *self)
+secret_prompt_init (SecretPrompt *self)
 {
-	self->pv = G_TYPE_INSTANCE_GET_PRIVATE (self, GSECRET_TYPE_PROMPT,
-	                                        GSecretPromptPrivate);
+	self->pv = G_TYPE_INSTANCE_GET_PRIVATE (self, SECRET_TYPE_PROMPT,
+	                                        SecretPromptPrivate);
 
 	g_mutex_init (&self->pv->mutex);
 }
 
 static void
-gsecret_prompt_finalize (GObject *obj)
+secret_prompt_finalize (GObject *obj)
 {
-	GSecretPrompt *self = GSECRET_PROMPT (obj);
+	SecretPrompt *self = SECRET_PROMPT (obj);
 
 	g_mutex_clear (&self->pv->mutex);
 	if (self->pv->last_result)
 		g_variant_unref (self->pv->last_result);
 
-	G_OBJECT_CLASS (gsecret_prompt_parent_class)->finalize (obj);
+	G_OBJECT_CLASS (secret_prompt_parent_class)->finalize (obj);
 }
 
 static void
-gsecret_prompt_class_init (GSecretPromptClass *klass)
+secret_prompt_class_init (SecretPromptClass *klass)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
-	object_class->finalize = gsecret_prompt_finalize;
+	object_class->finalize = secret_prompt_finalize;
 
-	g_type_class_add_private (klass, sizeof (GSecretPromptPrivate));
+	g_type_class_add_private (klass, sizeof (SecretPromptPrivate));
 }
 
 typedef struct {
@@ -76,29 +76,29 @@ on_prompt_run_complete (GObject *source,
 	g_main_loop_quit (closure->loop);
 }
 
-GSecretPrompt *
-gsecret_prompt_instance (GSecretService *service,
+SecretPrompt *
+secret_prompt_instance (SecretService *service,
                          const gchar *prompt_path)
 {
 	GDBusProxy *proxy;
-	GSecretPrompt *prompt;
+	SecretPrompt *prompt;
 	GError *error = NULL;
 
-	g_return_val_if_fail (GSECRET_IS_SERVICE (service), NULL);
+	g_return_val_if_fail (SECRET_IS_SERVICE (service), NULL);
 	g_return_val_if_fail (prompt_path != NULL, NULL);
 
 	proxy = G_DBUS_PROXY (service);
-	prompt = g_initable_new (GSECRET_TYPE_PROMPT, NULL, &error,
+	prompt = g_initable_new (SECRET_TYPE_PROMPT, NULL, &error,
 	                         "g-flags", G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
-	                         "g-interface-info", _gsecret_gen_prompt_interface_info (),
+	                         "g-interface-info", _secret_gen_prompt_interface_info (),
 	                         "g-name", g_dbus_proxy_get_name (proxy),
 	                         "g-connection", g_dbus_proxy_get_connection (proxy),
 	                         "g-object-path", prompt_path,
-	                         "g-interface-name", GSECRET_PROMPT_INTERFACE,
+	                         "g-interface-name", SECRET_PROMPT_INTERFACE,
 	                         NULL);
 
 	if (error != NULL) {
-		g_warning ("couldn't create GSecretPrompt object: %s", error->message);
+		g_warning ("couldn't create SecretPrompt object: %s", error->message);
 		g_clear_error (&error);
 		return NULL;
 	}
@@ -107,7 +107,7 @@ gsecret_prompt_instance (GSecretService *service,
 }
 
 gboolean
-gsecret_prompt_run (GSecretPrompt *self,
+secret_prompt_run (SecretPrompt *self,
                     gulong window_id,
                     GCancellable *cancellable,
                     GError **error)
@@ -116,7 +116,7 @@ gsecret_prompt_run (GSecretPrompt *self,
 	RunClosure *closure;
 	gboolean ret;
 
-	g_return_val_if_fail (GSECRET_IS_PROMPT (self), FALSE);
+	g_return_val_if_fail (SECRET_IS_PROMPT (self), FALSE);
 	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), FALSE);
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
@@ -125,12 +125,12 @@ gsecret_prompt_run (GSecretPrompt *self,
 	closure = g_new0 (RunClosure, 1);
 	closure->loop = g_main_loop_new (context, FALSE);
 
-	gsecret_prompt_perform (self, window_id, cancellable,
+	secret_prompt_perform (self, window_id, cancellable,
 	                        on_prompt_run_complete, closure);
 
 	g_main_loop_run (closure->loop);
 
-	ret = gsecret_prompt_perform_finish (self, closure->result, error);
+	ret = secret_prompt_perform_finish (self, closure->result, error);
 
 	g_main_loop_unref (closure->loop);
 	g_object_unref (closure->result);
@@ -140,7 +140,7 @@ gsecret_prompt_run (GSecretPrompt *self,
 }
 
 gboolean
-gsecret_prompt_perform_sync (GSecretPrompt *self,
+secret_prompt_perform_sync (SecretPrompt *self,
                              gulong window_id,
                              GCancellable *cancellable,
                              GError **error)
@@ -148,14 +148,14 @@ gsecret_prompt_perform_sync (GSecretPrompt *self,
 	GMainContext *context;
 	gboolean ret;
 
-	g_return_val_if_fail (GSECRET_IS_PROMPT (self), FALSE);
+	g_return_val_if_fail (SECRET_IS_PROMPT (self), FALSE);
 	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), FALSE);
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
 	context = g_main_context_new ();
 	g_main_context_push_thread_default (context);
 
-	ret = gsecret_prompt_run (self, window_id, cancellable, error);
+	ret = secret_prompt_run (self, window_id, cancellable, error);
 
 	/* Needed to prevent memory leaks */
 	while (g_main_context_iteration (context, FALSE));
@@ -227,14 +227,14 @@ on_prompt_completed (GDBusConnection *connection,
                      gpointer user_data)
 {
 	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
-	GSecretPrompt *self = GSECRET_PROMPT (g_async_result_get_source_object (user_data));
+	SecretPrompt *self = SECRET_PROMPT (g_async_result_get_source_object (user_data));
 	PerformClosure *closure = g_simple_async_result_get_op_res_gpointer (res);
 	gboolean dismissed;
 
 	closure->prompting = FALSE;
 
 	if (!g_variant_is_of_type (parameters, G_VARIANT_TYPE ("(bv)"))) {
-		g_warning ("GSecretPrompt received invalid %s signal of type %s",
+		g_warning ("SecretPrompt received invalid %s signal of type %s",
 		           signal_name, g_variant_get_type_string (parameters));
 		perform_prompt_complete (res, TRUE);
 
@@ -256,7 +256,7 @@ on_prompt_prompted (GObject *source,
 {
 	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
 	PerformClosure *closure = g_simple_async_result_get_op_res_gpointer (res);
-	GSecretPrompt *self = GSECRET_PROMPT (source);
+	SecretPrompt *self = SECRET_PROMPT (source);
 	GError *error = NULL;
 	GVariant *retval;
 
@@ -302,7 +302,7 @@ on_prompt_dismissed (GObject *source,
 {
 	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
 	PerformClosure *closure = g_simple_async_result_get_op_res_gpointer (res);
-	GSecretPrompt *self = GSECRET_PROMPT (source);
+	SecretPrompt *self = SECRET_PROMPT (source);
 	GError *error = NULL;
 	GVariant *retval;
 
@@ -329,7 +329,7 @@ on_prompt_cancelled (GCancellable *cancellable,
 {
 	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
 	PerformClosure *closure = g_simple_async_result_get_op_res_gpointer (res);
-	GSecretPrompt *self = GSECRET_PROMPT (g_async_result_get_source_object (user_data));
+	SecretPrompt *self = SECRET_PROMPT (g_async_result_get_source_object (user_data));
 
 	/* Instead of cancelling our dbus calls, we cancel the prompt itself via this dbus call */
 
@@ -342,7 +342,7 @@ on_prompt_cancelled (GCancellable *cancellable,
 }
 
 void
-gsecret_prompt_perform (GSecretPrompt *self,
+secret_prompt_perform (SecretPrompt *self,
                         gulong window_id,
                         GCancellable *cancellable,
                         GAsyncReadyCallback callback,
@@ -356,7 +356,7 @@ gsecret_prompt_perform (GSecretPrompt *self,
 	GDBusProxy *proxy;
 	gchar *window;
 
-	g_return_if_fail (GSECRET_IS_PROMPT (self));
+	g_return_if_fail (SECRET_IS_PROMPT (self));
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
 	g_mutex_lock (&self->pv->mutex);
@@ -371,7 +371,7 @@ gsecret_prompt_perform (GSecretPrompt *self,
 	proxy = G_DBUS_PROXY (self);
 
 	res = g_simple_async_result_new (G_OBJECT (self), callback, user_data,
-	                                 gsecret_prompt_perform);
+	                                 secret_prompt_perform);
 	closure = g_slice_new0 (PerformClosure);
 	closure->connection = g_object_ref (g_dbus_proxy_get_connection (proxy));
 	closure->call_cancellable = g_cancellable_new ();
@@ -387,8 +387,8 @@ gsecret_prompt_perform (GSecretPrompt *self,
 	object_path = g_dbus_proxy_get_object_path (proxy);
 
 	closure->signal = g_dbus_connection_signal_subscribe (closure->connection, owner_name,
-	                                                      GSECRET_PROMPT_INTERFACE,
-	                                                      GSECRET_PROMPT_SIGNAL_COMPLETED,
+	                                                      SECRET_PROMPT_INTERFACE,
+	                                                      SECRET_PROMPT_SIGNAL_COMPLETED,
 	                                                      object_path, NULL,
 	                                                      G_DBUS_SIGNAL_FLAGS_NONE,
 	                                                      on_prompt_completed,
@@ -416,17 +416,17 @@ gsecret_prompt_perform (GSecretPrompt *self,
 }
 
 gboolean
-gsecret_prompt_perform_finish (GSecretPrompt *self,
+secret_prompt_perform_finish (SecretPrompt *self,
                                GAsyncResult *result,
                                GError **error)
 {
 	PerformClosure *closure;
 	GSimpleAsyncResult *res;
 
-	g_return_val_if_fail (GSECRET_IS_PROMPT (self), FALSE);
+	g_return_val_if_fail (SECRET_IS_PROMPT (self), FALSE);
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (self),
-	                                                      gsecret_prompt_perform), FALSE);
+	                                                      secret_prompt_perform), FALSE);
 
 	res = G_SIMPLE_ASYNC_RESULT (result);
 
@@ -438,13 +438,13 @@ gsecret_prompt_perform_finish (GSecretPrompt *self,
 }
 
 GVariant *
-gsecret_prompt_get_result_value (GSecretPrompt *self,
+secret_prompt_get_result_value (SecretPrompt *self,
                                  const GVariantType *expected_type)
 {
 	GVariant *last_result;
 	gchar *string;
 
-	g_return_val_if_fail (GSECRET_IS_PROMPT (self), NULL);
+	g_return_val_if_fail (SECRET_IS_PROMPT (self), NULL);
 
 	g_mutex_lock (&self->pv->mutex);
 	if (self->pv->last_result)

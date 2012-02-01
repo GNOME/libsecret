@@ -34,13 +34,13 @@ stamp*
 /build/valgrind-suppressions
 
 /po/POTFILES
-/po/gsecret.pot
+/po/libsecret.pot
 
 /egg/tests/test-*
 !/egg/tests/test-*.c
 
-/library/gsecret-dbus-generated.[ch]
-/library/gsecret-enum-types.[ch]
+/library/secret-dbus-generated.[ch]
+/library/secret-enum-types.[ch]
 /library/tests/test-*
 !/library/tests/test-*.c
 

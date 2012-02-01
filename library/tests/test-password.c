@@ -1,4 +1,4 @@
-/* GSecret - GLib wrapper for Secret Service
+/* libsecret - GLib wrapper for Secret Service
  *
  * Copyright 2012 Red Hat Inc.
  *
@@ -14,8 +14,8 @@
 
 #include "config.h"
 
-#include "gsecret-password.h"
-#include "gsecret-private.h"
+#include "secret-password.h"
+#include "secret-private.h"
 
 #include "mock-service.h"
 
@@ -26,12 +26,12 @@
 #include <errno.h>
 #include <stdlib.h>
 
-static const GSecretSchema PASSWORD_SCHEMA = {
+static const SecretSchema PASSWORD_SCHEMA = {
 	"org.mock.schema.Password",
 	{
-		{ "number", GSECRET_ATTRIBUTE_INTEGER },
-		{ "string", GSECRET_ATTRIBUTE_STRING },
-		{ "even", GSECRET_ATTRIBUTE_BOOLEAN },
+		{ "number", SECRET_ATTRIBUTE_INTEGER },
+		{ "string", SECRET_ATTRIBUTE_STRING },
+		{ "even", SECRET_ATTRIBUTE_BOOLEAN },
 	}
 };
 
@@ -76,16 +76,16 @@ test_lookup_sync (Test *test,
 	gchar *password;
 	GError *error = NULL;
 
-	password = gsecret_password_lookup_sync (&PASSWORD_SCHEMA, NULL, &error,
-	                                         "even", FALSE,
-	                                         "string", "one",
-	                                         "number", 1,
-	                                         NULL);
+	password = secret_password_lookup_sync (&PASSWORD_SCHEMA, NULL, &error,
+	                                        "even", FALSE,
+	                                        "string", "one",
+	                                        "number", 1,
+	                                        NULL);
 
 	g_assert_no_error (error);
 	g_assert_cmpstr (password, ==, "111");
 
-	gsecret_password_free (password);
+	secret_password_free (password);
 }
 
 static void
@@ -96,21 +96,21 @@ test_lookup_async (Test *test,
 	GError *error = NULL;
 	gchar *password;
 
-	gsecret_password_lookup (&PASSWORD_SCHEMA, NULL, on_complete_get_result, &result,
-	                         "even", FALSE,
-	                         "string", "one",
-	                         "number", 1,
-	                         NULL);
+	secret_password_lookup (&PASSWORD_SCHEMA, NULL, on_complete_get_result, &result,
+	                        "even", FALSE,
+	                        "string", "one",
+	                        "number", 1,
+	                        NULL);
 	g_assert (result == NULL);
 
 	egg_test_wait ();
 
-	password = gsecret_password_lookup_finish (result, &error);
+	password = secret_password_lookup_finish (result, &error);
 	g_assert_no_error (error);
 	g_object_unref (result);
 
 	g_assert_cmpstr (password, ==, "111");
-	gsecret_password_free (password);
+	secret_password_free (password);
 }
 
 static void
@@ -122,24 +122,24 @@ test_store_sync (Test *test,
 	gchar *password;
 	gboolean ret;
 
-	ret = gsecret_password_store_sync (&PASSWORD_SCHEMA, collection_path,
-	                                   "Label here", "the password", NULL, &error,
-	                                   "even", TRUE,
-	                                   "string", "twelve",
-	                                   "number", 12,
-	                                   NULL);
+	ret = secret_password_store_sync (&PASSWORD_SCHEMA, collection_path,
+	                                  "Label here", "the password", NULL, &error,
+	                                  "even", TRUE,
+	                                  "string", "twelve",
+	                                  "number", 12,
+	                                  NULL);
 
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
 
-	password = gsecret_password_lookup_sync (&PASSWORD_SCHEMA, NULL, &error,
-	                                         "string", "twelve",
-	                                         NULL);
+	password = secret_password_lookup_sync (&PASSWORD_SCHEMA, NULL, &error,
+	                                        "string", "twelve",
+	                                        NULL);
 
 	g_assert_no_error (error);
 	g_assert_cmpstr (password, ==, "the password");
 
-	gsecret_password_free (password);
+	secret_password_free (password);
 }
 
 static void
@@ -152,29 +152,29 @@ test_store_async (Test *test,
 	gchar *password;
 	gboolean ret;
 
-	gsecret_password_store (&PASSWORD_SCHEMA, collection_path, "Label here",
-	                        "the password", NULL, on_complete_get_result, &result,
-	                        "even", TRUE,
-	                        "string", "twelve",
-	                        "number", 12,
-	                        NULL);
+	secret_password_store (&PASSWORD_SCHEMA, collection_path, "Label here",
+	                       "the password", NULL, on_complete_get_result, &result,
+	                       "even", TRUE,
+	                       "string", "twelve",
+	                       "number", 12,
+	                       NULL);
 	g_assert (result == NULL);
 
 	egg_test_wait ();
 
-	ret = gsecret_password_store_finish (result, &error);
+	ret = secret_password_store_finish (result, &error);
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
 	g_object_unref (result);
 
-	password = gsecret_password_lookup_sync (&PASSWORD_SCHEMA, NULL, &error,
-	                                         "string", "twelve",
-	                                         NULL);
+	password = secret_password_lookup_sync (&PASSWORD_SCHEMA, NULL, &error,
+	                                        "string", "twelve",
+	                                        NULL);
 
 	g_assert_no_error (error);
 	g_assert_cmpstr (password, ==, "the password");
 
-	gsecret_password_free (password);
+	secret_password_free (password);
 }
 
 static void
@@ -184,11 +184,11 @@ test_delete_sync (Test *test,
 	GError *error = NULL;
 	gboolean ret;
 
-	ret = gsecret_password_remove_sync (&PASSWORD_SCHEMA, NULL, &error,
-	                                    "even", FALSE,
-	                                    "string", "one",
-	                                    "number", 1,
-	                                    NULL);
+	ret = secret_password_remove_sync (&PASSWORD_SCHEMA, NULL, &error,
+	                                   "even", FALSE,
+	                                   "string", "one",
+	                                   "number", 1,
+	                                   NULL);
 
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
@@ -202,18 +202,18 @@ test_delete_async (Test *test,
 	GAsyncResult *result = NULL;
 	gboolean ret;
 
-	gsecret_password_remove (&PASSWORD_SCHEMA, NULL,
-	                         on_complete_get_result, &result,
-	                         "even", FALSE,
-	                         "string", "one",
-	                         "number", 1,
-	                         NULL);
+	secret_password_remove (&PASSWORD_SCHEMA, NULL,
+	                        on_complete_get_result, &result,
+	                        "even", FALSE,
+	                        "string", "one",
+	                        "number", 1,
+	                        NULL);
 
 	g_assert (result == NULL);
 
 	egg_test_wait ();
 
-	ret = gsecret_password_remove_finish (result, &error);
+	ret = secret_password_remove_finish (result, &error);
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
 
@@ -223,7 +223,7 @@ test_delete_async (Test *test,
 static void
 test_password_free_null (void)
 {
-	gsecret_password_free (NULL);
+	secret_password_free (NULL);
 }
 
 int

@@ -1,4 +1,4 @@
-/* GSecret - GLib wrapper for Secret Service
+/* libsecret - GLib wrapper for Secret Service
  *
  * Copyright 2011 Collabora Ltd.
  *
@@ -10,16 +10,16 @@
  * See the included COPYING file for more information.
  */
 
-#ifndef __GSECRET_PASSWORD_H__
-#define __GSECRET_PASSWORD_H__
+#ifndef __SECRET_PASSWORD_H__
+#define __SECRET_PASSWORD_H__
 
 #include <gio/gio.h>
 
 G_BEGIN_DECLS
 
-#include "gsecret-types.h"
+#include "secret-types.h"
 
-void        gsecret_password_store                      (const GSecretSchema *schema,
+void        secret_password_store                      (const SecretSchema *schema,
                                                          const gchar *collection_path,
                                                          const gchar *label,
                                                          const gchar *password,
@@ -28,7 +28,7 @@ void        gsecret_password_store                      (const GSecretSchema *sc
                                                          gpointer user_data,
                                                          ...) G_GNUC_NULL_TERMINATED;
 
-void        gsecret_password_storev                     (const GSecretSchema *schema,
+void        secret_password_storev                     (const SecretSchema *schema,
                                                          const gchar *collection_path,
                                                          const gchar *label,
                                                          const gchar *password,
@@ -37,10 +37,10 @@ void        gsecret_password_storev                     (const GSecretSchema *sc
                                                          GAsyncReadyCallback callback,
                                                          gpointer user_data);
 
-gboolean    gsecret_password_store_finish               (GAsyncResult *result,
+gboolean    secret_password_store_finish               (GAsyncResult *result,
                                                          GError **error);
 
-gboolean    gsecret_password_store_sync                 (const GSecretSchema *schema,
+gboolean    secret_password_store_sync                 (const SecretSchema *schema,
                                                          const gchar *collection_path,
                                                          const gchar *label,
                                                          const gchar *password,
@@ -48,7 +48,7 @@ gboolean    gsecret_password_store_sync                 (const GSecretSchema *sc
                                                          GError **error,
                                                          ...) G_GNUC_NULL_TERMINATED;
 
-gboolean    gsecret_password_storev_sync                (const GSecretSchema *schema,
+gboolean    secret_password_storev_sync                (const SecretSchema *schema,
                                                          const gchar *collection_path,
                                                          const gchar *display_name,
                                                          const gchar *password,
@@ -56,53 +56,53 @@ gboolean    gsecret_password_storev_sync                (const GSecretSchema *sc
                                                          GCancellable *cancellable,
                                                          GError **error);
 
-void        gsecret_password_lookup                     (const GSecretSchema *schema,
+void        secret_password_lookup                     (const SecretSchema *schema,
                                                          GCancellable *cancellable,
                                                          GAsyncReadyCallback callback,
                                                          gpointer user_data,
                                                          ...) G_GNUC_NULL_TERMINATED;
 
-void        gsecret_password_lookupv                    (GHashTable *attributes,
+void        secret_password_lookupv                    (GHashTable *attributes,
                                                          GCancellable *cancellable,
                                                          GAsyncReadyCallback callback,
                                                          gpointer user_data);
 
-gchar *     gsecret_password_lookup_finish              (GAsyncResult *result,
+gchar *     secret_password_lookup_finish              (GAsyncResult *result,
                                                          GError **error);
 
-gchar *     gsecret_password_lookup_sync                (const GSecretSchema *schema,
+gchar *     secret_password_lookup_sync                (const SecretSchema *schema,
                                                          GCancellable *cancellable,
                                                          GError **error,
                                                          ...) G_GNUC_NULL_TERMINATED;
 
-gchar *     gsecret_password_lookupv_sync               (GHashTable *attributes,
+gchar *     secret_password_lookupv_sync               (GHashTable *attributes,
                                                          GCancellable *cancellable,
                                                          GError **error);
 
-void        gsecret_password_remove                     (const GSecretSchema *schema,
+void        secret_password_remove                     (const SecretSchema *schema,
                                                          GCancellable *cancellable,
                                                          GAsyncReadyCallback callback,
                                                          gpointer user_data,
                                                          ...) G_GNUC_NULL_TERMINATED;
 
-void        gsecret_password_removev                    (GHashTable *attributes,
+void        secret_password_removev                    (GHashTable *attributes,
                                                          GCancellable *cancellable,
                                                          GAsyncReadyCallback callback,
                                                          gpointer user_data);
 
-gboolean    gsecret_password_remove_finish              (GAsyncResult *result,
+gboolean    secret_password_remove_finish              (GAsyncResult *result,
                                                          GError **error);
 
-gboolean    gsecret_password_remove_sync                (const GSecretSchema* schema,
+gboolean    secret_password_remove_sync                (const SecretSchema* schema,
                                                          GCancellable *cancellable,
                                                          GError **error,
                                                          ...) G_GNUC_NULL_TERMINATED;
 
-gboolean    gsecret_password_removev_sync               (GHashTable *attributes,
+gboolean    secret_password_removev_sync               (GHashTable *attributes,
                                                          GCancellable *cancellable,
                                                          GError **error);
 
-void        gsecret_password_free                       (gpointer password);
+void        secret_password_free                       (gpointer password);
 
 G_END_DECLS
 

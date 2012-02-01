@@ -1,4 +1,4 @@
-/* GSecret - GLib wrapper for Secret Service
+/* libsecret - GLib wrapper for Secret Service
  *
  * Copyright 2011 Collabora Ltd.
  * Copyright 2012 Red Hat Inc.
@@ -11,441 +11,441 @@
  * See the included COPYING file for more information.
  */
 
-#ifndef __GSECRET_SERVICE_H__
-#define __GSECRET_SERVICE_H__
+#ifndef __SECRET_SERVICE_H__
+#define __SECRET_SERVICE_H__
 
 #include <gio/gio.h>
 
-#include "gsecret-prompt.h"
-#include "gsecret-types.h"
-#include "gsecret-value.h"
+#include "secret-prompt.h"
+#include "secret-types.h"
+#include "secret-value.h"
 
 G_BEGIN_DECLS
 
 typedef enum {
-	GSECRET_SERVICE_NONE,
-	GSECRET_SERVICE_OPEN_SESSION = 1 << 1,
-	GSECRET_SERVICE_LOAD_COLLECTIONS = 1 << 2,
-} GSecretServiceFlags;
+	SECRET_SERVICE_NONE,
+	SECRET_SERVICE_OPEN_SESSION = 1 << 1,
+	SECRET_SERVICE_LOAD_COLLECTIONS = 1 << 2,
+} SecretServiceFlags;
 
-#define GSECRET_TYPE_SERVICE            (gsecret_service_get_type ())
-#define GSECRET_SERVICE(inst)           (G_TYPE_CHECK_INSTANCE_CAST ((inst), GSECRET_TYPE_SERVICE, GSecretService))
-#define GSECRET_SERVICE_CLASS(class)    (G_TYPE_CHECK_CLASS_CAST ((class), GSECRET_TYPE_SERVICE, GSecretServiceClass))
-#define GSECRET_IS_SERVICE(inst)        (G_TYPE_CHECK_INSTANCE_TYPE ((inst), GSECRET_TYPE_SERVICE))
-#define GSECRET_IS_SERVICE_CLASS(class) (G_TYPE_CHECK_CLASS_TYPE ((class), GSECRET_TYPE_SERVICE))
-#define GSECRET_SERVICE_GET_CLASS(inst) (G_TYPE_INSTANCE_GET_CLASS ((inst), GSECRET_TYPE_SERVICE, GSecretServiceClass))
+#define SECRET_TYPE_SERVICE            (secret_service_get_type ())
+#define SECRET_SERVICE(inst)           (G_TYPE_CHECK_INSTANCE_CAST ((inst), SECRET_TYPE_SERVICE, SecretService))
+#define SECRET_SERVICE_CLASS(class)    (G_TYPE_CHECK_CLASS_CAST ((class), SECRET_TYPE_SERVICE, SecretServiceClass))
+#define SECRET_IS_SERVICE(inst)        (G_TYPE_CHECK_INSTANCE_TYPE ((inst), SECRET_TYPE_SERVICE))
+#define SECRET_IS_SERVICE_CLASS(class) (G_TYPE_CHECK_CLASS_TYPE ((class), SECRET_TYPE_SERVICE))
+#define SECRET_SERVICE_GET_CLASS(inst) (G_TYPE_INSTANCE_GET_CLASS ((inst), SECRET_TYPE_SERVICE, SecretServiceClass))
 
-typedef struct _GSecretServiceClass   GSecretServiceClass;
-typedef struct _GSecretServicePrivate GSecretServicePrivate;
+typedef struct _SecretServiceClass   SecretServiceClass;
+typedef struct _SecretServicePrivate SecretServicePrivate;
 
-struct _GSecretService {
+struct _SecretService {
 	GDBusProxy parent;
-	GSecretServicePrivate *pv;
+	SecretServicePrivate *pv;
 };
 
-struct _GSecretServiceClass {
+struct _SecretServiceClass {
 	GDBusProxyClass parent_class;
 
 	GType collection_gtype;
 	GType item_gtype;
 
-	gboolean (*prompt_sync)          (GSecretService *self,
-	                                  GSecretPrompt *prompt,
+	gboolean (*prompt_sync)          (SecretService *self,
+	                                  SecretPrompt *prompt,
 	                                  GCancellable *cancellable,
 	                                  GError **error);
 
-	void     (*prompt_async)         (GSecretService *self,
-	                                  GSecretPrompt *prompt,
+	void     (*prompt_async)         (SecretService *self,
+	                                  SecretPrompt *prompt,
 	                                  GCancellable *cancellable,
 	                                  GAsyncReadyCallback callback,
 	                                  gpointer user_data);
 
-	gboolean (*prompt_finish)        (GSecretService *self,
+	gboolean (*prompt_finish)        (SecretService *self,
 	                                  GAsyncResult *result,
 	                                  GError **error);
 
 	gpointer padding[16];
 };
 
-GType                gsecret_service_get_type                      (void) G_GNUC_CONST;
+GType                secret_service_get_type                      (void) G_GNUC_CONST;
 
-void                 gsecret_service_get                           (GSecretServiceFlags flags,
+void                 secret_service_get                           (SecretServiceFlags flags,
                                                                     GCancellable *cancellable,
                                                                     GAsyncReadyCallback callback,
                                                                     gpointer user_data);
 
-GSecretService *     gsecret_service_get_finish                    (GAsyncResult *result,
+SecretService *     secret_service_get_finish                    (GAsyncResult *result,
                                                                     GError **error);
 
-GSecretService *     gsecret_service_get_sync                      (GSecretServiceFlags flags,
+SecretService *     secret_service_get_sync                      (SecretServiceFlags flags,
                                                                     GCancellable *cancellable,
                                                                     GError **error);
 
-void                 gsecret_service_new                           (const gchar *service_bus_name,
-                                                                    GSecretServiceFlags flags,
-                                                                    GCancellable *cancellable,
-                                                                    GAsyncReadyCallback callback,
-                                                                    gpointer user_data);
-
-GSecretService *     gsecret_service_new_finish                    (GAsyncResult *result,
-                                                                    GError **error);
-
-GSecretService *     gsecret_service_new_sync                      (const gchar *service_bus_name,
-                                                                    GSecretServiceFlags flags,
-                                                                    GCancellable *cancellable,
-                                                                    GError **error);
-
-GSecretServiceFlags  gsecret_service_get_flags                     (GSecretService *self);
-
-const gchar *        gsecret_service_get_session_algorithms        (GSecretService *self);
-
-const gchar *        gsecret_service_get_session_path              (GSecretService *self);
-
-GList *              gsecret_service_get_collections               (GSecretService *self);
-
-void                 gsecret_service_ensure_session                (GSecretService *self,
+void                 secret_service_new                           (const gchar *service_bus_name,
+                                                                    SecretServiceFlags flags,
                                                                     GCancellable *cancellable,
                                                                     GAsyncReadyCallback callback,
                                                                     gpointer user_data);
 
-const gchar *        gsecret_service_ensure_session_finish         (GSecretService *self,
+SecretService *     secret_service_new_finish                    (GAsyncResult *result,
+                                                                    GError **error);
+
+SecretService *     secret_service_new_sync                      (const gchar *service_bus_name,
+                                                                    SecretServiceFlags flags,
+                                                                    GCancellable *cancellable,
+                                                                    GError **error);
+
+SecretServiceFlags  secret_service_get_flags                     (SecretService *self);
+
+const gchar *        secret_service_get_session_algorithms        (SecretService *self);
+
+const gchar *        secret_service_get_session_path              (SecretService *self);
+
+GList *              secret_service_get_collections               (SecretService *self);
+
+void                 secret_service_ensure_session                (SecretService *self,
+                                                                    GCancellable *cancellable,
+                                                                    GAsyncReadyCallback callback,
+                                                                    gpointer user_data);
+
+const gchar *        secret_service_ensure_session_finish         (SecretService *self,
                                                                     GAsyncResult *result,
                                                                     GError **error);
 
-const gchar *        gsecret_service_ensure_session_sync           (GSecretService *self,
+const gchar *        secret_service_ensure_session_sync           (SecretService *self,
                                                                     GCancellable *cancellable,
                                                                     GError **error);
 
-void                 gsecret_service_ensure_collections            (GSecretService *self,
+void                 secret_service_ensure_collections            (SecretService *self,
                                                                     GCancellable *cancellable,
                                                                     GAsyncReadyCallback callback,
                                                                     gpointer user_data);
 
-gboolean             gsecret_service_ensure_collections_finish     (GSecretService *self,
+gboolean             secret_service_ensure_collections_finish     (SecretService *self,
                                                                     GAsyncResult *result,
                                                                     GError **error);
 
-gboolean             gsecret_service_ensure_collections_sync       (GSecretService *self,
+gboolean             secret_service_ensure_collections_sync       (SecretService *self,
                                                                     GCancellable *cancellable,
                                                                     GError **error);
 
-void                 gsecret_service_search                        (GSecretService *self,
+void                 secret_service_search                        (SecretService *self,
                                                                     GHashTable *attributes,
                                                                     GCancellable *cancellable,
                                                                     GAsyncReadyCallback callback,
                                                                     gpointer user_data);
 
-gboolean             gsecret_service_search_finish                 (GSecretService *self,
+gboolean             secret_service_search_finish                 (SecretService *self,
                                                                     GAsyncResult *result,
                                                                     GList **unlocked,
                                                                     GList **locked,
                                                                     GError **error);
 
-gboolean             gsecret_service_search_sync                   (GSecretService *self,
+gboolean             secret_service_search_sync                   (SecretService *self,
                                                                     GHashTable *attributes,
                                                                     GCancellable *cancellable,
                                                                     GList **unlocked,
                                                                     GList **locked,
                                                                     GError **error);
 
-void                 gsecret_service_search_for_paths              (GSecretService *self,
+void                 secret_service_search_for_paths              (SecretService *self,
                                                                     GHashTable *attributes,
                                                                     GCancellable *cancellable,
                                                                     GAsyncReadyCallback callback,
                                                                     gpointer user_data);
 
-gboolean             gsecret_service_search_for_paths_finish       (GSecretService *self,
+gboolean             secret_service_search_for_paths_finish       (SecretService *self,
                                                                     GAsyncResult *result,
                                                                     gchar ***unlocked,
                                                                     gchar ***locked,
                                                                     GError **error);
 
-gboolean             gsecret_service_search_for_paths_sync         (GSecretService *self,
+gboolean             secret_service_search_for_paths_sync         (SecretService *self,
                                                                     GHashTable *attributes,
                                                                     GCancellable *cancellable,
                                                                     gchar ***unlocked,
                                                                     gchar ***locked,
                                                                     GError **error);
 
-void                 gsecret_service_get_secret_for_path           (GSecretService *self,
+void                 secret_service_get_secret_for_path           (SecretService *self,
                                                                     const gchar *object_path,
                                                                     GCancellable *cancellable,
                                                                     GAsyncReadyCallback callback,
                                                                     gpointer user_data);
 
-GSecretValue *       gsecret_service_get_secret_for_path_finish    (GSecretService *self,
+SecretValue *       secret_service_get_secret_for_path_finish    (SecretService *self,
                                                                     GAsyncResult *result,
                                                                     GError **error);
 
-GSecretValue *       gsecret_service_get_secret_for_path_sync      (GSecretService *self,
+SecretValue *       secret_service_get_secret_for_path_sync      (SecretService *self,
                                                                     const gchar *object_path,
                                                                     GCancellable *cancellable,
                                                                     GError **error);
 
-void                 gsecret_service_get_secrets_for_paths         (GSecretService *self,
+void                 secret_service_get_secrets_for_paths         (SecretService *self,
                                                                     const gchar **object_paths,
                                                                     GCancellable *cancellable,
                                                                     GAsyncReadyCallback callback,
                                                                     gpointer user_data);
 
-GHashTable *         gsecret_service_get_secrets_for_paths_finish  (GSecretService *self,
+GHashTable *         secret_service_get_secrets_for_paths_finish  (SecretService *self,
                                                                     GAsyncResult *result,
                                                                     GError **error);
 
-GHashTable *         gsecret_service_get_secrets_for_paths_sync    (GSecretService *self,
+GHashTable *         secret_service_get_secrets_for_paths_sync    (SecretService *self,
                                                                     const gchar **object_paths,
                                                                     GCancellable *cancellable,
                                                                     GError **error);
 
-void                 gsecret_service_get_secrets                   (GSecretService *self,
+void                 secret_service_get_secrets                   (SecretService *self,
                                                                     GList *items,
                                                                     GCancellable *cancellable,
                                                                     GAsyncReadyCallback callback,
                                                                     gpointer user_data);
 
-GHashTable *         gsecret_service_get_secrets_finish            (GSecretService *self,
+GHashTable *         secret_service_get_secrets_finish            (SecretService *self,
                                                                     GAsyncResult *result,
                                                                     GError **error);
 
-GHashTable *         gsecret_service_get_secrets_sync              (GSecretService *self,
+GHashTable *         secret_service_get_secrets_sync              (SecretService *self,
                                                                     GList *items,
                                                                     GCancellable *cancellable,
                                                                     GError **error);
 
-void                 gsecret_service_lock                          (GSecretService *self,
+void                 secret_service_lock                          (SecretService *self,
                                                                     GList *objects,
                                                                     GCancellable *cancellable,
                                                                     GAsyncReadyCallback callback,
                                                                     gpointer user_data);
 
-gint                 gsecret_service_lock_finish                   (GSecretService *self,
+gint                 secret_service_lock_finish                   (SecretService *self,
                                                                     GAsyncResult *result,
                                                                     GList **locked,
                                                                     GError **error);
 
-gint                 gsecret_service_lock_sync                     (GSecretService *self,
+gint                 secret_service_lock_sync                     (SecretService *self,
                                                                     GList *objects,
                                                                     GCancellable *cancellable,
                                                                     GList **locked,
                                                                     GError **error);
 
-gint                 gsecret_service_lock_paths_sync               (GSecretService *self,
+gint                 secret_service_lock_paths_sync               (SecretService *self,
                                                                     const gchar **paths,
                                                                     GCancellable *cancellable,
                                                                     gchar ***locked,
                                                                     GError **error);
 
-void                 gsecret_service_lock_paths                    (GSecretService *self,
+void                 secret_service_lock_paths                    (SecretService *self,
                                                                     const gchar **paths,
                                                                     GCancellable *cancellable,
                                                                     GAsyncReadyCallback callback,
                                                                     gpointer user_data);
 
-gint                 gsecret_service_lock_paths_finish             (GSecretService *self,
+gint                 secret_service_lock_paths_finish             (SecretService *self,
                                                                     GAsyncResult *result,
                                                                     gchar ***locked,
                                                                     GError **error);
 
-void                 gsecret_service_unlock                        (GSecretService *self,
+void                 secret_service_unlock                        (SecretService *self,
                                                                     GList *objects,
                                                                     GCancellable *cancellable,
                                                                     GAsyncReadyCallback callback,
                                                                     gpointer user_data);
 
-gint                 gsecret_service_unlock_finish                 (GSecretService *self,
+gint                 secret_service_unlock_finish                 (SecretService *self,
                                                                     GAsyncResult *result,
                                                                     GList **unlocked,
                                                                     GError **error);
 
-gint                 gsecret_service_unlock_sync                   (GSecretService *self,
+gint                 secret_service_unlock_sync                   (SecretService *self,
                                                                     GList *objects,
                                                                     GCancellable *cancellable,
                                                                     GList **unlocked,
                                                                     GError **error);
 
-gint                 gsecret_service_unlock_paths_sync             (GSecretService *self,
+gint                 secret_service_unlock_paths_sync             (SecretService *self,
                                                                     const gchar **paths,
                                                                     GCancellable *cancellable,
                                                                     gchar ***unlocked,
                                                                     GError **error);
 
-void                 gsecret_service_unlock_paths                  (GSecretService *self,
+void                 secret_service_unlock_paths                  (SecretService *self,
                                                                     const gchar **paths,
                                                                     GCancellable *cancellable,
                                                                     GAsyncReadyCallback callback,
                                                                     gpointer user_data);
 
-gint                 gsecret_service_unlock_paths_finish           (GSecretService *self,
+gint                 secret_service_unlock_paths_finish           (SecretService *self,
                                                                     GAsyncResult *result,
                                                                     gchar ***unlocked,
                                                                     GError **error);
 
-gboolean             gsecret_service_prompt_sync                   (GSecretService *self,
-                                                                    GSecretPrompt *prompt,
+gboolean             secret_service_prompt_sync                   (SecretService *self,
+                                                                    SecretPrompt *prompt,
                                                                     GCancellable *cancellable,
                                                                     GError **error);
 
-void                 gsecret_service_prompt                        (GSecretService *self,
-                                                                    GSecretPrompt *prompt,
+void                 secret_service_prompt                        (SecretService *self,
+                                                                    SecretPrompt *prompt,
                                                                     GCancellable *cancellable,
                                                                     GAsyncReadyCallback callback,
                                                                     gpointer user_data);
 
-gboolean             gsecret_service_prompt_finish                 (GSecretService *self,
+gboolean             secret_service_prompt_finish                 (SecretService *self,
                                                                     GAsyncResult *result,
                                                                     GError **error);
 
-void                 gsecret_service_store                         (GSecretService *self,
-                                                                    const GSecretSchema *schema,
+void                 secret_service_store                         (SecretService *self,
+                                                                    const SecretSchema *schema,
                                                                     const gchar *collection_path,
                                                                     const gchar *label,
-                                                                    GSecretValue *value,
+                                                                    SecretValue *value,
                                                                     GCancellable *cancellable,
                                                                     GAsyncReadyCallback callback,
                                                                     gpointer user_data,
                                                                     ...) G_GNUC_NULL_TERMINATED;
 
-void                 gsecret_service_storev                        (GSecretService *self,
-                                                                    const GSecretSchema *schema,
+void                 secret_service_storev                        (SecretService *self,
+                                                                    const SecretSchema *schema,
                                                                     GHashTable *attributes,
                                                                     const gchar *collection_path,
                                                                     const gchar *label,
-                                                                    GSecretValue *value,
+                                                                    SecretValue *value,
                                                                     GCancellable *cancellable,
                                                                     GAsyncReadyCallback callback,
                                                                     gpointer user_data);
 
-gboolean             gsecret_service_store_finish                  (GSecretService *self,
+gboolean             secret_service_store_finish                  (SecretService *self,
                                                                     GAsyncResult *result,
                                                                     GError **error);
 
-gboolean             gsecret_service_store_sync                    (GSecretService *self,
-                                                                    const GSecretSchema *schema,
+gboolean             secret_service_store_sync                    (SecretService *self,
+                                                                    const SecretSchema *schema,
                                                                     const gchar *collection_path,
                                                                     const gchar *label,
-                                                                    GSecretValue *value,
+                                                                    SecretValue *value,
                                                                     GCancellable *cancellable,
                                                                     GError **error,
                                                                     ...) G_GNUC_NULL_TERMINATED;
 
-gboolean             gsecret_service_storev_sync                   (GSecretService *self,
-                                                                    const GSecretSchema *schema,
+gboolean             secret_service_storev_sync                   (SecretService *self,
+                                                                    const SecretSchema *schema,
                                                                     GHashTable *attributes,
                                                                     const gchar *collection_path,
                                                                     const gchar *label,
-                                                                    GSecretValue *value,
+                                                                    SecretValue *value,
                                                                     GCancellable *cancellable,
                                                                     GError **error);
 
-void                 gsecret_service_lookup                        (GSecretService *self,
-                                                                    const GSecretSchema *schema,
+void                 secret_service_lookup                        (SecretService *self,
+                                                                    const SecretSchema *schema,
                                                                     GCancellable *cancellable,
                                                                     GAsyncReadyCallback callback,
                                                                     gpointer user_data,
                                                                     ...) G_GNUC_NULL_TERMINATED;
 
-void                 gsecret_service_lookupv                       (GSecretService *self,
+void                 secret_service_lookupv                       (SecretService *self,
                                                                     GHashTable *attributes,
                                                                     GCancellable *cancellable,
                                                                     GAsyncReadyCallback callback,
                                                                     gpointer user_data);
 
-GSecretValue *       gsecret_service_lookup_finish                 (GSecretService *self,
+SecretValue *       secret_service_lookup_finish                 (SecretService *self,
                                                                     GAsyncResult *result,
                                                                     GError **error);
 
-GSecretValue *       gsecret_service_lookup_sync                   (GSecretService *self,
-                                                                    const GSecretSchema *schema,
+SecretValue *       secret_service_lookup_sync                   (SecretService *self,
+                                                                    const SecretSchema *schema,
                                                                     GCancellable *cancellable,
                                                                     GError **error,
                                                                     ...) G_GNUC_NULL_TERMINATED;
 
-GSecretValue *       gsecret_service_lookupv_sync                  (GSecretService *self,
+SecretValue *       secret_service_lookupv_sync                  (SecretService *self,
                                                                     GHashTable *attributes,
                                                                     GCancellable *cancellable,
                                                                     GError **error);
 
-void                 gsecret_service_delete_path                   (GSecretService *self,
+void                 secret_service_delete_path                   (SecretService *self,
                                                                     const gchar *object_path,
                                                                     GCancellable *cancellable,
                                                                     GAsyncReadyCallback callback,
                                                                     gpointer user_data);
 
-gboolean             gsecret_service_delete_path_finish            (GSecretService *self,
+gboolean             secret_service_delete_path_finish            (SecretService *self,
                                                                     GAsyncResult *result,
                                                                     GError **error);
 
-gboolean             gsecret_service_delete_path_sync              (GSecretService *self,
+gboolean             secret_service_delete_path_sync              (SecretService *self,
                                                                     const gchar *object_path,
                                                                     GCancellable *cancellable,
                                                                     GError **error);
 
-void                 gsecret_service_remove                        (GSecretService *self,
-                                                                    const GSecretSchema *schema,
+void                 secret_service_remove                        (SecretService *self,
+                                                                    const SecretSchema *schema,
                                                                     GCancellable *cancellable,
                                                                     GAsyncReadyCallback callback,
                                                                     gpointer user_data,
                                                                     ...) G_GNUC_NULL_TERMINATED;
 
-void                 gsecret_service_removev                       (GSecretService *self,
+void                 secret_service_removev                       (SecretService *self,
                                                                     GHashTable *attributes,
                                                                     GCancellable *cancellable,
                                                                     GAsyncReadyCallback callback,
                                                                     gpointer user_data);
 
-gboolean             gsecret_service_remove_finish                 (GSecretService *self,
+gboolean             secret_service_remove_finish                 (SecretService *self,
                                                                     GAsyncResult *result,
                                                                     GError **error);
 
-gboolean             gsecret_service_remove_sync                   (GSecretService *self,
-                                                                    const GSecretSchema* schema,
+gboolean             secret_service_remove_sync                   (SecretService *self,
+                                                                    const SecretSchema* schema,
                                                                     GCancellable *cancellable,
                                                                     GError **error,
                                                                     ...) G_GNUC_NULL_TERMINATED;
 
-gboolean             gsecret_service_removev_sync                  (GSecretService *self,
+gboolean             secret_service_removev_sync                  (SecretService *self,
                                                                     GHashTable *attributes,
                                                                     GCancellable *cancellable,
                                                                     GError **error);
 
-void                 gsecret_service_create_collection_path        (GSecretService *self,
+void                 secret_service_create_collection_path        (SecretService *self,
                                                                     GHashTable *properties,
                                                                     const gchar *alias,
                                                                     GCancellable *cancellable,
                                                                     GAsyncReadyCallback callback,
                                                                     gpointer user_data);
 
-gchar *              gsecret_service_create_collection_path_finish (GSecretService *self,
+gchar *              secret_service_create_collection_path_finish (SecretService *self,
                                                                     GAsyncResult *result,
                                                                     GError **error);
 
-gchar *              gsecret_service_create_collection_path_sync   (GSecretService *self,
+gchar *              secret_service_create_collection_path_sync   (SecretService *self,
                                                                     GHashTable *properties,
                                                                     const gchar *alias,
                                                                     GCancellable *cancellable,
                                                                     GError **error);
 
-void                 gsecret_service_create_item_path              (GSecretService *self,
+void                 secret_service_create_item_path              (SecretService *self,
                                                                     const gchar *collection_path,
                                                                     GHashTable *properties,
-                                                                    GSecretValue *value,
+                                                                    SecretValue *value,
                                                                     gboolean replace,
                                                                     GCancellable *cancellable,
                                                                     GAsyncReadyCallback callback,
                                                                     gpointer user_data);
 
-gchar *              gsecret_service_create_item_path_finish       (GSecretService *self,
+gchar *              secret_service_create_item_path_finish       (SecretService *self,
                                                                     GAsyncResult *result,
                                                                     GError **error);
 
-gchar *              gsecret_service_create_item_path_sync         (GSecretService *self,
+gchar *              secret_service_create_item_path_sync         (SecretService *self,
                                                                     const gchar *collection_path,
                                                                     GHashTable *properties,
-                                                                    GSecretValue *value,
+                                                                    SecretValue *value,
                                                                     gboolean replace,
                                                                     GCancellable *cancellable,
                                                                     GError **error);
 
 G_END_DECLS
 
-#endif /* __GSECRET_SERVICE_H___ */
+#endif /* __SECRET_SERVICE_H___ */
