@@ -1,7 +1,8 @@
-AC_PREREQ(2.65)
-AC_CONFIG_MACRO_DIR([build/m4])
+AC_PREREQ(2.63)
 
-AC_INIT([libsecret],[0.1],[http://bugzilla.gnome.org/enter_bug.cgi?product=libsecret])
+AC_INIT([libsecret],[0.1],
+        [http://bugzilla.gnome.org/enter_bug.cgi?product=libsecret],
+        [libsecret])
 
 dnl ****************************************************************************
 dnl Library package and libtool versioning
@@ -20,36 +21,43 @@ SECRET_CURRENT=0
 SECRET_REVISION=0
 SECRET_AGE=0
 
+# -----------------------------------------------------------------------------
+
+AC_CONFIG_MACRO_DIR([build/m4])
+AM_INIT_AUTOMAKE([1.11 tar-ustar foreign -Wno-portability])
+AM_SANITY_CHECK
+AM_CONFIG_HEADER(config.h)
 AC_CONFIG_SRCDIR([library/secret-value.c])
-AC_CONFIG_HEADERS([config.h])
-
-dnl Other initialization
-AM_INIT_AUTOMAKE
+m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 AM_MAINTAINER_MODE([enable])
-m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])],)
-LT_INIT
 
-dnl Checks for programs.
+# -----------------------------------------------------------------------------
+# Basic tools
+
+AC_GNU_SOURCE
+AC_ISC_POSIX
 AC_PROG_CC
 AC_PROG_CPP
 AM_PROG_CC_C_O
-
-AC_CHECK_FUNCS(mlock)
-
-# --------------------------------------------------------------------
-# intltool
-#
-
+AC_PROG_INSTALL
+AC_PROG_LN_S
+AC_PROG_MAKE_SET
+AM_PROG_LIBTOOL
 IT_PROG_INTLTOOL([0.35.0])
-GETTEXT_PACKAGE=libsecret
+AC_PATH_PROG(PKG_CONFIG, pkg-config, no)
 
+GETTEXT_PACKAGE=libsecret
 AC_SUBST([GETTEXT_PACKAGE])
 AC_DEFINE_UNQUOTED([GETTEXT_PACKAGE],["$GETTEXT_PACKAGE"],[The gettext domain name])
 AM_GLIB_GNU_GETTEXT
 
 # --------------------------------------------------------------------
+# Checks for functions
+
+AC_CHECK_FUNCS(mlock)
+
+# --------------------------------------------------------------------
 # GLib
-#
 
 PKG_CHECK_MODULES(GLIB,
 	glib-2.0 >= 2.31.0
@@ -63,7 +71,6 @@ AC_PATH_PROG(GLIB_MKENUMS, glib-mkenums)
 
 # --------------------------------------------------------------------
 # libgcrypt
-#
 
 GCRYPT_VERSION=1.2.2
 GCRYPT_LIBVER=1
@@ -99,15 +106,10 @@ AM_CONDITIONAL(WITH_GCRYPT, test "$enable_gcrypt" = "yes")
 
 # --------------------------------------------------------------------
 # Compilation options
-#
 
-AC_ARG_ENABLE(more-warnings,
-              AS_HELP_STRING([--disable-more-warnings], [Inhibit compiler warnings]),
-              set_more_warnings=no)
-
-if test "$GCC" = "yes" -a "$set_more_warnings" != "no"; then
+if test "$GCC" = "yes"; then
 	CFLAGS="$CFLAGS \
-		-Wall -Wstrict-prototypes -Wmissing-declarations \
+		-Wall -Wmissing-declarations \
 		-Wmissing-prototypes -Wnested-externs -Wpointer-arith \
 		-Wdeclaration-after-statement -Wformat=2 -Winit-self \
 		-Waggregate-return -Wmissing-format-attribute"
@@ -140,7 +142,8 @@ if test "$enable_strict" = "yes"; then
 		-DGDK_PIXBUF_DISABLE_DEPRECATED"
 	INTROSPECTION_FLAGS="--warn-error"
 	TEST_MODE="thorough"
-else 
+else
+	CFLAGS="$CFLAGS -Wno-error"
 	TEST_MODE="quick"
 	INTROSPECTION_FLAGS=""
 	$enable_strict="no"
@@ -166,6 +169,7 @@ if test "$enable_debug" = "yes"; then
 	CFLAGS="$CFLAGS -O0"
 elif test "$enable_debug" = "no"; then
 	debug_status="no"
+	CFLAGS="$CFLAGS -O2"
 	AC_DEFINE_UNQUOTED(G_DISABLE_ASSERT, 1, [Disable glib assertions])
 else
 	debug_status="default"

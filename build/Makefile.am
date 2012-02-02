@@ -6,10 +6,10 @@ VALGRIND_CONTRIB = \
 	$(NULL)
 
 SUPPRESSIONS = \
-	gcrypt.supp \
-	glib.supp \
-	pthread.supp \
-	unknown.supp \
+	$(srcdir)/gcrypt.supp \
+	$(srcdir)/glib.supp \
+	$(srcdir)/pthread.supp \
+	$(srcdir)/unknown.supp \
 	$(NULL)
 
 valgrind-suppressions: $(SUPPRESSIONS)
@@ -18,5 +18,9 @@ valgrind-suppressions: $(SUPPRESSIONS)
 EXTRA_DIST = \
 	valgrind \
 	$(SUPPRESSIONS)
+
+CLEANFILES = \
+	valgrind-suppressions \
+	$(NULL)
 
 all-local: valgrind-suppressions

@@ -7,7 +7,9 @@ SUBDIRS = build po egg library
 
 DISTCHECK_CONFIGURE_FLAGS = \
 	--enable-debug=yes \
-	--disable-coverage
+	--disable-coverage \
+	--enable-strict \
+	--disable-silent-rules
 
 dist-hook:
 	@if test -d "$(srcdir)/.git"; \

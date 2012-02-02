@@ -1,6 +1,7 @@
 include $(top_srcdir)/Makefile.decl
 
 INCLUDES = \
+	-I$(top_srcdir) \
 	-I$(top_srcdir)/library \
 	-DSRCDIR="\"@abs_srcdir@\"" \
 	-DSECRET_COMPILATION \
@@ -41,6 +42,15 @@ check_PROGRAMS = \
 	$(TEST_PROGS)
 
 noinst_PROGRAMS =  \
+	$(NULL)
+
+EXTRA_DIST = \
+	mock \
+	mock-service-delete.py \
+	mock-service-lock.py \
+	mock-service-normal.py \
+	mock-service-only-plain.py \
+	mock-service-prompt.py \
 	$(NULL)
 
 test: $(TEST_PROGS)

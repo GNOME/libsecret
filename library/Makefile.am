@@ -11,7 +11,9 @@ module_flags = \
 	-export-symbols-regex '^secret_'
 
 INCLUDES = \
-	-DSECRET_COMPILATION
+	-I$(top_srcdir) \
+	-DSECRET_COMPILATION \
+	$(NULL)
 
 lib_LTLIBRARIES = libsecret-@SECRET_MAJOR@.la
 
@@ -51,6 +53,7 @@ PUBLIC_FILES = \
 	$(NULL)
 
 INTERNAL_FILES = \
+	secret-private.h \
 	secret-session.c \
 	secret-util.c \
 	$(NULL)
@@ -131,6 +134,15 @@ EXTRA_DIST = \
 	secret-enum-types.h.template \
 	secret-enum-types.c.template \
 	org.freedesktop.Secrets.xml \
+	$(NULL)
+
+CLEANFILES = \
+	$(pkgconfig_DATA) \
+	$(gir_DATA) \
+	$(typelibs_DATA) \
+	$(NULL)
+
+DISTCLEANFILES = \
 	$(NULL)
 
 check-memory:
