@@ -44,6 +44,8 @@ typedef struct _SecretServicePrivate SecretServicePrivate;
 
 struct _SecretService {
 	GDBusProxy parent;
+
+	/*< private >*/
 	SecretServicePrivate *pv;
 };
 
@@ -68,6 +70,7 @@ struct _SecretServiceClass {
 	                                  GAsyncResult *result,
 	                                  GError **error);
 
+	/*< private >*/
 	gpointer padding[16];
 };
 

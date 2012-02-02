@@ -1,12 +1,13 @@
 *~
-*.o
-*.la
-*.lo
-*.pyc
+*.bak
 *.gcov
 *.gcno
 *.gcda
 *.gir
+*.la
+*.lo
+*.o
+*.pyc
 *.pc
 *.tar.gz
 *.typelib
@@ -22,6 +23,7 @@ config.*
 depcomp
 install-sh
 INSTALL
+gtk-doc.make
 libtool
 ltmain.sh
 Makefile
@@ -29,6 +31,7 @@ Makefile.in
 Makefile.in.in
 missing
 stamp*
+*.stamp
 .settings
 .project
 .cproject
@@ -36,6 +39,21 @@ stamp*
 /build/coverage*
 /build/m4
 /build/valgrind-suppressions
+
+/docs/reference/libsecret/version.xml
+/docs/reference/libsecret/libsecret-decl-list.txt
+/docs/reference/libsecret/libsecret-decl.txt
+/docs/reference/libsecret/libsecret-scan.c
+/docs/reference/libsecret/html
+/docs/reference/libsecret/libsecret-undeclared.txt
+/docs/reference/libsecret/libsecret-undocumented.txt
+/docs/reference/libsecret/libsecret-unused.txt
+/docs/reference/libsecret/libsecret.args
+/docs/reference/libsecret/libsecret.hierarchy
+/docs/reference/libsecret/libsecret.prerequisites
+/docs/reference/libsecret/libsecret.signals
+/docs/reference/libsecret/tmpl
+/docs/reference/libsecret/xml
 
 /po/POTFILES
 /po/libsecret.pot

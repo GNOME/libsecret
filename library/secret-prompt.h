@@ -35,11 +35,15 @@ typedef struct _SecretPromptPrivate SecretPromptPrivate;
 
 struct _SecretPrompt {
 	GDBusProxy parent_instance;
+
+	/*< private >*/
 	SecretPromptPrivate *pv;
 };
 
 struct _SecretPromptClass {
 	GDBusProxyClass parent_class;
+
+	/*< private >*/
 	gpointer padding[8];
 };
 

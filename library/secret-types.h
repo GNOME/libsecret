@@ -36,11 +36,13 @@ typedef enum {
 } SecretSchemaType;
 
 typedef struct {
+	const gchar* name;
+	SecretSchemaType type;
+} SecretSchemaAttribute;
+
+typedef struct {
 	const gchar *schema_name;
-	struct {
-		const gchar* name;
-		SecretSchemaType type;
-	} attributes[32];
+	SecretSchemaAttribute attributes[32];
 
 	/* <private> */
 	gpointer reserved1;

@@ -3,7 +3,7 @@ include $(top_srcdir)/Makefile.decl
 
 ACLOCAL_AMFLAGS = -I build/m4 ${ACLOCAL_FLAGS}
 
-SUBDIRS = build po egg library
+SUBDIRS = build egg library po docs
 
 DISTCHECK_CONFIGURE_FLAGS = \
 	--enable-debug=yes \

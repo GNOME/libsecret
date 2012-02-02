@@ -758,7 +758,7 @@ secret_service_get_secrets_for_paths (SecretService *self,
  * Items that are locked will not be included the results.
  *
  * Returns: (transfer full): a newly allocated hash table of item_path keys to
- *          #GSecretValue values.
+ *          #SecretValue values.
  */
 GHashTable *
 secret_service_get_secrets_for_paths_finish (SecretService *self,
@@ -796,7 +796,7 @@ secret_service_get_secrets_for_paths_finish (SecretService *self,
  * Items that are locked will not be included the results.
  *
  * Returns: (transfer full): a newly allocated hash table of item_path keys to
- *          #GSecretValue values.
+ *          #SecretValue values.
  */
 GHashTable *
 secret_service_get_secrets_for_paths_sync (SecretService *self,
@@ -894,8 +894,8 @@ secret_service_get_secrets (SecretService *self,
  *
  * Items that are locked will not be included the results.
  *
- * Returns: (transfer full): a newly allocated hash table of #GSecretItem keys
- *          to #GSecretValue values.
+ * Returns: (transfer full): a newly allocated hash table of #SecretItem keys
+ *          to #SecretValue values.
  */
 GHashTable *
 secret_service_get_secrets_finish (SecretService *self,
@@ -953,8 +953,8 @@ secret_service_get_secrets_finish (SecretService *self,
  *
  * Items that are locked will not be included the results.
  *
- * Returns: (transfer full): a newly allocated hash table of #GSecretItem keys
- *          to #GSecretValue values.
+ * Returns: (transfer full): a newly allocated hash table of #SecretItem keys
+ *          to #SecretValue values.
  */
 GHashTable *
 secret_service_get_secrets_sync (SecretService *self,

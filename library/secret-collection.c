@@ -21,6 +21,35 @@
 
 #include <glib/gi18n-lib.h>
 
+/**
+ * SECTION:secret-collection
+ * @title: SecretCollection
+ * @short_description: A collection of secret items
+ *
+ * #SecretCollection represents a collection of secret items stored in the
+ * Secret Service.
+ *
+ * A collection can be in a locked or unlocked state. Use secret_service_lock()
+ * or secret_service_unlock() to lock or unlock the collection.
+ *
+ * Use the SecretCollection::items property or secret_service_get_items() to
+ * lookup the items in the collection. There may not be any items exposed when
+ * the collection is locked.
+ */
+
+/**
+ * SecretCollection:
+ *
+ * A proxy object representing a collection of secrets in the Secret Service.
+ */
+
+/**
+ * SecretCollectionClass:
+ * @parent_class: the parent class
+ *
+ * The class for #SecretCollection.
+ */
+
 enum {
 	PROP_0,
 	PROP_SERVICE,
@@ -412,26 +441,67 @@ secret_collection_class_init (SecretCollectionClass *klass)
 
 	proxy_class->g_properties_changed = secret_collection_properties_changed;
 
+	/**
+	 * SecretCollection:service:
+	 *
+	 * The #SecretService object that this collection is associated with and
+	 * uses to interact with the actual DBus Secret Service.
+	 */
 	g_object_class_install_property (gobject_class, PROP_SERVICE,
 	            g_param_spec_object ("service", "Service", "Secret Service",
 	                                 SECRET_TYPE_SERVICE, G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS));
 
+	/**
+	 * SecretCollection:items:
+	 *
+	 * A list of #SecretItem objects representing the items that are in
+	 * this collection. This list will be empty if the collection is locked.
+	 */
 	g_object_class_install_property (gobject_class, PROP_ITEMS,
 	             g_param_spec_boxed ("items", "Items", "Items in collection",
 	                                 _secret_list_get_type (), G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 
+	/**
+	 * SecretCollection:label:
+	 *
+	 * The human readable label for the collection.
+	 *
+	 * Setting this property will result in the label of the collection being
+	 * set asynchronously. To properly track the changing of the label use the
+	 * secret_collection_set_label() function.
+	 */
 	g_object_class_install_property (gobject_class, PROP_LABEL,
 	            g_param_spec_string ("label", "Label", "Item label",
 	                                 NULL, G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
+	/**
+	 * SecretCollection:locked:
+	 *
+	 * Whether the collection is locked or not.
+	 *
+	 * To lock or unlock a collection use the secret_service_lock() or
+	 * secret_service_unlock() functions.
+	 */
 	g_object_class_install_property (gobject_class, PROP_LOCKED,
 	           g_param_spec_boolean ("locked", "Locked", "Item locked",
 	                                 TRUE, G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 
+	/**
+	 * SecretCollection:created:
+	 *
+	 * The date and time (in seconds since the UNIX epoch) that this
+	 * collection was created.
+	 */
 	g_object_class_install_property (gobject_class, PROP_CREATED,
 	            g_param_spec_uint64 ("created", "Created", "Item creation date",
 	                                 0UL, G_MAXUINT64, 0UL, G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
+	/**
+	 * SecretCollection:modified:
+	 *
+	 * The date and time (in seconds since the UNIX epoch) that this
+	 * collection was last modified.
+	 */
 	g_object_class_install_property (gobject_class, PROP_MODIFIED,
 	            g_param_spec_uint64 ("modified", "Modified", "Item modified date",
 	                                 0UL, G_MAXUINT64, 0UL, G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
@@ -1151,6 +1221,9 @@ secret_collection_set_label_sync (SecretCollection *self,
  * @self: a collection
  *
  * Get whether the collection is locked or not.
+ *
+ * Use secret_service_lock() or secret_service_unlock() to lock or unlock the
+ * collection.
  *
  * Returns: whether the collection is locked or not
  */

@@ -18,6 +18,60 @@
 
 #include <egg/egg-secure-memory.h>
 
+/**
+ * SECTION:secret-password
+ * @title: Password storage
+ * @short_description: Simple password storage and lookup
+ *
+ * This is a simple API for storing passwords and retrieving passwords in the
+ * Secret Service.
+ *
+ * Each password is associated with a set of attributes. Attribute values can
+ * be either strings, integers or booleans.
+ *
+ * The names and types of allowed attributes for a given password are defined
+ * with a schema. Certain schemas are predefined. Additional schemas can be
+ * defined via the %SecretSchema structure.
+ *
+ * Each of the functions accept a variable list of attributes names and their
+ * values. Include a %NULL to terminate the list of attributes.
+ */
+
+/**
+ * SecretSchema:
+ * @schema_name: the dotted name of the schema
+ * @attributes: the attribute names and types of those attributes
+ *
+ * Represents a set of attributes that are stored with an item. These schemas
+ * are used for interoperability between various services storing the same types
+ * of items.
+ *
+ * Each schema has a name like "org.gnome.keyring.NetworkPassword", and defines
+ * a set of attributes, and types (string, integer, boolean) for those attributes.
+ *
+ * Attributes are stored as strings in the Secret Service, and the attribute
+ * types simply define standard ways to store integer and boolean values as strings.
+ */
+
+/**
+ * SecretSchemaAttribute:
+ * @name: name of the attribute
+ * @type: the type of the attribute
+ *
+ * An attribute in a #SecretSchema.
+ */
+
+/**
+ * SecretSchemaType:
+ * @SECRET_ATTRIBUTE_BOOLEAN: a boolean attribute, stored as 'true' or 'false'
+ * @SECRET_ATTRIBUTE_INTEGER: an integer attribute, stored as a decimal
+ * @SECRET_ATTRIBUTE_STRING: a utf-8 string attribute
+ *
+ * The type of an attribute in a #SecretSchema. Attributes are stored as strings
+ * in the Secret Service, and the attribute types simply define standard ways
+ * to store integer and boolean values as strings.
+ */
+
 typedef struct {
 	const SecretSchema *schema;
 	GHashTable *attributes;

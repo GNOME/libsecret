@@ -35,11 +35,15 @@ typedef struct _SecretCollectionPrivate SecretCollectionPrivate;
 
 struct _SecretCollection {
 	GDBusProxy parent;
+
+	/*< private >*/
 	SecretCollectionPrivate *pv;
 };
 
 struct _SecretCollectionClass {
 	GDBusProxyClass parent_class;
+
+	/*< private >*/
 	gpointer padding[8];
 };
 

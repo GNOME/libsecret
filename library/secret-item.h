@@ -37,11 +37,15 @@ typedef struct _SecretItemPrivate   SecretItemPrivate;
 
 struct _SecretItem {
 	GDBusProxy parent_instance;
+
+	/*< private >*/
 	SecretItemPrivate *pv;
 };
 
 struct _SecretItemClass {
 	GDBusProxyClass parent_class;
+
+	/*< private >*/
 	gpointer padding[4];
 };
 

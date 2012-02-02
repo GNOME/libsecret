@@ -19,7 +19,37 @@
 #include <glib.h>
 #include <glib/gi18n-lib.h>
 
-#include <gcrypt.h>
+/**
+ * SECTION:secret-prompt
+ * @title: SecretPrompt
+ * @short_description: a prompt in the Service
+ *
+ * A #SecretPrompt represents a prompt in the Secret Service.
+ *
+ * Certain actions on the Secret Service require user prompting to complete,
+ * such as creating a collection, or unlocking a collection. When such a prompt
+ * is necessary, then a #SecretPrompt object is created by this library, and
+ * passed to the secret_service_prompt_async() method. In this way it is handled
+ * automatically.
+ *
+ * In order to customize prompt handling, override the
+ * SecretServiceClass::prompt_async and SecretServiceClass::prompt_finish
+ * virtual methods of the #SecretService class.
+ */
+
+/**
+ * SecretPrompt:
+ *
+ * A proxy object representing a prompt that the Secret Service will display
+ * to the user.
+ */
+
+/**
+ * SecretPromptClass:
+ * @parent_class: the parent class
+ *
+ * The class for #SecretPrompt.
+ */
 
 typedef struct _SecretPromptPrivate {
 	/* Locked by mutex */

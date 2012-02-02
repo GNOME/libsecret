@@ -24,6 +24,79 @@
 
 #include "egg/egg-secure-memory.h"
 
+/**
+ * SECTION:secret-service
+ * @title: SecretService
+ * @short_description: the Secret Service
+ *
+ * A #SecretService object represents the Secret Service implementation which
+ * runs as a DBus service.
+ *
+ * Normally a single #SecretService object can be shared between multiple
+ * callers. The secret_service_get() method is used to access this #SecretService
+ * object. If a new independent #SecretService object is required, use
+ * secret_service_new().
+ *
+ * In order to securely transfer secrets to the Sercret Service, an session
+ * is established. This session can be established while initializing a
+ * #SecretService object by passing the %SECRET_SERVICE_OPEN_SESSION flag
+ * to the secret_service_get() or secret_service_new() functions. In order to
+ * establish a session on an already existing #SecretService, use the
+ * secret_service_ensure_session() function.
+ *
+ * To search for items, use the secret_service_search() method.
+ *
+ * Multiple collections can exist in the Secret Service, each of which contains
+ * secret items. In order to instantiate #SecretCollection objects which
+ * represent those collections while initializing a #SecretService then pass
+ * the %SECRET_SERVICE_LOAD_COLLECTIONS flag to the secret_service_get() or
+ * secret_service_new() functions. In order to establish a session on an already
+ * existing #SecretService, use the secret_service_ensure_collections() function.
+ * To access the list of collections use secret_service_get_collections().
+ *
+ * Certain actions on the Secret Service require user prompting to complete,
+ * such as creating a collection, or unlocking a collection. When such a prompt
+ * is necessary, then a #SecretPrompt object is created by this library, and
+ * passed to the secret_service_prompt_async() method. In this way it is handled
+ * automatically.
+ *
+ * In order to customize prompt handling, override the
+ * SecretServiceClass::prompt_async and SecretServiceClass::prompt_finish
+ * virtual methods of the #SecretService class.
+ */
+
+/**
+ * SecretService:
+ *
+ * A proxy object representing the Secret Service.
+ */
+
+/**
+ * SecretServiceClass:
+ * @parent_class: the parent class
+ * @collection_gtype: the #GType of the #SecretCollection objects instantiated
+ *                    by the #SecretService proxy
+ * @item_gtype: the #GType of the #SecretItem objects instantiated by the
+ *              #SecretService proxy
+ * @prompt_async: called to perform asynchronous prompting when necessary
+ * @prompt_finish: called to complete an asynchronous prompt operation
+ * @prompt_sync: called to perform synchronous prompting when necessary
+ *
+ * The class for #SecretService.
+ */
+
+/**
+ * SecretServiceFlags:
+ * @SECRET_SERVICE_NONE: no flags for initializing the #SecretService
+ * @SECRET_SERVICE_OPEN_SESSION: establish a session for transfer of secrets
+ *                               while initializing the #SecretService
+ * @SECRET_SERVICE_LOAD_COLLECTIONS: load collections while initializing the
+ *                                   #SecretService
+ *
+ * Flags which determine which parts of the #SecretService proxy are initialized
+ * during a secret_service_get() or secret_service_new() operation.
+ */
+
 EGG_SECURE_GLIB_DEFINITIONS ();
 
 static const gchar *default_bus_name = SECRET_SERVICE_BUS_NAME;
@@ -249,11 +322,29 @@ secret_service_class_init (SecretServiceClass *klass)
 	klass->item_gtype = SECRET_TYPE_ITEM;
 	klass->collection_gtype = SECRET_TYPE_COLLECTION;
 
+	/**
+	 * SecretService:flags:
+	 *
+	 * A set of flags describing which parts of the secret service have
+	 * been initialized.
+	 */
 	g_object_class_install_property (object_class, PROP_FLAGS,
 	             g_param_spec_flags ("flags", "Flags", "Service flags",
 	                                 secret_service_flags_get_type (), SECRET_SERVICE_NONE,
 	                                 G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS));
 
+	/**
+	 * SecretService:collections:
+	 *
+	 * A list of #SecretCollection objects representing the collections in
+	 * the Secret Service. This list may be %NULL if the collections have
+	 * not been loaded.
+	 *
+	 * To load the collections, specify the %SECRET_SERVICE_LOAD_COLLECTIONS
+	 * initialization flag when calling the secret_service_get() or
+	 * secret_service_new() functions. Or call the secret_service_ensure_collections()
+	 * method.
+	 */
 	g_object_class_install_property (object_class, PROP_COLLECTIONS,
 	             g_param_spec_boxed ("collections", "Collections", "Secret Service Collections",
 	                                 _secret_list_get_type (), G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
@@ -1319,7 +1410,7 @@ secret_service_ensure_collections_sync (SecretService *self,
  * This function is called by other parts of this library to handle prompts
  * for the various actions that can require prompting.
  *
- * Override the #SecretService <literal>prompt_sync()</literal> virtual method
+ * Override the #SecretServiceClass::prompt_sync() virtual method
  * to change the behavior of the propmting. The default behavior is to simply
  * run secret_prompt_perform_sync() on the prompt.
  *

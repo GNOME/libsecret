@@ -17,6 +17,15 @@
 
 #include <string.h>
 
+/**
+ * SecretError:
+ * @SECRET_ERROR_PROTOCOL: received an invalid data or message from the Secret
+ *                         Service
+ *
+ * Errors returned by the Secret Service. None of the errors are appropriate
+ * for display to the user.
+ */
+
 static void
 list_unref_free (GList *reflist)
 {

@@ -19,6 +19,30 @@
 
 #include <string.h>
 
+/**
+ * SECTION:secret-value
+ * @title: SecretValue
+ * @short_description: a value containing a secret
+ *
+ * A #SecretValue contains a password or other secret value.
+ *
+ * Use secret_value_get() to get the actual secret data, such as a password.
+ * The secret data is not necessarily null-terminated, unless the content type
+ * is "text/plain".
+ *
+ * Each #SecretValue has a content type. For passwords, this is "text/plain".
+ * Use secret_value_get_content_type() to look at the content type.
+ *
+ * #SecretValue is reference counted and immutable. The secret data is only
+ * freed when all references have been released via secret_value_unref().
+ */
+
+/**
+ * SecretValue:
+ *
+ * A secret value, like a password or other binary secret.
+ */
+
 EGG_SECURE_DECLARE (secret_value);
 
 struct _SecretValue {

@@ -22,6 +22,44 @@
 
 #include <glib/gi18n-lib.h>
 
+/**
+ * SECTION:secret-item
+ * @title: SecretItem
+ * @short_description: A secret item
+ *
+ * #SecretItem represents a secret item stored in the Secret Service.
+ *
+ * Each item has a value, represented by a #SecretValue, which can be
+ * retrieved by secret_service_get_secret() or set by secret_service_set_secret().
+ * The item is only available when the item is not locked.
+ *
+ * Items can be locked or unlocked using the secret_service_lock() or
+ * secret_service_unlock() functions. The Secret Service may not be able to
+ * unlock individual items, and may unlock an entire collection when a single
+ * item is unlocked.
+ *
+ * Each item has a set of attributes, which are used to locate the item later.
+ * These are not stored or transferred in a secure manner. Each attribute has
+ * a string name and a string value. Use secret_service_search() to search for
+ * items based on their attributes, and secret_item_set_attributes to change
+ * the attributes associated with an item.
+ *
+ * Items can be created with secret_item_create() or secret_service_store().
+ */
+
+/**
+ * SecretItem:
+ *
+ * A proxy object representing a secret item in the Secret Service.
+ */
+
+/**
+ * SecretItemClass:
+ * @parent_class: the parent class
+ *
+ * The class for #SecretItem.
+ */
+
 enum {
 	PROP_0,
 	PROP_SERVICE,
@@ -240,30 +278,81 @@ secret_item_class_init (SecretItemClass *klass)
 
 	proxy_class->g_properties_changed = secret_item_properties_changed;
 
+	/**
+	 * SecretItem:service:
+	 *
+	 * The #SecretService object that this item is associated with and
+	 * uses to interact with the actual DBus Secret Service.
+	 */
 	g_object_class_install_property (gobject_class, PROP_SERVICE,
 	            g_param_spec_object ("service", "Service", "Secret Service",
 	                                 SECRET_TYPE_SERVICE, G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS));
 
+	/**
+	 * SecretItem:attributes:
+	 *
+	 * The attributes set on this item. Attributes are used to locate an
+	 * item. They are not guaranteed to be stored or transferred securely.
+	 *
+	 * The schema describes which attributes should be present and their types.
+	 */
 	g_object_class_install_property (gobject_class, PROP_ATTRIBUTES,
 	             g_param_spec_boxed ("attributes", "Attributes", "Item attributes",
 	                                 G_TYPE_HASH_TABLE, G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
+	/**
+	 * SecretItem:label:
+	 *
+	 * The human readable label for the item.
+	 *
+	 * Setting this property will result in the label of the item being
+	 * set asynchronously. To properly track the changing of the label use the
+	 * secret_item_set_label() function.
+	 */
 	g_object_class_install_property (gobject_class, PROP_LABEL,
 	            g_param_spec_string ("label", "Label", "Item label",
 	                                 NULL, G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
+	/**
+	 * SecretItem:schema:
+	 *
+	 * The schema for this item. This is a dotted string that describes
+	 * which attributes should be present and the types of values on
+	 * those attributes.
+	 */
 	g_object_class_install_property (gobject_class, PROP_SCHEMA,
 	            g_param_spec_string ("schema", "Schema", "Item schema",
 	                                 NULL, G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 
+	/**
+	 * SecretItem:locked:
+	 *
+	 * Whether the item is locked or not. An item may not be independently
+	 * lockable separate from other items in its collection.
+	 *
+	 * To lock or unlock a item use the secret_service_lock() or
+	 * secret_service_unlock() functions.
+	 */
 	g_object_class_install_property (gobject_class, PROP_LOCKED,
 	           g_param_spec_boolean ("locked", "Locked", "Item locked",
 	                                 TRUE, G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 
+	/**
+	 * SecretItem:created:
+	 *
+	 * The date and time (in seconds since the UNIX epoch) that this
+	 * item was created.
+	 */
 	g_object_class_install_property (gobject_class, PROP_CREATED,
 	            g_param_spec_uint64 ("created", "Created", "Item creation date",
 	                                 0UL, G_MAXUINT64, 0UL, G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
+	/**
+	 * SecretItem:modified:
+	 *
+	 * The date and time (in seconds since the UNIX epoch) that this
+	 * item was last modified.
+	 */
 	g_object_class_install_property (gobject_class, PROP_MODIFIED,
 	            g_param_spec_uint64 ("modified", "Modified", "Item modified date",
 	                                 0UL, G_MAXUINT64, 0UL, G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
@@ -590,6 +679,7 @@ item_properties_new (const gchar *schema_name,
  * @attributes: attributes for the new item
  * @value: secret value for the new item
  * @replace: whether to replace an existing item with the same attributes
+ * @cancellable: optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to pass to the callback
  *
