@@ -41,12 +41,25 @@ on_search_items_complete (GObject *source,
 	g_object_unref (res);
 }
 
+/**
+ * secret_service_search_for_paths:
+ * @self: the secret service
+ * @attributes: search for items matching these attributes
+ * @cancellable: optional cancellation object
+ * @callback: called when the operation completes
+ * @user_data: data to pass to the callback
+ *
+ * Search for items matching the @attributes. All collections are searched.
+ * The @attributes should be a table of string keys and string values.
+ *
+ * This function returns immediately and completes asynchronously.
+ */
 void
 secret_service_search_for_paths (SecretService *self,
-                                  GHashTable *attributes,
-                                  GCancellable *cancellable,
-                                  GAsyncReadyCallback callback,
-                                  gpointer user_data)
+                                 GHashTable *attributes,
+                                 GCancellable *cancellable,
+                                 GAsyncReadyCallback callback,
+                                 gpointer user_data)
 {
 	GSimpleAsyncResult *res;
 
@@ -66,12 +79,31 @@ secret_service_search_for_paths (SecretService *self,
 	g_object_unref (res);
 }
 
+/**
+ * secret_service_search_for_paths_finish:
+ * @self: the secret service
+ * @result: asynchronous result passed to callback
+ * @unlocked: (out) (transfer full) (array zero-terminated=1) (allow-none):
+ *            location to place an array of dbus object paths for matching
+ *            items which were locked.
+ * @locked: (out) (transfer full) (array zero-terminated=1) (allow-none):
+ *          location to place an array of dbus object paths for matching
+ *          items which were locked.
+ * @error: location to place error on failure
+ *
+ * Complete asynchronous operation to search for items.
+ *
+ * Matching items that are locked or unlocked, have their dbus paths placed
+ * in the @locked or @unlocked arrays respectively.
+ *
+ * Returns: whether the search was successful or not
+ */
 gboolean
 secret_service_search_for_paths_finish (SecretService *self,
-                                         GAsyncResult *result,
-                                         gchar ***unlocked,
-                                         gchar ***locked,
-                                         GError **error)
+                                        GAsyncResult *result,
+                                        gchar ***unlocked,
+                                        gchar ***locked,
+                                        GError **error)
 {
 	GVariant *response;
 	GSimpleAsyncResult *res;
@@ -98,13 +130,37 @@ secret_service_search_for_paths_finish (SecretService *self,
 	return TRUE;
 }
 
+/**
+ * secret_service_search_for_paths_sync:
+ * @self: the secret service
+ * @attributes: search for items matching these attributes
+ * @cancellable: optional cancellation object
+ * @unlocked: (out) (transfer full) (array zero-terminated=1) (allow-none):
+ *            location to place an array of dbus object paths for matching
+ *            items which were locked.
+ * @locked: (out) (transfer full) (array zero-terminated=1) (allow-none):
+ *          location to place an array of dbus object paths for matching
+ *          items which were locked.
+ * @error: location to place error on failure
+ *
+ * Search for items matching the @attributes. All collections are searched.
+ * The @attributes should be a table of string keys and string values.
+ *
+ * This function may block indefinetely. Use the asynchronous version
+ * in user interface threads.
+ *
+ * Matching items that are locked or unlocked, have their dbus paths placed
+ * in the @locked or @unlocked arrays respectively.
+ *
+ * Returns: whether the search was successful or not
+ */
 gboolean
 secret_service_search_for_paths_sync (SecretService *self,
-                                       GHashTable *attributes,
-                                       GCancellable *cancellable,
-                                       gchar ***unlocked,
-                                       gchar ***locked,
-                                       GError **error)
+                                      GHashTable *attributes,
+                                      GCancellable *cancellable,
+                                      gchar ***unlocked,
+                                      gchar ***locked,
+                                      GError **error)
 {
 	gchar **dummy = NULL;
 	GVariant *response;
@@ -233,12 +289,25 @@ on_search_paths (GObject *source,
 	g_object_unref (res);
 }
 
+/**
+ * secret_service_search:
+ * @self: the secret service
+ * @attributes: search for items matching these attributes
+ * @cancellable: optional cancellation object
+ * @callback: called when the operation completes
+ * @user_data: data to pass to the callback
+ *
+ * Search for items matching the @attributes. All collections are searched.
+ * The @attributes should be a table of string keys and string values.
+ *
+ * This function returns immediately and completes asynchronously.
+ */
 void
 secret_service_search (SecretService *self,
-                        GHashTable *attributes,
-                        GCancellable *cancellable,
-                        GAsyncReadyCallback callback,
-                        gpointer user_data)
+                       GHashTable *attributes,
+                       GCancellable *cancellable,
+                       GAsyncReadyCallback callback,
+                       gpointer user_data)
 {
 	GSimpleAsyncResult *res;
 	SearchClosure *closure;
@@ -255,7 +324,7 @@ secret_service_search (SecretService *self,
 	g_simple_async_result_set_op_res_gpointer (res, closure, search_closure_free);
 
 	secret_service_search_for_paths (self, attributes, cancellable,
-	                                  on_search_paths, g_object_ref (res));
+	                                 on_search_paths, g_object_ref (res));
 
 	g_object_unref (res);
 }
@@ -277,12 +346,29 @@ search_finish_build (gchar **paths,
 	return g_list_reverse (results);
 }
 
+/**
+ * secret_service_search_finish:
+ * @self: the secret service
+ * @result: asynchronous result passed to callback
+ * @unlocked: (out) (transfer full) (element-type Secret.Item) (allow-none):
+ *            location to place a list of matching items which were not locked.
+ * @locked: (out) (transfer full) (element-type Secret.Item) (allow-none):
+ *          location to place a list of matching items which were locked.
+ * @error: location to place error on failure
+ *
+ * Complete asynchronous operation to search for items.
+ *
+ * Matching items that are locked or unlocked are placed
+ * in the @locked or @unlocked lists respectively.
+ *
+ * Returns: whether the search was successful or not
+ */
 gboolean
 secret_service_search_finish (SecretService *self,
-                               GAsyncResult *result,
-                               GList **unlocked,
-                               GList **locked,
-                               GError **error)
+                              GAsyncResult *result,
+                              GList **unlocked,
+                              GList **locked,
+                              GError **error)
 {
 	GSimpleAsyncResult *res;
 	SearchClosure *closure;
@@ -333,13 +419,35 @@ service_load_items_sync (SecretService *self,
 	return TRUE;
 }
 
+/**
+ * secret_service_search_sync:
+ * @self: the secret service
+ * @attributes: search for items matching these attributes
+ * @cancellable: optional cancellation object
+ * @unlocked: (out) (transfer full) (element-type Secret.Item) (allow-none):
+ *            location to place a list of matching items which were not locked.
+ * @locked: (out) (transfer full) (element-type Secret.Item) (allow-none):
+ *          location to place a list of matching items which were locked.
+ * @error: location to place error on failure
+ *
+ * Search for items matching the @attributes. All collections are searched.
+ * The @attributes should be a table of string keys and string values.
+ *
+ * This function may block indefinetely. Use the asynchronous version
+ * in user interface threads.
+ *
+ * Matching items that are locked or unlocked are placed
+ * in the @locked or @unlocked lists respectively.
+ *
+ * Returns: whether the search was successful or not
+ */
 gboolean
 secret_service_search_sync (SecretService *self,
-                             GHashTable *attributes,
-                             GCancellable *cancellable,
-                             GList **unlocked,
-                             GList **locked,
-                             GError **error)
+                            GHashTable *attributes,
+                            GCancellable *cancellable,
+                            GList **unlocked,
+                            GList **locked,
+                            GError **error)
 {
 	gchar **unlocked_paths = NULL;
 	gchar **locked_paths = NULL;
@@ -350,8 +458,8 @@ secret_service_search_sync (SecretService *self,
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
 	if (!secret_service_search_for_paths_sync (self, attributes, cancellable,
-	                                            unlocked ? &unlocked_paths : NULL,
-	                                            locked ? &locked_paths : NULL, error))
+	                                           unlocked ? &unlocked_paths : NULL,
+	                                           locked ? &locked_paths : NULL, error))
 		return FALSE;
 
 	ret = TRUE;
@@ -414,7 +522,7 @@ on_get_secrets_session (GObject *source,
 	const gchar *session;
 
 	session = secret_service_ensure_session_finish (SECRET_SERVICE (source),
-	                                                 result, &error);
+	                                                result, &error);
 	if (error != NULL) {
 		g_simple_async_result_take_error (res, error);
 		g_simple_async_result_complete (res);
@@ -429,18 +537,30 @@ on_get_secrets_session (GObject *source,
 	g_object_unref (res);
 }
 
+/**
+ * secret_service_get_secret_for_path:
+ * @self: the secret service
+ * @item_path: the dbus path to item to retrieve secret for
+ * @cancellable: optional cancellation object
+ * @callback: called when the operation completes
+ * @user_data: data to pass to the callback
+ *
+ * Get the secret value for an secret item stored in the service.
+ *
+ * This function returns immediately and completes asynchronously.
+ */
 void
 secret_service_get_secret_for_path (SecretService *self,
-                                     const gchar *object_path,
-                                     GCancellable *cancellable,
-                                     GAsyncReadyCallback callback,
-                                     gpointer user_data)
+                                    const gchar *item_path,
+                                    GCancellable *cancellable,
+                                    GAsyncReadyCallback callback,
+                                    gpointer user_data)
 {
 	GSimpleAsyncResult *res;
 	GetClosure *closure;
 
 	g_return_if_fail (SECRET_IS_SERVICE (self));
-	g_return_if_fail (object_path != NULL);
+	g_return_if_fail (item_path != NULL);
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
 	res = g_simple_async_result_new (G_OBJECT (self), callback, user_data,
@@ -448,12 +568,12 @@ secret_service_get_secret_for_path (SecretService *self,
 
 	closure = g_slice_new0 (GetClosure);
 	closure->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
-	closure->in = g_variant_ref_sink (g_variant_new_objv (&object_path, 1));
+	closure->in = g_variant_ref_sink (g_variant_new_objv (&item_path, 1));
 	g_simple_async_result_set_op_res_gpointer (res, closure, get_closure_free);
 
 	secret_service_ensure_session (self, cancellable,
-	                                on_get_secrets_session,
-	                                g_object_ref (res));
+	                               on_get_secrets_session,
+	                               g_object_ref (res));
 
 	g_object_unref (res);
 }
@@ -503,10 +623,24 @@ service_decode_get_secrets_all (SecretService *self,
 	return values;
 }
 
+/**
+ * secret_service_get_secret_for_path_finish:
+ * @self: the secret service
+ * @result: asynchronous result passed to callback
+ * @error: location to place an error on failure
+ *
+ * Complete asynchronous operation to get the secret value for an
+ * secret item stored in the service.
+ *
+ * Will return %NULL if the item is locked.
+ *
+ * Returns: (transfer full) (allow-none): the newly allocated secret value
+ *          for the item, which should be released with secret_value_unref()
+ */
 SecretValue *
 secret_service_get_secret_for_path_finish (SecretService *self,
-                                            GAsyncResult *result,
-                                            GError **error)
+                                           GAsyncResult *result,
+                                           GError **error)
 {
 	GSimpleAsyncResult *res;
 	GetClosure *closure;
@@ -524,24 +658,42 @@ secret_service_get_secret_for_path_finish (SecretService *self,
 	return service_decode_get_secrets_first (self, closure->out);
 }
 
+/**
+ * secret_service_get_secret_for_path_sync:
+ * @self: the secret service
+ * @item_path: the dbus path to item to retrieve secret for
+ * @cancellable: optional cancellation object
+ * @error: location to place an error on failure
+ *
+ * Get the secret value for an secret item stored in the service.
+ *
+ * This method may block indefinitely and should not be used in user interface
+ * threads.
+ *
+ * Will return %NULL if the item is locked.
+ *
+ * Returns: (transfer full) (allow-none): the newly allocated secret value
+ *          for the item, which should be released with secret_value_unref()
+ */
 SecretValue *
 secret_service_get_secret_for_path_sync (SecretService *self,
-                                          const gchar *object_path,
-                                          GCancellable *cancellable,
-                                          GError **error)
+                                         const gchar *item_path,
+                                         GCancellable *cancellable,
+                                         GError **error)
 {
 	SecretSync *sync;
 	SecretValue *value;
 
 	g_return_val_if_fail (SECRET_IS_SERVICE (self), NULL);
+	g_return_val_if_fail (item_path != NULL, NULL);
 	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
 	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 
 	sync = _secret_sync_new ();
 	g_main_context_push_thread_default (sync->context);
 
-	secret_service_get_secret_for_path (self, object_path, cancellable,
-	                                     _secret_sync_on_result, sync);
+	secret_service_get_secret_for_path (self, item_path, cancellable,
+	                                    _secret_sync_on_result, sync);
 
 	g_main_loop_run (sync->loop);
 
@@ -551,21 +703,32 @@ secret_service_get_secret_for_path_sync (SecretService *self,
 	_secret_sync_free (sync);
 
 	return value;
-
 }
 
+/**
+ * secret_service_get_secrets_for_paths:
+ * @self: the secret service
+ * @item_paths: the dbus paths to items to retrieve secrets for
+ * @cancellable: optional cancellation object
+ * @callback: called when the operation completes
+ * @user_data: data to pass to the callback
+ *
+ * Get the secret values for an secret items stored in the service.
+ *
+ * This function returns immediately and completes asynchronously.
+ */
 void
 secret_service_get_secrets_for_paths (SecretService *self,
-                                       const gchar **object_paths,
-                                       GCancellable *cancellable,
-                                       GAsyncReadyCallback callback,
-                                       gpointer user_data)
+                                      const gchar **item_paths,
+                                      GCancellable *cancellable,
+                                      GAsyncReadyCallback callback,
+                                      gpointer user_data)
 {
 	GSimpleAsyncResult *res;
 	GetClosure *closure;
 
 	g_return_if_fail (SECRET_IS_SERVICE (self));
-	g_return_if_fail (object_paths != NULL);
+	g_return_if_fail (item_paths != NULL);
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
 	res = g_simple_async_result_new (G_OBJECT (self), callback, user_data,
@@ -573,20 +736,34 @@ secret_service_get_secrets_for_paths (SecretService *self,
 
 	closure = g_slice_new0 (GetClosure);
 	closure->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
-	closure->in = g_variant_ref_sink (g_variant_new_objv (object_paths, -1));
+	closure->in = g_variant_ref_sink (g_variant_new_objv (item_paths, -1));
 	g_simple_async_result_set_op_res_gpointer (res, closure, get_closure_free);
 
 	secret_service_ensure_session (self, cancellable,
-	                                on_get_secrets_session,
-	                                g_object_ref (res));
+	                               on_get_secrets_session,
+	                               g_object_ref (res));
 
 	g_object_unref (res);
 }
 
+/**
+ * secret_service_get_secrets_for_paths_finish:
+ * @self: the secret service
+ * @result: asynchronous result passed to callback
+ * @error: location to place an error on failure
+ *
+ * Complete asynchronous operation to get the secret values for an
+ * secret items stored in the service.
+ *
+ * Items that are locked will not be included the results.
+ *
+ * Returns: (transfer full): a newly allocated hash table of item_path keys to
+ *          #GSecretValue values.
+ */
 GHashTable *
 secret_service_get_secrets_for_paths_finish (SecretService *self,
-                                              GAsyncResult *result,
-                                              GError **error)
+                                             GAsyncResult *result,
+                                             GError **error)
 {
 	GSimpleAsyncResult *res;
 	GetClosure *closure;
@@ -604,24 +781,42 @@ secret_service_get_secrets_for_paths_finish (SecretService *self,
 	return service_decode_get_secrets_all (self, closure->out);
 }
 
+/**
+ * secret_service_get_secrets_for_paths_sync:
+ * @self: the secret service
+ * @item_paths: the dbus paths to items to retrieve secrets for
+ * @cancellable: optional cancellation object
+ * @error: location to place an error on failure
+ *
+ * Get the secret values for an secret items stored in the service.
+ *
+ * This method may block indefinitely and should not be used in user interface
+ * threads.
+ *
+ * Items that are locked will not be included the results.
+ *
+ * Returns: (transfer full): a newly allocated hash table of item_path keys to
+ *          #GSecretValue values.
+ */
 GHashTable *
 secret_service_get_secrets_for_paths_sync (SecretService *self,
-                                            const gchar **object_paths,
-                                            GCancellable *cancellable,
-                                            GError **error)
+                                           const gchar **item_paths,
+                                           GCancellable *cancellable,
+                                           GError **error)
 {
 	SecretSync *sync;
 	GHashTable *secrets;
 
 	g_return_val_if_fail (SECRET_IS_SERVICE (self), NULL);
+	g_return_val_if_fail (item_paths != NULL, NULL);
 	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
 	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 
 	sync = _secret_sync_new ();
 	g_main_context_push_thread_default (sync->context);
 
-	secret_service_get_secrets_for_paths (self, object_paths, cancellable,
-	                                       _secret_sync_on_result, sync);
+	secret_service_get_secrets_for_paths (self, item_paths, cancellable,
+	                                      _secret_sync_on_result, sync);
 
 	g_main_loop_run (sync->loop);
 
@@ -633,12 +828,24 @@ secret_service_get_secrets_for_paths_sync (SecretService *self,
 	return secrets;
 }
 
+/**
+ * secret_service_get_secrets:
+ * @self: the secret service
+ * @items: (element-type Secret.Item): the items to retrieve secrets for
+ * @cancellable: optional cancellation object
+ * @callback: called when the operation completes
+ * @user_data: data to pass to the callback
+ *
+ * Get the secret values for an secret items stored in the service.
+ *
+ * This function returns immediately and completes asynchronously.
+ */
 void
 secret_service_get_secrets (SecretService *self,
-                             GList *items,
-                             GCancellable *cancellable,
-                             GAsyncReadyCallback callback,
-                             gpointer user_data)
+                            GList *items,
+                            GCancellable *cancellable,
+                            GAsyncReadyCallback callback,
+                            gpointer user_data)
 {
 	GSimpleAsyncResult *res;
 	GetClosure *closure;
@@ -676,10 +883,24 @@ secret_service_get_secrets (SecretService *self,
 	g_object_unref (res);
 }
 
+/**
+ * secret_service_get_secrets_finish:
+ * @self: the secret service
+ * @result: asynchronous result passed to callback
+ * @error: location to place an error on failure
+ *
+ * Complete asynchronous operation to get the secret values for an
+ * secret items stored in the service.
+ *
+ * Items that are locked will not be included the results.
+ *
+ * Returns: (transfer full): a newly allocated hash table of #GSecretItem keys
+ *          to #GSecretValue values.
+ */
 GHashTable *
 secret_service_get_secrets_finish (SecretService *self,
-                                    GAsyncResult *result,
-                                    GError **error)
+                                   GAsyncResult *result,
+                                   GError **error)
 {
 	GSimpleAsyncResult *res;
 	GetClosure *closure;
@@ -718,11 +939,28 @@ secret_service_get_secrets_finish (SecretService *self,
 	return with_items;
 }
 
+/**
+ * secret_service_get_secrets_sync:
+ * @self: the secret service
+ * @items: (element-type Secret.Item): the items to retrieve secrets for
+ * @cancellable: optional cancellation object
+ * @error: location to place an error on failure
+ *
+ * Get the secret values for an secret items stored in the service.
+ *
+ * This method may block indefinitely and should not be used in user interface
+ * threads.
+ *
+ * Items that are locked will not be included the results.
+ *
+ * Returns: (transfer full): a newly allocated hash table of #GSecretItem keys
+ *          to #GSecretValue values.
+ */
 GHashTable *
 secret_service_get_secrets_sync (SecretService *self,
-                                  GList *items,
-                                  GCancellable *cancellable,
-                                  GError **error)
+                                 GList *items,
+                                 GCancellable *cancellable,
+                                 GError **error)
 {
 	SecretSync *sync;
 	GHashTable *secrets;
@@ -825,7 +1063,7 @@ on_xlock_called (GObject *source,
 			g_simple_async_result_complete (res);
 
 		} else {
-			closure->prompt = secret_prompt_instance (self, prompt);
+			closure->prompt = _secret_prompt_instance (self, prompt);
 			secret_service_prompt (self, closure->prompt, closure->cancellable,
 			                        on_xlock_prompted, g_object_ref (res));
 		}
@@ -958,12 +1196,29 @@ service_xlock_finish (SecretService *self,
 
 }
 
+/**
+ * secret_service_lock:
+ * @self: the secret service
+ * @objects: (element-type GLib.DBusProxy): the items or collections to lock
+ * @cancellable: optional cancellation object
+ * @callback: called when the operation completes
+ * @user_data: data to pass to the callback
+ *
+ * Lock items or collections in the secret service.
+ *
+ * The secret service may not be able to lock items individually, and may
+ * lock an entire collection instead.
+ *
+ * This method returns immediately and completes asynchronously. The secret
+ * service may prompt the user. secret_service_prompt() will be used to handle
+ * any prompts that show up.
+ */
 void
 secret_service_lock (SecretService *self,
-                      GList *objects,
-                      GCancellable *cancellable,
-                      GAsyncReadyCallback callback,
-                      gpointer user_data)
+                     GList *objects,
+                     GCancellable *cancellable,
+                     GAsyncReadyCallback callback,
+                     gpointer user_data)
 {
 	g_return_if_fail (SECRET_IS_SERVICE (self));
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
@@ -971,11 +1226,27 @@ secret_service_lock (SecretService *self,
 	service_xlock_async (self, "Lock", objects, cancellable, callback, user_data);
 }
 
+/**
+ * secret_service_lock_finish:
+ * @self: the secret service
+ * @result: asynchronous result passed to the callback
+ * @locked: (out) (element-type GLib.DBusProxy) (transfer full) (allow-none):
+ *          location to place list of items or collections that were locked
+ * @error: location to place an error on failure
+ *
+ * Complete asynchronous operation to lock items or collections in the secret
+ * service.
+ *
+ * The secret service may not be able to lock items individually, and may
+ * lock an entire collection instead.
+ *
+ * Returns: the number of items or collections that were locked
+ */
 gint
 secret_service_lock_finish (SecretService *self,
-                             GAsyncResult *result,
-                             GList **locked,
-                             GError **error)
+                            GAsyncResult *result,
+                            GList **locked,
+                            GError **error)
 {
 	g_return_val_if_fail (SECRET_IS_SERVICE (self), FALSE);
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
@@ -983,12 +1254,32 @@ secret_service_lock_finish (SecretService *self,
 	return service_xlock_finish (self, result, locked, error);
 }
 
+/**
+ * secret_service_lock_sync:
+ * @self: the secret service
+ * @objects: (element-type GLib.DBusProxy): the items or collections to lock
+ * @cancellable: optional cancellation object
+ * @locked: (out) (element-type GLib.DBusProxy) (transfer full) (allow-none):
+ *          location to place list of items or collections that were locked
+ * @error: location to place an error on failure
+ *
+ * Lock items or collections in the secret service.
+ *
+ * The secret service may not be able to lock items individually, and may
+ * lock an entire collection instead.
+ *
+ * This method may block indefinitely and should not be used in user
+ * interface threads. The secret service may prompt the user.
+ * secret_service_prompt() will be used to handle any prompts that show up.
+ *
+ * Returns: the number of items or collections that were locked
+ */
 gint
 secret_service_lock_sync (SecretService *self,
-                           GList *objects,
-                           GCancellable *cancellable,
-                           GList **locked,
-                           GError **error)
+                          GList *objects,
+                          GCancellable *cancellable,
+                          GList **locked,
+                          GError **error)
 {
 	SecretSync *sync;
 	gint count;
@@ -1013,12 +1304,33 @@ secret_service_lock_sync (SecretService *self,
 	return count;
 }
 
+/**
+ * secret_service_lock_paths_sync:
+ * @self: the secret service
+ * @paths: the dbus paths for items or collections to lock
+ * @cancellable: optional cancellation object
+ * @locked: (out) (array zero-terminated=1) (transfer full) (allow-none):
+ *          location to place array of dbus paths of items or collections
+ *          that were locked
+ * @error: location to place an error on failure
+ *
+ * Lock items or collections in the secret service.
+ *
+ * The secret service may not be able to lock items individually, and may
+ * lock an entire collection instead.
+ *
+ * This method may block indefinitely and should not be used in user
+ * interface threads. The secret service may prompt the user.
+ * secret_service_prompt() will be used to handle any prompts that show up.
+ *
+ * Returns: the number of items or collections that were locked
+ */
 gint
 secret_service_lock_paths_sync (SecretService *self,
-                                 const gchar **paths,
-                                 GCancellable *cancellable,
-                                 gchar ***locked,
-                                 GError **error)
+                                const gchar **paths,
+                                GCancellable *cancellable,
+                                gchar ***locked,
+                                GError **error)
 {
 	SecretSync *sync;
 	gint count;
@@ -1045,12 +1357,29 @@ secret_service_lock_paths_sync (SecretService *self,
 	return count;
 }
 
+/**
+ * secret_service_lock_paths:
+ * @self: the secret service
+ * @paths: the dbus paths for items or collections to lock
+ * @cancellable: optional cancellation object
+ * @callback: called when the operation completes
+ * @user_data: data to pass to the callback
+ *
+ * Lock items or collections in the secret service.
+ *
+ * The secret service may not be able to lock items individually, and may
+ * lock an entire collection instead.
+ *
+ * This method returns immediately and completes asynchronously. The secret
+ * service may prompt the user. secret_service_prompt() will be used to handle
+ * any prompts that show up.
+ */
 void
 secret_service_lock_paths (SecretService *self,
-                            const gchar **paths,
-                            GCancellable *cancellable,
-                            GAsyncReadyCallback callback,
-                            gpointer user_data)
+                           const gchar **paths,
+                           GCancellable *cancellable,
+                           GAsyncReadyCallback callback,
+                           gpointer user_data)
 {
 	GSimpleAsyncResult *res;
 
@@ -1064,25 +1393,63 @@ secret_service_lock_paths (SecretService *self,
 	g_object_unref (res);
 }
 
+/**
+ * secret_service_lock_paths_finish:
+ * @self: the secret service
+ * @result: asynchronous result passed to the callback
+ * @locked: (out) (array zero-terminated=1) (transfer full) (allow-none):
+ *          location to place array of dbus paths of items or collections
+ *          that were locked
+ * @error: location to place an error on failure
+ *
+ * Complete asynchronous operation to lock items or collections in the secret
+ * service.
+ *
+ * The secret service may not be able to lock items individually, and may
+ * lock an entire collection instead.
+ *
+ * Returns: the number of items or collections that were locked
+ */
 gint
 secret_service_lock_paths_finish (SecretService *self,
-                                   GAsyncResult *result,
-                                   gchar ***unlocked,
-                                   GError **error)
+                                  GAsyncResult *result,
+                                  gchar ***locked,
+                                  GError **error)
 {
 	g_return_val_if_fail (SECRET_IS_SERVICE (self), -1);
-	g_return_val_if_fail (unlocked != NULL, -1);
+	g_return_val_if_fail (locked != NULL, -1);
 	g_return_val_if_fail (error == NULL || *error == NULL, -1);
 
-	return service_xlock_paths_finish (self, result, unlocked, error);
+	return service_xlock_paths_finish (self, result, locked, error);
 }
 
+/**
+ * secret_service_unlock_paths_sync:
+ * @self: the secret service
+ * @paths: the dbus paths for items or collections to unlock
+ * @cancellable: optional cancellation object
+ * @unlocked: (out) (array zero-terminated=1) (transfer full) (allow-none):
+ *            location to place array of dbus paths of items or collections
+ *            that were unlocked
+ * @error: location to place an error on failure
+ *
+ * Unlock items or collections in the secret service.
+ *
+ * The secret service may not be able to unlock items individually, and may
+ * unlock an entire collection instead.
+ *
+ * This method may block indefinitely and should not be used in user
+ * interface threads. The secret service may prompt the user.
+ * secret_service_prompt() will be used to handle any prompts that show up.
+ *
+ * Returns: the number of items or collections that were unlocked
+ */
 gint
 secret_service_unlock_paths_sync (SecretService *self,
-                                   const gchar **paths,
-                                   GCancellable *cancellable,
-                                   gchar ***unlocked,
-                                   GError **error)
+                                  const gchar **paths,
+                                  GCancellable *cancellable,
+                                  gchar ***unlocked,
+                                  GError **error)
 {
 	SecretSync *sync;
 	gint count;
@@ -1110,12 +1477,29 @@ secret_service_unlock_paths_sync (SecretService *self,
 	return count;
 }
 
+/**
+ * secret_service_unlock_paths:
+ * @self: the secret service
+ * @paths: the dbus paths for items or collections to unlock
+ * @cancellable: optional cancellation object
+ * @callback: called when the operation completes
+ * @user_data: data to pass to the callback
+ *
+ * Unlock items or collections in the secret service.
+ *
+ * The secret service may not be able to unlock items individually, and may
+ * unlock an entire collection instead.
+ *
+ * This method returns immediately and completes asynchronously. The secret
+ * service may prompt the user. secret_service_prompt() will be used to handle
+ * any prompts that show up.
+ */
 void
 secret_service_unlock_paths (SecretService *self,
-                              const gchar **paths,
-                              GCancellable *cancellable,
-                              GAsyncReadyCallback callback,
-                              gpointer user_data)
+                             const gchar **paths,
+                             GCancellable *cancellable,
+                             GAsyncReadyCallback callback,
+                             gpointer user_data)
 {
 	GSimpleAsyncResult *res;
 
@@ -1130,11 +1514,28 @@ secret_service_unlock_paths (SecretService *self,
 	g_object_unref (res);
 }
 
+/**
+ * secret_service_unlock_paths_finish:
+ * @self: the secret service
+ * @result: asynchronous result passed to the callback
+ * @unlocked: (out) (array zero-terminated=1) (transfer full) (allow-none):
+ *            location to place array of dbus paths of items or collections
+ *            that were unlocked
+ * @error: location to place an error on failure
+ *
+ * Complete asynchronous operation to unlock items or collections in the secret
+ * service.
+ *
+ * The secret service may not be able to unlock items individually, and may
+ * unlock an entire collection instead.
+ *
+ * Returns: the number of items or collections that were unlocked
+ */
 gint
 secret_service_unlock_paths_finish (SecretService *self,
-                                     GAsyncResult *result,
-                                     gchar ***unlocked,
-                                     GError **error)
+                                    GAsyncResult *result,
+                                    gchar ***unlocked,
+                                    GError **error)
 {
 	g_return_val_if_fail (SECRET_IS_SERVICE (self), -1);
 	g_return_val_if_fail (error == NULL || *error == NULL, -1);
@@ -1143,12 +1544,29 @@ secret_service_unlock_paths_finish (SecretService *self,
 	                                   unlocked, error);
 }
 
+/**
+ * secret_service_unlock:
+ * @self: the secret service
+ * @objects: (element-type GLib.DBusProxy): the items or collections to unlock
+ * @cancellable: optional cancellation object
+ * @callback: called when the operation completes
+ * @user_data: data to pass to the callback
+ *
+ * Unlock items or collections in the secret service.
+ *
+ * The secret service may not be able to unlock items individually, and may
+ * unlock an entire collection instead.
+ *
+ * This method may block indefinitely and should not be used in user
+ * interface threads. The secret service may prompt the user.
+ * secret_service_prompt() will be used to handle any prompts that show up.
+ */
 void
 secret_service_unlock (SecretService *self,
-                        GList *objects,
-                        GCancellable *cancellable,
-                        GAsyncReadyCallback callback,
-                        gpointer user_data)
+                       GList *objects,
+                       GCancellable *cancellable,
+                       GAsyncReadyCallback callback,
+                       gpointer user_data)
 {
 	g_return_if_fail (SECRET_IS_SERVICE (self));
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
@@ -1156,11 +1574,27 @@ secret_service_unlock (SecretService *self,
 	service_xlock_async (self, "Unlock", objects, cancellable, callback, user_data);
 }
 
+/**
+ * secret_service_unlock_finish:
+ * @self: the secret service
+ * @result: asynchronous result passed to the callback
+ * @unlocked: (out) (element-type GLib.DBusProxy) (transfer full) (allow-none):
+ *            location to place list of items or collections that were unlocked
+ * @error: location to place an error on failure
+ *
+ * Complete asynchronous operation to unlock items or collections in the secret
+ * service.
+ *
+ * The secret service may not be able to unlock items individually, and may
+ * unlock an entire collection instead.
+ *
+ * Returns: the number of items or collections that were unlocked
+ */
 gint
 secret_service_unlock_finish (SecretService *self,
-                               GAsyncResult *result,
-                               GList **unlocked,
-                               GError **error)
+                              GAsyncResult *result,
+                              GList **unlocked,
+                              GError **error)
 {
 	g_return_val_if_fail (SECRET_IS_SERVICE (self), -1);
 	g_return_val_if_fail (error == NULL || *error == NULL, -1);
@@ -1170,12 +1604,32 @@ secret_service_unlock_finish (SecretService *self,
 	return service_xlock_finish (self, result, unlocked, error);
 }
 
+/**
+ * secret_service_unlock_sync:
+ * @self: the secret service
+ * @objects: (element-type GLib.DBusProxy): the items or collections to unlock
+ * @cancellable: optional cancellation object
+ * @unlocked: (out) (element-type GLib.DBusProxy) (transfer full) (allow-none):
+ *            location to place list of items or collections that were unlocked
+ * @error: location to place an error on failure
+ *
+ * Unlock items or collections in the secret service.
+ *
+ * The secret service may not be able to unlock items individually, and may
+ * unlock an entire collection instead.
+ *
+ * This method may block indefinitely and should not be used in user
+ * interface threads. The secret service may prompt the user.
+ * secret_service_prompt() will be used to handle any prompts that show up.
+ *
+ * Returns: the number of items or collections that were unlocked
+ */
 gint
 secret_service_unlock_sync (SecretService *self,
-                             GList *objects,
-                             GCancellable *cancellable,
-                             GList **unlocked,
-                             GError **error)
+                            GList *objects,
+                            GCancellable *cancellable,
+                            GList **unlocked,
+                            GError **error)
 {
 	SecretSync *sync;
 	gint count;
@@ -1201,16 +1655,40 @@ secret_service_unlock_sync (SecretService *self,
 	return count;
 }
 
+/**
+ * secret_service_store:
+ * @self: the secret service
+ * @schema: the schema to for attributes
+ * @collection_path: the dbus path to the collection where to store the secret
+ * @label: label for the secret
+ * @value: the secret value
+ * @cancellable: optional cancellation object
+ * @callback: called when the operation completes
+ * @user_data: data to be passed to the callback
+ * @...: the attribute keys and values, terminated with %NULL
+ *
+ * Store a secret value in the secret service.
+ *
+ * The variable argument list should contain pairs of a) The attribute name as
+ * a null-terminated string, followed by b) attribute value, either a character
+ * string, an int number, or a gboolean value, as defined in the password
+ * @schema. The list of attribtues should be terminated with a %NULL.
+ *
+ * If the attributes match a secret item already stored in the collection, then
+ * the item will be updated with these new values.
+ *
+ * This method will return immediately and complete asynchronously.
+ */
 void
 secret_service_store (SecretService *self,
-                       const SecretSchema *schema,
-                       const gchar *collection_path,
-                       const gchar *label,
-                       SecretValue *value,
-                       GCancellable *cancellable,
-                       GAsyncReadyCallback callback,
-                       gpointer user_data,
-                       ...)
+                      const SecretSchema *schema,
+                      const gchar *collection_path,
+                      const gchar *label,
+                      SecretValue *value,
+                      GCancellable *cancellable,
+                      GAsyncReadyCallback callback,
+                      gpointer user_data,
+                      ...)
 {
 	GHashTable *attributes;
 	va_list va;
@@ -1231,16 +1709,37 @@ secret_service_store (SecretService *self,
 	g_hash_table_unref (attributes);
 }
 
+/**
+ * secret_service_storev:
+ * @self: the secret service
+ * @schema: the schema to for attributes
+ * @attributes: the attribute keys and values
+ * @collection_path: the dbus path to the collection where to store the secret
+ * @label: label for the secret
+ * @value: the secret value
+ * @cancellable: optional cancellation object
+ * @callback: called when the operation completes
+ * @user_data: data to be passed to the callback
+ *
+ * Store a secret value in the secret service.
+ *
+ * The @attributes should be a set of key and value string pairs.
+ *
+ * If the attributes match a secret item already stored in the collection, then
+ * the item will be updated with these new values.
+ *
+ * This method will return immediately and complete asynchronously.
+ */
 void
 secret_service_storev (SecretService *self,
-                        const SecretSchema *schema,
-                        GHashTable *attributes,
-                        const gchar *collection_path,
-                        const gchar *label,
-                        SecretValue *value,
-                        GCancellable *cancellable,
-                        GAsyncReadyCallback callback,
-                        gpointer user_data)
+                       const SecretSchema *schema,
+                       GHashTable *attributes,
+                       const gchar *collection_path,
+                       const gchar *label,
+                       SecretValue *value,
+                       GCancellable *cancellable,
+                       GAsyncReadyCallback callback,
+                       gpointer user_data)
 {
 	GHashTable *properties;
 	GVariant *propval;
@@ -1277,10 +1776,20 @@ secret_service_storev (SecretService *self,
 	g_hash_table_unref (properties);
 }
 
+/**
+ * secret_service_store_finish:
+ * @self: the secret service
+ * @result: the asynchronous result passed to the callback
+ * @error: location to place an error on failure
+ *
+ * Finish asynchronous operation to store a secret value in the secret service.
+ *
+ * Returns: whether the storage was successful or not
+ */
 gboolean
 secret_service_store_finish (SecretService *self,
-                              GAsyncResult *result,
-                              GError **error)
+                             GAsyncResult *result,
+                             GError **error)
 {
 	gchar *path;
 
@@ -1293,15 +1802,41 @@ secret_service_store_finish (SecretService *self,
 	return path != NULL;
 }
 
+/**
+ * secret_service_store_sync:
+ * @self: the secret service
+ * @schema: the schema to for attributes
+ * @collection_path: the dbus path to the collection where to store the secret
+ * @label: label for the secret
+ * @value: the secret value
+ * @cancellable: optional cancellation object
+ * @error: location to place an error on failure
+ * @...: the attribute keys and values, terminated with %NULL
+ *
+ * Store a secret value in the secret service.
+ *
+ * The variable argument list should contain pairs of a) The attribute name as
+ * a null-terminated string, followed by b) attribute value, either a character
+ * string, an int number, or a gboolean value, as defined in the password
+ * @schema. The list of attribtues should be terminated with a %NULL.
+ *
+ * If the attributes match a secret item already stored in the collection, then
+ * the item will be updated with these new values.
+ *
+ * This method may block indefinitely and should not be used in user interface
+ * threads.
+ *
+ * Returns: whether the storage was successful or not
+ */
 gboolean
 secret_service_store_sync (SecretService *self,
-                            const SecretSchema *schema,
-                            const gchar *collection_path,
-                            const gchar *label,
-                            SecretValue *value,
-                            GCancellable *cancellable,
-                            GError **error,
-                            ...)
+                           const SecretSchema *schema,
+                           const gchar *collection_path,
+                           const gchar *label,
+                           SecretValue *value,
+                           GCancellable *cancellable,
+                           GError **error,
+                           ...)
 {
 	GHashTable *attributes;
 	gboolean ret;
@@ -1327,15 +1862,38 @@ secret_service_store_sync (SecretService *self,
 	return ret;
 }
 
+/**
+ * secret_service_storev_sync:
+ * @self: the secret service
+ * @schema: the schema to for attributes
+ * @attributes: the attribute keys and values
+ * @collection_path: the dbus path to the collection where to store the secret
+ * @label: label for the secret
+ * @value: the secret value
+ * @cancellable: optional cancellation object
+ * @error: location to place an error on failure
+ *
+ * Store a secret value in the secret service.
+ *
+ * The @attributes should be a set of key and value string pairs.
+ *
+ * If the attributes match a secret item already stored in the collection, then
+ * the item will be updated with these new values.
+ *
+ * This method may block indefinitely and should not be used in user interface
+ * threads.
+ *
+ * Returns: whether the storage was successful or not
+ */
 gboolean
 secret_service_storev_sync (SecretService *self,
-                             const SecretSchema *schema,
-                             GHashTable *attributes,
-                             const gchar *collection_path,
-                             const gchar *label,
-                             SecretValue *value,
-                             GCancellable *cancellable,
-                             GError **error)
+                            const SecretSchema *schema,
+                            GHashTable *attributes,
+                            const gchar *collection_path,
+                            const gchar *label,
+                            SecretValue *value,
+                            GCancellable *cancellable,
+                            GError **error)
 {
 	SecretSync *sync;
 	gboolean ret;
@@ -1380,13 +1938,31 @@ lookup_closure_free (gpointer data)
 	g_slice_free (LookupClosure, closure);
 }
 
+/**
+ * secret_service_lookup:
+ * @self: the secret service
+ * @schema: the schema to for attributes
+ * @cancellable: optional cancellation object
+ * @callback: called when the operation completes
+ * @user_data: data to be passed to the callback
+ * @...: the attribute keys and values, terminated with %NULL
+ *
+ * Lookup a secret value in the secret service.
+ *
+ * The variable argument list should contain pairs of a) The attribute name as
+ * a null-terminated string, followed by b) attribute value, either a character
+ * string, an int number, or a gboolean value, as defined in the password
+ * @schema. The list of attribtues should be terminated with a %NULL.
+ *
+ * This method will return immediately and complete asynchronously.
+ */
 void
 secret_service_lookup (SecretService *self,
-                        const SecretSchema *schema,
-                        GCancellable *cancellable,
-                        GAsyncReadyCallback callback,
-                        gpointer user_data,
-                        ...)
+                       const SecretSchema *schema,
+                       GCancellable *cancellable,
+                       GAsyncReadyCallback callback,
+                       gpointer user_data,
+                       ...)
 {
 	GHashTable *attributes;
 	va_list va;
@@ -1399,7 +1975,8 @@ secret_service_lookup (SecretService *self,
 	attributes = _secret_util_attributes_for_varargs (schema, va);
 	va_end (va);
 
-	secret_service_lookupv (self, attributes, cancellable, callback, user_data);
+	secret_service_lookupv (self, schema, attributes, cancellable,
+	                        callback, user_data);
 
 	g_hash_table_unref (attributes);
 }
@@ -1441,9 +2018,9 @@ on_lookup_unlocked (GObject *source,
 
 	} else if (unlocked && unlocked[0]) {
 		secret_service_get_secret_for_path (self, unlocked[0],
-		                                     closure->cancellable,
-		                                     on_lookup_get_secret,
-		                                     g_object_ref (res));
+		                                    closure->cancellable,
+		                                    on_lookup_get_secret,
+		                                    g_object_ref (res));
 
 	} else {
 		g_simple_async_result_complete (res);
@@ -1472,16 +2049,16 @@ on_lookup_searched (GObject *source,
 
 	} else if (unlocked && unlocked[0]) {
 		secret_service_get_secret_for_path (self, unlocked[0],
-		                                     closure->cancellable,
-		                                     on_lookup_get_secret,
-		                                     g_object_ref (res));
+		                                    closure->cancellable,
+		                                    on_lookup_get_secret,
+		                                    g_object_ref (res));
 
 	} else if (locked && locked[0]) {
 		const gchar *paths[] = { locked[0], NULL };
 		secret_service_unlock_paths (self, paths,
-		                              closure->cancellable,
-		                              on_lookup_unlocked,
-		                              g_object_ref (res));
+		                             closure->cancellable,
+		                             on_lookup_unlocked,
+		                             g_object_ref (res));
 
 	} else {
 		g_simple_async_result_complete (res);
@@ -1492,17 +2069,34 @@ on_lookup_searched (GObject *source,
 	g_object_unref (res);
 }
 
+/**
+ * secret_service_lookupv:
+ * @self: the secret service
+ * @schema: the schema to for attributes
+ * @attributes: the attribute keys and values
+ * @cancellable: optional cancellation object
+ * @callback: called when the operation completes
+ * @user_data: data to be passed to the callback
+ *
+ * Lookup a secret value in the secret service.
+ *
+ * The @attributes should be a set of key and value string pairs.
+ *
+ * This method will return immediately and complete asynchronously.
+ */
 void
 secret_service_lookupv (SecretService *self,
-                         GHashTable *attributes,
-                         GCancellable *cancellable,
-                         GAsyncReadyCallback callback,
-                         gpointer user_data)
+                        const SecretSchema *schema,
+                        GHashTable *attributes,
+                        GCancellable *cancellable,
+                        GAsyncReadyCallback callback,
+                        gpointer user_data)
 {
 	GSimpleAsyncResult *res;
 	LookupClosure *closure;
 
 	g_return_if_fail (SECRET_IS_SERVICE (self));
+	g_return_if_fail (schema != NULL);
 	g_return_if_fail (attributes != NULL);
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
@@ -1513,15 +2107,28 @@ secret_service_lookupv (SecretService *self,
 	g_simple_async_result_set_op_res_gpointer (res, closure, lookup_closure_free);
 
 	secret_service_search_for_paths (self, attributes, cancellable,
-	                                  on_lookup_searched, g_object_ref (res));
+	                                 on_lookup_searched, g_object_ref (res));
 
 	g_object_unref (res);
 }
 
+/**
+ * secret_service_lookup_finish:
+ * @self: the secret service
+ * @result: the asynchronous result passed to the callback
+ * @error: location to place an error on failure
+ *
+ * Finish asynchronous operation to lookup a secret value in the secret service.
+ *
+ * If no secret is found then %NULL is returned.
+ *
+ * Returns: (transfer full): a newly allocated #SecretValue, which should be
+ *          released with secret_value_unref(), or %NULL if no secret found
+ */
 SecretValue *
 secret_service_lookup_finish (SecretService *self,
-                               GAsyncResult *result,
-                               GError **error)
+                              GAsyncResult *result,
+                              GError **error)
 {
 	GSimpleAsyncResult *res;
 	LookupClosure *closure;
@@ -1542,12 +2149,35 @@ secret_service_lookup_finish (SecretService *self,
 	return value;
 }
 
+/**
+ * secret_service_lookup_sync:
+ * @self: the secret service
+ * @schema: the schema to for attributes
+ * @cancellable: optional cancellation object
+ * @error: location to place an error on failure
+ * @...: the attribute keys and values, terminated with %NULL
+ *
+ * Lookup a secret value in the secret service.
+ *
+ * The variable argument list should contain pairs of a) The attribute name as
+ * a null-terminated string, followed by b) attribute value, either a character
+ * string, an int number, or a gboolean value, as defined in the password
+ * @schema. The list of attribtues should be terminated with a %NULL.
+ *
+ * If no secret is found then %NULL is returned.
+ *
+ * This method may block indefinitely and should not be used in user interface
+ * threads.
+ *
+ * Returns: (transfer full): a newly allocated #SecretValue, which should be
+ *          released with secret_value_unref(), or %NULL if no secret found
+ */
 SecretValue *
 secret_service_lookup_sync (SecretService *self,
-                             const SecretSchema *schema,
-                             GCancellable *cancellable,
-                             GError **error,
-                             ...)
+                            const SecretSchema *schema,
+                            GCancellable *cancellable,
+                            GError **error,
+                            ...)
 {
 	GHashTable *attributes;
 	SecretValue *value;
@@ -1561,31 +2191,51 @@ secret_service_lookup_sync (SecretService *self,
 	attributes = _secret_util_attributes_for_varargs (schema, va);
 	va_end (va);
 
-	value = secret_service_lookupv_sync (self, attributes, cancellable, error);
+	value = secret_service_lookupv_sync (self, schema, attributes, cancellable, error);
 
 	g_hash_table_unref (attributes);
 
 	return value;
 }
 
+/**
+ * secret_service_lookupv_sync:
+ * @self: the secret service
+ * @schema: the schema to for attributes
+ * @attributes: the attribute keys and values
+ * @cancellable: optional cancellation object
+ * @error: location to place an error on failure
+ *
+ * Lookup a secret value in the secret service.
+ *
+ * The @attributes should be a set of key and value string pairs.
+ *
+ * This method may block indefinitely and should not be used in user interface
+ * threads.
+ *
+ * Returns: (transfer full): a newly allocated #SecretValue, which should be
+ *          released with secret_value_unref(), or %NULL if no secret found
+ */
 SecretValue *
 secret_service_lookupv_sync (SecretService *self,
-                              GHashTable *attributes,
-                              GCancellable *cancellable,
-                              GError **error)
+                             const SecretSchema *schema,
+                             GHashTable *attributes,
+                             GCancellable *cancellable,
+                             GError **error)
 {
 	SecretSync *sync;
 	SecretValue *value;
 
 	g_return_val_if_fail (SECRET_IS_SERVICE (self), NULL);
+	g_return_val_if_fail (schema != NULL, NULL);
 	g_return_val_if_fail (attributes != NULL, NULL);
 	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
 
 	sync = _secret_sync_new ();
 	g_main_context_push_thread_default (sync->context);
 
-	secret_service_lookupv (self, attributes, cancellable,
-	                         _secret_sync_on_result, sync);
+	secret_service_lookupv (self, schema, attributes, cancellable,
+	                        _secret_sync_on_result, sync);
 
 	g_main_loop_run (sync->loop);
 
@@ -1653,12 +2303,12 @@ on_delete_complete (GObject *source,
 			g_simple_async_result_complete (res);
 
 		} else {
-			closure->prompt = secret_prompt_instance (self, prompt_path);
+			closure->prompt = _secret_prompt_instance (self, prompt_path);
 
 			secret_service_prompt (self, closure->prompt,
-			                        closure->cancellable,
-			                        on_delete_prompted,
-			                        g_object_ref (res));
+			                       closure->cancellable,
+			                       on_delete_prompted,
+			                       g_object_ref (res));
 		}
 
 		g_variant_unref (retval);
@@ -1674,11 +2324,11 @@ on_delete_complete (GObject *source,
 
 void
 _secret_service_delete_path (SecretService *self,
-                              const gchar *object_path,
-                              gboolean is_an_item,
-                              GCancellable *cancellable,
-                              GAsyncReadyCallback callback,
-                              gpointer user_data)
+                             const gchar *object_path,
+                             gboolean is_an_item,
+                             GCancellable *cancellable,
+                             GAsyncReadyCallback callback,
+                             gpointer user_data)
 {
 	GSimpleAsyncResult *res;
 	DeleteClosure *closure;
@@ -1703,12 +2353,24 @@ _secret_service_delete_path (SecretService *self,
 	g_object_unref (res);
 }
 
+/**
+ * secret_service_delete_path:
+ * @self: the secret service
+ * @item_path: dbus path of item to delete
+ * @cancellable: optional cancellation object
+ * @callback: called when the operation completes
+ * @user_data: data to be passed to the callback
+ *
+ * Delete a secret item from the secret service.
+ *
+ * This method will return immediately and complete asynchronously.
+ */
 void
 secret_service_delete_path (SecretService *self,
-                             const gchar *item_path,
-                             GCancellable *cancellable,
-                             GAsyncReadyCallback callback,
-                             gpointer user_data)
+                            const gchar *item_path,
+                            GCancellable *cancellable,
+                            GAsyncReadyCallback callback,
+                            gpointer user_data)
 {
 	g_return_if_fail (SECRET_IS_SERVICE (self));
 	g_return_if_fail (item_path != NULL);
@@ -1717,10 +2379,21 @@ secret_service_delete_path (SecretService *self,
 	_secret_service_delete_path (self, item_path, TRUE, cancellable, callback, user_data);
 }
 
+/**
+ * secret_service_delete_path_finish:
+ * @self: the secret service
+ * @result: the asynchronous result passed to the callback
+ * @error: location to place an error on failure
+ *
+ * Complete an asynchronous operation to delete a secret item from the secret
+ * service.
+ *
+ * Returns: whether the deletion was successful or not
+ */
 gboolean
 secret_service_delete_path_finish (SecretService *self,
-                                    GAsyncResult *result,
-                                    GError **error)
+                                   GAsyncResult *result,
+                                   GError **error)
 {
 	GSimpleAsyncResult *res;
 	DeleteClosure *closure;
@@ -1738,25 +2411,39 @@ secret_service_delete_path_finish (SecretService *self,
 	return closure->deleted;
 }
 
+/**
+ * secret_service_delete_path_sync:
+ * @self: the secret service
+ * @item_path: dbus path of item to delete
+ * @cancellable: optional cancellation object
+ * @error: location to place an error on failure
+ *
+ * Delete a secret item from the secret service.
+ *
+ * This method may block indefinitely and should not be used in user interface
+ * threads.
+ *
+ * Returns: whether the deletion was successful or not
+ */
 gboolean
 secret_service_delete_path_sync (SecretService *self,
-                                  const gchar *object_path,
-                                  GCancellable *cancellable,
-                                  GError **error)
+                                 const gchar *item_path,
+                                 GCancellable *cancellable,
+                                 GError **error)
 {
 	SecretSync *sync;
 	gboolean result;
 
 	g_return_val_if_fail (SECRET_IS_SERVICE (self), FALSE);
-	g_return_val_if_fail (object_path != NULL, FALSE);
+	g_return_val_if_fail (item_path != NULL, FALSE);
 	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), FALSE);
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
 	sync = _secret_sync_new ();
 	g_main_context_push_thread_default (sync->context);
 
-	secret_service_delete_path (self, object_path, cancellable,
-	                             _secret_sync_on_result, sync);
+	secret_service_delete_path (self, item_path, cancellable,
+	                            _secret_sync_on_result, sync);
 
 	g_main_loop_run (sync->loop);
 
@@ -1822,9 +2509,9 @@ on_search_delete_password (GObject *source,
 		} else {
 			closure->deleted = TRUE;
 			_secret_service_delete_path (self, path, TRUE,
-			                              closure->cancellable,
-			                              on_delete_password_complete,
-			                              g_object_ref (res));
+			                             closure->cancellable,
+			                             on_delete_password_complete,
+			                             g_object_ref (res));
 		}
 	}
 
@@ -1834,13 +2521,33 @@ on_search_delete_password (GObject *source,
 	g_object_unref (res);
 }
 
+/**
+ * secret_service_remove:
+ * @self: the secret service
+ * @schema: the schema to for attributes
+ * @cancellable: optional cancellation object
+ * @callback: called when the operation completes
+ * @user_data: data to be passed to the callback
+ * @...: the attribute keys and values, terminated with %NULL
+ *
+ * Remove a secret value from the secret service.
+ *
+ * The variable argument list should contain pairs of a) The attribute name as
+ * a null-terminated string, followed by b) attribute value, either a character
+ * string, an int number, or a gboolean value, as defined in the password
+ * @schema. The list of attribtues should be terminated with a %NULL.
+ *
+ * If multiple items match the attributes, then only one will be deleted.
+ *
+ * This method will return immediately and complete asynchronously.
+ */
 void
 secret_service_remove (SecretService *self,
-                        const SecretSchema *schema,
-                        GCancellable *cancellable,
-                        GAsyncReadyCallback callback,
-                        gpointer user_data,
-                        ...)
+                       const SecretSchema *schema,
+                       GCancellable *cancellable,
+                       GAsyncReadyCallback callback,
+                       gpointer user_data,
+                       ...)
 {
 	GHashTable *attributes;
 	va_list va;
@@ -1853,23 +2560,42 @@ secret_service_remove (SecretService *self,
 	attributes = _secret_util_attributes_for_varargs (schema, va);
 	va_end (va);
 
-	secret_service_removev (self, attributes, cancellable,
-	                         callback, user_data);
+	secret_service_removev (self, schema, attributes, cancellable,
+	                        callback, user_data);
 
 	g_hash_table_unref (attributes);
 }
 
+/**
+ * secret_service_removev:
+ * @self: the secret service
+ * @schema: the schema to for attributes
+ * @attributes: the attribute keys and values
+ * @cancellable: optional cancellation object
+ * @callback: called when the operation completes
+ * @user_data: data to be passed to the callback
+ *
+ * Remove a secret value from the secret service.
+ *
+ * The @attributes should be a set of key and value string pairs.
+ *
+ * If multiple items match the attributes, then only one will be deleted.
+ *
+ * This method will return immediately and complete asynchronously.
+ */
 void
 secret_service_removev (SecretService *self,
-                         GHashTable *attributes,
-                         GCancellable *cancellable,
-                         GAsyncReadyCallback callback,
-                         gpointer user_data)
+                        const SecretSchema *schema,
+                        GHashTable *attributes,
+                        GCancellable *cancellable,
+                        GAsyncReadyCallback callback,
+                        gpointer user_data)
 {
 	GSimpleAsyncResult *res;
 	DeleteClosure *closure;
 
 	g_return_if_fail (SECRET_SERVICE (self));
+	g_return_if_fail (schema != NULL);
 	g_return_if_fail (attributes != NULL);
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
@@ -1880,15 +2606,26 @@ secret_service_removev (SecretService *self,
 	g_simple_async_result_set_op_res_gpointer (res, closure, delete_closure_free);
 
 	secret_service_search_for_paths (self, attributes, cancellable,
-	                                  on_search_delete_password, g_object_ref (res));
+	                                 on_search_delete_password, g_object_ref (res));
 
 	g_object_unref (res);
 }
 
+/**
+ * secret_service_remove_finish:
+ * @self: the secret service
+ * @result: the asynchronous result passed to the callback
+ * @error: location to place an error on failure
+ *
+ * Finish asynchronous operation to remove a secret value from the secret
+ * service.
+ *
+ * Returns: whether the removal was successful or not
+ */
 gboolean
 secret_service_remove_finish (SecretService *self,
-                               GAsyncResult *result,
-                               GError **error)
+                              GAsyncResult *result,
+                              GError **error)
 {
 	GSimpleAsyncResult *res;
 	DeleteClosure *closure;
@@ -1906,18 +2643,41 @@ secret_service_remove_finish (SecretService *self,
 	return closure->deleted;
 }
 
+/**
+ * secret_service_remove_sync:
+ * @self: the secret service
+ * @schema: the schema to for attributes
+ * @cancellable: optional cancellation object
+ * @error: location to place an error on failure
+ * @...: the attribute keys and values, terminated with %NULL
+ *
+ * Remove a secret value from the secret service.
+ *
+ * The variable argument list should contain pairs of a) The attribute name as
+ * a null-terminated string, followed by b) attribute value, either a character
+ * string, an int number, or a gboolean value, as defined in the password
+ * @schema. The list of attribtues should be terminated with a %NULL.
+ *
+ * If multiple items match the attributes, then only one will be deleted.
+ *
+ * This method may block indefinitely and should not be used in user interface
+ * threads.
+ *
+ * Returns: whether the removal was successful or not
+ */
 gboolean
 secret_service_remove_sync (SecretService *self,
-                             const SecretSchema* schema,
-                             GCancellable *cancellable,
-                             GError **error,
-                             ...)
+                            const SecretSchema* schema,
+                            GCancellable *cancellable,
+                            GError **error,
+                            ...)
 {
 	GHashTable *attributes;
 	gboolean result;
 	va_list va;
 
 	g_return_val_if_fail (SECRET_IS_SERVICE (self), FALSE);
+	g_return_val_if_fail (schema != NULL, FALSE);
 	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), FALSE);
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
@@ -1925,31 +2685,52 @@ secret_service_remove_sync (SecretService *self,
 	attributes = _secret_util_attributes_for_varargs (schema, va);
 	va_end (va);
 
-	result = secret_service_removev_sync (self, attributes, cancellable, error);
+	result = secret_service_removev_sync (self, schema, attributes, cancellable, error);
 
 	g_hash_table_unref (attributes);
 
 	return result;
 }
 
+/**
+ * secret_service_removev_sync:
+ * @self: the secret service
+ * @schema: the schema to for attributes
+ * @attributes: the attribute keys and values
+ * @cancellable: optional cancellation object
+ * @error: location to place an error on failure
+ *
+ * Remove a secret value from the secret service.
+ *
+ * The @attributes should be a set of key and value string pairs.
+ *
+ * If multiple items match the attributes, then only one will be deleted.
+ *
+ * This method may block indefinitely and should not be used in user interface
+ * threads.
+ *
+ * Returns: whether the removal was successful or not
+ */
 gboolean
 secret_service_removev_sync (SecretService *self,
-                              GHashTable *attributes,
-                              GCancellable *cancellable,
-                              GError **error)
+                             const SecretSchema *schema,
+                             GHashTable *attributes,
+                             GCancellable *cancellable,
+                             GError **error)
 {
 	SecretSync *sync;
 	gboolean result;
 
 	g_return_val_if_fail (SECRET_IS_SERVICE (self), FALSE);
+	g_return_val_if_fail (schema != NULL, FALSE);
 	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), FALSE);
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
 	sync = _secret_sync_new ();
 	g_main_context_push_thread_default (sync->context);
 
-	secret_service_removev (self, attributes, cancellable,
-	                         _secret_sync_on_result, sync);
+	secret_service_removev (self, schema, attributes, cancellable,
+	                        _secret_sync_on_result, sync);
 
 	g_main_loop_run (sync->loop);
 
@@ -2018,10 +2799,10 @@ on_create_collection_called (GObject *source,
 	if (error == NULL) {
 		g_variant_get (retval, "(&o&o)", &collection_path, &prompt_path);
 		if (!_secret_util_empty_path (prompt_path)) {
-			closure->prompt = secret_prompt_instance (self, prompt_path);
+			closure->prompt = _secret_prompt_instance (self, prompt_path);
 			secret_service_prompt (self, closure->prompt,
-			                        closure->cancellable, on_create_collection_prompt,
-			                        g_object_ref (res));
+			                       closure->cancellable, on_create_collection_prompt,
+			                       g_object_ref (res));
 
 		} else {
 			closure->collection_path = g_strdup (collection_path);
@@ -2039,13 +2820,39 @@ on_create_collection_called (GObject *source,
 	g_object_unref (res);
 }
 
+/**
+ * secret_service_create_collection_path:
+ * @self: a secret service object
+ * @properties: hash table of properties for the new collection
+ * @alias: (allow-none): an alias to check for before creating the new
+ *         collection, or to assign to the new collection
+ * @cancellable: optional cancellation object
+ * @callback: called when the operation completes
+ * @user_data: data to be passed to the callback
+ *
+ * Create a new collection in the secret service.
+ *
+ * If a collection with the @alias already exists, then instead of creating a
+ * new collection, the existing collection will be returned. If no collection
+ * with this alias exists, then a new collection will be created and this
+ * alias will be assigned to it.
+ *
+ * @properties is a set of properties for the new collection. The keys in the
+ * hash table should be interface.property strings like
+ * <literal>org.freedesktop.Secret.Collection.Label</literal>. The values
+ * in the hash table should be #GVariant values of the properties.
+ *
+ * This method will return immediately and complete asynchronously. The secret
+ * service may prompt the user. secret_service_prompt() will be used to handle
+ * any prompts that are required.
+ */
 void
 secret_service_create_collection_path (SecretService *self,
-                                        GHashTable *properties,
-                                        const gchar *alias,
-                                        GCancellable *cancellable,
-                                        GAsyncReadyCallback callback,
-                                        gpointer user_data)
+                                       GHashTable *properties,
+                                       const gchar *alias,
+                                       GCancellable *cancellable,
+                                       GAsyncReadyCallback callback,
+                                       gpointer user_data)
 {
 	GSimpleAsyncResult *res;
 	CollectionClosure *closure;
@@ -2084,10 +2891,22 @@ secret_service_create_collection_path (SecretService *self,
 
 }
 
+/**
+ * secret_service_create_collection_path_finish:
+ * @self: a secret service object
+ * @result: the asynchronous result passed to the callback
+ * @error: location to place an error on failure
+ *
+ * Finish asynchronous operation to create a new collection in the secret
+ * service.
+ *
+ * Returns: (transfer full): a new string containing the dbus object path
+ *          of the collection
+ */
 gchar *
 secret_service_create_collection_path_finish (SecretService *self,
-                                               GAsyncResult *result,
-                                               GError **error)
+                                              GAsyncResult *result,
+                                              GError **error)
 {
 	GSimpleAsyncResult *res;
 	CollectionClosure *closure;
@@ -2108,12 +2927,40 @@ secret_service_create_collection_path_finish (SecretService *self,
 	return path;
 }
 
+/**
+ * secret_service_create_collection_path_sync:
+ * @self: a secret service object
+ * @properties: hash table of properties for the new collection
+ * @alias: (allow-none): an alias to check for before creating the new
+ *         collection, or to assign to the new collection
+ * @cancellable: optional cancellation object
+ * @error: location to place an error on failure
+ *
+ * Create a new collection in the secret service.
+ *
+ * If a collection with the @alias already exists, then instead of creating a
+ * new collection, the existing collection will be returned. If no collection
+ * with this alias exists, then a new collection will be created and this
+ * alias will be assigned to it.
+ *
+ * @properties is a set of properties for the new collection. The keys in the
+ * hash table should be interface.property strings like
+ * <literal>org.freedesktop.Secret.Collection.Label</literal>. The values
+ * in the hash table should be #GVariant values of the properties.
+ *
+ * This method may block indefinitely and should not be used in user interface
+ * threads. The secret service may prompt the user. secret_service_prompt()
+ * will be used to handle any prompts that are required.
+ *
+ * Returns: (transfer full): a new string containing the dbus object path
+ *          of the collection
+ */
 gchar *
 secret_service_create_collection_path_sync (SecretService *self,
-                                             GHashTable *properties,
-                                             const gchar *alias,
-                                             GCancellable *cancellable,
-                                             GError **error)
+                                            GHashTable *properties,
+                                            const gchar *alias,
+                                            GCancellable *cancellable,
+                                            GError **error)
 {
 	SecretSync *sync;
 	gchar *path;
@@ -2127,7 +2974,7 @@ secret_service_create_collection_path_sync (SecretService *self,
 	g_main_context_push_thread_default (sync->context);
 
 	secret_service_create_collection_path (self, properties, alias, cancellable,
-	                                        _secret_sync_on_result, sync);
+	                                       _secret_sync_on_result, sync);
 
 	g_main_loop_run (sync->loop);
 
@@ -2203,10 +3050,10 @@ on_create_item_called (GObject *source,
 	if (error == NULL) {
 		g_variant_get (retval, "(&o&o)", &item_path, &prompt_path);
 		if (!_secret_util_empty_path (prompt_path)) {
-			closure->prompt = secret_prompt_instance (self, prompt_path);
+			closure->prompt = _secret_prompt_instance (self, prompt_path);
 			secret_service_prompt (self, closure->prompt,
-			                        closure->cancellable, on_create_item_prompt,
-			                        g_object_ref (res));
+			                       closure->cancellable, on_create_item_prompt,
+			                       g_object_ref (res));
 
 		} else {
 			closure->item_path = g_strdup (item_path);
@@ -2263,15 +3110,44 @@ on_create_item_session (GObject *source,
 	g_object_unref (res);
 }
 
+/**
+ * secret_service_create_item_path:
+ * @self: a secret service object
+ * @collection_path: dbus path to collection in which to create item
+ * @properties: hash table of properties for the new collection
+ * @value: the secret value to store in the item
+ * @replace: whether to replace an item with the matching attributes
+ * @cancellable: optional cancellation object
+ * @callback: called when the operation completes
+ * @user_data: data to be passed to the callback
+ *
+ * Create a new item in a secret service collection.
+ *
+ * It is often easier to use secret_password_store() or secret_item_create()
+ * rather than using this function.
+ *
+ * If @replace is set to %TRUE, and an item already in the collection matches
+ * the attributes (specified in @properties) then the item will be updated
+ * instead of creating a new item.
+ *
+ * @properties is a set of properties for the new collection. The keys in the
+ * hash table should be interface.property strings like
+ * <literal>org.freedesktop.Secret.Item.Label</literal>. The values
+ * in the hash table should be #GVariant values of the properties.
+ *
+ * This method will return immediately and complete asynchronously. The secret
+ * service may prompt the user. secret_service_prompt() will be used to handle
+ * any prompts that are required.
+ */
 void
 secret_service_create_item_path (SecretService *self,
-                                  const gchar *collection_path,
-                                  GHashTable *properties,
-                                  SecretValue *value,
-                                  gboolean replace,
-                                  GCancellable *cancellable,
-                                  GAsyncReadyCallback callback,
-                                  gpointer user_data)
+                                 const gchar *collection_path,
+                                 GHashTable *properties,
+                                 SecretValue *value,
+                                 gboolean replace,
+                                 GCancellable *cancellable,
+                                 GAsyncReadyCallback callback,
+                                 gpointer user_data)
 {
 	GSimpleAsyncResult *res;
 	ItemClosure *closure;
@@ -2293,16 +3169,28 @@ secret_service_create_item_path (SecretService *self,
 	g_simple_async_result_set_op_res_gpointer (res, closure, item_closure_free);
 
 	secret_service_ensure_session (self, cancellable,
-	                                on_create_item_session,
-	                                g_object_ref (res));
+	                               on_create_item_session,
+	                               g_object_ref (res));
 
 	g_object_unref (res);
 }
 
+/**
+ * secret_service_create_item_path_finish:
+ * @self: a secret service object
+ * @result: the asynchronous result passed to the callback
+ * @error: location to place an error on failure
+ *
+ * Finish asynchronous operation to create a new item in the secret
+ * service.
+ *
+ * Returns: (transfer full): a new string containing the dbus object path
+ *          of the item
+ */
 gchar *
 secret_service_create_item_path_finish (SecretService *self,
-                                         GAsyncResult *result,
-                                         GError **error)
+                                        GAsyncResult *result,
+                                        GError **error)
 {
 	GSimpleAsyncResult *res;
 	ItemClosure *closure;
@@ -2323,14 +3211,45 @@ secret_service_create_item_path_finish (SecretService *self,
 	return path;
 }
 
+/**
+ * secret_service_create_item_path_sync:
+ * @self: a secret service object
+ * @collection_path: dbus path to collection in which to create item
+ * @properties: hash table of properties for the new collection
+ * @value: the secret value to store in the item
+ * @replace: whether to replace an item with the matching attributes
+ * @cancellable: optional cancellation object
+ * @error: location to place an error on failure
+ *
+ * Create a new item in a secret service collection.
+ *
+ * It is often easier to use secret_password_store_sync() or secret_item_create_sync()
+ * rather than using this function.
+ *
+ * If @replace is set to %TRUE, and an item already in the collection matches
+ * the attributes (specified in @properties) then the item will be updated
+ * instead of creating a new item.
+ *
+ * @properties is a set of properties for the new collection. The keys in the
+ * hash table should be interface.property strings like
+ * <literal>org.freedesktop.Secret.Item.Label</literal>. The values
+ * in the hash table should be #GVariant values of the properties.
+ *
+ * This method may block indefinitely and should not be used in user interface
+ * threads. The secret service may prompt the user. secret_service_prompt()
+ * will be used to handle any prompts that are required.
+ *
+ * Returns: (transfer full): a new string containing the dbus object path
+ *          of the item
+ */
 gchar *
 secret_service_create_item_path_sync (SecretService *self,
-                                       const gchar *collection_path,
-                                       GHashTable *properties,
-                                       SecretValue *value,
-                                       gboolean replace,
-                                       GCancellable *cancellable,
-                                       GError **error)
+                                      const gchar *collection_path,
+                                      GHashTable *properties,
+                                      SecretValue *value,
+                                      gboolean replace,
+                                      GCancellable *cancellable,
+                                      GError **error)
 {
 	SecretSync *sync;
 	gchar *path;
@@ -2344,7 +3263,7 @@ secret_service_create_item_path_sync (SecretService *self,
 	g_main_context_push_thread_default (sync->context);
 
 	secret_service_create_item_path (self, collection_path, properties, value, replace,
-	                                  cancellable, _secret_sync_on_result, sync);
+	                                 cancellable, _secret_sync_on_result, sync);
 
 	g_main_loop_run (sync->loop);
 

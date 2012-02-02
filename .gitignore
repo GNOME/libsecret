@@ -6,6 +6,9 @@
 *.gcov
 *.gcno
 *.gcda
+*.gir
+*.pc
+*.typelib
 .deps
 .cproject
 .libs

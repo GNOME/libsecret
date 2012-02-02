@@ -95,9 +95,9 @@ on_set_label (GObject *source,
 
 static void
 secret_item_set_property (GObject *obj,
-                           guint prop_id,
-                           const GValue *value,
-                           GParamSpec *pspec)
+                          guint prop_id,
+                          const GValue *value,
+                          GParamSpec *pspec)
 {
 	SecretItem *self = SECRET_ITEM (obj);
 
@@ -111,13 +111,13 @@ secret_item_set_property (GObject *obj,
 		break;
 	case PROP_ATTRIBUTES:
 		secret_item_set_attributes (self, g_value_get_boxed (value),
-		                             self->pv->cancellable, on_set_attributes,
-		                             g_object_ref (self));
+		                            self->pv->cancellable, on_set_attributes,
+		                            g_object_ref (self));
 		break;
 	case PROP_LABEL:
 		secret_item_set_label (self, g_value_get_string (value),
-		                        self->pv->cancellable, on_set_label,
-		                        g_object_ref (self));
+		                       self->pv->cancellable, on_set_label,
+		                       g_object_ref (self));
 		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (obj, prop_id, pspec);
@@ -127,9 +127,9 @@ secret_item_set_property (GObject *obj,
 
 static void
 secret_item_get_property (GObject *obj,
-                           guint prop_id,
-                           GValue *value,
-                           GParamSpec *pspec)
+                          guint prop_id,
+                          GValue *value,
+                          GParamSpec *pspec)
 {
 	SecretItem *self = SECRET_ITEM (obj);
 
@@ -210,8 +210,8 @@ handle_property_changed (GObject *object,
 
 static void
 secret_item_properties_changed (GDBusProxy *proxy,
-                                 GVariant *changed_properties,
-                                 const gchar* const *invalidated_properties)
+                                GVariant *changed_properties,
+                                const gchar* const *invalidated_properties)
 {
 	GObject *obj = G_OBJECT (proxy);
 	gchar *property_name;
@@ -273,8 +273,8 @@ secret_item_class_init (SecretItemClass *klass)
 
 static gboolean
 secret_item_initable_init (GInitable *initable,
-                            GCancellable *cancellable,
-                            GError **error)
+                           GCancellable *cancellable,
+                           GError **error)
 {
 	GDBusProxy *proxy;
 
@@ -312,7 +312,7 @@ on_init_base (GObject *source,
 	GError *error = NULL;
 
 	if (!secret_item_async_initable_parent_iface->init_finish (G_ASYNC_INITABLE (self),
-	                                                            result, &error)) {
+	                                                           result, &error)) {
 		g_simple_async_result_take_error (res, error);
 
 	} else if (!_secret_util_have_cached_properties (proxy)) {
@@ -327,10 +327,10 @@ on_init_base (GObject *source,
 
 static void
 secret_item_async_initable_init_async (GAsyncInitable *initable,
-                                        int io_priority,
-                                        GCancellable *cancellable,
-                                        GAsyncReadyCallback callback,
-                                        gpointer user_data)
+                                       int io_priority,
+                                       GCancellable *cancellable,
+                                       GAsyncReadyCallback callback,
+                                       gpointer user_data)
 {
 	GSimpleAsyncResult *res;
 
@@ -338,17 +338,17 @@ secret_item_async_initable_init_async (GAsyncInitable *initable,
 	                                 secret_item_async_initable_init_async);
 
 	secret_item_async_initable_parent_iface->init_async (initable, io_priority,
-	                                                      cancellable,
-	                                                      on_init_base,
-	                                                      g_object_ref (res));
+	                                                     cancellable,
+	                                                     on_init_base,
+	                                                     g_object_ref (res));
 
 	g_object_unref (res);
 }
 
 static gboolean
 secret_item_async_initable_init_finish (GAsyncInitable *initable,
-                                         GAsyncResult *result,
-                                         GError **error)
+                                        GAsyncResult *result,
+                                        GError **error)
 {
 	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (initable),
 	                      secret_item_async_initable_init_async), FALSE);
@@ -368,12 +368,24 @@ secret_item_async_initable_iface (GAsyncInitableIface *iface)
 	iface->init_finish = secret_item_async_initable_init_finish;
 }
 
+/**
+ * secret_item_new:
+ * @service: a secret service object
+ * @item_path: the dbus path of the collection
+ * @cancellable: optional cancellation object
+ * @callback: called when the operation completes
+ * @user_data: data to be passed to the callback
+ *
+ * Get a new item proxy for a secret item in the secret service.
+ *
+ * This method will return immediately and complete asynchronously.
+ */
 void
 secret_item_new (SecretService *service,
-                  const gchar *item_path,
-                  GCancellable *cancellable,
-                  GAsyncReadyCallback callback,
-                  gpointer user_data)
+                 const gchar *item_path,
+                 GCancellable *cancellable,
+                 GAsyncReadyCallback callback,
+                 gpointer user_data)
 {
 	GDBusProxy *proxy;
 
@@ -395,9 +407,20 @@ secret_item_new (SecretService *service,
 	                            NULL);
 }
 
+/**
+ * secret_item_new_finish:
+ * @result: the asynchronous result passed to the callback
+ * @error: location to place an error on failure
+ *
+ * Finish asynchronous operation to get a new item proxy for an secret
+ * item in the secret service.
+ *
+ * Returns: (transfer full): the new item, which should be unreferenced
+ *          with g_object_unref()
+ */
 SecretItem *
 secret_item_new_finish (GAsyncResult *result,
-                         GError **error)
+                        GError **error)
 {
 	GObject *object;
 	GObject *source_object;
@@ -413,11 +436,26 @@ secret_item_new_finish (GAsyncResult *result,
 	return SECRET_ITEM (object);
 }
 
+/**
+ * secret_item_new_sync:
+ * @service: a secret service object
+ * @item_path: the dbus path of the item
+ * @cancellable: optional cancellation object
+ * @error: location to place an error on failure
+ *
+ * Get a new item proxy for a secret item in the secret service.
+ *
+ * This method may block indefinitely and should not be used in user interface
+ * threads.
+ *
+ * Returns: (transfer full): the new item, which should be unreferenced
+ *          with g_object_unref()
+ */
 SecretItem *
 secret_item_new_sync (SecretService *service,
-                       const gchar *item_path,
-                       GCancellable *cancellable,
-                       GError **error)
+                      const gchar *item_path,
+                      GCancellable *cancellable,
+                      GError **error)
 {
 	GDBusProxy *proxy;
 
@@ -440,14 +478,24 @@ secret_item_new_sync (SecretService *service,
 	                       NULL);
 }
 
+/**
+ * secret_item_refresh:
+ * @self: the collection
+ *
+ * Refresh the properties on this item. This fires off a request to
+ * refresh, and the properties will be updated later.
+ *
+ * Calling this method is not normally necessary, as the secret service
+ * will notify the client when properties change.
+ */
 void
 secret_item_refresh (SecretItem *self)
 {
 	g_return_if_fail (SECRET_IS_ITEM (self));
 
 	_secret_util_get_properties (G_DBUS_PROXY (self),
-	                              secret_item_refresh,
-	                              NULL, NULL, NULL);
+	                             secret_item_refresh,
+	                             NULL, NULL, NULL);
 }
 
 
@@ -496,7 +544,7 @@ on_create_path (GObject *source,
 	path = secret_service_create_item_path_finish (service, result, &error);
 	if (error == NULL) {
 		secret_item_new (service, path, closure->cancellable,
-		                  on_create_item, g_object_ref (res));
+		                 on_create_item, g_object_ref (res));
 	} else {
 		g_simple_async_result_take_error (res, error);
 		g_simple_async_result_complete (res);
@@ -534,16 +582,37 @@ item_properties_new (const gchar *schema_name,
 	return properties;
 }
 
+/**
+ * secret_item_create:
+ * @collection: a secret collection to create this item in
+ * @schema_name: schema name for the new item
+ * @label: label for the new item
+ * @attributes: attributes for the new item
+ * @value: secret value for the new item
+ * @replace: whether to replace an existing item with the same attributes
+ * @callback: called when the operation completes
+ * @user_data: data to pass to the callback
+ *
+ * Create a new item in the secret service.
+ *
+ * If the @replace is set to %TRUE, then the secret service will search for
+ * an item matching the @attributes, and update that item instead of creating
+ * a new one.
+ *
+ * This method may block indefinitely and should not be used in user interface
+ * threads. The secret service may prompt the user. secret_service_prompt()
+ * will be used to handle any prompts that are required.
+ */
 void
 secret_item_create (SecretCollection *collection,
-                     const gchar *schema_name,
-                     const gchar *label,
-                     GHashTable *attributes,
-                     SecretValue *value,
-                     gboolean replace,
-                     GCancellable *cancellable,
-                     GAsyncReadyCallback callback,
-                     gpointer user_data)
+                    const gchar *schema_name,
+                    const gchar *label,
+                    GHashTable *attributes,
+                    SecretValue *value,
+                    gboolean replace,
+                    GCancellable *cancellable,
+                    GAsyncReadyCallback callback,
+                    gpointer user_data)
 {
 	SecretService *service = NULL;
 	const gchar *collection_path;
@@ -569,17 +638,27 @@ secret_item_create (SecretCollection *collection,
 	collection_path = g_dbus_proxy_get_object_path (G_DBUS_PROXY (collection));
 
 	secret_service_create_item_path (service, collection_path, properties,
-	                                  value, replace, cancellable,
-	                                  on_create_path, g_object_ref (res));
+	                                 value, replace, cancellable,
+	                                 on_create_path, g_object_ref (res));
 
 	g_hash_table_unref (properties);
 	g_object_unref (service);
 	g_object_unref (res);
 }
 
+/**
+ * secret_item_create_finish:
+ * @result: the asynchronous result passed to the callback
+ * @error: location to place an error on failure
+ *
+ * Finish operation to create a new item in the secret service.
+ *
+ * Returns: (transfer full): the new item, which should be unreferenced
+ *          with g_object_unref()
+ */
 SecretItem *
 secret_item_create_finish (GAsyncResult *result,
-                            GError **error)
+                           GError **error)
 {
 	GSimpleAsyncResult *res;
 	CreateClosure *closure;
@@ -600,15 +679,39 @@ secret_item_create_finish (GAsyncResult *result,
 	return g_object_ref (closure->item);
 }
 
+/**
+ * secret_item_create_sync:
+ * @collection: a secret collection to create this item in
+ * @schema_name: schema name for the new item
+ * @label: label for the new item
+ * @attributes: attributes for the new item
+ * @value: secret value for the new item
+ * @replace: whether to replace an existing item with the same attributes
+ * @cancellable: optional cancellation object
+ * @error: location to place an error on failure
+ *
+ * Create a new item in the secret service.
+ *
+ * If the @replace is set to %TRUE, then the secret service will search for
+ * an item matching the @attributes, and update that item instead of creating
+ * a new one.
+ *
+ * This method may block indefinitely and should not be used in user interface
+ * threads. The secret service may prompt the user. secret_service_prompt()
+ * will be used to handle any prompts that are required.
+ *
+ * Returns: (transfer full): the new item, which should be unreferenced
+ *          with g_object_unref()
+ */
 SecretItem *
 secret_item_create_sync (SecretCollection *collection,
-                          const gchar *schema_name,
-                          const gchar *label,
-                          GHashTable *attributes,
-                          SecretValue *value,
-                          gboolean replace,
-                          GCancellable *cancellable,
-                          GError **error)
+                         const gchar *schema_name,
+                         const gchar *label,
+                         GHashTable *attributes,
+                         SecretValue *value,
+                         gboolean replace,
+                         GCancellable *cancellable,
+                         GError **error)
 {
 	SecretService *service = NULL;
 	const gchar *collection_path;
@@ -629,7 +732,7 @@ secret_item_create_sync (SecretCollection *collection,
 	collection_path = g_dbus_proxy_get_object_path (G_DBUS_PROXY (collection));
 
 	path = secret_service_create_item_path_sync (service, collection_path, properties,
-	                                              value, replace, cancellable, error);
+	                                             value, replace, cancellable, error);
 
 	if (path != NULL) {
 		item = secret_item_new_sync (service, path, cancellable, error);
@@ -664,11 +767,24 @@ on_item_deleted (GObject *source,
 	g_object_unref (res);
 }
 
+/**
+ * secret_collection_delete:
+ * @self: a collection
+ * @cancellable: optional cancellation object
+ * @callback: called when the operation completes
+ * @user_data: data to pass to the callback
+ *
+ * Delete this collection.
+ *
+ * This method returns immediately and completes asynchronously. The secret
+ * service may prompt the user. secret_service_prompt() will be used to handle
+ * any prompts that show up.
+ */
 void
 secret_item_delete (SecretItem *self,
-                     GCancellable *cancellable,
-                     GAsyncReadyCallback callback,
-                     gpointer user_data)
+                    GCancellable *cancellable,
+                    GAsyncReadyCallback callback,
+                    gpointer user_data)
 {
 	GSimpleAsyncResult *res;
 	const gchar *object_path;
@@ -681,15 +797,25 @@ secret_item_delete (SecretItem *self,
 	                                 secret_item_delete);
 
 	_secret_service_delete_path (self->pv->service, object_path, TRUE,
-	                              cancellable, on_item_deleted, g_object_ref (res));
+	                             cancellable, on_item_deleted, g_object_ref (res));
 
 	g_object_unref (res);
 }
 
+/**
+ * secret_item_delete_finish:
+ * @self: an item
+ * @result: asynchronous result passed to the callback
+ * @error: location to place an error on failure
+ *
+ * Complete asynchronous operation to delete the secret item.
+ *
+ * Returns: whether the item was successfully deleted or not
+ */
 gboolean
 secret_item_delete_finish (SecretItem *self,
-                            GAsyncResult *result,
-                            GError **error)
+                           GAsyncResult *result,
+                           GError **error)
 {
 	GSimpleAsyncResult *res;
 
@@ -706,10 +832,24 @@ secret_item_delete_finish (SecretItem *self,
 	return g_simple_async_result_get_op_res_gboolean (res);
 }
 
+/**
+ * secret_item_delete_sync:
+ * @self: an item
+ * @cancellable: optional cancellation object
+ * @error: location to place an error on failure
+ *
+ * Delete this secret item.
+ *
+ * This method may block indefinitely and should not be used in user
+ * interface threads. The secret service may prompt the user.
+ * secret_service_prompt() will be used to handle any prompts that show up.
+ *
+ * Returns: whether the item was successfully deleted or not
+ */
 gboolean
 secret_item_delete_sync (SecretItem *self,
-                          GCancellable *cancellable,
-                          GError **error)
+                         GCancellable *cancellable,
+                         GError **error)
 {
 	SecretSync *sync;
 	gboolean ret;
@@ -809,11 +949,25 @@ on_get_ensure_session (GObject *source,
 	g_object_unref (res);
 }
 
+/**
+ * secret_item_get_secret:
+ * @self: an item
+ * @cancellable: optional cancellation object
+ * @callback: called when the operation completes
+ * @user_data: data to pass to the callback
+ *
+ * Get the secret value of this item.
+ *
+ * Each item has a single secret which might be a password or some
+ * other secret binary value.
+ *
+ * This function returns immediately and completes asynchronously.
+ */
 void
 secret_item_get_secret (SecretItem *self,
-                         GCancellable *cancellable,
-                         GAsyncReadyCallback callback,
-                         gpointer user_data)
+                        GCancellable *cancellable,
+                        GAsyncReadyCallback callback,
+                        gpointer user_data)
 {
 	GSimpleAsyncResult *res;
 	GetClosure *closure;
@@ -828,16 +982,29 @@ secret_item_get_secret (SecretItem *self,
 	g_simple_async_result_set_op_res_gpointer (res, closure, get_closure_free);
 
 	secret_service_ensure_session (self->pv->service, cancellable,
-	                                on_get_ensure_session,
-	                                g_object_ref (res));
+	                               on_get_ensure_session,
+	                               g_object_ref (res));
 
 	g_object_unref (res);
 }
 
-SecretValue*
+/**
+ * secret_item_get_secret_finish:
+ * @self: an item
+ * @result: asynchronous result passed to callback
+ * @error: location to place error on failure
+ *
+ * Get the secret value of this item.
+ *
+ * Complete asynchronous operation to get the secret value of this item.
+ *
+ * Returns: (transfer full): the newly allocated secret value in this
+ *          item, which should be released with secret_value_unref()
+ */
+SecretValue *
 secret_item_get_secret_finish (SecretItem *self,
-                                GAsyncResult *result,
-                                GError **error)
+                               GAsyncResult *result,
+                               GError **error)
 {
 	GSimpleAsyncResult *res;
 	GetClosure *closure;
@@ -853,10 +1020,27 @@ secret_item_get_secret_finish (SecretItem *self,
 	return closure->value ? secret_value_ref (closure->value) : NULL;
 }
 
-SecretValue*
+/**
+ * secret_item_get_secret_sync:
+ * @self: an item
+ * @cancellable: optional cancellation object
+ * @error: location to place error on failure
+ *
+ * Get the secret value of this item.
+ *
+ * Each item has a single secret which might be a password or some
+ * other secret binary value.
+ *
+ * This function may block indefinetely. Use the asynchronous version
+ * in user interface threads.
+ *
+ * Returns: (transfer full): the newly allocated secret value in this
+ *          item, which should be released with secret_value_unref()
+ */
+SecretValue *
 secret_item_get_secret_sync (SecretItem *self,
-                              GCancellable *cancellable,
-                              GError **error)
+                             GCancellable *cancellable,
+                             GError **error)
 {
 	SecretSync *sync;
 	SecretValue *value;
@@ -944,12 +1128,27 @@ on_set_ensure_session (GObject *source,
 	g_object_unref (res);
 }
 
+/**
+ * secret_item_set_secret:
+ * @self: an item
+ * @value: a new secret value
+ * @cancellable: optional cancellation object
+ * @callback: called when the operation completes
+ * @user_data: data to pass to the callback
+ *
+ * Set the secret value of this item.
+ *
+ * Each item has a single secret which might be a password or some
+ * other secret binary value.
+ *
+ * This function returns immediately and completes asynchronously.
+ */
 void
 secret_item_set_secret (SecretItem *self,
-                         SecretValue *value,
-                         GCancellable *cancellable,
-                         GAsyncReadyCallback callback,
-                         gpointer user_data)
+                        SecretValue *value,
+                        GCancellable *cancellable,
+                        GAsyncReadyCallback callback,
+                        gpointer user_data)
 {
 	GSimpleAsyncResult *res;
 	SetClosure *closure;
@@ -966,16 +1165,26 @@ secret_item_set_secret (SecretItem *self,
 	g_simple_async_result_set_op_res_gpointer (res, closure, set_closure_free);
 
 	secret_service_ensure_session (self->pv->service, cancellable,
-	                                on_set_ensure_session,
-	                                g_object_ref (res));
+	                               on_set_ensure_session,
+	                               g_object_ref (res));
 
 	g_object_unref (res);
 }
 
+/**
+ * secret_item_set_secret_finish:
+ * @self: an item
+ * @result: asynchronous result passed to callback
+ * @error: location to place error on failure
+ *
+ * Complete asynchronous operation to set the secret value of this item.
+ *
+ * Returns: whether the change was successful or not
+ */
 gboolean
 secret_item_set_secret_finish (SecretItem *self,
-                                GAsyncResult *result,
-                                GError **error)
+                               GAsyncResult *result,
+                               GError **error)
 {
 	GSimpleAsyncResult *res;
 
@@ -989,11 +1198,28 @@ secret_item_set_secret_finish (SecretItem *self,
 	return TRUE;
 }
 
+/**
+ * secret_item_set_secret_sync:
+ * @self: an item
+ * @value: a new secret value
+ * @cancellable: optional cancellation object
+ * @error: location to place error on failure
+ *
+ * Set the secret value of this item.
+ *
+ * Each item has a single secret which might be a password or some
+ * other secret binary value.
+ *
+ * This function may block indefinetely. Use the asynchronous version
+ * in user interface threads.
+ *
+ * Returns: whether the change was successful or not
+ */
 gboolean
 secret_item_set_secret_sync (SecretItem *self,
-                              SecretValue *value,
-                              GCancellable *cancellable,
-                              GError **error)
+                             SecretValue *value,
+                             GCancellable *cancellable,
+                             GError **error)
 {
 	SecretSync *sync;
 	gboolean ret;
@@ -1017,6 +1243,22 @@ secret_item_set_secret_sync (SecretItem *self,
 	return ret;
 }
 
+/**
+ * secret_item_get_attributes:
+ * @self: an item
+ *
+ * Set the attributes of this item.
+ *
+ * The @attributes are a mapping of string keys to string values.
+ * Attributes are used to search for items. Attributes are not stored
+ * or transferred securely by the secret service.
+ *
+ * Do not modify the attributes returned by this method. Use
+ * secret_item_set_attributes() instead.
+ *
+ * Returns: (transfer full): a new reference to the attributes, which should
+ *          not be modified, and released with g_hash_table_unref()
+ */
 GHashTable *
 secret_item_get_attributes (SecretItem *self)
 {
@@ -1034,48 +1276,103 @@ secret_item_get_attributes (SecretItem *self)
 	return attributes;
 }
 
+/**
+ * secret_item_set_attributes:
+ * @self: an item
+ * @attributes: a new set of attributes
+ * @cancellable: optional cancellation object
+ * @callback: called when the asynchronous operation completes
+ * @user_data: data to pass to the callback
+ *
+ * Set the attributes of this item.
+ *
+ * The @attributes are a mapping of string keys to string values.
+ * Attributes are used to search for items. Attributes are not stored
+ * or transferred securely by the secret service.
+ *
+ * This function returns immediately and completes asynchronously.
+ */
 void
 secret_item_set_attributes (SecretItem *self,
-                             GHashTable *attributes,
-                             GCancellable *cancellable,
-                             GAsyncReadyCallback callback,
-                             gpointer user_data)
+                            GHashTable *attributes,
+                            GCancellable *cancellable,
+                            GAsyncReadyCallback callback,
+                            gpointer user_data)
 {
 	g_return_if_fail (SECRET_IS_ITEM (self));
 	g_return_if_fail (attributes != NULL);
 
 	_secret_util_set_property (G_DBUS_PROXY (self), "Attributes",
-	                            _secret_util_variant_for_attributes (attributes),
-	                            secret_item_set_attributes, cancellable,
-	                            callback, user_data);
+	                           _secret_util_variant_for_attributes (attributes),
+	                           secret_item_set_attributes, cancellable,
+	                           callback, user_data);
 }
 
+/**
+ * secret_item_set_attributes_finish:
+ * @self: an item
+ * @result: asynchronous result passed to the callback
+ * @error: location to place error on failure
+ *
+ * Complete operation to set the attributes of this item.
+ *
+ * Returns: whether the change was successful or not
+ */
 gboolean
 secret_item_set_attributes_finish (SecretItem *self,
-                                    GAsyncResult *result,
-                                    GError **error)
+                                   GAsyncResult *result,
+                                   GError **error)
 {
 	g_return_val_if_fail (SECRET_IS_ITEM (self), FALSE);
 
 	return _secret_util_set_property_finish (G_DBUS_PROXY (self),
-	                                          secret_item_set_attributes,
-	                                          result, error);
+	                                         secret_item_set_attributes,
+	                                         result, error);
 }
 
+/**
+ * secret_item_set_attributes_sync:
+ * @self: an item
+ * @attributes: a new set of attributes
+ * @cancellable: optional cancellation object
+ * @error: location to place error on failure
+ *
+ * Set the attributes of this item.
+ *
+ * The @attributes are a mapping of string keys to string values.
+ * Attributes are used to search for items. Attributes are not stored
+ * or transferred securely by the secret service.
+ *
+ * This function may block indefinetely. Use the asynchronous version
+ * in user interface threads.
+ *
+ * Returns: whether the change was successful or not
+ */
 gboolean
 secret_item_set_attributes_sync (SecretItem *self,
-                                  GHashTable *attributes,
-                                  GCancellable *cancellable,
-                                  GError **error)
+                                 GHashTable *attributes,
+                                 GCancellable *cancellable,
+                                 GError **error)
 {
 	g_return_val_if_fail (SECRET_IS_ITEM (self), FALSE);
 	g_return_val_if_fail (attributes != NULL, FALSE);
 
 	return _secret_util_set_property_sync (G_DBUS_PROXY (self), "Attributes",
-	                                        _secret_util_variant_for_attributes (attributes),
-	                                        cancellable, error);
+	                                       _secret_util_variant_for_attributes (attributes),
+	                                       cancellable, error);
 }
 
+/**
+ * secret_item_get_schema:
+ * @self: an item
+ *
+ * Get the schema of this item.
+ *
+ * The schema is a dotted string like <literal>org.freedesktop.Secret.Generic</literal>.
+ * A schema describes the set of attributes that should be set on this item.
+ *
+ * Returns: (transfer full): the schema, which should be freed with g_free()
+ */
 gchar *
 secret_item_get_schema (SecretItem *self)
 {
@@ -1094,6 +1391,14 @@ secret_item_get_schema (SecretItem *self)
 	return label;
 }
 
+/**
+ * secret_item_get_label:
+ * @self: an item
+ *
+ * Get the label of this item.
+ *
+ * Returns: (transfer full): the label, which should be freed with g_free()
+ */
 gchar *
 secret_item_get_label (SecretItem *self)
 {
@@ -1111,39 +1416,75 @@ secret_item_get_label (SecretItem *self)
 	return label;
 }
 
+/**
+ * secret_item_set_label:
+ * @self: an item
+ * @label: a new label
+ * @cancellable: optional cancellation object
+ * @callback: called when the operation completes
+ * @user_data: data to pass to the callback
+ *
+ * Set the label of this item.
+ *
+ * This function returns immediately and completes asynchronously.
+ */
 void
 secret_item_set_label (SecretItem *self,
-                        const gchar *label,
-                        GCancellable *cancellable,
-                        GAsyncReadyCallback callback,
-                        gpointer user_data)
+                       const gchar *label,
+                       GCancellable *cancellable,
+                       GAsyncReadyCallback callback,
+                       gpointer user_data)
 {
 	g_return_if_fail (SECRET_IS_ITEM (self));
 	g_return_if_fail (label != NULL);
 
 	_secret_util_set_property (G_DBUS_PROXY (self), "Label",
-	                            g_variant_new_string (label),
-	                            secret_item_set_label,
-	                            cancellable, callback, user_data);
+	                           g_variant_new_string (label),
+	                           secret_item_set_label,
+	                           cancellable, callback, user_data);
 }
 
+/**
+ * secret_item_set_label_finish:
+ * @self: an item
+ * @result: asynchronous result passed to callback
+ * @error: location to place error on failure
+ *
+ * Complete asynchronous operation to set the label of this collection.
+ *
+ * Returns: whether the change was successful or not
+ */
 gboolean
 secret_item_set_label_finish (SecretItem *self,
-                               GAsyncResult *result,
-                               GError **error)
+                              GAsyncResult *result,
+                              GError **error)
 {
 	g_return_val_if_fail (SECRET_IS_ITEM (self), FALSE);
 
 	return _secret_util_set_property_finish (G_DBUS_PROXY (self),
-	                                          secret_item_set_label,
-	                                          result, error);
+	                                         secret_item_set_label,
+	                                         result, error);
 }
 
+/**
+ * secret_item_set_label_sync:
+ * @self: an item
+ * @label: a new label
+ * @cancellable: optional cancellation object
+ * @error: location to place error on failure
+ *
+ * Set the label of this item.
+ *
+ * This function may block indefinetely. Use the asynchronous version
+ * in user interface threads.
+ *
+ * Returns: whether the change was successful or not
+ */
 gboolean
 secret_item_set_label_sync (SecretItem *self,
-                             const gchar *label,
-                             GCancellable *cancellable,
-                             GError **error)
+                            const gchar *label,
+                            GCancellable *cancellable,
+                            GError **error)
 {
 	g_return_val_if_fail (SECRET_IS_ITEM (self), FALSE);
 	g_return_val_if_fail (label != NULL, FALSE);
@@ -1153,6 +1494,17 @@ secret_item_set_label_sync (SecretItem *self,
 	                                       cancellable, error);
 }
 
+/**
+ * secret_item_get_locked:
+ * @self: an item
+ *
+ * Get whether the item is locked or not.
+ *
+ * Depending on the secret service an item may not be able to be locked
+ * independently from the collection that it is in.
+ *
+ * Returns: whether the item is locked or not
+ */
 gboolean
 secret_item_get_locked (SecretItem *self)
 {
@@ -1170,6 +1522,15 @@ secret_item_get_locked (SecretItem *self)
 	return locked;
 }
 
+/**
+ * secret_item_get_created:
+ * @self: an item
+ *
+ * Get the created date and time of the item. The return value is
+ * the number of seconds since the unix epoch, January 1st 1970.
+ *
+ * Returns: the created date and time
+ */
 guint64
 secret_item_get_created (SecretItem *self)
 {
@@ -1187,6 +1548,15 @@ secret_item_get_created (SecretItem *self)
 	return created;
 }
 
+/**
+ * secret_item_get_modified:
+ * @self: an item
+ *
+ * Get the modified date and time of the item. The return value is
+ * the number of seconds since the unix epoch, January 1st 1970.
+ *
+ * Returns: the modified date and time
+ */
 guint64
 secret_item_get_modified (SecretItem *self)
 {

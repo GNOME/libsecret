@@ -10,6 +10,10 @@
  * See the included COPYING file for more information.
  */
 
+#if !defined (__SECRET_INSIDE_HEADER__) && !defined (SECRET_COMPILATION)
+#error "Only <secret/secret.h> can be included directly."
+#endif
+
 #ifndef __SECRET_PROMPT_H__
 #define __SECRET_PROMPT_H__
 
@@ -41,32 +45,29 @@ struct _SecretPromptClass {
 
 GType               secret_prompt_get_type                  (void) G_GNUC_CONST;
 
-SecretPrompt *     secret_prompt_instance                  (SecretService *service,
-                                                              const gchar *prompt_path);
-
 gboolean            secret_prompt_run                       (SecretPrompt *self,
-                                                              gulong window_id,
-                                                              GCancellable *cancellable,
-                                                              GError **error);
+                                                             gulong window_id,
+                                                             GCancellable *cancellable,
+                                                             GError **error);
 
 gboolean            secret_prompt_perform_sync              (SecretPrompt *self,
-                                                              gulong window_id,
-                                                              GCancellable *cancellable,
-                                                              GError **error);
+                                                             gulong window_id,
+                                                             GCancellable *cancellable,
+                                                             GError **error);
 
 void                secret_prompt_perform                   (SecretPrompt *self,
-                                                              gulong window_id,
-                                                              GCancellable *cancellable,
-                                                              GAsyncReadyCallback callback,
-                                                              gpointer user_data);
+                                                             gulong window_id,
+                                                             GCancellable *cancellable,
+                                                             GAsyncReadyCallback callback,
+                                                             gpointer user_data);
 
 gboolean            secret_prompt_perform_finish            (SecretPrompt *self,
-                                                              GAsyncResult *result,
-                                                              GError **error);
+                                                             GAsyncResult *result,
+                                                             GError **error);
 
 GVariant *          secret_prompt_get_result_value          (SecretPrompt *self,
-                                                              const GVariantType *expected_type);
+                                                             const GVariantType *expected_type);
 
 G_END_DECLS
 
-#endif /* __G_SERVICE_H___ */
+#endif /* __SECRET_PROMPT_H___ */

@@ -10,6 +10,10 @@
  * See the included COPYING file for more information.
  */
 
+#if !defined (__SECRET_INSIDE_HEADER__) && !defined (SECRET_COMPILATION)
+#error "Only <secret/secret.h> can be included directly."
+#endif
+
 #ifndef __SECRET_VALUE_H__
 #define __SECRET_VALUE_H__
 
@@ -23,24 +27,24 @@ G_BEGIN_DECLS
 
 GType               secret_value_get_type          (void) G_GNUC_CONST;
 
-SecretValue*       secret_value_new               (const gchar *secret,
-                                                     gssize length,
-                                                     const gchar *content_type);
+SecretValue *       secret_value_new               (const gchar *secret,
+                                                    gssize length,
+                                                    const gchar *content_type);
 
-SecretValue*       secret_value_new_full          (gchar *secret,
-                                                     gssize length,
-                                                     const gchar *content_type,
-                                                     GDestroyNotify destroy);
+SecretValue *       secret_value_new_full          (gchar *secret,
+                                                    gssize length,
+                                                    const gchar *content_type,
+                                                    GDestroyNotify destroy);
 
-const gchar*        secret_value_get                (SecretValue *value,
-                                                     gsize *length);
+const gchar *       secret_value_get               (SecretValue *value,
+                                                    gsize *length);
 
-const gchar*        secret_value_get_content_type   (SecretValue *value);
+const gchar *       secret_value_get_content_type  (SecretValue *value);
 
-SecretValue*       secret_value_ref                (SecretValue *value);
+SecretValue *       secret_value_ref               (SecretValue *value);
 
-void                secret_value_unref              (gpointer value);
+void                secret_value_unref             (gpointer value);
 
 G_END_DECLS
 
-#endif /* __G_SERVICE_H___ */
+#endif /* __SECRET_VALUE_H___ */

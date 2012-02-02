@@ -90,7 +90,7 @@ test_perform_sync (Test *test,
 	/* Verify that main loop does not run during this call */
 	increment_id = g_idle_add (on_idle_increment, &value);
 
-	prompt = secret_prompt_instance (test->service, "/org/freedesktop/secrets/prompts/simple");
+	prompt = _secret_prompt_instance (test->service, "/org/freedesktop/secrets/prompts/simple");
 
 	ret = secret_prompt_perform_sync (prompt, 0, NULL, &error);
 	g_assert_no_error (error);
@@ -116,7 +116,7 @@ test_perform_run (Test *test,
 	/* Verify that main loop does run during this call */
 	increment_id = g_idle_add (on_idle_increment, &value);
 
-	prompt = secret_prompt_instance (test->service, "/org/freedesktop/secrets/prompts/simple");
+	prompt = _secret_prompt_instance (test->service, "/org/freedesktop/secrets/prompts/simple");
 
 	ret = secret_prompt_run (prompt, 0, NULL, &error);
 	g_assert_no_error (error);
@@ -141,7 +141,7 @@ test_perform_async (Test *test,
 	GAsyncResult *result = NULL;
 	gboolean ret;
 
-	prompt = secret_prompt_instance (test->service, "/org/freedesktop/secrets/prompts/simple");
+	prompt = _secret_prompt_instance (test->service, "/org/freedesktop/secrets/prompts/simple");
 
 	secret_prompt_perform (prompt, 0, NULL, on_async_result, &result);
 	g_assert (result == NULL);
@@ -170,7 +170,7 @@ test_perform_cancel (Test *test,
 	GCancellable *cancellable;
 	gboolean ret;
 
-	prompt = secret_prompt_instance (test->service, "/org/freedesktop/secrets/prompts/delay");
+	prompt = _secret_prompt_instance (test->service, "/org/freedesktop/secrets/prompts/delay");
 
 	cancellable = g_cancellable_new ();
 	secret_prompt_perform (prompt, 0, cancellable, on_async_result, &result);
@@ -202,7 +202,7 @@ test_perform_fail (Test *test,
 	GError *error = NULL;
 	gboolean ret;
 
-	prompt = secret_prompt_instance (test->service, "/org/freedesktop/secrets/prompts/error");
+	prompt = _secret_prompt_instance (test->service, "/org/freedesktop/secrets/prompts/error");
 
 	ret = secret_prompt_perform_sync (prompt, 0, NULL, &error);
 	g_assert_error (error, G_DBUS_ERROR, G_DBUS_ERROR_NOT_SUPPORTED);
@@ -220,7 +220,7 @@ test_perform_vanish (Test *test,
 	GError *error = NULL;
 	gboolean ret;
 
-	prompt = secret_prompt_instance (test->service, "/org/freedesktop/secrets/prompts/vanish");
+	prompt = _secret_prompt_instance (test->service, "/org/freedesktop/secrets/prompts/vanish");
 
 	ret = secret_prompt_perform_sync (prompt, 0, NULL, &error);
 	g_assert_no_error (error);
@@ -239,7 +239,7 @@ test_prompt_result (Test *test,
 	gboolean ret;
 	GVariant *result;
 
-	prompt = secret_prompt_instance (test->service, "/org/freedesktop/secrets/prompts/result");
+	prompt = _secret_prompt_instance (test->service, "/org/freedesktop/secrets/prompts/result");
 
 	result = secret_prompt_get_result_value (prompt, NULL);
 	g_assert (result == NULL);
@@ -266,7 +266,7 @@ test_prompt_window_id (Test *test,
 	gboolean ret;
 	GVariant *result;
 
-	prompt = secret_prompt_instance (test->service, "/org/freedesktop/secrets/prompts/window");
+	prompt = _secret_prompt_instance (test->service, "/org/freedesktop/secrets/prompts/window");
 
 	ret = secret_prompt_perform_sync (prompt, 555, NULL, &error);
 	g_assert_no_error (error);
@@ -289,7 +289,7 @@ test_service_sync (Test *test,
 	GError *error = NULL;
 	gboolean ret;
 
-	prompt = secret_prompt_instance (test->service, "/org/freedesktop/secrets/prompts/simple");
+	prompt = _secret_prompt_instance (test->service, "/org/freedesktop/secrets/prompts/simple");
 
 	ret = secret_service_prompt_sync (test->service, prompt, NULL, &error);
 	g_assert_no_error (error);
@@ -308,7 +308,7 @@ test_service_async (Test *test,
 	GAsyncResult *result = NULL;
 	gboolean ret;
 
-	prompt = secret_prompt_instance (test->service, "/org/freedesktop/secrets/prompts/simple");
+	prompt = _secret_prompt_instance (test->service, "/org/freedesktop/secrets/prompts/simple");
 
 	secret_service_prompt (test->service, prompt, NULL, on_async_result, &result);
 	g_assert (result == NULL);
@@ -336,7 +336,7 @@ test_service_fail (Test *test,
 	GAsyncResult *result = NULL;
 	gboolean ret;
 
-	prompt = secret_prompt_instance (test->service, "/org/freedesktop/secrets/prompts/error");
+	prompt = _secret_prompt_instance (test->service, "/org/freedesktop/secrets/prompts/error");
 
 	secret_service_prompt (test->service, prompt, NULL, on_async_result, &result);
 	g_assert (result == NULL);
@@ -364,7 +364,7 @@ test_service_path (Test *test,
 	SecretPrompt *prompt;
 	gboolean ret;
 
-	prompt = secret_prompt_instance (test->service, "/org/freedesktop/secrets/prompts/simple");
+	prompt = _secret_prompt_instance (test->service, "/org/freedesktop/secrets/prompts/simple");
 
 	secret_service_prompt (test->service, prompt, NULL, on_async_result, &result);
 	g_assert (result == NULL);

@@ -73,9 +73,9 @@ secret_service_init (SecretService *self)
 
 static void
 secret_service_get_property (GObject *obj,
-                              guint prop_id,
-                              GValue *value,
-                              GParamSpec *pspec)
+                             guint prop_id,
+                             GValue *value,
+                             GParamSpec *pspec)
 {
 	SecretService *self = SECRET_SERVICE (obj);
 
@@ -94,9 +94,9 @@ secret_service_get_property (GObject *obj,
 
 static void
 secret_service_set_property (GObject *obj,
-                              guint prop_id,
-                              const GValue *value,
-                              GParamSpec *pspec)
+                             guint prop_id,
+                             const GValue *value,
+                             GParamSpec *pspec)
 {
 	SecretService *self = SECRET_SERVICE (obj);
 
@@ -135,9 +135,9 @@ secret_service_finalize (GObject *obj)
 
 static gboolean
 secret_service_real_prompt_sync (SecretService *self,
-                                  SecretPrompt *prompt,
-                                  GCancellable *cancellable,
-                                  GError **error)
+                                 SecretPrompt *prompt,
+                                 GCancellable *cancellable,
+                                 GError **error)
 {
 	return secret_prompt_perform_sync (prompt, 0, cancellable, error);
 }
@@ -162,10 +162,10 @@ on_real_prompt_completed (GObject *source,
 
 static void
 secret_service_real_prompt_async (SecretService *self,
-                                   SecretPrompt *prompt,
-                                   GCancellable *cancellable,
-                                   GAsyncReadyCallback callback,
-                                   gpointer user_data)
+                                  SecretPrompt *prompt,
+                                  GCancellable *cancellable,
+                                  GAsyncReadyCallback callback,
+                                  gpointer user_data)
 {
 	GSimpleAsyncResult *res;
 
@@ -173,16 +173,16 @@ secret_service_real_prompt_async (SecretService *self,
 	                                  secret_service_real_prompt_async);
 
 	secret_prompt_perform (prompt, 0, cancellable,
-	                        on_real_prompt_completed,
-	                        g_object_ref (res));
+	                       on_real_prompt_completed,
+	                       g_object_ref (res));
 
 	g_object_unref (res);
 }
 
 static gboolean
 secret_service_real_prompt_finish (SecretService *self,
-                                    GAsyncResult *result,
-                                    GError **error)
+                                   GAsyncResult *result,
+                                   GError **error)
 {
 	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (result);
 
@@ -212,8 +212,8 @@ handle_property_changed (SecretService *self,
 
 static void
 secret_service_properties_changed (GDBusProxy *proxy,
-                                    GVariant *changed_properties,
-                                    const gchar* const *invalidated_properties)
+                                   GVariant *changed_properties,
+                                   const gchar* const *invalidated_properties)
 {
 	SecretService *self = SECRET_SERVICE (proxy);
 	gchar *property_name;
@@ -323,7 +323,7 @@ on_ensure_session (GObject *source,
 
 	} else if (closure->flags & SECRET_SERVICE_LOAD_COLLECTIONS) {
 		secret_service_ensure_collections (self, closure->cancellable,
-		                                    on_ensure_collections, g_object_ref (res));
+		                                   on_ensure_collections, g_object_ref (res));
 
 	} else {
 		g_simple_async_result_complete_in_idle (res);
@@ -343,11 +343,11 @@ service_ensure_for_flags_async (SecretService *self,
 
 	if (closure->flags & SECRET_SERVICE_OPEN_SESSION)
 		secret_service_ensure_session (self, closure->cancellable,
-		                                on_ensure_session, g_object_ref (res));
+		                               on_ensure_session, g_object_ref (res));
 
 	else if (closure->flags & SECRET_SERVICE_LOAD_COLLECTIONS)
 		secret_service_ensure_collections (self, closure->cancellable,
-		                                    on_ensure_collections, g_object_ref (res));
+		                                   on_ensure_collections, g_object_ref (res));
 
 	else
 		g_simple_async_result_complete_in_idle (res);
@@ -355,8 +355,8 @@ service_ensure_for_flags_async (SecretService *self,
 
 static gboolean
 secret_service_initable_init (GInitable *initable,
-                               GCancellable *cancellable,
-                               GError **error)
+                              GCancellable *cancellable,
+                              GError **error)
 {
 	SecretService *self;
 
@@ -385,7 +385,7 @@ on_init_base (GObject *source,
 	GError *error = NULL;
 
 	if (!secret_service_async_initable_parent_iface->init_finish (G_ASYNC_INITABLE (self),
-	                                                               result, &error)) {
+	                                                              result, &error)) {
 		g_simple_async_result_take_error (res, error);
 		g_simple_async_result_complete (res);
 	} else {
@@ -398,32 +398,32 @@ on_init_base (GObject *source,
 
 static void
 secret_service_async_initable_init_async (GAsyncInitable *initable,
-                                           int io_priority,
-                                           GCancellable *cancellable,
-                                           GAsyncReadyCallback callback,
-                                           gpointer user_data)
+                                          int io_priority,
+                                          GCancellable *cancellable,
+                                          GAsyncReadyCallback callback,
+                                          gpointer user_data)
 {
 	GSimpleAsyncResult *res;
 	InitClosure *closure;
 
 	res = g_simple_async_result_new (G_OBJECT (initable), callback, user_data,
-	                               secret_service_async_initable_init_async);
+	                                 secret_service_async_initable_init_async);
 	closure = g_slice_new0 (InitClosure);
 	closure->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
 	g_simple_async_result_set_op_res_gpointer (res, closure, init_closure_free);
 
 	secret_service_async_initable_parent_iface->init_async (initable, io_priority,
-	                                                         cancellable,
-	                                                         on_init_base,
-	                                                         g_object_ref (res));
+	                                                        cancellable,
+	                                                        on_init_base,
+	                                                        g_object_ref (res));
 
 	g_object_unref (res);
 }
 
 static gboolean
 secret_service_async_initable_init_finish (GAsyncInitable *initable,
-                                            GAsyncResult *result,
-                                            GError **error)
+                                           GAsyncResult *result,
+                                           GError **error)
 {
 	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (initable),
 	                      secret_service_async_initable_init_async), FALSE);
@@ -462,11 +462,26 @@ on_service_instance_gone (gpointer user_data,
 	G_UNLOCK (service_instance);
 }
 
+/**
+ * secret_service_get:
+ * @flags: flags for which service functionality to ensure is initialized
+ * @cancellable: optional cancellation object
+ * @callback: called when the operation completes
+ * @user_data: data to be passed to the callback
+ *
+ * Get a #SecretService proxy for the Secret Service. If such a proxy object
+ * already exists, then the same proxy is returned.
+ *
+ * If @flags contains any flags of which parts of the secret service to
+ * ensure are initialized, then those will be initialized before completing.
+ *
+ * This method will return immediately and complete asynchronously.
+ */
 void
 secret_service_get (SecretServiceFlags flags,
-                     GCancellable *cancellable,
-                     GAsyncReadyCallback callback,
-                     gpointer user_data)
+                    GCancellable *cancellable,
+                    GAsyncReadyCallback callback,
+                    gpointer user_data)
 {
 	SecretService *service = NULL;
 	GSimpleAsyncResult *res;
@@ -506,9 +521,20 @@ secret_service_get (SecretServiceFlags flags,
 	}
 }
 
+/**
+ * secret_service_get_finish:
+ * @result: the asynchronous result passed to the callback
+ * @error: location to place an error on failure
+ *
+ * Complete an asynchronous operation to get a #SecretService proxy for the
+ * Secret Service.
+ *
+ * Returns: (transfer full): a new reference to a #SecretService proxy, which
+ *          should be released with g_object_unref().
+ */
 SecretService *
 secret_service_get_finish (GAsyncResult *result,
-                            GError **error)
+                           GError **error)
 {
 	GObject *service = NULL;
 	GObject *source_object;
@@ -546,10 +572,28 @@ secret_service_get_finish (GAsyncResult *result,
 	return SECRET_SERVICE (service);
 }
 
+/**
+ * secret_service_get_sync:
+ * @flags: flags for which service functionality to ensure is initialized
+ * @cancellable: optional cancellation object
+ * @error: location to place an error on failure
+ *
+ * Get a #SecretService proxy for the Secret Service. If such a proxy object
+ * already exists, then the same proxy is returned.
+ *
+ * If @flags contains any flags of which parts of the secret service to
+ * ensure are initialized, then those will be initialized before returning.
+ *
+ * This method may block indefinitely and should not be used in user interface
+ * threads.
+ *
+ * Returns: (transfer full): a new reference to a #SecretService proxy, which
+ *          should be released with g_object_unref().
+ */
 SecretService *
 secret_service_get_sync (SecretServiceFlags flags,
-                          GCancellable *cancellable,
-                          GError **error)
+                         GCancellable *cancellable,
+                         GError **error)
 {
 	SecretService *service = NULL;
 
@@ -588,12 +632,31 @@ secret_service_get_sync (SecretServiceFlags flags,
 	return service;
 }
 
+/**
+ * secret_service_new:
+ * @service_bus_name: (allow-none): dbus service name of the secret service
+ * @flags: flags for which service functionality to ensure is initialized
+ * @cancellable: optional cancellation object
+ * @callback: called when the operation completes
+ * @user_data: data to be passed to the callback
+ *
+ * Create a new #SecretService proxy for the Secret Service.
+ *
+ * This function is rarely used, see secret_service_get() instead.
+ *
+ * If @flags contains any flags of which parts of the secret service to
+ * ensure are initialized, then those will be initialized before returning.
+ *
+ * If @service_bus_name is %NULL then the default is used.
+ *
+ * This method will return immediately and complete asynchronously.
+ */
 void
 secret_service_new (const gchar *service_bus_name,
-                     SecretServiceFlags flags,
-                     GCancellable *cancellable,
-                     GAsyncReadyCallback callback,
-                     gpointer user_data)
+                    SecretServiceFlags flags,
+                    GCancellable *cancellable,
+                    GAsyncReadyCallback callback,
+                    gpointer user_data)
 {
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
@@ -612,9 +675,20 @@ secret_service_new (const gchar *service_bus_name,
 	                            NULL);
 }
 
+/**
+ * secret_service_new_finish:
+ * @result: the asynchronous result passed to the callback
+ * @error: location to place an error on failure
+ *
+ * Complete an asynchronous operation to create a new #SecretService proxy for
+ * the Secret Service.
+ *
+ * Returns: (transfer full): a new reference to a #SecretService proxy, which
+ *          should be released with g_object_unref().
+ */
 SecretService *
 secret_service_new_finish (GAsyncResult *result,
-                            GError **error)
+                           GError **error)
 {
 	GObject *source_object;
 	GObject *object;
@@ -633,11 +707,33 @@ secret_service_new_finish (GAsyncResult *result,
 	return SECRET_SERVICE (object);
 }
 
+/**
+ * secret_service_new_sync:
+ * @service_bus_name: (allow-none): dbus service name of the secret service
+ * @flags: flags for which service functionality to ensure is initialized
+ * @cancellable: optional cancellation object
+ * @error: location to place an error on failure
+ *
+ * Create a new #SecretService proxy for the Secret Service.
+ *
+ * This function is rarely used, see secret_service_get_sync() instead.
+ *
+ * If @flags contains any flags of which parts of the secret service to
+ * ensure are initialized, then those will be initialized before returning.
+ *
+ * If @service_bus_name is %NULL then the default is used.
+ *
+ * This method may block indefinitely and should not be used in user interface
+ * threads.
+ *
+ * Returns: (transfer full): a new reference to a #SecretService proxy, which
+ *          should be released with g_object_unref().
+ */
 SecretService *
 secret_service_new_sync (const gchar *service_bus_name,
-                          SecretServiceFlags flags,
-                          GCancellable *cancellable,
-                          GError **error)
+                         SecretServiceFlags flags,
+                         GCancellable *cancellable,
+                         GError **error)
 {
 	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
 
@@ -655,6 +751,18 @@ secret_service_new_sync (const gchar *service_bus_name,
 	                       NULL);
 }
 
+/**
+ * secret_service_get_flags:
+ * @self: the secret service proxy
+ *
+ * Get the flags representing what features of the #SecretService proxy
+ * have been initialized.
+ *
+ * Use secret_service_ensure_session() or secret_service_ensure_collections()
+ * to initialize further features and change the flags.
+ *
+ * Returns: the flags for features initialized
+ */
 SecretServiceFlags
 secret_service_get_flags (SecretService *self)
 {
@@ -674,6 +782,20 @@ secret_service_get_flags (SecretService *self)
 	return flags;
 }
 
+/**
+ * secret_service_get_collections:
+ * @self: the secret service proxy
+ *
+ * Get a list of #SecretCollection objects representing all the collections
+ * in the secret service.
+ *
+ * If the %SECRET_SERVICE_LOAD_COLLECTIONS flag was not specified when
+ * initializing #SecretService proxy object, then this method will return
+ * %NULL. Use secret_service_ensure_collections() to load the collections.
+ *
+ * Returns: (transfer full) (element-type Secret.Collection) (allow-none): a
+ *          list of the collections in the secret service
+ */
 GList *
 secret_service_get_collections (SecretService *self)
 {
@@ -699,7 +821,7 @@ secret_service_get_collections (SecretService *self)
 
 SecretItem *
 _secret_service_find_item_instance (SecretService *self,
-                                     const gchar *item_path)
+                                    const gchar *item_path)
 {
 	SecretCollection *collection = NULL;
 	gchar *collection_path;
@@ -742,7 +864,7 @@ _secret_service_get_session (SecretService *self)
 
 void
 _secret_service_take_session (SecretService *self,
-                               SecretSession *session)
+                              SecretSession *session)
 {
 	g_return_if_fail (SECRET_IS_SERVICE (self));
 	g_return_if_fail (session != NULL);
@@ -755,6 +877,19 @@ _secret_service_take_session (SecretService *self,
 	g_mutex_unlock (&self->pv->mutex);
 }
 
+/**
+ * secret_service_get_session_algorithms:
+ * @self: the secret service proxy
+ *
+ * Get the set of algorithms being used to transfer secrets between this
+ * secret service proxy and the Secret Service itself.
+ *
+ * This will be %NULL if no session has been established. Use
+ * secret_service_ensure_session() to establish a session.
+ *
+ * Returns: (allow-none): a string representing the algorithms for transferring
+ *          secrets
+ */
 const gchar *
 secret_service_get_session_algorithms (SecretService *self)
 {
@@ -772,6 +907,19 @@ secret_service_get_session_algorithms (SecretService *self)
 	return algorithms;
 }
 
+/**
+ * secret_service_get_session_path:
+ * @self: the secret service proxy
+ *
+ * Get the dbus object path of the session object being used to transfer
+ * secrets between this secret service proxy and the Secret Service itself.
+ *
+ * This will be %NULL if no session has been established. Use
+ * secret_service_ensure_session() to establish a session.
+ *
+ * Returns: (allow-none): a string representing the dbus object path of the
+ *          session
+ */
 const gchar *
 secret_service_get_session_path (SecretService *self)
 {
@@ -789,11 +937,28 @@ secret_service_get_session_path (SecretService *self)
 	return path;
 }
 
+/**
+ * secret_service_ensure_session:
+ * @self: the secret service
+ * @cancellable: optional cancellation object
+ * @callback: called when the operation completes
+ * @user_data: data to be passed to the callback
+ *
+ * Ensure that the #SecretService proxy has established a session with the
+ * Secret Service. This session is used to transfer secrets.
+ *
+ * It is not normally necessary to call this method, as the session is
+ * established as necessary. You can also pass the %SECRET_SERVICE_OPEN_SESSION
+ * to secret_service_get() in order to ensure that a session has been established
+ * by the time you get the #SecretService proxy.
+ *
+ * This method will return immediately and complete asynchronously.
+ */
 void
 secret_service_ensure_session (SecretService *self,
-                                GCancellable *cancellable,
-                                GAsyncReadyCallback callback,
-                                gpointer user_data)
+                               GCancellable *cancellable,
+                               GAsyncReadyCallback callback,
+                               gpointer user_data)
 {
 	GSimpleAsyncResult *res;
 	SecretSession *session;
@@ -816,10 +981,21 @@ secret_service_ensure_session (SecretService *self,
 	}
 }
 
+/**
+ * secret_service_ensure_session_finish:
+ * @self: the secret service
+ * @result: the asynchronous result passed to the callback
+ * @error: location to place an error on failure
+ *
+ * Finish an asynchronous operation to ensure that the #SecretService proxy
+ * has established a session with the Secret Service.
+ *
+ * Returns: the path of the established session
+ */
 const gchar *
 secret_service_ensure_session_finish (SecretService *self,
-                                       GAsyncResult *result,
-                                       GError **error)
+                                      GAsyncResult *result,
+                                      GError **error)
 {
 	g_return_val_if_fail (SECRET_IS_SERVICE (self), NULL);
 	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
@@ -834,10 +1010,29 @@ secret_service_ensure_session_finish (SecretService *self,
 	return secret_service_get_session_path (self);
 }
 
+/**
+ * secret_service_ensure_session_sync:
+ * @self: the secret service
+ * @cancellable: optional cancellation object
+ * @error: location to place an error on failure
+ *
+ * Ensure that the #SecretService proxy has established a session with the
+ * Secret Service. This session is used to transfer secrets.
+ *
+ * It is not normally necessary to call this method, as the session is
+ * established as necessary. You can also pass the %SECRET_SERVICE_OPEN_SESSION
+ * to secret_service_get_sync() in order to ensure that a session has been
+ * established by the time you get the #SecretService proxy.
+ *
+ * This method may block indefinitely and should not be used in user interface
+ * threads.
+ *
+ * Returns: the path of the established session
+ */
 const gchar *
 secret_service_ensure_session_sync (SecretService *self,
-                                     GCancellable *cancellable,
-                                     GError **error)
+                                    GCancellable *cancellable,
+                                    GError **error)
 {
 	SecretSync *sync;
 	const gchar *path;
@@ -850,7 +1045,7 @@ secret_service_ensure_session_sync (SecretService *self,
 	g_main_context_push_thread_default (sync->context);
 
 	secret_service_ensure_session (self, cancellable,
-	                                _secret_sync_on_result, sync);
+	                               _secret_sync_on_result, sync);
 
 	g_main_loop_run (sync->loop);
 
@@ -955,11 +1150,28 @@ on_ensure_collection (GObject *source,
 	g_object_unref (res);
 }
 
+/**
+ * secret_service_ensure_collections:
+ * @self: the secret service
+ * @cancellable: optional cancellation object
+ * @callback: called when the operation completes
+ * @user_data: data to be passed to the callback
+ *
+ * Ensure that the #SecretService proxy has loaded all the collections present
+ * in the Secret Service. This affects the result of
+ * secret_service_get_collections().
+ *
+ * You can also pass the %SECRET_SERVICE_LOAD_COLLECTIONS to
+ * secret_service_get_sync() in order to ensure that the collections have been
+ * loaded by the time you get the #SecretService proxy.
+ *
+ * This method will return immediately and complete asynchronously.
+ */
 void
 secret_service_ensure_collections (SecretService *self,
-                                    GCancellable *cancellable,
-                                    GAsyncReadyCallback callback,
-                                    gpointer user_data)
+                                   GCancellable *cancellable,
+                                   GAsyncReadyCallback callback,
+                                   gpointer user_data)
 {
 	EnsureClosure *closure;
 	SecretCollection *collection;
@@ -988,7 +1200,7 @@ secret_service_ensure_collections (SecretService *self,
 		/* No such collection yet create a new one */
 		if (collection == NULL) {
 			secret_collection_new (self, path, cancellable,
-			                        on_ensure_collection, g_object_ref (res));
+			                       on_ensure_collection, g_object_ref (res));
 			closure->collections_loading++;
 		} else {
 			g_hash_table_insert (closure->collections, g_strdup (path), collection);
@@ -1004,10 +1216,21 @@ secret_service_ensure_collections (SecretService *self,
 	g_object_unref (res);
 }
 
+/**
+ * secret_service_ensure_collections_finish:
+ * @self: the secret service
+ * @result: the asynchronous result passed to the callback
+ * @error: location to place an error on failure
+ *
+ * Complete an asynchronous operation to ensure that the #SecretService proxy
+ * has loaded all the collections present in the Secret Service.
+ *
+ * Returns: whether the load was successful or not
+ */
 gboolean
 secret_service_ensure_collections_finish (SecretService *self,
-                                           GAsyncResult *result,
-                                           GError **error)
+                                          GAsyncResult *result,
+                                          GError **error)
 {
 	g_return_val_if_fail (SECRET_IS_SERVICE (self), FALSE);
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
@@ -1020,10 +1243,29 @@ secret_service_ensure_collections_finish (SecretService *self,
 	return TRUE;
 }
 
+/**
+ * secret_service_ensure_collections_sync:
+ * @self: the secret service
+ * @cancellable: optional cancellation object
+ * @error: location to place an error on failure
+ *
+ * Ensure that the #SecretService proxy has loaded all the collections present
+ * in the Secret Service. This affects the result of
+ * secret_service_get_collections().
+ *
+ * You can also pass the %SECRET_SERVICE_LOAD_COLLECTIONS to
+ * secret_service_get_sync() in order to ensure that the collections have been
+ * loaded by the time you get the #SecretService proxy.
+ *
+ * This method may block indefinitely and should not be used in user interface
+ * threads.
+ *
+ * Returns: whether the load was successful or not
+ */
 gboolean
 secret_service_ensure_collections_sync (SecretService *self,
-                                         GCancellable *cancellable,
-                                         GError **error)
+                                        GCancellable *cancellable,
+                                        GError **error)
 {
 	SecretCollection *collection;
 	GHashTable *collections;
@@ -1065,11 +1307,29 @@ secret_service_ensure_collections_sync (SecretService *self,
 	return ret;
 }
 
+/**
+ * secret_service_prompt_sync:
+ * @self: the secret service
+ * @prompt: the prompt
+ * @cancellable: optional cancellation object
+ * @error: location to place an error on failure
+ *
+ * Perform prompting for a #SecretPrompt.
+ *
+ * This function is called by other parts of this library to handle prompts
+ * for the various actions that can require prompting.
+ *
+ * Override the #SecretService <literal>prompt_sync()</literal> virtual method
+ * to change the behavior of the propmting. The default behavior is to simply
+ * run secret_prompt_perform_sync() on the prompt.
+ *
+ * Returns: %FALSE if the prompt was dismissed or an error occurred
+ */
 gboolean
 secret_service_prompt_sync (SecretService *self,
-                             SecretPrompt *prompt,
-                             GCancellable *cancellable,
-                             GError **error)
+                            SecretPrompt *prompt,
+                            GCancellable *cancellable,
+                            GError **error)
 {
 	SecretServiceClass *klass;
 
@@ -1084,12 +1344,29 @@ secret_service_prompt_sync (SecretService *self,
 	return (klass->prompt_sync) (self, prompt, cancellable, error);
 }
 
+/**
+ * secret_service_prompt:
+ * @self: the secret service
+ * @prompt: the prompt
+ * @cancellable: optional cancellation object
+ * @callback: called when the operation completes
+ * @user_data: data to be passed to the callback
+ *
+ * Perform prompting for a #SecretPrompt.
+ *
+ * This function is called by other parts of this library to handle prompts
+ * for the various actions that can require prompting.
+ *
+ * Override the #SecretService <literal>prompt_async()</literal> virtual method
+ * to change the behavior of the propmting. The default behavior is to simply
+ * run secret_prompt_perform() on the prompt.
+ */
 void
 secret_service_prompt (SecretService *self,
-                        SecretPrompt *prompt,
-                        GCancellable *cancellable,
-                        GAsyncReadyCallback callback,
-                        gpointer user_data)
+                       SecretPrompt *prompt,
+                       GCancellable *cancellable,
+                       GAsyncReadyCallback callback,
+                       gpointer user_data)
 {
 	SecretServiceClass *klass;
 
@@ -1103,10 +1380,20 @@ secret_service_prompt (SecretService *self,
 	(klass->prompt_async) (self, prompt, cancellable, callback, user_data);
 }
 
+/**
+ * secret_service_prompt_finish:
+ * @self: the secret service
+ * @result: the asynchronous result passed to the callback
+ * @error: location to place an error on failure
+ *
+ * Complete asynchronous operation to perform prompting for a #SecretPrompt.
+ *
+ * Returns: %FALSE if the prompt was dismissed or an error occurred
+ */
 gboolean
 secret_service_prompt_finish (SecretService *self,
-                               GAsyncResult *result,
-                               GError **error)
+                              GAsyncResult *result,
+                              GError **error)
 {
 	SecretServiceClass *klass;
 

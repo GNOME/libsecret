@@ -3,6 +3,7 @@ include $(top_srcdir)/Makefile.decl
 INCLUDES = \
 	-I$(top_srcdir)/library \
 	-DSRCDIR="\"@abs_srcdir@\"" \
+	-DSECRET_COMPILATION \
 	$(NULL)
 
 noinst_LTLIBRARIES = libmock_service.la
@@ -16,12 +17,12 @@ libmock_service_la_CFLAGS = \
 
 libmock_service_la_LIBADD = \
 	$(top_builddir)/egg/libegg.la \
-	$(top_builddir)/library/libsecret.la \
+	$(top_builddir)/library/libsecret-@SECRET_MAJOR@.la \
 	$(LIBGCRYPT_LIBS)
 
 LDADD =  \
 	$(top_builddir)/egg/libegg.la \
-	$(top_builddir)/library/libsecret.la \
+	$(top_builddir)/library/libsecret-@SECRET_MAJOR@.la \
 	$(top_builddir)/library/tests/libmock_service.la \
 	$(NULL)
 

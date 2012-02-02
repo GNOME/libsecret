@@ -305,9 +305,9 @@ on_service_open_session_aes (GObject *source,
 
 void
 _secret_session_open (SecretService *service,
-                       GCancellable *cancellable,
-                       GAsyncReadyCallback callback,
-                       gpointer user_data)
+                      GCancellable *cancellable,
+                      GAsyncReadyCallback callback,
+                      gpointer user_data)
 {
 	GSimpleAsyncResult *res;
 	OpenSessionClosure *closure;
@@ -464,7 +464,7 @@ service_decode_plain_secret (SecretSession *session,
 
 SecretValue *
 _secret_session_decode_secret (SecretSession *session,
-                                GVariant *encoded)
+                               GVariant *encoded)
 {
 	SecretValue *result;
 	gconstpointer param;
@@ -621,7 +621,7 @@ service_encode_plain_secret (SecretSession *session,
 
 GVariant *
 _secret_session_encode_secret (SecretSession *session,
-                                SecretValue *value)
+                               SecretValue *value)
 {
 	GVariantBuilder *builder;
 	GVariant *result = NULL;

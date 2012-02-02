@@ -10,6 +10,10 @@
  * See the included COPYING file for more information.
  */
 
+#if !defined (__SECRET_INSIDE_HEADER__) && !defined (SECRET_COMPILATION)
+#error "Only <secret/secret.h> can be included directly."
+#endif
+
 #ifndef __SECRET_COLLECTION_H__
 #define __SECRET_COLLECTION_H__
 
@@ -42,68 +46,68 @@ struct _SecretCollectionClass {
 GType               secret_collection_get_type                 (void) G_GNUC_CONST;
 
 void                secret_collection_new                      (SecretService *service,
-                                                                 const gchar *collection_path,
-                                                                 GCancellable *cancellable,
-                                                                 GAsyncReadyCallback callback,
-                                                                 gpointer user_data);
+                                                                const gchar *collection_path,
+                                                                GCancellable *cancellable,
+                                                                GAsyncReadyCallback callback,
+                                                                gpointer user_data);
 
-SecretCollection * secret_collection_new_finish               (GAsyncResult *result,
-                                                                 GError **error);
+SecretCollection *  secret_collection_new_finish               (GAsyncResult *result,
+                                                                GError **error);
 
-SecretCollection * secret_collection_new_sync                 (SecretService *service,
-                                                                 const gchar *collection_path,
-                                                                 GCancellable *cancellable,
-                                                                 GError **error);
+SecretCollection *  secret_collection_new_sync                 (SecretService *service,
+                                                                const gchar *collection_path,
+                                                                GCancellable *cancellable,
+                                                                GError **error);
 
 void                secret_collection_refresh                  (SecretCollection *self);
 
 void                secret_collection_create                   (SecretService *service,
-                                                                 const gchar *label,
-                                                                 const gchar *alias,
-                                                                 GCancellable *cancellable,
-                                                                 GAsyncReadyCallback callback,
-                                                                 gpointer user_data);
+                                                                const gchar *label,
+                                                                const gchar *alias,
+                                                                GCancellable *cancellable,
+                                                                GAsyncReadyCallback callback,
+                                                                gpointer user_data);
 
-SecretCollection * secret_collection_create_finish            (GAsyncResult *result,
-                                                                 GError **error);
+SecretCollection *  secret_collection_create_finish            (GAsyncResult *result,
+                                                                GError **error);
 
-SecretCollection * secret_collection_create_sync              (SecretService *service,
-                                                                 const gchar *label,
-                                                                 const gchar *alias,
-                                                                 GCancellable *cancellable,
-                                                                 GError **error);
+SecretCollection *  secret_collection_create_sync              (SecretService *service,
+                                                                const gchar *label,
+                                                                const gchar *alias,
+                                                                GCancellable *cancellable,
+                                                                GError **error);
 
 void                secret_collection_delete                   (SecretCollection *self,
-                                                                 GCancellable *cancellable,
-                                                                 GAsyncReadyCallback callback,
-                                                                 gpointer user_data);
+                                                                GCancellable *cancellable,
+                                                                GAsyncReadyCallback callback,
+                                                                gpointer user_data);
 
 gboolean            secret_collection_delete_finish            (SecretCollection *self,
-                                                                 GAsyncResult *result,
-                                                                 GError **error);
+                                                                GAsyncResult *result,
+                                                                GError **error);
 
 gboolean            secret_collection_delete_sync              (SecretCollection *self,
-                                                                 GCancellable *cancellable,
-                                                                 GError **error);
+                                                                GCancellable *cancellable,
+                                                                GError **error);
 
 GList *             secret_collection_get_items                (SecretCollection *self);
 
 gchar *             secret_collection_get_label                (SecretCollection *self);
 
 void                secret_collection_set_label                (SecretCollection *self,
-                                                                 const gchar *label,
-                                                                 GCancellable *cancellable,
-                                                                 GAsyncReadyCallback callback,
-                                                                 gpointer user_data);
+                                                                const gchar *label,
+                                                                GCancellable *cancellable,
+                                                                GAsyncReadyCallback callback,
+                                                                gpointer user_data);
 
 gboolean            secret_collection_set_label_finish         (SecretCollection *self,
-                                                                 GAsyncResult *result,
-                                                                 GError **error);
+                                                                GAsyncResult *result,
+                                                                GError **error);
 
 gboolean            secret_collection_set_label_sync           (SecretCollection *self,
-                                                                 const gchar *label,
-                                                                 GCancellable *cancellable,
-                                                                 GError **error);
+                                                                const gchar *label,
+                                                                GCancellable *cancellable,
+                                                                GError **error);
 
 gboolean            secret_collection_get_locked               (SecretCollection *self);
 

@@ -41,16 +41,16 @@ typedef struct _SecretSession SecretSession;
 
 #define             SECRET_PROPERTIES_INTERFACE      "org.freedesktop.DBus.Properties"
 
-SecretSync *       _secret_sync_new                          (void);
+SecretSync *        _secret_sync_new                          (void);
 
 void                _secret_sync_free                         (gpointer data);
 
 void                _secret_sync_on_result                    (GObject *source,
-                                                                GAsyncResult *result,
-                                                                gpointer user_data);
+                                                               GAsyncResult *result,
+                                                               gpointer user_data);
 
-SecretPrompt *     _secret_prompt_instance                   (GDBusConnection *connection,
-                                                                const gchar *object_path);
+SecretPrompt *      _secret_prompt_instance                   (SecretService *service,
+                                                               const gchar *prompt_path);
 
 gchar *             _secret_util_parent_path                  (const gchar *path);
 
@@ -63,61 +63,61 @@ GVariant *          _secret_util_variant_for_attributes       (GHashTable *attri
 GHashTable *        _secret_util_attributes_for_variant       (GVariant *variant);
 
 GHashTable *        _secret_util_attributes_for_varargs       (const SecretSchema *schema,
-                                                                va_list va);
+                                                               va_list va);
 
 GVariant *          _secret_util_variant_for_properties       (GHashTable *properties);
 
 void                _secret_util_get_properties               (GDBusProxy *proxy,
-                                                                gpointer result_tag,
-                                                                GCancellable *cancellable,
-                                                                GAsyncReadyCallback callback,
-                                                                gpointer user_data);
+                                                               gpointer result_tag,
+                                                               GCancellable *cancellable,
+                                                               GAsyncReadyCallback callback,
+                                                               gpointer user_data);
 
 gboolean            _secret_util_get_properties_finish        (GDBusProxy *proxy,
-                                                                gpointer result_tag,
-                                                                GAsyncResult *result,
-                                                                GError **error);
+                                                               gpointer result_tag,
+                                                               GAsyncResult *result,
+                                                               GError **error);
 
 void                _secret_util_set_property                 (GDBusProxy *proxy,
-                                                                const gchar *property,
-                                                                GVariant *value,
-                                                                gpointer result_tag,
-                                                                GCancellable *cancellable,
-                                                                GAsyncReadyCallback callback,
-                                                                gpointer user_data);
+                                                               const gchar *property,
+                                                               GVariant *value,
+                                                               gpointer result_tag,
+                                                               GCancellable *cancellable,
+                                                               GAsyncReadyCallback callback,
+                                                               gpointer user_data);
 
 gboolean            _secret_util_set_property_finish          (GDBusProxy *proxy,
-                                                                gpointer result_tag,
-                                                                GAsyncResult *result,
-                                                                GError **error);
+                                                               gpointer result_tag,
+                                                               GAsyncResult *result,
+                                                               GError **error);
 
 gboolean            _secret_util_set_property_sync            (GDBusProxy *proxy,
-                                                                const gchar *property,
-                                                                GVariant *value,
-                                                                GCancellable *cancellable,
-                                                                GError **error);
+                                                               const gchar *property,
+                                                               GVariant *value,
+                                                               GCancellable *cancellable,
+                                                               GError **error);
 
 gboolean            _secret_util_have_cached_properties       (GDBusProxy *proxy);
 
 void                _secret_service_set_default_bus_name      (const gchar *bus_name);
 
-SecretSession *    _secret_service_get_session               (SecretService *self);
+SecretSession *     _secret_service_get_session               (SecretService *self);
 
 void                _secret_service_take_session              (SecretService *self,
-                                                                SecretSession *session);
+                                                               SecretSession *session);
 
 void                _secret_service_delete_path               (SecretService *self,
-                                                                const gchar *object_path,
-                                                                gboolean is_an_item,
-                                                                GCancellable *cancellable,
-                                                                GAsyncReadyCallback callback,
-                                                                gpointer user_data);
+                                                               const gchar *object_path,
+                                                               gboolean is_an_item,
+                                                               GCancellable *cancellable,
+                                                               GAsyncReadyCallback callback,
+                                                               gpointer user_data);
 
-SecretItem *       _secret_service_find_item_instance        (SecretService *self,
-                                                                const gchar *item_path);
+SecretItem *        _secret_service_find_item_instance        (SecretService *self,
+                                                               const gchar *item_path);
 
-SecretItem *       _secret_collection_find_item_instance     (SecretCollection *self,
-                                                                const gchar *item_path);
+SecretItem *        _secret_collection_find_item_instance     (SecretCollection *self,
+                                                               const gchar *item_path);
 
 gchar *             _secret_value_unref_to_password           (SecretValue *value);
 
@@ -128,19 +128,19 @@ const gchar *       _secret_session_get_algorithms            (SecretSession *se
 const gchar *       _secret_session_get_path                  (SecretSession *session);
 
 void                _secret_session_open                      (SecretService *service,
-                                                                GCancellable *cancellable,
-                                                                GAsyncReadyCallback callback,
-                                                                gpointer user_data);
+                                                               GCancellable *cancellable,
+                                                               GAsyncReadyCallback callback,
+                                                               gpointer user_data);
 
 gboolean            _secret_session_open_finish               (GAsyncResult *result,
-                                                                GError **error);
+                                                               GError **error);
 
 GVariant *          _secret_session_encode_secret             (SecretSession *session,
-                                                                SecretValue *value);
+                                                               SecretValue *value);
 
-SecretValue *      _secret_session_decode_secret             (SecretSession *session,
-                                                                GVariant *encoded);
+SecretValue *       _secret_session_decode_secret             (SecretSession *session,
+                                                               GVariant *encoded);
 
 G_END_DECLS
 
-#endif /* __G_SERVICE_H___ */
+#endif /* __SECRET_PRIVATE_H___ */

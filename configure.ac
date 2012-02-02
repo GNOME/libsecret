@@ -3,6 +3,23 @@ AC_CONFIG_MACRO_DIR([build/m4])
 
 AC_INIT([libsecret],[0.1],[http://bugzilla.gnome.org/enter_bug.cgi?product=libsecret])
 
+dnl ****************************************************************************
+dnl Library package and libtool versioning
+dnl
+dnl Updating the libtool versions, follow these instructions sequentially:
+dnl  1. If the library source code has changed at all since the last update, then increment revision (‘c:r:a’ becomes ‘c:r+1:a’).
+dnl  2. If any interfaces have been added, removed, or changed since the last update, increment current, and set revision to 0.
+dnl  3. If any interfaces have been added since the last public release, then increment age.
+dnl  4. If any interfaces have been removed or changed since the last public release, then set age to 0.
+
+SECRET_MAJOR=0
+SECRET_MINOR=0
+SECRET_MICRO=0
+
+SECRET_CURRENT=0
+SECRET_REVISION=0
+SECRET_AGE=0
+
 AC_CONFIG_SRCDIR([library/secret-value.c])
 AC_CONFIG_HEADERS([config.h])
 
@@ -41,6 +58,7 @@ PKG_CHECK_MODULES(GLIB,
 LIBS="$LIBS $GLIB_LIBS"
 CFLAGS="$CFLAGS $GLIB_CFLAGS"
 
+GOBJECT_INTROSPECTION_CHECK([1.29])
 AC_PATH_PROG(GLIB_MKENUMS, glib-mkenums)
 
 # --------------------------------------------------------------------
@@ -120,13 +138,16 @@ if test "$enable_strict" = "yes"; then
 		-DGDK_DISABLE_DEPRECATED \
 		-DG_DISABLE_DEPRECATED \
 		-DGDK_PIXBUF_DISABLE_DEPRECATED"
+	INTROSPECTION_FLAGS="--warn-error"
 	TEST_MODE="thorough"
 else 
 	TEST_MODE="quick"
+	INTROSPECTION_FLAGS=""
 	$enable_strict="no"
 fi
 
 AC_MSG_RESULT($enable_strict)
+AC_SUBST(INTROSPECTION_FLAGS)
 AC_SUBST(TEST_MODE)
 
 AC_MSG_CHECKING([for debug mode])
@@ -192,6 +213,11 @@ AC_SUBST(GENHTML)
 # Results
 #
 
+SECRET_LT_RELEASE=$SECRET_CURRENT:$SECRET_REVISION:$SECRET_AGE
+AC_SUBST(SECRET_LT_RELEASE)
+AC_SUBST(SECRET_MAJOR)
+AC_SUBST(SECRET_MINOR)
+
 AC_CONFIG_FILES([
 	Makefile
 	build/Makefile
@@ -200,6 +226,7 @@ AC_CONFIG_FILES([
 	po/Makefile.in
 	po/Makefile
 	library/Makefile
+	library/libsecret.pc
 	library/tests/Makefile
 ])
 AC_OUTPUT

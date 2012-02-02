@@ -77,7 +77,7 @@ on_prompt_run_complete (GObject *source,
 }
 
 SecretPrompt *
-secret_prompt_instance (SecretService *service,
+_secret_prompt_instance (SecretService *service,
                          const gchar *prompt_path)
 {
 	GDBusProxy *proxy;
@@ -106,11 +106,33 @@ secret_prompt_instance (SecretService *service,
 	return prompt;
 }
 
+/**
+ * secret_prompt_run:
+ * @self: a prompt
+ * @window_id: XWindow id for parent window to be transient for
+ * @cancellable: optional cancellation object
+ * @error: location to place an error on failure
+ *
+ * Runs a prompt and performs the prompting. Returns %TRUE if the prompt
+ * was completed and not dismissed.
+ *
+ * If @window_id is non-zero then it is used as an XWindow id. The Secret
+ * Service can make its prompt transient for the window with this id. In some
+ * Secret Service implementations this is not possible, so the behavior
+ * depending on this should degrade gracefully.
+ *
+ * This runs the dialog in a recursive mainloop. When run from a user interface
+ * thread, this means the user interface will remain responsive. Care should be
+ * taken that appropriate user interface actions are disabled while running the
+ * prompt.
+ *
+ * Returns: %FALSE if the prompt was dismissed or an error occurred
+ */
 gboolean
 secret_prompt_run (SecretPrompt *self,
-                    gulong window_id,
-                    GCancellable *cancellable,
-                    GError **error)
+                   gulong window_id,
+                   GCancellable *cancellable,
+                   GError **error)
 {
 	GMainContext *context;
 	RunClosure *closure;
@@ -126,7 +148,7 @@ secret_prompt_run (SecretPrompt *self,
 	closure->loop = g_main_loop_new (context, FALSE);
 
 	secret_prompt_perform (self, window_id, cancellable,
-	                        on_prompt_run_complete, closure);
+	                       on_prompt_run_complete, closure);
 
 	g_main_loop_run (closure->loop);
 
@@ -139,11 +161,31 @@ secret_prompt_run (SecretPrompt *self,
 	return ret;
 }
 
+/**
+ * secret_prompt_perform_sync:
+ * @self: a prompt
+ * @window_id: XWindow id for parent window to be transient for
+ * @cancellable: optional cancellation object
+ * @error: location to place an error on failure
+ *
+ * Runs a prompt and performs the prompting. Returns %TRUE if the prompt
+ * was completed and not dismissed.
+ *
+ * If @window_id is non-zero then it is used as an XWindow id. The Secret
+ * Service can make its prompt transient for the window with this id. In some
+ * Secret Service implementations this is not possible, so the behavior
+ * depending on this should degrade gracefully.
+ *
+ * This method may block indefinitely and should not be used in user interface
+ * threads.
+ *
+ * Returns: %FALSE if the prompt was dismissed or an error occurred
+ */
 gboolean
 secret_prompt_perform_sync (SecretPrompt *self,
-                             gulong window_id,
-                             GCancellable *cancellable,
-                             GError **error)
+                            gulong window_id,
+                            GCancellable *cancellable,
+                            GError **error)
 {
 	GMainContext *context;
 	gboolean ret;
@@ -341,12 +383,30 @@ on_prompt_cancelled (GCancellable *cancellable,
 	g_object_unref (self);
 }
 
+/**
+ * secret_prompt_perform:
+ * @self: a prompt
+ * @window_id: XWindow id for parent window to be transient for
+ * @cancellable: optional cancellation object
+ * @callback: called when the operation completes
+ * @user_data: data to be passed to the callback
+ *
+ * Runs a prompt and performs the prompting. Returns %TRUE if the prompt
+ * was completed and not dismissed.
+ *
+ * If @window_id is non-zero then it is used as an XWindow id. The Secret
+ * Service can make its prompt transient for the window with this id. In some
+ * Secret Service implementations this is not possible, so the behavior
+ * depending on this should degrade gracefully.
+ *
+ * This method will return immediately and complete asynchronously.
+ */
 void
 secret_prompt_perform (SecretPrompt *self,
-                        gulong window_id,
-                        GCancellable *cancellable,
-                        GAsyncReadyCallback callback,
-                        gpointer user_data)
+                       gulong window_id,
+                       GCancellable *cancellable,
+                       GAsyncReadyCallback callback,
+                       gpointer user_data)
 {
 	GSimpleAsyncResult *res;
 	PerformClosure *closure;
@@ -415,10 +475,20 @@ secret_prompt_perform (SecretPrompt *self,
 	g_object_unref (res);
 }
 
+/**
+ * secret_prompt_perform_finish:
+ * @self: a prompt
+ * @result: the asynchronous result passed to the callback
+ * @error: location to place an error on failure
+ *
+ * Complete asynchronous operation to run a prompt and perform the prompting.
+ *
+ * Returns: %FALSE if the prompt was dismissed or an error occurred
+ */
 gboolean
 secret_prompt_perform_finish (SecretPrompt *self,
-                               GAsyncResult *result,
-                               GError **error)
+                              GAsyncResult *result,
+                              GError **error)
 {
 	PerformClosure *closure;
 	GSimpleAsyncResult *res;
@@ -437,9 +507,26 @@ secret_prompt_perform_finish (SecretPrompt *self,
 	return !closure->dismissed;
 }
 
+/**
+ * secret_prompt_get_result_value:
+ * @self: a prompt
+ * @expected_type: (allow-none): expected variant type of the result
+ *
+ * Get the result returned from a completed prompt.
+ *
+ * After performing a prompt in the Secret Service API, the prompt can
+ * return a result value. The type of value returned is dependent on
+ * the prompt.
+ *
+ * It is not normally necessary to call this function, as this is done
+ * automatically by other functions in this library.
+ *
+ * Returns: (transfer full): the result value which should be released with
+ *          g_variant_unref() when done, or %NULL if no result
+ */
 GVariant *
 secret_prompt_get_result_value (SecretPrompt *self,
-                                 const GVariantType *expected_type)
+                                const GVariantType *expected_type)
 {
 	GVariant *last_result;
 	gchar *string;

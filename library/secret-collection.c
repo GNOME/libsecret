@@ -21,14 +21,6 @@
 
 #include <glib/gi18n-lib.h>
 
-/**
- * SECTION:secret-collection
- */
-
-/**
- * SecretCollection:
- */
-
 enum {
 	PROP_0,
 	PROP_SERVICE,
@@ -101,9 +93,9 @@ on_set_label (GObject *source,
 
 static void
 secret_collection_set_property (GObject *obj,
-                                 guint prop_id,
-                                 const GValue *value,
-                                 GParamSpec *pspec)
+                                guint prop_id,
+                                const GValue *value,
+                                GParamSpec *pspec)
 {
 	SecretCollection *self = SECRET_COLLECTION (obj);
 
@@ -117,8 +109,8 @@ secret_collection_set_property (GObject *obj,
 		break;
 	case PROP_LABEL:
 		secret_collection_set_label (self, g_value_get_string (value),
-		                              self->pv->cancellable, on_set_label,
-		                              g_object_ref (self));
+		                             self->pv->cancellable, on_set_label,
+		                             g_object_ref (self));
 		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (obj, prop_id, pspec);
@@ -128,9 +120,9 @@ secret_collection_set_property (GObject *obj,
 
 static void
 secret_collection_get_property (GObject *obj,
-                                 guint prop_id,
-                                 GValue *value,
-                                 GParamSpec *pspec)
+                                guint prop_id,
+                                GValue *value,
+                                GParamSpec *pspec)
 {
 	SecretCollection *self = SECRET_COLLECTION (obj);
 
@@ -296,7 +288,7 @@ collection_load_items_async (SecretCollection *self,
 		/* No such collection yet create a new one */
 		if (item == NULL) {
 			secret_item_new (self->pv->service, path, cancellable,
-			                  on_load_item, g_object_ref (res));
+			                 on_load_item, g_object_ref (res));
 			closure->items_loading++;
 
 		} else {
@@ -349,7 +341,7 @@ collection_load_items_sync (SecretCollection *self,
 		/* No such collection yet create a new one */
 		if (item == NULL) {
 			item = secret_item_new_sync (self->pv->service, path,
-			                              cancellable, error);
+			                             cancellable, error);
 			if (item == NULL) {
 				ret = FALSE;
 				break;
@@ -390,8 +382,8 @@ handle_property_changed (SecretCollection *self,
 
 static void
 secret_collection_properties_changed (GDBusProxy *proxy,
-                                       GVariant *changed_properties,
-                                       const gchar* const *invalidated_properties)
+                                      GVariant *changed_properties,
+                                      const gchar* const *invalidated_properties)
 {
 	SecretCollection *self = SECRET_COLLECTION (proxy);
 	gchar *property_name;
@@ -449,8 +441,8 @@ secret_collection_class_init (SecretCollectionClass *klass)
 
 static gboolean
 secret_collection_initable_init (GInitable *initable,
-                                  GCancellable *cancellable,
-                                  GError **error)
+                                 GCancellable *cancellable,
+                                 GError **error)
 {
 	SecretCollection *self;
 	GDBusProxy *proxy;
@@ -523,7 +515,7 @@ on_init_base (GObject *source,
 	GError *error = NULL;
 
 	if (!secret_collection_async_initable_parent_iface->init_finish (G_ASYNC_INITABLE (self),
-	                                                                  result, &error)) {
+	                                                                 result, &error)) {
 		g_simple_async_result_take_error (res, error);
 		g_simple_async_result_complete (res);
 
@@ -543,10 +535,10 @@ on_init_base (GObject *source,
 
 static void
 secret_collection_async_initable_init_async (GAsyncInitable *initable,
-                                              int io_priority,
-                                              GCancellable *cancellable,
-                                              GAsyncReadyCallback callback,
-                                              gpointer user_data)
+                                             int io_priority,
+                                             GCancellable *cancellable,
+                                             GAsyncReadyCallback callback,
+                                             gpointer user_data)
 {
 	GSimpleAsyncResult *res;
 	InitClosure *closure;
@@ -558,17 +550,17 @@ secret_collection_async_initable_init_async (GAsyncInitable *initable,
 	g_simple_async_result_set_op_res_gpointer (res, closure, init_closure_free);
 
 	secret_collection_async_initable_parent_iface->init_async (initable, io_priority,
-	                                                            cancellable,
-	                                                            on_init_base,
-	                                                            g_object_ref (res));
+	                                                           cancellable,
+	                                                           on_init_base,
+	                                                           g_object_ref (res));
 
 	g_object_unref (res);
 }
 
 static gboolean
 secret_collection_async_initable_init_finish (GAsyncInitable *initable,
-                                               GAsyncResult *result,
-                                               GError **error)
+                                              GAsyncResult *result,
+                                              GError **error)
 {
 	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (initable),
 	                      secret_collection_async_initable_init_async), FALSE);
@@ -599,16 +591,13 @@ secret_collection_async_initable_iface (GAsyncInitableIface *iface)
  * Get a new collection proxy for a collection in the secret service.
  *
  * This method will return immediately and complete asynchronously.
- *
- * Returns: (transfer full): the new collection, which should be unreferenced
- *          with g_object_unref()
  */
 void
 secret_collection_new (SecretService *service,
-                        const gchar *collection_path,
-                        GCancellable *cancellable,
-                        GAsyncReadyCallback callback,
-                        gpointer user_data)
+                       const gchar *collection_path,
+                       GCancellable *cancellable,
+                       GAsyncReadyCallback callback,
+                       gpointer user_data)
 {
 	GDBusProxy *proxy;
 
@@ -641,10 +630,9 @@ secret_collection_new (SecretService *service,
  * Returns: (transfer full): the new collection, which should be unreferenced
  *          with g_object_unref()
  */
-
 SecretCollection *
 secret_collection_new_finish (GAsyncResult *result,
-                               GError **error)
+                              GError **error)
 {
 	GObject *source_object;
 	GObject *object;
@@ -672,16 +660,17 @@ secret_collection_new_finish (GAsyncResult *result,
  *
  * Get a new collection proxy for a collection in the secret service.
  *
- * This method may block indefinitely.
+ * This method may block indefinitely and should not be used in user interface
+ * threads.
  *
  * Returns: (transfer full): the new collection, which should be unreferenced
  *          with g_object_unref()
  */
 SecretCollection *
 secret_collection_new_sync (SecretService *service,
-                             const gchar *collection_path,
-                             GCancellable *cancellable,
-                             GError **error)
+                            const gchar *collection_path,
+                            GCancellable *cancellable,
+                            GError **error)
 {
 	GDBusProxy *proxy;
 
@@ -704,6 +693,16 @@ secret_collection_new_sync (SecretService *service,
 	                       NULL);
 }
 
+/**
+ * secret_collection_refresh:
+ * @self: the collection
+ *
+ * Refresh the properties on this collection. This fires off a request to
+ * refresh, and the properties will be updated later.
+ *
+ * Calling this method is not normally necessary, as the secret service
+ * will notify the client when properties change.
+ */
 void
 secret_collection_refresh (SecretCollection *self)
 {
@@ -759,7 +758,7 @@ on_create_path (GObject *source,
 	path = secret_service_create_collection_path_finish (service, result, &error);
 	if (error == NULL) {
 		secret_collection_new (service, path, closure->cancellable,
-		                        on_create_collection, g_object_ref (res));
+		                       on_create_collection, g_object_ref (res));
 	} else {
 		g_simple_async_result_take_error (res, error);
 		g_simple_async_result_complete (res);
@@ -801,11 +800,11 @@ collection_properties_new (const gchar *label)
  */
 void
 secret_collection_create (SecretService *service,
-                           const gchar *label,
-                           const gchar *alias,
-                           GCancellable *cancellable,
-                           GAsyncReadyCallback callback,
-                           gpointer user_data)
+                          const gchar *label,
+                          const gchar *alias,
+                          GCancellable *cancellable,
+                          GAsyncReadyCallback callback,
+                          gpointer user_data)
 {
 	GSimpleAsyncResult *res;
 	CreateClosure *closure;
@@ -824,7 +823,7 @@ secret_collection_create (SecretService *service,
 	properties = collection_properties_new (label);
 
 	secret_service_create_collection_path (service, properties, alias, cancellable,
-	                                        on_create_path, g_object_ref (res));
+	                                       on_create_path, g_object_ref (res));
 
 	g_hash_table_unref (properties);
 	g_object_unref (res);
@@ -842,7 +841,7 @@ secret_collection_create (SecretService *service,
  */
 SecretCollection *
 secret_collection_create_finish (GAsyncResult *result,
-                                  GError **error)
+                                 GError **error)
 {
 	GSimpleAsyncResult *res;
 	CreateClosure *closure;
@@ -873,19 +872,19 @@ secret_collection_create_finish (GAsyncResult *result,
  *
  * Create a new collection in the secret service.
  *
- * This method may block indefinitely. The secret service may prompt the
- * user. secret_service_prompt() will be used to handle any prompts that
- * are required.
+ * This method may block indefinitely and should not be used in user interface
+ * threads. The secret service may prompt the user. secret_service_prompt()
+ * will be used to handle any prompts that are required.
  *
  * Returns: (transfer full): the new collection, which should be unreferenced
  *          with g_object_unref()
  */
 SecretCollection *
 secret_collection_create_sync (SecretService *service,
-                                const gchar *label,
-                                const gchar *alias,
-                                GCancellable *cancellable,
-                                GError **error)
+                               const gchar *label,
+                               const gchar *alias,
+                               GCancellable *cancellable,
+                               GError **error)
 {
 	SecretCollection *collection;
 	GHashTable *properties;
@@ -899,7 +898,7 @@ secret_collection_create_sync (SecretService *service,
 	properties = collection_properties_new (label);
 
 	path = secret_service_create_collection_path_sync (service, properties, alias,
-	                                                    cancellable, error);
+	                                                   cancellable, error);
 
 	g_hash_table_unref (properties);
 
@@ -924,14 +923,12 @@ secret_collection_create_sync (SecretService *service,
  * This method returns immediately and completes asynchronously. The secret
  * service may prompt the user. secret_service_prompt() will be used to handle
  * any prompts that show up.
- *
- * Returns: whether the item was successfully deleted or not
  */
 void
 secret_collection_delete (SecretCollection *self,
-                           GCancellable *cancellable,
-                           GAsyncReadyCallback callback,
-                           gpointer user_data)
+                          GCancellable *cancellable,
+                          GAsyncReadyCallback callback,
+                          gpointer user_data)
 {
 	const gchar *object_path;
 
@@ -940,7 +937,7 @@ secret_collection_delete (SecretCollection *self,
 
 	object_path = g_dbus_proxy_get_object_path (G_DBUS_PROXY (self));
 	_secret_service_delete_path (self->pv->service, object_path, FALSE,
-	                              cancellable, callback, user_data);
+	                             cancellable, callback, user_data);
 }
 
 /**
@@ -951,12 +948,12 @@ secret_collection_delete (SecretCollection *self,
  *
  * Complete operation to delete this collection.
  *
- * Returns: whether the item was successfully deleted or not
+ * Returns: whether the collection was successfully deleted or not
  */
 gboolean
 secret_collection_delete_finish (SecretCollection *self,
-                                  GAsyncResult *result,
-                                  GError **error)
+                                 GAsyncResult *result,
+                                 GError **error)
 {
 	g_return_val_if_fail (SECRET_IS_COLLECTION (self), FALSE);
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
@@ -972,16 +969,16 @@ secret_collection_delete_finish (SecretCollection *self,
  *
  * Delete this collection.
  *
- * This method may block indefinitely. The secret service may prompt the
- * user. secret_service_prompt() will be used to handle any prompts that
- * show up.
+ * This method may block indefinitely and should not be used in user
+ * interface threads. The secret service may prompt the user.
+ * secret_service_prompt() will be used to handle any prompts that show up.
  *
- * Returns: whether the item was successfully deleted or not
+ * Returns: whether the collection was successfully deleted or not
  */
 gboolean
 secret_collection_delete_sync (SecretCollection *self,
-                                GCancellable *cancellable,
-                                GError **error)
+                               GCancellable *cancellable,
+                               GError **error)
 {
 	SecretSync *sync;
 	gboolean ret;
@@ -1033,7 +1030,7 @@ secret_collection_get_items (SecretCollection *self)
 
 SecretItem *
 _secret_collection_find_item_instance (SecretCollection *self,
-                                        const gchar *item_path)
+                                       const gchar *item_path)
 {
 	SecretItem *item;
 
@@ -1085,18 +1082,18 @@ secret_collection_get_label (SecretCollection *self)
  */
 void
 secret_collection_set_label (SecretCollection *self,
-                              const gchar *label,
-                              GCancellable *cancellable,
-                              GAsyncReadyCallback callback,
-                              gpointer user_data)
+                             const gchar *label,
+                             GCancellable *cancellable,
+                             GAsyncReadyCallback callback,
+                             gpointer user_data)
 {
 	g_return_if_fail (SECRET_IS_COLLECTION (self));
 	g_return_if_fail (label != NULL);
 
 	_secret_util_set_property (G_DBUS_PROXY (self), "Label",
-	                            g_variant_new_string (label),
-	                            secret_collection_set_label,
-	                            cancellable, callback, user_data);
+	                           g_variant_new_string (label),
+	                           secret_collection_set_label,
+	                           cancellable, callback, user_data);
 }
 
 /**
@@ -1111,14 +1108,14 @@ secret_collection_set_label (SecretCollection *self,
  */
 gboolean
 secret_collection_set_label_finish (SecretCollection *self,
-                                     GAsyncResult *result,
-                                     GError **error)
+                                    GAsyncResult *result,
+                                    GError **error)
 {
 	g_return_val_if_fail (SECRET_IS_COLLECTION (self), FALSE);
 
 	return _secret_util_set_property_finish (G_DBUS_PROXY (self),
-	                                          secret_collection_set_label,
-	                                          result, error);
+	                                         secret_collection_set_label,
+	                                         result, error);
 }
 
 /**
@@ -1137,16 +1134,16 @@ secret_collection_set_label_finish (SecretCollection *self,
  */
 gboolean
 secret_collection_set_label_sync (SecretCollection *self,
-                                   const gchar *label,
-                                   GCancellable *cancellable,
-                                   GError **error)
+                                  const gchar *label,
+                                  GCancellable *cancellable,
+                                  GError **error)
 {
 	g_return_val_if_fail (SECRET_IS_COLLECTION (self), FALSE);
 	g_return_val_if_fail (label != NULL, FALSE);
 
 	return _secret_util_set_property_sync (G_DBUS_PROXY (self), "Label",
-	                                        g_variant_new_string (label),
-	                                        cancellable, error);
+	                                       g_variant_new_string (label),
+	                                       cancellable, error);
 }
 
 /**

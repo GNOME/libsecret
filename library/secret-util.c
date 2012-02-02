@@ -143,7 +143,7 @@ _secret_util_attributes_for_variant (GVariant *variant)
 
 GHashTable *
 _secret_util_attributes_for_varargs (const SecretSchema *schema,
-                                      va_list args)
+                                     va_list args)
 {
 	const gchar *attribute_name;
 	SecretSchemaType type;
@@ -262,10 +262,10 @@ on_get_properties (GObject *source,
 
 void
 _secret_util_get_properties (GDBusProxy *proxy,
-                              gpointer result_tag,
-                              GCancellable *cancellable,
-                              GAsyncReadyCallback callback,
-                              gpointer user_data)
+                             gpointer result_tag,
+                             GCancellable *cancellable,
+                             GAsyncReadyCallback callback,
+                             gpointer user_data)
 {
 	GSimpleAsyncResult *res;
 
@@ -288,9 +288,9 @@ _secret_util_get_properties (GDBusProxy *proxy,
 
 gboolean
 _secret_util_get_properties_finish (GDBusProxy *proxy,
-                                     gpointer result_tag,
-                                     GAsyncResult *result,
-                                     GError **error)
+                                    gpointer result_tag,
+                                    GAsyncResult *result,
+                                    GError **error)
 {
 	GSimpleAsyncResult *res;
 
@@ -349,12 +349,12 @@ on_set_property (GObject *source,
 
 void
 _secret_util_set_property (GDBusProxy *proxy,
-                            const gchar *property,
-                            GVariant *value,
-                            gpointer result_tag,
-                            GCancellable *cancellable,
-                            GAsyncReadyCallback callback,
-                            gpointer user_data)
+                           const gchar *property,
+                           GVariant *value,
+                           gpointer result_tag,
+                           GCancellable *cancellable,
+                           GAsyncReadyCallback callback,
+                           gpointer user_data)
 {
 	GSimpleAsyncResult *res;
 	SetClosure *closure;
@@ -386,9 +386,9 @@ _secret_util_set_property (GDBusProxy *proxy,
 
 gboolean
 _secret_util_set_property_finish (GDBusProxy *proxy,
-                                   gpointer result_tag,
-                                   GAsyncResult *result,
-                                   GError **error)
+                                  gpointer result_tag,
+                                  GAsyncResult *result,
+                                  GError **error)
 {
 	GSimpleAsyncResult *res;
 	SetClosure *closure;
@@ -407,10 +407,10 @@ _secret_util_set_property_finish (GDBusProxy *proxy,
 
 gboolean
 _secret_util_set_property_sync (GDBusProxy *proxy,
-                                 const gchar *property,
-                                 GVariant *value,
-                                 GCancellable *cancellable,
-                                 GError **error)
+                                const gchar *property,
+                                GVariant *value,
+                                GCancellable *cancellable,
+                                GError **error)
 {
 	gboolean result = FALSE;
 	GVariant *retval;
@@ -480,8 +480,8 @@ _secret_sync_free (gpointer data)
 
 void
 _secret_sync_on_result (GObject *source,
-                         GAsyncResult *result,
-                         gpointer user_data)
+                        GAsyncResult *result,
+                        gpointer user_data)
 {
 	SecretSync *sync = user_data;
 	g_assert (sync->result == NULL);

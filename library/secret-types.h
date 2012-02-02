@@ -10,6 +10,10 @@
  * See the included COPYING file for more information.
  */
 
+#if !defined (__SECRET_INSIDE_HEADER__) && !defined (SECRET_COMPILATION)
+#error "Only <secret/secret.h> can be included directly."
+#endif
+
 #ifndef __SECRET_TYPES_H__
 #define __SECRET_TYPES_H__
 
