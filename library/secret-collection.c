@@ -429,6 +429,87 @@ secret_collection_properties_changed (GDBusProxy *proxy,
 }
 
 static void
+secret_collection_signal (GDBusProxy *proxy,
+                          const gchar *sender_name,
+                          const gchar *signal_name,
+                          GVariant *parameters)
+{
+	SecretCollection *self = SECRET_COLLECTION (proxy);
+	SecretItem *item;
+	const gchar *item_path;
+	GVariantBuilder builder;
+	gboolean found = FALSE;
+	GVariantIter iter;
+	GVariant *value;
+	GVariant *paths;
+	GVariant *path;
+
+	/*
+	 * Remember that these signals come from a time before PropertiesChanged.
+	 * We support them because they're in the spec, and ksecretservice uses them.
+	 */
+
+	paths = g_dbus_proxy_get_cached_property (G_DBUS_PROXY (self), "Items");
+
+	/* A new collection was added, add it to the Collections property */
+	if (g_str_equal (signal_name, SECRET_SIGNAL_ITEM_CREATED)) {
+		g_variant_get (parameters, "@o", &value);
+		g_variant_builder_init (&builder, G_VARIANT_TYPE ("ao"));
+		g_variant_iter_init (&iter, paths);
+		while ((path = g_variant_iter_next_value (&iter)) != NULL) {
+			if (g_variant_equal (path, value)) {
+				found = TRUE;
+				break;
+			}
+			g_variant_builder_add_value (&builder, path);
+			g_variant_unref (path);
+		}
+		if (!found) {
+			g_variant_builder_add_value (&builder, value);
+			handle_property_changed (self, "Items", g_variant_builder_end (&builder));
+		}
+		g_variant_builder_clear (&builder);
+		g_variant_unref (value);
+
+	/* A collection was deleted, remove it from the Collections property */
+	} else if (g_str_equal (signal_name, SECRET_SIGNAL_ITEM_DELETED)) {
+		g_variant_get (parameters, "@o", &value);
+		g_variant_builder_init (&builder, G_VARIANT_TYPE ("ao"));
+		g_variant_iter_init (&iter, paths);
+		while ((path = g_variant_iter_next_value (&iter)) != NULL) {
+			if (g_variant_equal (path, value))
+				found = TRUE;
+			else
+				g_variant_builder_add_value (&builder, path);
+			g_variant_unref (path);
+		}
+		if (found)
+			handle_property_changed (self, "Items", g_variant_builder_end (&builder));
+		g_variant_unref (value);
+
+	/* The collection changed, update it */
+	} else if (g_str_equal (signal_name, SECRET_SIGNAL_ITEM_CHANGED)) {
+		g_variant_get (parameters, "&o", &item_path);
+
+		g_mutex_lock (&self->pv->mutex);
+
+		if (self->pv->items)
+			item = g_hash_table_lookup (self->pv->items, item_path);
+		else
+			item = NULL;
+		if (item)
+			g_object_ref (item);
+
+		g_mutex_unlock (&self->pv->mutex);
+
+		secret_item_refresh (item);
+		g_object_unref (item);
+	}
+
+	g_variant_unref (paths);
+}
+
+static void
 secret_collection_class_init (SecretCollectionClass *klass)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
@@ -440,6 +521,7 @@ secret_collection_class_init (SecretCollectionClass *klass)
 	gobject_class->finalize = secret_collection_finalize;
 
 	proxy_class->g_properties_changed = secret_collection_properties_changed;
+	proxy_class->g_signal = secret_collection_signal;
 
 	/**
 	 * SecretCollection:service:

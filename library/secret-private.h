@@ -37,7 +37,13 @@ typedef struct _SecretSession SecretSession;
 #define              SECRET_PROMPT_INTERFACE                  "org.freedesktop.Secret.Prompt"
 #define              SECRET_SERVICE_INTERFACE                 "org.freedesktop.Secret.Service"
 
-#define              SECRET_PROMPT_SIGNAL_COMPLETED           "Completed"
+#define              SECRET_SIGNAL_COLLECTION_CREATED "CollectionCreated"
+#define              SECRET_SIGNAL_COLLECTION_CHANGED "CollectionChanged"
+#define              SECRET_SIGNAL_COLLECTION_DELETED "CollectionDeleted"
+#define              SECRET_SIGNAL_ITEM_CREATED       "ItemCreated"
+#define              SECRET_SIGNAL_ITEM_CHANGED       "ItemChanged"
+#define              SECRET_SIGNAL_ITEM_DELETED       "ItemDeleted"
+#define              SECRET_PROMPT_SIGNAL_COMPLETED   "Completed"
 
 #define              SECRET_PROPERTIES_INTERFACE              "org.freedesktop.DBus.Properties"
 
@@ -55,6 +61,9 @@ SecretPrompt *       _secret_prompt_instance                  (SecretService *se
 gchar *              _secret_util_parent_path                 (const gchar *path);
 
 gboolean             _secret_util_empty_path                  (const gchar *path);
+
+gint                 _secret_util_array_index_of              (GVariant *array,
+                                                               GVariant *value);
 
 GType                _secret_list_get_type                    (void) G_GNUC_CONST;
 
