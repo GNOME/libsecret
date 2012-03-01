@@ -110,7 +110,7 @@ gboolean    secret_password_removev_sync               (const SecretSchema *sche
                                                         GCancellable *cancellable,
                                                         GError **error);
 
-void        secret_password_free                       (gpointer password);
+void        secret_password_free                       (gchar *password);
 
 G_END_DECLS
 

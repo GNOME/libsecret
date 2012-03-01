@@ -945,13 +945,13 @@ secret_password_removev_sync (const SecretSchema *schema,
 
 /**
  * secret_password_free:
- * @password: (type utf8) (allow-none): password to free
+ * @password: (allow-none): password to free
  *
  * Free a password returned by secret_password_lookup_finish(),
  * secret_password_lookup_sync() or secret_password_lookupv_sync().
  */
 void
-secret_password_free (gpointer password)
+secret_password_free (gchar *password)
 {
 	if (password == NULL)
 		return;
