@@ -552,6 +552,9 @@ secret_password_lookup_nonpageable_finish (GAsyncResult *result,
 		return NULL;
 
 	closure = g_simple_async_result_get_op_res_gpointer (res);
+	if (closure->value == NULL)
+		return NULL;
+
 	content_type = secret_value_get_content_type (closure->value);
 	if (content_type && g_str_equal (content_type, "text/plain")) {
 		password = _secret_value_unref_to_password (closure->value);
@@ -589,6 +592,9 @@ secret_password_lookup_finish (GAsyncResult *result,
 		return NULL;
 
 	closure = g_simple_async_result_get_op_res_gpointer (res);
+	if (closure->value == NULL)
+		return NULL;
+
 	content_type = secret_value_get_content_type (closure->value);
 	if (content_type && g_str_equal (content_type, "text/plain")) {
 		string = _secret_value_unref_to_string (closure->value);
