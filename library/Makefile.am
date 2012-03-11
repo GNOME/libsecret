@@ -26,6 +26,7 @@ HEADER_FILES = \
 	secret-item.h \
 	secret-password.h \
 	secret-prompt.h \
+	secret-schema.h \
 	secret-service.h \
 	secret-types.h \
 	secret-value.h \
@@ -47,6 +48,7 @@ PUBLIC_FILES = \
 	secret-methods.c \
 	secret-password.h secret-password.c \
 	secret-prompt.h secret-prompt.c \
+	secret-schema.h secret-schema.c \
 	secret-service.h secret-service.c \
 	secret-types.h \
 	secret-value.h secret-value.c \

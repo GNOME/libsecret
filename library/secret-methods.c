@@ -44,7 +44,7 @@ on_search_items_complete (GObject *source,
 /**
  * secret_service_search_for_paths:
  * @self: the secret service
- * @attributes: search for items matching these attributes
+ * @attributes: (element-type utf8 utf8): search for items matching these attributes
  * @cancellable: optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to pass to the callback
@@ -133,7 +133,7 @@ secret_service_search_for_paths_finish (SecretService *self,
 /**
  * secret_service_search_for_paths_sync:
  * @self: the secret service
- * @attributes: search for items matching these attributes
+ * @attributes: (element-type utf8 utf8): search for items matching these attributes
  * @cancellable: optional cancellation object
  * @unlocked: (out) (transfer full) (array zero-terminated=1) (allow-none):
  *            location to place an array of dbus object paths for matching
@@ -292,7 +292,7 @@ on_search_paths (GObject *source,
 /**
  * secret_service_search:
  * @self: the secret service
- * @attributes: search for items matching these attributes
+ * @attributes: (element-type utf8 utf8): search for items matching these attributes
  * @cancellable: optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to pass to the callback
@@ -422,7 +422,7 @@ service_load_items_sync (SecretService *self,
 /**
  * secret_service_search_sync:
  * @self: the secret service
- * @attributes: search for items matching these attributes
+ * @attributes: (element-type utf8 utf8): search for items matching these attributes
  * @cancellable: optional cancellation object
  * @unlocked: (out) (transfer full) (element-type Secret.Item) (allow-none):
  *            location to place a list of matching items which were not locked.
@@ -1713,7 +1713,7 @@ secret_service_store (SecretService *self,
  * secret_service_storev:
  * @self: the secret service
  * @schema: the schema to for attributes
- * @attributes: the attribute keys and values
+ * @attributes: (element-type utf8 utf8): the attribute keys and values
  * @collection_path: the dbus path to the collection where to store the secret
  * @label: label for the secret
  * @value: the secret value
@@ -1752,6 +1752,10 @@ secret_service_storev (SecretService *self,
 	g_return_if_fail (value != NULL);
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
+	/* Warnings raised already */
+	if (!_secret_util_attributes_validate (schema, attributes))
+		return;
+
 	properties = g_hash_table_new_full (g_str_hash, g_str_equal, NULL,
 	                                    (GDestroyNotify)g_variant_unref);
 
@@ -1760,7 +1764,7 @@ secret_service_storev (SecretService *self,
 	                     SECRET_ITEM_INTERFACE ".Label",
 	                     g_variant_ref_sink (propval));
 
-	propval = g_variant_new_string (schema->schema_name);
+	propval = g_variant_new_string (schema->identifier);
 	g_hash_table_insert (properties,
 	                     SECRET_ITEM_INTERFACE ".Schema",
 	                     g_variant_ref_sink (propval));
@@ -1866,7 +1870,7 @@ secret_service_store_sync (SecretService *self,
  * secret_service_storev_sync:
  * @self: the secret service
  * @schema: the schema to for attributes
- * @attributes: the attribute keys and values
+ * @attributes: (element-type utf8 utf8): the attribute keys and values
  * @collection_path: the dbus path to the collection where to store the secret
  * @label: label for the secret
  * @value: the secret value
@@ -1906,6 +1910,10 @@ secret_service_storev_sync (SecretService *self,
 	g_return_val_if_fail (value != NULL, FALSE);
 	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), FALSE);
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+
+	/* Warnings raised already */
+	if (!_secret_util_attributes_validate (schema, attributes))
+		return FALSE;
 
 	sync = _secret_sync_new ();
 	g_main_context_push_thread_default (sync->context);
@@ -2073,7 +2081,7 @@ on_lookup_searched (GObject *source,
  * secret_service_lookupv:
  * @self: the secret service
  * @schema: the schema to for attributes
- * @attributes: the attribute keys and values
+ * @attributes: (element-type utf8 utf8): the attribute keys and values
  * @cancellable: optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to be passed to the callback
@@ -2099,6 +2107,10 @@ secret_service_lookupv (SecretService *self,
 	g_return_if_fail (schema != NULL);
 	g_return_if_fail (attributes != NULL);
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+	/* Warnings raised already */
+	if (!_secret_util_attributes_validate (schema, attributes))
+		return;
 
 	res = g_simple_async_result_new (G_OBJECT (self), callback, user_data,
 	                                 secret_service_lookupv);
@@ -2202,7 +2214,7 @@ secret_service_lookup_sync (SecretService *self,
  * secret_service_lookupv_sync:
  * @self: the secret service
  * @schema: the schema to for attributes
- * @attributes: the attribute keys and values
+ * @attributes: (element-type utf8 utf8): the attribute keys and values
  * @cancellable: optional cancellation object
  * @error: location to place an error on failure
  *
@@ -2230,6 +2242,10 @@ secret_service_lookupv_sync (SecretService *self,
 	g_return_val_if_fail (schema != NULL, NULL);
 	g_return_val_if_fail (attributes != NULL, NULL);
 	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
+
+	/* Warnings raised already */
+	if (!_secret_util_attributes_validate (schema, attributes))
+		return NULL;
 
 	sync = _secret_sync_new ();
 	g_main_context_push_thread_default (sync->context);
@@ -2570,7 +2586,7 @@ secret_service_remove (SecretService *self,
  * secret_service_removev:
  * @self: the secret service
  * @schema: the schema to for attributes
- * @attributes: the attribute keys and values
+ * @attributes: (element-type utf8 utf8): the attribute keys and values
  * @cancellable: optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to be passed to the callback
@@ -2598,6 +2614,10 @@ secret_service_removev (SecretService *self,
 	g_return_if_fail (schema != NULL);
 	g_return_if_fail (attributes != NULL);
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+	/* Warnings raised already */
+	if (!_secret_util_attributes_validate (schema, attributes))
+		return;
 
 	res = g_simple_async_result_new (G_OBJECT (self), callback, user_data,
 	                                 secret_service_remove);
@@ -2696,7 +2716,7 @@ secret_service_remove_sync (SecretService *self,
  * secret_service_removev_sync:
  * @self: the secret service
  * @schema: the schema to for attributes
- * @attributes: the attribute keys and values
+ * @attributes: (element-type utf8 utf8): the attribute keys and values
  * @cancellable: optional cancellation object
  * @error: location to place an error on failure
  *
@@ -2725,6 +2745,10 @@ secret_service_removev_sync (SecretService *self,
 	g_return_val_if_fail (schema != NULL, FALSE);
 	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), FALSE);
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+
+	/* Warnings raised already */
+	if (!_secret_util_attributes_validate (schema, attributes))
+		return FALSE;
 
 	sync = _secret_sync_new ();
 	g_main_context_push_thread_default (sync->context);

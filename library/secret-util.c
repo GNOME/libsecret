@@ -155,7 +155,7 @@ _secret_util_attributes_for_varargs (const SecretSchema *schema,
                                      va_list args)
 {
 	const gchar *attribute_name;
-	SecretSchemaType type;
+	SecretSchemaAttributeType type;
 	GHashTable *attributes;
 	const gchar *string;
 	gboolean type_found;
@@ -189,11 +189,11 @@ _secret_util_attributes_for_varargs (const SecretSchema *schema,
 		}
 
 		switch (type) {
-		case SECRET_ATTRIBUTE_BOOLEAN:
+		case SECRET_SCHEMA_ATTRIBUTE_BOOLEAN:
 			boolean = va_arg (args, gboolean);
 			value = g_strdup (boolean ? "true" : "false");
 			break;
-		case SECRET_ATTRIBUTE_STRING:
+		case SECRET_SCHEMA_ATTRIBUTE_STRING:
 			string = va_arg (args, gchar *);
 			if (!g_utf8_validate (string, -1, NULL)) {
 				g_warning ("The value for attribute '%s' was not a valid utf-8 string.", attribute_name);
@@ -202,7 +202,7 @@ _secret_util_attributes_for_varargs (const SecretSchema *schema,
 			}
 			value = g_strdup (string);
 			break;
-		case SECRET_ATTRIBUTE_INTEGER:
+		case SECRET_SCHEMA_ATTRIBUTE_INTEGER:
 			integer = va_arg (args, gint);
 			value = g_strdup_printf ("%d", integer);
 			break;
@@ -216,6 +216,100 @@ _secret_util_attributes_for_varargs (const SecretSchema *schema,
 	}
 
 	return attributes;
+}
+
+gboolean
+_secret_util_attributes_validate (const SecretSchema *schema,
+                                  GHashTable *attributes)
+{
+	const SecretSchemaAttribute *attribute;
+	GHashTableIter iter;
+	gchar *key;
+	gchar *value;
+	gchar *end;
+	gint i;
+
+	/* If no schema, then assume attributes are valid */
+	if (schema == NULL)
+		return TRUE;
+
+	g_hash_table_iter_init (&iter, attributes);
+	while (g_hash_table_iter_next (&iter, (gpointer *)&key, (gpointer *)&value)) {
+
+		/* Find the attribute */
+		attribute = NULL;
+		for (i = 0; i < G_N_ELEMENTS (schema->attributes); i++) {
+			if (schema->attributes[i].name == NULL)
+				break;
+			if (g_str_equal (schema->attributes[i].name, key)) {
+				attribute = &schema->attributes[i];
+				break;
+			}
+		}
+
+		if (attribute == NULL) {
+			if (!(schema->flags & SECRET_SCHEMA_ALLOW_UNDEFINED)) {
+				g_warning ("invalid %s attribute in for %s schema",
+				           key, schema->identifier);
+				return FALSE;
+			}
+
+			/* Undefined attribute allowed */
+			continue;
+		}
+
+		switch (attribute->type) {
+		case SECRET_SCHEMA_ATTRIBUTE_BOOLEAN:
+			if (!g_str_equal (value, "true") && !g_str_equal (value, "false")) {
+				g_warning ("invalid %s boolean value for %s schema: %s",
+				           key, schema->identifier, value);
+				return FALSE;
+			}
+			break;
+		case SECRET_SCHEMA_ATTRIBUTE_INTEGER:
+			end = NULL;
+			g_ascii_strtoll (value, &end, 10);
+			if (!end || end[0] != '\0') {
+				g_warning ("invalid %s integer value for %s schema: %s",
+				           key, schema->identifier, value);
+				return FALSE;
+			}
+			break;
+		case SECRET_SCHEMA_ATTRIBUTE_STRING:
+			if (!g_utf8_validate (value, -1, NULL)) {
+				g_warning ("invalid %s string value for %s schema: %s",
+				           key, schema->identifier, value);
+				return FALSE;
+			}
+			break;
+		default:
+			g_warning ("invalid %s value type in %s schema",
+			           key, schema->identifier);
+			return FALSE;
+		}
+	}
+
+	return TRUE;
+}
+
+GHashTable *
+_secret_util_attributes_copy (GHashTable *attributes)
+{
+	GHashTableIter iter;
+	GHashTable *copy;
+	gchar *key;
+	gchar *value;
+
+	if (attributes == NULL)
+		return NULL;
+
+	copy = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
+
+	g_hash_table_iter_init (&iter, attributes);
+	while (g_hash_table_iter_next (&iter, (gpointer *)&key, (gpointer *)&value))
+		g_hash_table_insert (copy, g_strdup (key), g_strdup (value));
+
+	return copy;
 }
 
 static void

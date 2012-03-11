@@ -676,7 +676,7 @@ item_properties_new (const gchar *schema_name,
  * @collection: a secret collection to create this item in
  * @schema_name: schema name for the new item
  * @label: label for the new item
- * @attributes: attributes for the new item
+ * @attributes: (element-type utf8 utf8): attributes for the new item
  * @value: secret value for the new item
  * @replace: whether to replace an existing item with the same attributes
  * @cancellable: optional cancellation object
@@ -774,7 +774,7 @@ secret_item_create_finish (GAsyncResult *result,
  * @collection: a secret collection to create this item in
  * @schema_name: schema name for the new item
  * @label: label for the new item
- * @attributes: attributes for the new item
+ * @attributes: (element-type utf8 utf8): attributes for the new item
  * @value: secret value for the new item
  * @replace: whether to replace an existing item with the same attributes
  * @cancellable: optional cancellation object
@@ -1369,7 +1369,7 @@ secret_item_get_attributes (SecretItem *self)
 /**
  * secret_item_set_attributes:
  * @self: an item
- * @attributes: a new set of attributes
+ * @attributes: (element-type utf8 utf8): a new set of attributes
  * @cancellable: optional cancellation object
  * @callback: called when the asynchronous operation completes
  * @user_data: data to pass to the callback
@@ -1423,7 +1423,7 @@ secret_item_set_attributes_finish (SecretItem *self,
 /**
  * secret_item_set_attributes_sync:
  * @self: an item
- * @attributes: a new set of attributes
+ * @attributes: (element-type utf8 utf8): a new set of attributes
  * @cancellable: optional cancellation object
  * @error: location to place error on failure
  *

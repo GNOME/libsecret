@@ -21,6 +21,7 @@
 #include <gio/gio.h>
 
 #include "secret-prompt.h"
+#include "secret-schema.h"
 #include "secret-types.h"
 #include "secret-value.h"
 

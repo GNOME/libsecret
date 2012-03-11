@@ -26,6 +26,7 @@
 #include <secret/secret-item.h>
 #include <secret/secret-password.h>
 #include <secret/secret-prompt.h>
+#include <secret/secret-schema.h>
 #include <secret/secret-service.h>
 #include <secret/secret-value.h>
 

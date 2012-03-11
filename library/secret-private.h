@@ -65,6 +65,11 @@ GHashTable *        _secret_util_attributes_for_variant       (GVariant *variant
 GHashTable *        _secret_util_attributes_for_varargs       (const SecretSchema *schema,
                                                                va_list va);
 
+GHashTable *        _secret_util_attributes_copy              (GHashTable *attributes);
+
+gboolean            _secret_util_attributes_validate          (const SecretSchema *schema,
+                                                               GHashTable *attributes);
+
 GVariant *          _secret_util_variant_for_properties       (GHashTable *properties);
 
 void                _secret_util_get_properties               (GDBusProxy *proxy,
@@ -120,6 +125,8 @@ SecretItem *        _secret_collection_find_item_instance     (SecretCollection 
                                                                const gchar *item_path);
 
 gchar *             _secret_value_unref_to_password           (SecretValue *value);
+
+gchar *             _secret_value_unref_to_string             (SecretValue *value);
 
 void                _secret_session_free                      (gpointer data);
 

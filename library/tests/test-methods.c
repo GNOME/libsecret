@@ -29,19 +29,21 @@
 
 static const SecretSchema DELETE_SCHEMA = {
 	"org.mock.schema.Delete",
+	SECRET_SCHEMA_NONE,
 	{
-		{ "number", SECRET_ATTRIBUTE_INTEGER },
-		{ "string", SECRET_ATTRIBUTE_STRING },
-		{ "even", SECRET_ATTRIBUTE_BOOLEAN },
+		{ "number", SECRET_SCHEMA_ATTRIBUTE_INTEGER },
+		{ "string", SECRET_SCHEMA_ATTRIBUTE_STRING },
+		{ "even", SECRET_SCHEMA_ATTRIBUTE_BOOLEAN },
 	}
 };
 
 static const SecretSchema STORE_SCHEMA = {
 	"org.mock.type.Store",
+	SECRET_SCHEMA_NONE,
 	{
-		{ "number", SECRET_ATTRIBUTE_INTEGER },
-		{ "string", SECRET_ATTRIBUTE_STRING },
-		{ "even", SECRET_ATTRIBUTE_BOOLEAN },
+		{ "number", SECRET_SCHEMA_ATTRIBUTE_INTEGER },
+		{ "string", SECRET_SCHEMA_ATTRIBUTE_STRING },
+		{ "even", SECRET_SCHEMA_ATTRIBUTE_BOOLEAN },
 	}
 };
 

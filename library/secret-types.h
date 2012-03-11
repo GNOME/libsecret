@@ -29,32 +29,6 @@ typedef enum {
 	SECRET_ERROR_PROTOCOL = 1,
 } SecretError;
 
-typedef enum {
-	SECRET_ATTRIBUTE_BOOLEAN,
-	SECRET_ATTRIBUTE_STRING,
-	SECRET_ATTRIBUTE_INTEGER
-} SecretSchemaType;
-
-typedef struct {
-	const gchar* name;
-	SecretSchemaType type;
-} SecretSchemaAttribute;
-
-typedef struct {
-	const gchar *schema_name;
-	SecretSchemaAttribute attributes[32];
-
-	/* <private> */
-	gpointer reserved1;
-	gpointer reserved2;
-	gpointer reserved3;
-	gpointer reserved4;
-	gpointer reserved5;
-	gpointer reserved6;
-	gpointer reserved7;
-	gpointer reserved8;
-} SecretSchema;
-
 typedef struct _SecretCollection  SecretCollection;
 typedef struct _SecretItem        SecretItem;
 typedef struct _SecretPrompt      SecretPrompt;

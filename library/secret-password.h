@@ -21,6 +21,7 @@
 
 G_BEGIN_DECLS
 
+#include "secret-schema.h"
 #include "secret-types.h"
 
 void        secret_password_store                      (const SecretSchema *schema,
@@ -75,12 +76,25 @@ void        secret_password_lookupv                    (const SecretSchema *sche
 gchar *     secret_password_lookup_finish              (GAsyncResult *result,
                                                         GError **error);
 
+gchar *     secret_password_lookup_nonpageable_finish  (GAsyncResult *result,
+                                                        GError **error);
+
 gchar *     secret_password_lookup_sync                (const SecretSchema *schema,
                                                         GCancellable *cancellable,
                                                         GError **error,
                                                         ...) G_GNUC_NULL_TERMINATED;
 
+gchar *     secret_password_lookup_nonpageable_sync    (const SecretSchema *schema,
+                                                        GCancellable *cancellable,
+                                                        GError **error,
+                                                        ...);
+
 gchar *     secret_password_lookupv_sync               (const SecretSchema *schema,
+                                                        GHashTable *attributes,
+                                                        GCancellable *cancellable,
+                                                        GError **error);
+
+gchar *     secret_password_lookupv_nonpageable_sync   (const SecretSchema *schema,
                                                         GHashTable *attributes,
                                                         GCancellable *cancellable,
                                                         GError **error);

@@ -28,10 +28,11 @@
 
 static const SecretSchema PASSWORD_SCHEMA = {
 	"org.mock.schema.Password",
+	SECRET_SCHEMA_NONE,
 	{
-		{ "number", SECRET_ATTRIBUTE_INTEGER },
-		{ "string", SECRET_ATTRIBUTE_STRING },
-		{ "even", SECRET_ATTRIBUTE_BOOLEAN },
+		{ "number", SECRET_SCHEMA_ATTRIBUTE_INTEGER },
+		{ "string", SECRET_SCHEMA_ATTRIBUTE_STRING },
+		{ "even", SECRET_SCHEMA_ATTRIBUTE_BOOLEAN },
 	}
 };
 
@@ -76,11 +77,11 @@ test_lookup_sync (Test *test,
 	gchar *password;
 	GError *error = NULL;
 
-	password = secret_password_lookup_sync (&PASSWORD_SCHEMA, NULL, &error,
-	                                        "even", FALSE,
-	                                        "string", "one",
-	                                        "number", 1,
-	                                        NULL);
+	password = secret_password_lookup_nonpageable_sync (&PASSWORD_SCHEMA, NULL, &error,
+	                                                    "even", FALSE,
+	                                                    "string", "one",
+	                                                    "number", 1,
+	                                                    NULL);
 
 	g_assert_no_error (error);
 	g_assert_cmpstr (password, ==, "111");
@@ -105,7 +106,7 @@ test_lookup_async (Test *test,
 
 	egg_test_wait ();
 
-	password = secret_password_lookup_finish (result, &error);
+	password = secret_password_lookup_nonpageable_finish (result, &error);
 	g_assert_no_error (error);
 	g_object_unref (result);
 
@@ -132,9 +133,9 @@ test_store_sync (Test *test,
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
 
-	password = secret_password_lookup_sync (&PASSWORD_SCHEMA, NULL, &error,
-	                                        "string", "twelve",
-	                                        NULL);
+	password = secret_password_lookup_nonpageable_sync (&PASSWORD_SCHEMA, NULL, &error,
+	                                                    "string", "twelve",
+	                                                    NULL);
 
 	g_assert_no_error (error);
 	g_assert_cmpstr (password, ==, "the password");
@@ -167,9 +168,9 @@ test_store_async (Test *test,
 	g_assert (ret == TRUE);
 	g_object_unref (result);
 
-	password = secret_password_lookup_sync (&PASSWORD_SCHEMA, NULL, &error,
-	                                        "string", "twelve",
-	                                        NULL);
+	password = secret_password_lookup_nonpageable_sync (&PASSWORD_SCHEMA, NULL, &error,
+	                                                    "string", "twelve",
+	                                                    NULL);
 
 	g_assert_no_error (error);
 	g_assert_cmpstr (password, ==, "the password");

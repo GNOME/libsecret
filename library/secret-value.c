@@ -248,3 +248,35 @@ _secret_value_unref_to_password (SecretValue *value)
 
 	return result;
 }
+
+gchar *
+_secret_value_unref_to_string (SecretValue *value)
+{
+	SecretValue *val = value;
+	gchar *result;
+
+	g_return_val_if_fail (value != NULL, NULL);
+
+	if (val->content_type && !g_str_equal (val->content_type, "text/plain")) {
+		secret_value_unref (value);
+		return NULL;
+	}
+
+	if (g_atomic_int_dec_and_test (&val->refs)) {
+		if (val->destroy == g_free) {
+			result = val->secret;
+
+		} else {
+			result = g_strdup (val->secret);
+			if (val->destroy)
+				(val->destroy) (val->secret);
+		}
+		g_free (val->content_type);
+		g_slice_free (SecretValue, val);
+
+	} else {
+		result = g_strdup (val->secret);
+	}
+
+	return result;
+}
