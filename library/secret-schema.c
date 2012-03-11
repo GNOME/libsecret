@@ -242,6 +242,15 @@ secret_schema_ref (SecretSchema *schema)
 	return result;
 }
 
+const SecretSchema *
+_secret_schema_ref_if_nonstatic (const SecretSchema *schema)
+{
+	if (schema && g_atomic_int_get (&schema->reserved) > 0)
+		secret_schema_ref ((SecretSchema *)schema);
+
+	return schema;
+}
+
 /**
  * secret_schema_unref:
  * @schema: the schema to reference
@@ -271,6 +280,13 @@ secret_schema_unref (SecretSchema *schema)
 			g_free ((gpointer)schema->attributes[i].name);
 		g_slice_free (SecretSchema, schema);
 	}
+}
+
+void
+_secret_schema_unref_if_nonstatic (const SecretSchema *schema)
+{
+	if (schema && g_atomic_int_get (&schema->reserved) > 0)
+		secret_schema_unref ((SecretSchema *)schema);
 }
 
 G_DEFINE_BOXED_TYPE (SecretSchema, secret_schema, secret_schema_ref, secret_schema_unref);

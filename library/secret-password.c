@@ -51,6 +51,7 @@ static void
 store_closure_free (gpointer data)
 {
 	StoreClosure *closure = data;
+	_secret_schema_unref_if_nonstatic (closure->schema);
 	g_hash_table_unref (closure->attributes);
 	g_free (closure->collection_path);
 	g_free (closure->label);
@@ -207,7 +208,7 @@ secret_password_storev (const SecretSchema *schema,
 	res = g_simple_async_result_new (NULL, callback, user_data,
 	                                 secret_password_storev);
 	closure = g_slice_new0 (StoreClosure);
-	closure->schema = schema;
+	closure->schema = _secret_schema_ref_if_nonstatic (schema);
 	closure->collection_path = g_strdup (collection_path);
 	closure->label = g_strdup (label);
 	closure->value = secret_value_new (password, -1, "text/plain");
@@ -380,6 +381,7 @@ static void
 lookup_closure_free (gpointer data)
 {
 	LookupClosure *closure = data;
+	_secret_schema_unref_if_nonstatic (closure->schema);
 	g_clear_object (&closure->cancellable);
 	g_hash_table_unref (closure->attributes);
 	if (closure->value)
@@ -511,7 +513,7 @@ secret_password_lookupv (const SecretSchema *schema,
 	res = g_simple_async_result_new (NULL, callback, user_data,
 	                                 secret_password_lookupv);
 	closure = g_slice_new0 (LookupClosure);
-	closure->schema = schema;
+	closure->schema = _secret_schema_ref_if_nonstatic (schema);
 	closure->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
 	closure->attributes = _secret_util_attributes_copy (attributes);
 	g_simple_async_result_set_op_res_gpointer (res, closure, lookup_closure_free);
@@ -811,6 +813,7 @@ delete_closure_free (gpointer data)
 	DeleteClosure *closure = data;
 	g_clear_object (&closure->cancellable);
 	g_hash_table_unref (closure->attributes);
+	_secret_schema_unref_if_nonstatic (closure->schema);
 	g_slice_free (DeleteClosure, closure);
 }
 
@@ -937,7 +940,7 @@ secret_password_removev (const SecretSchema *schema,
 	res = g_simple_async_result_new (NULL, callback, user_data,
 	                                 secret_password_removev);
 	closure = g_slice_new0 (DeleteClosure);
-	closure->schema = schema;
+	closure->schema = _secret_schema_ref_if_nonstatic (schema);
 	closure->attributes = _secret_util_attributes_copy (attributes);
 	closure->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
 	g_simple_async_result_set_op_res_gpointer (res, closure, delete_closure_free);
