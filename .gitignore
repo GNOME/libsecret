@@ -65,4 +65,6 @@ stamp*
 /library/secret-enum-types.[ch]
 /library/tests/test-*
 !/library/tests/test-*.c
+!/library/tests/test-*.js
+!/library/tests/test-*.py
 

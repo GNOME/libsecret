@@ -1659,7 +1659,7 @@ secret_service_unlock_sync (SecretService *self,
  * secret_service_store:
  * @self: the secret service
  * @schema: the schema to for attributes
- * @collection_path: the dbus path to the collection where to store the secret
+ * @collection_path: (allow-none): the dbus path to the collection where to store the secret
  * @label: label for the secret
  * @value: the secret value
  * @cancellable: optional cancellation object
@@ -1676,6 +1676,10 @@ secret_service_unlock_sync (SecretService *self,
  *
  * If the attributes match a secret item already stored in the collection, then
  * the item will be updated with these new values.
+ *
+ * If @collection_path is not specified, then the default collection will be
+ * used. Use #SECRET_COLLECTION_SESSION to store the password in the session
+ * collection, which doesn't get stored across login sessions.
  *
  * This method will return immediately and complete asynchronously.
  */
@@ -1695,7 +1699,6 @@ secret_service_store (SecretService *self,
 
 	g_return_if_fail (SECRET_IS_SERVICE (self));
 	g_return_if_fail (schema != NULL);
-	g_return_if_fail (collection_path != NULL);
 	g_return_if_fail (label != NULL);
 	g_return_if_fail (value != NULL);
 
@@ -1704,7 +1707,7 @@ secret_service_store (SecretService *self,
 	va_end (va);
 
 	secret_service_storev (self, schema, attributes, collection_path,
-	                        label, value, cancellable, callback, user_data);
+	                       label, value, cancellable, callback, user_data);
 
 	g_hash_table_unref (attributes);
 }
@@ -1714,7 +1717,7 @@ secret_service_store (SecretService *self,
  * @self: the secret service
  * @schema: the schema to for attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
- * @collection_path: the dbus path to the collection where to store the secret
+ * @collection_path: (allow-none): the dbus path to the collection where to store the secret
  * @label: label for the secret
  * @value: the secret value
  * @cancellable: optional cancellation object
@@ -1727,6 +1730,10 @@ secret_service_store (SecretService *self,
  *
  * If the attributes match a secret item already stored in the collection, then
  * the item will be updated with these new values.
+ *
+ * If @collection_path is not specified, then the default collection will be
+ * used. Use #SECRET_COLLECTION_SESSION to store the password in the session
+ * collection, which doesn't get stored across login sessions.
  *
  * This method will return immediately and complete asynchronously.
  */
@@ -1747,7 +1754,6 @@ secret_service_storev (SecretService *self,
 	g_return_if_fail (SECRET_IS_SERVICE (self));
 	g_return_if_fail (schema != NULL);
 	g_return_if_fail (attributes != NULL);
-	g_return_if_fail (collection_path != NULL);
 	g_return_if_fail (label != NULL);
 	g_return_if_fail (value != NULL);
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
@@ -1775,7 +1781,7 @@ secret_service_storev (SecretService *self,
 	                     g_variant_ref_sink (propval));
 
 	secret_service_create_item_path (self, collection_path, properties, value,
-	                                  TRUE, cancellable, callback, user_data);
+	                                 TRUE, cancellable, callback, user_data);
 
 	g_hash_table_unref (properties);
 }
@@ -1810,7 +1816,7 @@ secret_service_store_finish (SecretService *self,
  * secret_service_store_sync:
  * @self: the secret service
  * @schema: the schema to for attributes
- * @collection_path: the dbus path to the collection where to store the secret
+ * @collection_path: (allow-none): the dbus path to the collection where to store the secret
  * @label: label for the secret
  * @value: the secret value
  * @cancellable: optional cancellation object
@@ -1826,6 +1832,10 @@ secret_service_store_finish (SecretService *self,
  *
  * If the attributes match a secret item already stored in the collection, then
  * the item will be updated with these new values.
+ *
+ * If @collection_path is %NULL, then the default collection will be
+ * used. Use #SECRET_COLLECTION_SESSION to store the password in the session
+ * collection, which doesn't get stored across login sessions.
  *
  * This method may block indefinitely and should not be used in user interface
  * threads.
@@ -1848,7 +1858,6 @@ secret_service_store_sync (SecretService *self,
 
 	g_return_val_if_fail (SECRET_IS_SERVICE (self), FALSE);
 	g_return_val_if_fail (schema != NULL, FALSE);
-	g_return_val_if_fail (collection_path != NULL, FALSE);
 	g_return_val_if_fail (label != NULL, FALSE);
 	g_return_val_if_fail (value != NULL, FALSE);
 	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), FALSE);
@@ -1859,7 +1868,7 @@ secret_service_store_sync (SecretService *self,
 	va_end (va);
 
 	ret = secret_service_storev_sync (self, schema, attributes, collection_path,
-	                                   label, value, cancellable, error);
+	                                  label, value, cancellable, error);
 
 	g_hash_table_unref (attributes);
 
@@ -1871,7 +1880,7 @@ secret_service_store_sync (SecretService *self,
  * @self: the secret service
  * @schema: the schema to for attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
- * @collection_path: the dbus path to the collection where to store the secret
+ * @collection_path: (allow-none): the dbus path to the collection where to store the secret
  * @label: label for the secret
  * @value: the secret value
  * @cancellable: optional cancellation object
@@ -1883,6 +1892,10 @@ secret_service_store_sync (SecretService *self,
  *
  * If the attributes match a secret item already stored in the collection, then
  * the item will be updated with these new values.
+ *
+ * If @collection_path is %NULL, then the default collection will be
+ * used. Use #SECRET_COLLECTION_SESSION to store the password in the session
+ * collection, which doesn't get stored across login sessions.
  *
  * This method may block indefinitely and should not be used in user interface
  * threads.
@@ -1905,7 +1918,6 @@ secret_service_storev_sync (SecretService *self,
 	g_return_val_if_fail (SECRET_IS_SERVICE (self), FALSE);
 	g_return_val_if_fail (schema != NULL, FALSE);
 	g_return_val_if_fail (attributes != NULL, FALSE);
-	g_return_val_if_fail (collection_path != NULL, FALSE);
 	g_return_val_if_fail (label != NULL, FALSE);
 	g_return_val_if_fail (value != NULL, FALSE);
 	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), FALSE);
@@ -1919,7 +1931,7 @@ secret_service_storev_sync (SecretService *self,
 	g_main_context_push_thread_default (sync->context);
 
 	secret_service_storev (self, schema, attributes, collection_path,
-	                        label, value, cancellable, _secret_sync_on_result, sync);
+	                       label, value, cancellable, _secret_sync_on_result, sync);
 
 	g_main_loop_run (sync->loop);
 
@@ -3137,7 +3149,7 @@ on_create_item_session (GObject *source,
 /**
  * secret_service_create_item_path:
  * @self: a secret service object
- * @collection_path: dbus path to collection in which to create item
+ * @collection_path: (allow-none): dbus path to collection in which to create item
  * @properties: hash table of properties for the new collection
  * @value: the secret value to store in the item
  * @replace: whether to replace an item with the matching attributes
@@ -3158,6 +3170,10 @@ on_create_item_session (GObject *source,
  * hash table should be interface.property strings like
  * <literal>org.freedesktop.Secret.Item.Label</literal>. The values
  * in the hash table should be #GVariant values of the properties.
+ *
+ * If @collection_path is %NULL, then the default collection will be
+ * used. Use #SECRET_COLLECTION_SESSION to store the password in the session
+ * collection, which doesn't get stored across login sessions.
  *
  * This method will return immediately and complete asynchronously. The secret
  * service may prompt the user. secret_service_prompt() will be used to handle
@@ -3180,6 +3196,9 @@ secret_service_create_item_path (SecretService *self,
 	g_return_if_fail (properties != NULL);
 	g_return_if_fail (value != NULL);
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+	if (collection_path == NULL)
+		collection_path = SECRET_COLLECTION_DEFAULT;
 
 	res = g_simple_async_result_new (G_OBJECT (self), callback, user_data,
 	                                 secret_service_create_item_path);
@@ -3238,7 +3257,7 @@ secret_service_create_item_path_finish (SecretService *self,
 /**
  * secret_service_create_item_path_sync:
  * @self: a secret service object
- * @collection_path: dbus path to collection in which to create item
+ * @collection_path: (allow-none): dbus path to collection in which to create item
  * @properties: hash table of properties for the new collection
  * @value: the secret value to store in the item
  * @replace: whether to replace an item with the matching attributes

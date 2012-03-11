@@ -56,12 +56,22 @@ EXTRA_DIST = \
 	mock-service-prompt.py \
 	$(NULL)
 
-test: $(TEST_PROGS)
-	gtester --verbose -m $(TEST_MODE) --g-fatal-warnings $(TEST_PROGS)
+JS_TESTS = \
+	test-lookup-password.js \
+	test-remove-password.js \
+	test-store-password.js
 
-test-javascript:
-	LD_LIBRARY_PATH=$(builddir)/.libs GI_TYPELIB_PATH=$(builddir)/..:$(builddir) \
-		gjs test-lookup-password.js 
+JS_ENV = \
+	LD_LIBRARY_PATH=$(builddir)/.libs \
+	GI_TYPELIB_PATH=$(builddir)/..:$(builddir)
+
+test: test-c test-js
+
+test-c: $(TEST_PROGS)
+	@gtester --verbose -m $(TEST_MODE) --g-fatal-warnings $(TEST_PROGS)
+
+test-js:
+	@for js in $(JS_TESTS); do echo "TEST: $$js"; $(JS_ENV) gjs $$js; done
 
 # ------------------------------------------------------------------
 # INTROSPECTION

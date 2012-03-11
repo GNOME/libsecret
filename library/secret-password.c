@@ -110,7 +110,7 @@ on_store_connected (GObject *source,
 /**
  * secret_password_store:
  * @schema: the schema for attributes
- * @collection_path: the dbus path to the collection where to store the secret
+ * @collection_path: (allow-none): the dbus path to the collection where to store the secret
  * @label: label for the secret
  * @password: the null-terminated password to store
  * @cancellable: optional cancellation object
@@ -128,6 +128,10 @@ on_store_connected (GObject *source,
  * If the attributes match a secret item already stored in the collection, then
  * the item will be updated with these new values.
  *
+ * If @collection_path is %NULL, then the default collection will be
+ * used. Use #SECRET_COLLECTION_SESSION to store the password in the session
+ * collection, which doesn't get stored across login sessions.
+ *
  * This method will return immediately and complete asynchronously.
  */
 void
@@ -144,7 +148,6 @@ secret_password_store (const SecretSchema *schema,
 	va_list va;
 
 	g_return_if_fail (schema != NULL);
-	g_return_if_fail (collection_path != NULL);
 	g_return_if_fail (label != NULL);
 	g_return_if_fail (password != NULL);
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
@@ -163,7 +166,7 @@ secret_password_store (const SecretSchema *schema,
  * secret_password_storev:
  * @schema: the schema for attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
- * @collection_path: the dbus path to the collection where to store the secret
+ * @collection_path: (allow-none): the dbus path to the collection where to store the secret
  * @label: label for the secret
  * @password: the null-terminated password to store
  * @cancellable: optional cancellation object
@@ -176,6 +179,10 @@ secret_password_store (const SecretSchema *schema,
  *
  * If the attributes match a secret item already stored in the collection, then
  * the item will be updated with these new values.
+ *
+ * If @collection_path is %NULL, then the default collection will be
+ * used. Use #SECRET_COLLECTION_SESSION to store the password in the session
+ * collection, which doesn't get stored across login sessions.
  *
  * This method will return immediately and complete asynchronously.
  *
@@ -195,7 +202,6 @@ secret_password_storev (const SecretSchema *schema,
 	StoreClosure *closure;
 
 	g_return_if_fail (schema != NULL);
-	g_return_if_fail (collection_path != NULL);
 	g_return_if_fail (label != NULL);
 	g_return_if_fail (password != NULL);
 	g_return_if_fail (attributes != NULL);
@@ -254,7 +260,7 @@ secret_password_store_finish (GAsyncResult *result,
 /**
  * secret_password_store_sync:
  * @schema: the schema for attributes
- * @collection_path: the dbus path to the collection where to store the secret
+ * @collection_path: (allow-none): the dbus path to the collection where to store the secret
  * @label: label for the secret
  * @password: the null-terminated password to store
  * @cancellable: optional cancellation object
@@ -270,6 +276,10 @@ secret_password_store_finish (GAsyncResult *result,
  *
  * If the attributes match a secret item already stored in the collection, then
  * the item will be updated with these new values.
+ *
+ * If @collection_path is %NULL, then the default collection will be
+ * used. Use #SECRET_COLLECTION_SESSION to store the password in the session
+ * collection, which doesn't get stored across login sessions.
  *
  * This method may block indefinitely and should not be used in user interface
  * threads.
@@ -310,7 +320,7 @@ secret_password_store_sync (const SecretSchema *schema,
  * secret_password_storev_sync:
  * @schema: the schema for attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
- * @collection_path: the dbus path to the collection where to store the secret
+ * @collection_path: (allow-none): the dbus path to the collection where to store the secret
  * @label: label for the secret
  * @password: the null-terminated password to store
  * @cancellable: optional cancellation object
@@ -322,6 +332,10 @@ secret_password_store_sync (const SecretSchema *schema,
  *
  * If the attributes match a secret item already stored in the collection, then
  * the item will be updated with these new values.
+ *
+ * If @collection_path is %NULL, then the default collection will be
+ * used. Use #SECRET_COLLECTION_SESSION to store the password in the session
+ * collection, which doesn't get stored across login sessions.
  *
  * This method may block indefinitely and should not be used in user interface
  * threads.
@@ -343,7 +357,6 @@ secret_password_storev_sync (const SecretSchema *schema,
 	gboolean ret;
 
 	g_return_val_if_fail (schema != NULL, FALSE);
-	g_return_val_if_fail (collection_path != NULL, FALSE);
 	g_return_val_if_fail (label != NULL, FALSE);
 	g_return_val_if_fail (password != NULL, FALSE);
 	g_return_val_if_fail (attributes != NULL, FALSE);
