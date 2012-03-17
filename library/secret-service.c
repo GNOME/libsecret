@@ -57,12 +57,11 @@
  * Certain actions on the Secret Service require user prompting to complete,
  * such as creating a collection, or unlocking a collection. When such a prompt
  * is necessary, then a #SecretPrompt object is created by this library, and
- * passed to the secret_service_prompt_async() method. In this way it is handled
+ * passed to the secret_service_prompt() method. In this way it is handled
  * automatically.
  *
- * In order to customize prompt handling, override the
- * SecretServiceClass::prompt_async and SecretServiceClass::prompt_finish
- * virtual methods of the #SecretService class.
+ * In order to customize prompt handling, override the <literal>prompt_async</literal>
+ * and <literal>prompt_finish</literal> virtual methods of the #SecretService class.
  */
 
 /**
@@ -1496,7 +1495,7 @@ secret_service_ensure_collections_sync (SecretService *self,
  * This function is called by other parts of this library to handle prompts
  * for the various actions that can require prompting.
  *
- * Override the #SecretServiceClass::prompt_sync() virtual method
+ * Override the #SecretServiceClass <literal>prompt_sync</literal> virtual method
  * to change the behavior of the propmting. The default behavior is to simply
  * run secret_prompt_perform_sync() on the prompt.
  *
@@ -1534,7 +1533,7 @@ secret_service_prompt_sync (SecretService *self,
  * This function is called by other parts of this library to handle prompts
  * for the various actions that can require prompting.
  *
- * Override the #SecretService <literal>prompt_async()</literal> virtual method
+ * Override the #SecretServiceClass <literal>prompt_async</literal> virtual method
  * to change the behavior of the propmting. The default behavior is to simply
  * run secret_prompt_perform() on the prompt.
  */

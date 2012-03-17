@@ -51,6 +51,7 @@ stamp*
 /docs/reference/libsecret/libsecret-unused.txt
 /docs/reference/libsecret/libsecret.args
 /docs/reference/libsecret/libsecret.hierarchy
+/docs/reference/libsecret/libsecret.interfaces
 /docs/reference/libsecret/libsecret.prerequisites
 /docs/reference/libsecret/libsecret.signals
 /docs/reference/libsecret/tmpl

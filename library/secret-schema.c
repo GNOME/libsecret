@@ -32,12 +32,14 @@
  *
  * Additional schemas can be defined via the %SecretSchema structure like this:
  *
- * xxxx
+ * If the schema flags contain the %SECRET_SCHEMA_ALLOW_UNDEFINED flag, then
+ * undefined attributes are permitted.
  */
 
 /**
  * SecretSchema:
  * @identifier: the dotted identifer of the schema
+ * @flags: flags for the schema
  * @attributes: the attribute names and types of those attributes
  *
  * Represents a set of attributes that are stored with an item. These schemas
@@ -49,6 +51,17 @@
  *
  * Attributes are stored as strings in the Secret Service, and the attribute
  * types simply define standard ways to store integer and boolean values as strings.
+ *
+ * If @flags contains the %SECRET_SCHEMA_ALLOW_UNDEFINED flag, then attributes
+ * not listed in @attributes are permitted.
+ */
+
+/**
+ * SecretSchemaFlags:
+ * @SECRET_SCHEMA_NONE: no flags for the schema
+ * @SECRET_SCHEMA_ALLOW_UNDEFINED: allow undefined attributes
+ *
+ * Flags for a #SecretSchema definition.
  */
 
 /**
@@ -60,10 +73,10 @@
  */
 
 /**
- * SecretAttributeType:
- * @SECRET_ATTRIBUTE_BOOLEAN: a boolean attribute, stored as 'true' or 'false'
- * @SECRET_ATTRIBUTE_INTEGER: an integer attribute, stored as a decimal
- * @SECRET_ATTRIBUTE_STRING: a utf-8 string attribute
+ * SecretSchemaAttributeType:
+ * @SECRET_SCHEMA_ATTRIBUTE_BOOLEAN: a boolean attribute, stored as 'true' or 'false'
+ * @SECRET_SCHEMA_ATTRIBUTE_INTEGER: an integer attribute, stored as a decimal
+ * @SECRET_SCHEMA_ATTRIBUTE_STRING: a utf-8 string attribute
  *
  * The type of an attribute in a #SecretSchema. Attributes are stored as strings
  * in the Secret Service, and the attribute types simply define standard ways
@@ -131,6 +144,7 @@ G_DEFINE_BOXED_TYPE (SecretSchemaAttribute, secret_schema_attribute,
 /**
  * secret_schema_new:
  * @identifier: the dotted identifier of the schema
+ * @flags: the flags for the schema
  * @attributes: (element-type utf8 Secret.SchemaAttributeType): the attribute names and types of those attributes
  *
  * Using this function is not normally necessary from C code. This is useful
@@ -145,8 +159,11 @@ G_DEFINE_BOXED_TYPE (SecretSchemaAttribute, secret_schema_attribute,
  * those attributes.
  *
  * Each key in the @attributes table should be a attribute name strings, and
- * the values in the table should be integers from the #SecretAttributeType
+ * the values in the table should be integers from the #SecretSchemaAttributeType
  * enumeration, representing the attribute type for each attribute name.
+ *
+ * If @flags contains the %SECRET_SCHEMA_ALLOW_UNDEFINED flag, then attributes
+ * not listed in @attributes are permitted.
  *
  * Returns: (transfer full): the new schema, which should be unreferenced with
  *          secret_schema_unref() when done
