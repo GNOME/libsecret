@@ -29,7 +29,7 @@
  * Certain actions on the Secret Service require user prompting to complete,
  * such as creating a collection, or unlocking a collection. When such a prompt
  * is necessary, then a #SecretPrompt object is created by this library, and
- * passed to the secret_service_prompt_async() method. In this way it is handled
+ * passed to the secret_service_prompt() method. In this way it is handled
  * automatically.
  *
  * In order to customize prompt handling, override the

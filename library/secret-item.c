@@ -30,7 +30,7 @@
  * #SecretItem represents a secret item stored in the Secret Service.
  *
  * Each item has a value, represented by a #SecretValue, which can be
- * retrieved by secret_service_get_secret() or set by secret_service_set_secret().
+ * retrieved by secret_item_get_secret() or set by secret_item_set_secret().
  * The item is only available when the item is not locked.
  *
  * Items can be locked or unlocked using the secret_service_lock() or

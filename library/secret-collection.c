@@ -32,7 +32,7 @@
  * A collection can be in a locked or unlocked state. Use secret_service_lock()
  * or secret_service_unlock() to lock or unlock the collection.
  *
- * Use the SecretCollection::items property or secret_service_get_items() to
+ * Use the SecretCollection::items property or secret_collection_get_items() to
  * lookup the items in the collection. There may not be any items exposed when
  * the collection is locked.
  */
