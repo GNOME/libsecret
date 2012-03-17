@@ -15,6 +15,7 @@
 .cproject
 .libs
 .project
+.pydevproject
 aclocal.m4
 autom4te.cache
 compile

@@ -65,13 +65,23 @@ JS_ENV = \
 	LD_LIBRARY_PATH=$(builddir)/.libs \
 	GI_TYPELIB_PATH=$(builddir)/..:$(builddir)
 
-test: test-c test-js
+PY_TESTS = \
+	test-lookup-password.py \
+	test-remove-password.py \
+	test-store-password.py
+
+PY_ENV = $(JS_ENV)
 
 test-c: $(TEST_PROGS)
 	@gtester --verbose -m $(TEST_MODE) --g-fatal-warnings $(TEST_PROGS)
 
 test-js:
 	@for js in $(JS_TESTS); do echo "TEST: $$js"; $(JS_ENV) gjs $$js; done
+
+test-py:
+	@for py in $(PY_TESTS); do echo "TEST: $$py"; $(PY_ENV) python $$py; done
+
+test: test-c test-py test-js
 
 # ------------------------------------------------------------------
 # INTROSPECTION
