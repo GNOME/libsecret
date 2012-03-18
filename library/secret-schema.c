@@ -83,42 +83,6 @@
  * to store integer and boolean values as strings.
  */
 
-static const SecretSchema network_schema = {
-	SECRET_SCHEMA_IDENTIFIER_NETWORK,
-	SECRET_SCHEMA_NONE,
-	{
-		{  "user", SECRET_SCHEMA_ATTRIBUTE_STRING },
-		{  "domain", SECRET_SCHEMA_ATTRIBUTE_STRING },
-		{  "object", SECRET_SCHEMA_ATTRIBUTE_STRING },
-		{  "protocol", SECRET_SCHEMA_ATTRIBUTE_STRING },
-		{  "port", SECRET_SCHEMA_ATTRIBUTE_INTEGER },
-		{  "server", SECRET_SCHEMA_ATTRIBUTE_STRING },
-		{  "NULL", 0 },
-	}
-};
-
-const SecretSchema *  SECRET_SCHEMA_NETWORK = &network_schema;
-
-static const SecretSchema generic_schema = {
-	SECRET_SCHEMA_IDENTIFIER_GENERIC,
-	SECRET_SCHEMA_ALLOW_UNDEFINED,
-	{
-		{  "NULL", 0 },
-	}
-};
-
-const SecretSchema *  SECRET_SCHEMA_GENERIC = &generic_schema;
-
-static const SecretSchema note_schema = {
-	SECRET_SCHEMA_IDENTIFIER_NOTE,
-	SECRET_SCHEMA_ALLOW_UNDEFINED,
-	{
-		{  "NULL", 0 },
-	}
-};
-
-const SecretSchema *  SECRET_SCHEMA_NOTE = &note_schema;
-
 static SecretSchemaAttribute *
 schema_attribute_copy (SecretSchemaAttribute *attribute)
 {

@@ -21,10 +21,6 @@
 
 G_BEGIN_DECLS
 
-#define SECRET_SCHEMA_IDENTIFIER_GENERIC     "org.freedesktop.Secret.Generic"
-#define SECRET_SCHEMA_IDENTIFIER_NETWORK     "org.gnome.keyring.NetworkPassword"
-#define SECRET_SCHEMA_IDENTIFIER_NOTE        "org.gnome.keyring.Note"
-
 typedef enum {
 	SECRET_SCHEMA_ATTRIBUTE_STRING = 0,
 	SECRET_SCHEMA_ATTRIBUTE_INTEGER = 1,
@@ -39,6 +35,7 @@ typedef struct {
 typedef enum {
 	SECRET_SCHEMA_NONE = 0,
 	SECRET_SCHEMA_ALLOW_UNDEFINED = 1 << 0,
+	SECRET_SCHEMA_IGNORE_IDENTIFIER = 1 << 1
 } SecretSchemaFlags;
 
 typedef struct {
@@ -56,12 +53,6 @@ typedef struct {
 	gpointer reserved6;
 	gpointer reserved7;
 } SecretSchema;
-
-extern const SecretSchema *  SECRET_SCHEMA_NETWORK;
-
-extern const SecretSchema *  SECRET_SCHEMA_GENERIC;
-
-extern const SecretSchema *  SECRET_SCHEMA_NOTE;
 
 GType             secret_schema_get_type           (void) G_GNUC_CONST;
 
