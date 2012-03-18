@@ -67,7 +67,8 @@ gint                 _secret_util_array_index_of              (GVariant *array,
 
 GType                _secret_list_get_type                    (void) G_GNUC_CONST;
 
-GVariant *           _secret_util_variant_for_attributes      (GHashTable *attributes);
+GVariant *           _secret_util_variant_for_attributes      (GHashTable *attributes,
+                                                               const gchar *schema_name);
 
 GHashTable *         _secret_util_attributes_for_variant      (GVariant *variant);
 
@@ -123,6 +124,12 @@ void                 _secret_service_take_session             (SecretService *se
 void                 _secret_service_delete_path              (SecretService *self,
                                                                const gchar *object_path,
                                                                gboolean is_an_item,
+                                                               GCancellable *cancellable,
+                                                               GAsyncReadyCallback callback,
+                                                               gpointer user_data);
+
+void                 _secret_service_search_for_paths_variant (SecretService *self,
+                                                               GVariant *attributes,
                                                                GCancellable *cancellable,
                                                                GAsyncReadyCallback callback,
                                                                gpointer user_data);

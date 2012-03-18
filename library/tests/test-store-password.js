@@ -10,7 +10,7 @@ const assertTrue = JsUnit.assertTrue;
 
 Mock.start("mock-service-normal.py");
 
-const STORE_SCHEMA = new Secret.Schema.new("org.mock.type.Store",
+const STORE_SCHEMA = new Secret.Schema.new("org.mock.Schema",
 	Secret.SchemaFlags.NONE,
 	{
 		"number": Secret.SchemaAttributeType.INTEGER,

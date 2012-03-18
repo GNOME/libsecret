@@ -27,8 +27,8 @@
 #include <errno.h>
 #include <stdlib.h>
 
-static const SecretSchema DELETE_SCHEMA = {
-	"org.mock.schema.Delete",
+static const SecretSchema MOCK_SCHEMA = {
+	"org.mock.Schema",
 	SECRET_SCHEMA_NONE,
 	{
 		{ "number", SECRET_SCHEMA_ATTRIBUTE_INTEGER },
@@ -37,13 +37,22 @@ static const SecretSchema DELETE_SCHEMA = {
 	}
 };
 
-static const SecretSchema STORE_SCHEMA = {
-	"org.mock.type.Store",
+static const SecretSchema PRIME_SCHEMA = {
+	"org.mock.Prime",
 	SECRET_SCHEMA_NONE,
 	{
 		{ "number", SECRET_SCHEMA_ATTRIBUTE_INTEGER },
 		{ "string", SECRET_SCHEMA_ATTRIBUTE_STRING },
-		{ "even", SECRET_SCHEMA_ATTRIBUTE_BOOLEAN },
+		{ "prime", SECRET_SCHEMA_ATTRIBUTE_BOOLEAN },
+	}
+};
+
+static const SecretSchema NO_NAME_SCHEMA = {
+	"unused.Schema.Name",
+	SECRET_SCHEMA_DONT_MATCH_NAME,
+	{
+		{ "number", SECRET_SCHEMA_ATTRIBUTE_INTEGER },
+		{ "string", SECRET_SCHEMA_ATTRIBUTE_STRING },
 	}
 };
 
@@ -905,9 +914,7 @@ test_item_sync (Test *test,
 	g_hash_table_insert (properties, SECRET_COLLECTION_INTERFACE ".Label",
 	                     g_variant_ref_sink (g_variant_new_string ("Wheeee")));
 	g_hash_table_insert (properties, SECRET_COLLECTION_INTERFACE ".Attributes",
-	                     g_variant_ref_sink (_secret_util_variant_for_attributes (attributes)));
-	g_hash_table_insert (properties, SECRET_COLLECTION_INTERFACE ".Type",
-	                     g_variant_ref_sink (g_variant_new_string ("org.gnome.Test")));
+	                     g_variant_ref_sink (_secret_util_variant_for_attributes (attributes, "org.gnome.Test")));
 
 	g_hash_table_unref (attributes);
 
@@ -949,9 +956,7 @@ test_item_async (Test *test,
 	g_hash_table_insert (properties, SECRET_COLLECTION_INTERFACE ".Label",
 	                     g_variant_ref_sink (g_variant_new_string ("Wheeee")));
 	g_hash_table_insert (properties, SECRET_COLLECTION_INTERFACE ".Attributes",
-	                     g_variant_ref_sink (_secret_util_variant_for_attributes (attributes)));
-	g_hash_table_insert (properties, SECRET_COLLECTION_INTERFACE ".Type",
-	                     g_variant_ref_sink (g_variant_new_string ("org.gnome.Test")));
+	                     g_variant_ref_sink (_secret_util_variant_for_attributes (attributes, NULL)));
 
 	g_hash_table_unref (attributes);
 
@@ -984,7 +989,7 @@ test_remove_sync (Test *test,
 	GError *error = NULL;
 	gboolean ret;
 
-	ret = secret_service_remove_sync (test->service, &DELETE_SCHEMA, NULL, &error,
+	ret = secret_service_remove_sync (test->service, &MOCK_SCHEMA, NULL, &error,
 	                                   "even", FALSE,
 	                                   "string", "one",
 	                                   "number", 1,
@@ -1002,7 +1007,7 @@ test_remove_async (Test *test,
 	GAsyncResult *result = NULL;
 	gboolean ret;
 
-	secret_service_remove (test->service, &DELETE_SCHEMA, NULL,
+	secret_service_remove (test->service, &MOCK_SCHEMA, NULL,
 	                        on_complete_get_result, &result,
 	                        "even", FALSE,
 	                        "string", "one",
@@ -1027,7 +1032,7 @@ test_remove_locked (Test *test,
 	GError *error = NULL;
 	gboolean ret;
 
-	ret = secret_service_remove_sync (test->service, &DELETE_SCHEMA, NULL, &error,
+	ret = secret_service_remove_sync (test->service, &MOCK_SCHEMA, NULL, &error,
 	                                   "even", FALSE,
 	                                   "string", "tres",
 	                                   "number", 3,
@@ -1045,13 +1050,36 @@ test_remove_no_match (Test *test,
 	gboolean ret;
 
 	/* Won't match anything */
-	ret = secret_service_remove_sync (test->service, &DELETE_SCHEMA, NULL, &error,
+	ret = secret_service_remove_sync (test->service, &MOCK_SCHEMA, NULL, &error,
 	                                   "even", TRUE,
 	                                   "string", "one",
 	                                   NULL);
 
 	g_assert_no_error (error);
 	g_assert (ret == FALSE);
+}
+
+static void
+test_remove_no_name (Test *test,
+                     gconstpointer used)
+{
+	GError *error = NULL;
+	gboolean ret;
+
+	/* Shouldn't match anything, because no item with 5 in mock schema */
+	ret = secret_service_remove_sync (test->service, &MOCK_SCHEMA, NULL, &error,
+	                                  "number", 5,
+	                                  NULL);
+	g_assert_no_error (error);
+	g_assert (ret == FALSE);
+
+	/* We have an item with 5 in prime schema, but should match anyway becase of flags */
+	ret = secret_service_remove_sync (test->service, &NO_NAME_SCHEMA, NULL, &error,
+	                                  "number", 5,
+	                                  NULL);
+
+	g_assert_no_error (error);
+	g_assert (ret == TRUE);
 }
 
 static void
@@ -1062,7 +1090,7 @@ test_lookup_sync (Test *test,
 	SecretValue *value;
 	gsize length;
 
-	value = secret_service_lookup_sync (test->service, &STORE_SCHEMA, NULL, &error,
+	value = secret_service_lookup_sync (test->service, &MOCK_SCHEMA, NULL, &error,
 	                                     "even", FALSE,
 	                                     "string", "one",
 	                                     "number", 1,
@@ -1086,7 +1114,7 @@ test_lookup_async (Test *test,
 	SecretValue *value;
 	gsize length;
 
-	secret_service_lookup (test->service, &STORE_SCHEMA, NULL,
+	secret_service_lookup (test->service, &MOCK_SCHEMA, NULL,
 	                        on_complete_get_result, &result,
 	                        "even", FALSE,
 	                        "string", "one",
@@ -1116,7 +1144,7 @@ test_lookup_locked (Test *test,
 	SecretValue *value;
 	gsize length;
 
-	value = secret_service_lookup_sync (test->service, &STORE_SCHEMA, NULL, &error,
+	value = secret_service_lookup_sync (test->service, &MOCK_SCHEMA, NULL, &error,
 	                                     "even", FALSE,
 	                                     "string", "tres",
 	                                     "number", 3,
@@ -1139,13 +1167,42 @@ test_lookup_no_match (Test *test,
 	SecretValue *value;
 
 	/* Won't match anything */
-	value = secret_service_lookup_sync (test->service, &STORE_SCHEMA, NULL, &error,
+	value = secret_service_lookup_sync (test->service, &MOCK_SCHEMA, NULL, &error,
 	                                     "even", TRUE,
 	                                     "string", "one",
 	                                     NULL);
 
 	g_assert_no_error (error);
 	g_assert (value == NULL);
+}
+
+static void
+test_lookup_no_name (Test *test,
+                     gconstpointer used)
+{
+	GError *error = NULL;
+	SecretValue *value;
+	gsize length;
+
+	/* should return null, because nothing with mock schema and 5 */
+	value = secret_service_lookup_sync (test->service, &MOCK_SCHEMA, NULL, &error,
+	                                    "number", 5,
+	                                    NULL);
+	g_assert_no_error (error);
+	g_assert (value == NULL);
+
+	/* should return an item, because we have a prime schema with 5, and flags not to match name */
+	value = secret_service_lookup_sync (test->service, &NO_NAME_SCHEMA, NULL, &error,
+	                                    "number", 5,
+	                                    NULL);
+
+	g_assert_no_error (error);
+
+	g_assert (value != NULL);
+	g_assert_cmpstr (secret_value_get (value, &length), ==, "555");
+	g_assert_cmpuint (length, ==, 3);
+
+	secret_value_unref (value);
 }
 
 static void
@@ -1160,7 +1217,7 @@ test_store_sync (Test *test,
 	gboolean ret;
 	gsize length;
 
-	ret = secret_service_store_sync (test->service, &STORE_SCHEMA, collection_path,
+	ret = secret_service_store_sync (test->service, &MOCK_SCHEMA, collection_path,
 	                                  "New Item Label", value, NULL, &error,
 	                                  "even", FALSE,
 	                                  "string", "seventeen",
@@ -1206,7 +1263,7 @@ test_store_replace (Test *test,
 	gchar **paths;
 	gboolean ret;
 
-	ret = secret_service_store_sync (test->service, &STORE_SCHEMA, collection_path,
+	ret = secret_service_store_sync (test->service, &MOCK_SCHEMA, collection_path,
 	                                  "New Item Label", value, NULL, &error,
 	                                  "even", FALSE,
 	                                  "string", "seventeen",
@@ -1214,7 +1271,7 @@ test_store_replace (Test *test,
 	                                  NULL);
 	g_assert_no_error (error);
 
-	ret = secret_service_store_sync (test->service, &STORE_SCHEMA, collection_path,
+	ret = secret_service_store_sync (test->service, &MOCK_SCHEMA, collection_path,
 	                                  "Another Label", value, NULL, &error,
 	                                  "even", FALSE,
 	                                  "string", "seventeen",
@@ -1253,7 +1310,7 @@ test_store_async (Test *test,
 	gboolean ret;
 	gsize length;
 
-	secret_service_store (test->service, &STORE_SCHEMA, collection_path,
+	secret_service_store (test->service, &MOCK_SCHEMA, collection_path,
 	                       "New Item Label", value, NULL, on_complete_get_result, &result,
 	                       "even", FALSE,
 	                       "string", "seventeen",
@@ -1337,11 +1394,13 @@ main (int argc, char **argv)
 	g_test_add ("/service/lookup-async", Test, "mock-service-normal.py", setup, test_lookup_async, teardown);
 	g_test_add ("/service/lookup-locked", Test, "mock-service-normal.py", setup, test_lookup_locked, teardown);
 	g_test_add ("/service/lookup-no-match", Test, "mock-service-normal.py", setup, test_lookup_no_match, teardown);
+	g_test_add ("/service/lookup-no-name", Test, "mock-service-normal.py", setup, test_lookup_no_name, teardown);
 
 	g_test_add ("/service/remove-sync", Test, "mock-service-delete.py", setup, test_remove_sync, teardown);
 	g_test_add ("/service/remove-async", Test, "mock-service-delete.py", setup, test_remove_async, teardown);
 	g_test_add ("/service/remove-locked", Test, "mock-service-delete.py", setup, test_remove_locked, teardown);
 	g_test_add ("/service/remove-no-match", Test, "mock-service-delete.py", setup, test_remove_no_match, teardown);
+	g_test_add ("/service/remove-no-name", Test, "mock-service-delete.py", setup, test_remove_no_name, teardown);
 
 	g_test_add ("/service/store-sync", Test, "mock-service-normal.py", setup, test_store_sync, teardown);
 	g_test_add ("/service/store-async", Test, "mock-service-normal.py", setup, test_store_async, teardown);

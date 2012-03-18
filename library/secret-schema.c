@@ -28,17 +28,40 @@
  * be either strings, integers or booleans.
  *
  * The names and types of allowed attributes for a given password are defined
- * with a schema. Certain schemas are predefined like %SECRET_SCHEMA_NETWORK.
+ * with a schema.
  *
  * Additional schemas can be defined via the %SecretSchema structure like this:
  *
- * If the schema flags contain the %SECRET_SCHEMA_ALLOW_UNDEFINED flag, then
- * undefined attributes are permitted.
+ * <informalexample><programlisting language="c">
+ * /<!-- -->* in a header: *<!-- -->/
+ *
+ * const SecretSchema * example_get_schema (void) G_GNUC_CONST;
+ *
+ * #define EXAMPLE_SCHEMA  example_get_schema ()
+ *
+ *
+ * /<!-- -->* in a .c file: *<!-- -->/
+ *
+ * const SecretSchema *
+ * example_get_schema (void)
+ * {
+ * 	static const SecretSchema the_schema = {
+ * 		"org.example.Password", SECRET_SCHEMA_NONE,
+ * 		{
+ * 			{  "number", SECRET_SCHEMA_ATTRIBUTE_INTEGER },
+ * 			{  "string", SECRET_SCHEMA_ATTRIBUTE_STRING },
+ * 			{  "even", SECRET_SCHEMA_ATTRIBUTE_BOOLEAN },
+ * 			{  "NULL", 0 },
+ * 		}
+ * 	};
+ * 	return &the_schema;
+ * }
+ * </programlisting></informalexample>s
  */
 
 /**
  * SecretSchema:
- * @identifier: the dotted identifer of the schema
+ * @name: the dotted name of the schema
  * @flags: flags for the schema
  * @attributes: the attribute names and types of those attributes
  *
@@ -46,20 +69,28 @@
  * are used for interoperability between various services storing the same types
  * of items.
  *
- * Each schema has a identifier like "org.gnome.keyring.NetworkPassword", and defines
+ * Each schema has a name like "org.gnome.keyring.NetworkPassword", and defines
  * a set of attributes, and types (string, integer, boolean) for those attributes.
  *
  * Attributes are stored as strings in the Secret Service, and the attribute
  * types simply define standard ways to store integer and boolean values as strings.
  *
- * If @flags contains the %SECRET_SCHEMA_ALLOW_UNDEFINED flag, then attributes
- * not listed in @attributes are permitted.
+ * Schemas are handled entirely on the client side by this library. The name of the
+ * schema is automatically stored as an attribute on the item.
+ *
+ * Normally when looking up passwords only those with matching schema names are
+ * returned. If the schema @flags contain the %SECRET_SCHEMA_DONT_MATCH_NAME flag,
+ * then lookups will not check that the schema name matches that on the item, only
+ * the schema's attributes are matched. This is useful when you are looking up items
+ * that are not stored by the libsecret library. Other libraries such as libgnome-keyring
+ * don't store the schema name.
  */
 
 /**
  * SecretSchemaFlags:
  * @SECRET_SCHEMA_NONE: no flags for the schema
- * @SECRET_SCHEMA_ALLOW_UNDEFINED: allow undefined attributes
+ * @SECRET_SCHEMA_DONT_MATCH_NAME: don't match the schema name when looking up or
+ *                                 removing passwords
  *
  * Flags for a #SecretSchema definition.
  */
@@ -107,7 +138,7 @@ G_DEFINE_BOXED_TYPE (SecretSchemaAttribute, secret_schema_attribute,
 
 /**
  * secret_schema_new:
- * @identifier: the dotted identifier of the schema
+ * @name: the dotted name of the schema
  * @flags: the flags for the schema
  * @attributes: (element-type utf8 Secret.SchemaAttributeType): the attribute names and types of those attributes
  *
@@ -118,7 +149,7 @@ G_DEFINE_BOXED_TYPE (SecretSchemaAttribute, secret_schema_attribute,
  * schemas are used for interoperability between various services storing the
  * same types of items.
  *
- * Each schema has an @identifier like "org.gnome.keyring.NetworkPassword", and
+ * Each schema has an @name like "org.gnome.keyring.NetworkPassword", and
  * defines a set of attributes names, and types (string, integer, boolean) for
  * those attributes.
  *
@@ -126,14 +157,18 @@ G_DEFINE_BOXED_TYPE (SecretSchemaAttribute, secret_schema_attribute,
  * the values in the table should be integers from the #SecretSchemaAttributeType
  * enumeration, representing the attribute type for each attribute name.
  *
- * If @flags contains the %SECRET_SCHEMA_ALLOW_UNDEFINED flag, then attributes
- * not listed in @attributes are permitted.
+ * Normally when looking up passwords only those with matching schema names are
+ * returned. If the schema @flags contain the %SECRET_SCHEMA_DONT_MATCH_NAME flag,
+ * then lookups will not check that the schema name matches that on the item, only
+ * the schema's attributes are matched. This is useful when you are looking up items
+ * that are not stored by the libsecret library. Other libraries such as libgnome-keyring
+ * don't store the schema name.
  *
  * Returns: (transfer full): the new schema, which should be unreferenced with
  *          secret_schema_unref() when done
  */
 SecretSchema *
-secret_schema_new (const gchar *identifier,
+secret_schema_new (const gchar *name,
                    SecretSchemaFlags flags,
                    GHashTable *attributes)
 {
@@ -145,10 +180,10 @@ secret_schema_new (const gchar *identifier,
 	gint type;
 	gint ind = 0;
 
-	g_return_val_if_fail (identifier != NULL, NULL);
+	g_return_val_if_fail (name != NULL, NULL);
 
 	schema = g_slice_new0 (SecretSchema);
-	schema->identifier = g_strdup (identifier);
+	schema->name = g_strdup (name);
 	schema->flags = flags;
 	schema->reserved = 1;
 
@@ -212,7 +247,7 @@ secret_schema_ref (SecretSchema *schema)
 	} else {
 		result = g_slice_new0 (SecretSchema);
 		result->reserved = 1;
-		result->identifier = g_strdup (schema->identifier);
+		result->name = g_strdup (schema->name);
 
 		for (i = 0; i < G_N_ELEMENTS (schema->attributes); i++) {
 			result->attributes[i].name = g_strdup (schema->attributes[i].name);
@@ -256,7 +291,7 @@ secret_schema_unref (SecretSchema *schema)
 		g_warning ("should not unreference a static or invalid SecretSchema");
 
 	} else if (refs == 0) {
-		g_free ((gpointer)schema->identifier);
+		g_free ((gpointer)schema->name);
 		for (i = 0; i < G_N_ELEMENTS (schema->attributes); i++)
 			g_free ((gpointer)schema->attributes[i].name);
 		g_slice_free (SecretSchema, schema);

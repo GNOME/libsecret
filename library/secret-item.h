@@ -68,7 +68,6 @@ SecretItem *        secret_item_new_sync                   (SecretService *servi
 void                secret_item_refresh                    (SecretItem *self);
 
 void                secret_item_create                     (SecretCollection *collection,
-                                                            const gchar *schema_name,
                                                             const gchar *label,
                                                             GHashTable *attributes,
                                                             SecretValue *value,
@@ -81,7 +80,6 @@ SecretItem *        secret_item_create_finish              (GAsyncResult *result
                                                             GError **error);
 
 SecretItem *        secret_item_create_sync                (SecretCollection *collection,
-                                                            const gchar *schema_name,
                                                             const gchar *label,
                                                             GHashTable *attributes,
                                                             SecretValue *value,
@@ -163,8 +161,6 @@ gboolean            secret_item_set_label_sync             (SecretItem *self,
                                                             const gchar *label,
                                                             GCancellable *cancellable,
                                                             GError **error);
-
-gchar *             secret_item_get_schema                 (SecretItem *self);
 
 gboolean            secret_item_get_locked                 (SecretItem *self);
 

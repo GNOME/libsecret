@@ -61,6 +61,21 @@ secret_service_search_for_paths (SecretService *self,
                                  GAsyncReadyCallback callback,
                                  gpointer user_data)
 {
+	g_return_if_fail (SECRET_IS_SERVICE (self));
+	g_return_if_fail (attributes != NULL);
+	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+	_secret_service_search_for_paths_variant (self, _secret_util_variant_for_attributes (attributes, NULL),
+	                                          cancellable, callback, user_data);
+}
+
+void
+_secret_service_search_for_paths_variant (SecretService *self,
+                                          GVariant *attributes,
+                                          GCancellable *cancellable,
+                                          GAsyncReadyCallback callback,
+                                          gpointer user_data)
+{
 	GSimpleAsyncResult *res;
 
 	g_return_if_fail (SECRET_IS_SERVICE (self));
@@ -71,8 +86,7 @@ secret_service_search_for_paths (SecretService *self,
 	                                 secret_service_search_for_paths);
 
 	g_dbus_proxy_call (G_DBUS_PROXY (self), "SearchItems",
-	                   g_variant_new ("(@a{ss})",
-	                                  _secret_util_variant_for_attributes (attributes)),
+	                   g_variant_new ("(@a{ss})", attributes),
 	                   G_DBUS_CALL_FLAGS_NONE, -1, cancellable,
 	                   on_search_items_complete, g_object_ref (res));
 
@@ -172,7 +186,7 @@ secret_service_search_for_paths_sync (SecretService *self,
 
 	response = g_dbus_proxy_call_sync (G_DBUS_PROXY (self), "SearchItems",
 	                                   g_variant_new ("(@a{ss})",
-	                                                  _secret_util_variant_for_attributes (attributes)),
+	                                                  _secret_util_variant_for_attributes (attributes, NULL)),
 	                                   G_DBUS_CALL_FLAGS_NONE, -1, cancellable, error);
 
 	if (response != NULL) {
@@ -1770,12 +1784,8 @@ secret_service_storev (SecretService *self,
 	                     SECRET_ITEM_INTERFACE ".Label",
 	                     g_variant_ref_sink (propval));
 
-	propval = g_variant_new_string (schema->identifier);
-	g_hash_table_insert (properties,
-	                     SECRET_ITEM_INTERFACE ".Schema",
-	                     g_variant_ref_sink (propval));
-
-	propval = _secret_util_variant_for_attributes (attributes);
+	/* Always store the schema name in the attributes */
+	propval = _secret_util_variant_for_attributes (attributes, schema->name);
 	g_hash_table_insert (properties,
 	                     SECRET_ITEM_INTERFACE ".Attributes",
 	                     g_variant_ref_sink (propval));
@@ -2114,6 +2124,8 @@ secret_service_lookupv (SecretService *self,
 {
 	GSimpleAsyncResult *res;
 	LookupClosure *closure;
+	const gchar *schema_name;
+	GVariant *variant;
 
 	g_return_if_fail (SECRET_IS_SERVICE (self));
 	g_return_if_fail (schema != NULL);
@@ -2130,8 +2142,11 @@ secret_service_lookupv (SecretService *self,
 	closure->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
 	g_simple_async_result_set_op_res_gpointer (res, closure, lookup_closure_free);
 
-	secret_service_search_for_paths (self, attributes, cancellable,
-	                                 on_lookup_searched, g_object_ref (res));
+	schema_name = (schema->flags & SECRET_SCHEMA_DONT_MATCH_NAME) ? NULL : schema->name;
+	variant = _secret_util_variant_for_attributes (attributes, schema_name);
+
+	_secret_service_search_for_paths_variant (self, variant, cancellable,
+	                                          on_lookup_searched, g_object_ref (res));
 
 	g_object_unref (res);
 }
@@ -2621,6 +2636,8 @@ secret_service_removev (SecretService *self,
 {
 	GSimpleAsyncResult *res;
 	DeleteClosure *closure;
+	const gchar *schema_name;
+	GVariant *variant;
 
 	g_return_if_fail (SECRET_SERVICE (self));
 	g_return_if_fail (schema != NULL);
@@ -2637,8 +2654,11 @@ secret_service_removev (SecretService *self,
 	closure->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
 	g_simple_async_result_set_op_res_gpointer (res, closure, delete_closure_free);
 
-	secret_service_search_for_paths (self, attributes, cancellable,
-	                                 on_search_delete_password, g_object_ref (res));
+	schema_name = (schema->flags & SECRET_SCHEMA_DONT_MATCH_NAME) ? NULL : schema->name;
+	variant = _secret_util_variant_for_attributes (attributes, schema_name);
+
+	_secret_service_search_for_paths_variant (self, variant, cancellable,
+	                                          on_search_delete_password, g_object_ref (res));
 
 	g_object_unref (res);
 }

@@ -115,7 +115,8 @@ _secret_util_variant_for_properties (GHashTable *properties)
 }
 
 GVariant *
-_secret_util_variant_for_attributes (GHashTable *attributes)
+_secret_util_variant_for_attributes (GHashTable *attributes,
+                                     const gchar *schema_name)
 {
 	GHashTableIter iter;
 	GVariantBuilder builder;
@@ -127,8 +128,13 @@ _secret_util_variant_for_attributes (GHashTable *attributes)
 	g_variant_builder_init (&builder, G_VARIANT_TYPE ("a{ss}"));
 
 	g_hash_table_iter_init (&iter, attributes);
-	while (g_hash_table_iter_next (&iter, (gpointer *)&name, (gpointer *)&value))
-		g_variant_builder_add (&builder, "{ss}", name, value);
+	while (g_hash_table_iter_next (&iter, (gpointer *)&name, (gpointer *)&value)) {
+		if (!schema_name || !g_str_equal (name, "xdg:schema"))
+			g_variant_builder_add (&builder, "{ss}", name, value);
+	}
+
+	if (schema_name)
+		g_variant_builder_add (&builder, "{ss}", "xdg:schema", schema_name);
 
 	return g_variant_builder_end (&builder);
 }
@@ -163,6 +169,8 @@ _secret_util_attributes_for_varargs (const SecretSchema *schema,
 	gboolean boolean;
 	gint integer;
 	gint i;
+
+	g_return_val_if_fail (schema != NULL, NULL);
 
 	attributes = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
 
@@ -229,9 +237,7 @@ _secret_util_attributes_validate (const SecretSchema *schema,
 	gchar *end;
 	gint i;
 
-	/* If no schema, then assume attributes are valid */
-	if (schema == NULL)
-		return TRUE;
+	g_return_val_if_fail (schema != NULL, FALSE);
 
 	g_hash_table_iter_init (&iter, attributes);
 	while (g_hash_table_iter_next (&iter, (gpointer *)&key, (gpointer *)&value)) {
@@ -248,21 +254,16 @@ _secret_util_attributes_validate (const SecretSchema *schema,
 		}
 
 		if (attribute == NULL) {
-			if (!(schema->flags & SECRET_SCHEMA_ALLOW_UNDEFINED)) {
-				g_warning ("invalid %s attribute in for %s schema",
-				           key, schema->identifier);
-				return FALSE;
-			}
-
-			/* Undefined attribute allowed */
-			continue;
+			g_warning ("invalid %s attribute in for %s schema",
+			           key, schema->name);
+			return FALSE;
 		}
 
 		switch (attribute->type) {
 		case SECRET_SCHEMA_ATTRIBUTE_BOOLEAN:
 			if (!g_str_equal (value, "true") && !g_str_equal (value, "false")) {
 				g_warning ("invalid %s boolean value for %s schema: %s",
-				           key, schema->identifier, value);
+				           key, schema->name, value);
 				return FALSE;
 			}
 			break;
@@ -271,20 +272,20 @@ _secret_util_attributes_validate (const SecretSchema *schema,
 			g_ascii_strtoll (value, &end, 10);
 			if (!end || end[0] != '\0') {
 				g_warning ("invalid %s integer value for %s schema: %s",
-				           key, schema->identifier, value);
+				           key, schema->name, value);
 				return FALSE;
 			}
 			break;
 		case SECRET_SCHEMA_ATTRIBUTE_STRING:
 			if (!g_utf8_validate (value, -1, NULL)) {
 				g_warning ("invalid %s string value for %s schema: %s",
-				           key, schema->identifier, value);
+				           key, schema->name, value);
 				return FALSE;
 			}
 			break;
 		default:
 			g_warning ("invalid %s value type in %s schema",
-			           key, schema->identifier);
+			           key, schema->name);
 			return FALSE;
 		}
 	}

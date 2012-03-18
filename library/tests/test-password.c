@@ -26,13 +26,32 @@
 #include <errno.h>
 #include <stdlib.h>
 
-static const SecretSchema PASSWORD_SCHEMA = {
-	"org.mock.schema.Password",
+static const SecretSchema MOCK_SCHEMA = {
+	"org.mock.Schema",
 	SECRET_SCHEMA_NONE,
 	{
 		{ "number", SECRET_SCHEMA_ATTRIBUTE_INTEGER },
 		{ "string", SECRET_SCHEMA_ATTRIBUTE_STRING },
 		{ "even", SECRET_SCHEMA_ATTRIBUTE_BOOLEAN },
+	}
+};
+
+static const SecretSchema PRIME_SCHEMA = {
+	"org.mock.Prime",
+	SECRET_SCHEMA_NONE,
+	{
+		{ "number", SECRET_SCHEMA_ATTRIBUTE_INTEGER },
+		{ "string", SECRET_SCHEMA_ATTRIBUTE_STRING },
+		{ "prime", SECRET_SCHEMA_ATTRIBUTE_BOOLEAN },
+	}
+};
+
+static const SecretSchema NO_NAME_SCHEMA = {
+	"unused.Schema.Name",
+	SECRET_SCHEMA_DONT_MATCH_NAME,
+	{
+		{ "number", SECRET_SCHEMA_ATTRIBUTE_INTEGER },
+		{ "string", SECRET_SCHEMA_ATTRIBUTE_STRING },
 	}
 };
 
@@ -77,7 +96,7 @@ test_lookup_sync (Test *test,
 	gchar *password;
 	GError *error = NULL;
 
-	password = secret_password_lookup_nonpageable_sync (&PASSWORD_SCHEMA, NULL, &error,
+	password = secret_password_lookup_nonpageable_sync (&MOCK_SCHEMA, NULL, &error,
 	                                                    "even", FALSE,
 	                                                    "string", "one",
 	                                                    "number", 1,
@@ -97,7 +116,7 @@ test_lookup_async (Test *test,
 	GError *error = NULL;
 	gchar *password;
 
-	secret_password_lookup (&PASSWORD_SCHEMA, NULL, on_complete_get_result, &result,
+	secret_password_lookup (&MOCK_SCHEMA, NULL, on_complete_get_result, &result,
 	                        "even", FALSE,
 	                        "string", "one",
 	                        "number", 1,
@@ -115,6 +134,31 @@ test_lookup_async (Test *test,
 }
 
 static void
+test_lookup_no_name (Test *test,
+                     gconstpointer used)
+{
+	GError *error = NULL;
+	gchar *password;
+
+	/* should return null, because nothing with mock schema and 5 */
+	password = secret_password_lookup_sync (&MOCK_SCHEMA, NULL, &error,
+	                                        "number", 5,
+	                                        NULL);
+	g_assert_no_error (error);
+	g_assert (password == NULL);
+
+	/* should return an item, because we have a prime schema with 5, and flags not to match name */
+	password = secret_password_lookup_sync (&NO_NAME_SCHEMA, NULL, &error,
+	                                        "number", 5,
+	                                        NULL);
+
+	g_assert_no_error (error);
+	g_assert_cmpstr (password, ==, "555");
+
+	secret_password_free (password);
+}
+
+static void
 test_store_sync (Test *test,
                   gconstpointer used)
 {
@@ -123,7 +167,7 @@ test_store_sync (Test *test,
 	gchar *password;
 	gboolean ret;
 
-	ret = secret_password_store_sync (&PASSWORD_SCHEMA, collection_path,
+	ret = secret_password_store_sync (&MOCK_SCHEMA, collection_path,
 	                                  "Label here", "the password", NULL, &error,
 	                                  "even", TRUE,
 	                                  "string", "twelve",
@@ -133,7 +177,7 @@ test_store_sync (Test *test,
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
 
-	password = secret_password_lookup_nonpageable_sync (&PASSWORD_SCHEMA, NULL, &error,
+	password = secret_password_lookup_nonpageable_sync (&MOCK_SCHEMA, NULL, &error,
 	                                                    "string", "twelve",
 	                                                    NULL);
 
@@ -153,7 +197,7 @@ test_store_async (Test *test,
 	gchar *password;
 	gboolean ret;
 
-	secret_password_store (&PASSWORD_SCHEMA, collection_path, "Label here",
+	secret_password_store (&MOCK_SCHEMA, collection_path, "Label here",
 	                       "the password", NULL, on_complete_get_result, &result,
 	                       "even", TRUE,
 	                       "string", "twelve",
@@ -168,7 +212,7 @@ test_store_async (Test *test,
 	g_assert (ret == TRUE);
 	g_object_unref (result);
 
-	password = secret_password_lookup_nonpageable_sync (&PASSWORD_SCHEMA, NULL, &error,
+	password = secret_password_lookup_nonpageable_sync (&MOCK_SCHEMA, NULL, &error,
 	                                                    "string", "twelve",
 	                                                    NULL);
 
@@ -185,7 +229,7 @@ test_delete_sync (Test *test,
 	GError *error = NULL;
 	gboolean ret;
 
-	ret = secret_password_remove_sync (&PASSWORD_SCHEMA, NULL, &error,
+	ret = secret_password_remove_sync (&MOCK_SCHEMA, NULL, &error,
 	                                   "even", FALSE,
 	                                   "string", "one",
 	                                   "number", 1,
@@ -203,7 +247,7 @@ test_delete_async (Test *test,
 	GAsyncResult *result = NULL;
 	gboolean ret;
 
-	secret_password_remove (&PASSWORD_SCHEMA, NULL,
+	secret_password_remove (&MOCK_SCHEMA, NULL,
 	                        on_complete_get_result, &result,
 	                        "even", FALSE,
 	                        "string", "one",
@@ -222,6 +266,29 @@ test_delete_async (Test *test,
 }
 
 static void
+test_remove_no_name (Test *test,
+                     gconstpointer used)
+{
+	GError *error = NULL;
+	gboolean ret;
+
+	/* Shouldn't match anything, because no item with 5 in mock schema */
+	ret = secret_password_remove_sync (&MOCK_SCHEMA, NULL, &error,
+	                                   "number", 5,
+	                                   NULL);
+	g_assert_no_error (error);
+	g_assert (ret == FALSE);
+
+	/* We have an item with 5 in prime schema, but should match anyway becase of flags */
+	ret = secret_password_remove_sync (&NO_NAME_SCHEMA, NULL, &error,
+	                                  "number", 5,
+	                                  NULL);
+
+	g_assert_no_error (error);
+	g_assert (ret == TRUE);
+}
+
+static void
 test_password_free_null (void)
 {
 	secret_password_free (NULL);
@@ -236,12 +303,14 @@ main (int argc, char **argv)
 
 	g_test_add ("/password/lookup-sync", Test, "mock-service-normal.py", setup, test_lookup_sync, teardown);
 	g_test_add ("/password/lookup-async", Test, "mock-service-normal.py", setup, test_lookup_async, teardown);
+	g_test_add ("/password/lookup-no-name", Test, "mock-service-normal.py", setup, test_lookup_no_name, teardown);
 
 	g_test_add ("/password/store-sync", Test, "mock-service-normal.py", setup, test_store_sync, teardown);
 	g_test_add ("/password/store-async", Test, "mock-service-normal.py", setup, test_store_async, teardown);
 
 	g_test_add ("/password/delete-sync", Test, "mock-service-delete.py", setup, test_delete_sync, teardown);
 	g_test_add ("/password/delete-async", Test, "mock-service-delete.py", setup, test_delete_async, teardown);
+	g_test_add ("/password/remove-no-name", Test, "mock-service-delete.py", setup, test_remove_no_name, teardown);
 
 	g_test_add_func ("/password/free-null", test_password_free_null);
 

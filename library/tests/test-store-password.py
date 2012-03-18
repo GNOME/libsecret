@@ -7,7 +7,7 @@ from gi.repository import Secret, GLib
 
 Mock.start("mock-service-normal.py")
 
-STORE_SCHEMA = Secret.Schema.new("org.mock.type.Store",
+STORE_SCHEMA = Secret.Schema.new("org.mock.Schema",
 	Secret.SchemaFlags.NONE,
 	{
 		"number": Secret.SchemaAttributeType.INTEGER,

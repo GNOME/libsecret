@@ -490,7 +490,7 @@ on_lookup_connected (GObject *source,
 
 /**
  * secret_password_lookupv:
- * @schema: (allow-none): the schema for attributes
+ * @schema: the schema for attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
  * @cancellable: optional cancellation object
  * @callback: called when the operation completes
@@ -516,6 +516,7 @@ secret_password_lookupv (const SecretSchema *schema,
 	GSimpleAsyncResult *res;
 	LookupClosure *closure;
 
+	g_return_if_fail (schema != NULL);
 	g_return_if_fail (attributes != NULL);
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
@@ -715,7 +716,7 @@ secret_password_lookup_nonpageable_sync (const SecretSchema *schema,
 
 /**
  * secret_password_lookupv_nonpageable_sync: (skip)
- * @schema: (allow-none): the schema for attributes
+ * @schema: the schema for attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
  * @cancellable: optional cancellation object
  * @error: location to place an error on failure
@@ -741,6 +742,7 @@ secret_password_lookupv_nonpageable_sync (const SecretSchema *schema,
 	SecretSync *sync;
 	gchar *password;
 
+	g_return_val_if_fail (schema != NULL, NULL);
 	g_return_val_if_fail (attributes != NULL, NULL);
 	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
 	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
@@ -767,7 +769,7 @@ secret_password_lookupv_nonpageable_sync (const SecretSchema *schema,
 
 /**
  * secret_password_lookupv_sync:
- * @schema: (allow-none): the schema for attributes
+ * @schema: the schema for attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
  * @cancellable: optional cancellation object
  * @error: location to place an error on failure
@@ -795,6 +797,7 @@ secret_password_lookupv_sync (const SecretSchema *schema,
 	SecretSync *sync;
 	gchar *string;
 
+	g_return_val_if_fail (schema != NULL, NULL);
 	g_return_val_if_fail (attributes != NULL, NULL);
 	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
 	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
@@ -923,7 +926,7 @@ on_delete_connect (GObject *source,
 
 /**
  * secret_password_removev:
- * @schema: (allow-none): the schema to for attributes
+ * @schema: the schema to for attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
  * @cancellable: optional cancellation object
  * @callback: called when the operation completes
@@ -949,6 +952,7 @@ secret_password_removev (const SecretSchema *schema,
 	GSimpleAsyncResult *res;
 	DeleteClosure *closure;
 
+	g_return_if_fail (schema != NULL);
 	g_return_if_fail (attributes != NULL);
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
@@ -1048,7 +1052,7 @@ secret_password_remove_sync (const SecretSchema* schema,
 
 /**
  * secret_password_removev_sync:
- * @schema: (allow-none): the schema to for attributes
+ * @schema: the schema to for attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
  * @cancellable: optional cancellation object
  * @error: location to place an error on failure
@@ -1075,6 +1079,7 @@ secret_password_removev_sync (const SecretSchema *schema,
 	SecretSync *sync;
 	gboolean result;
 
+	g_return_val_if_fail (schema != NULL, FALSE);
 	g_return_val_if_fail (attributes != NULL, FALSE);
 	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), FALSE);
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);

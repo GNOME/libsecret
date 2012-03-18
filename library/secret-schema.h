@@ -18,6 +18,7 @@
 #define __SECRET_SCHEMA_H__
 
 #include <glib.h>
+#include <glib-object.h>
 
 G_BEGIN_DECLS
 
@@ -34,12 +35,11 @@ typedef struct {
 
 typedef enum {
 	SECRET_SCHEMA_NONE = 0,
-	SECRET_SCHEMA_ALLOW_UNDEFINED = 1 << 0,
-	SECRET_SCHEMA_IGNORE_IDENTIFIER = 1 << 1
+	SECRET_SCHEMA_DONT_MATCH_NAME = 1 << 1
 } SecretSchemaFlags;
 
 typedef struct {
-	const gchar *identifier;
+	const gchar *name;
 	SecretSchemaFlags flags;
 	SecretSchemaAttribute attributes[32];
 
@@ -56,7 +56,7 @@ typedef struct {
 
 GType             secret_schema_get_type           (void) G_GNUC_CONST;
 
-SecretSchema *    secret_schema_new                (const gchar *identifier,
+SecretSchema *    secret_schema_new                (const gchar *name,
                                                     SecretSchemaFlags flags,
                                                     GHashTable *attributes);
 

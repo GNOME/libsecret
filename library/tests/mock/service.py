@@ -282,6 +282,8 @@ class SecretItem(dbus.service.Object):
 				'Label': self.label,
 				'Created': dbus.UInt64(self.created),
 				'Modified': dbus.UInt64(self.modified),
+
+				# For compatibility with libgnome-keyring, not part of spec
 				'Type': self.type
 			}
 		else:
@@ -295,6 +297,7 @@ class SecretItem(dbus.service.Object):
 			self.label = str(new_value)
 		elif property_name == "Attributes":
 			self.attributes = dict(new_value)
+		# For compatibility with libgnome-keyring, not part of spec
 		elif property_name == "Type":
 			self.type = str(new_value)
 		else:
@@ -390,11 +393,13 @@ class SecretCollection(dbus.service.Object):
 		if not session or session.sender != sender:
 			raise InvalidArgs("session invalid: %s" % session_path)
 
-		attributes = properties.get("org.freedesktop.Secret.Item.Attributes", None)
+		attributes = properties.get("org.freedesktop.Secret.Item.Attributes", { })
 		label = properties.get("org.freedesktop.Secret.Item.Label", None)
-		type = properties.get("org.freedesktop.Secret.Item.Type", None)
 		(secret, content_type) = session.decode_secret(value)
 		item = None
+
+		# This is done for compatibility with libgnome-keyring, not part of spec
+		type = properties.get("org.freedesktop.Secret.Item.Type", None)
 
 		if replace:
 			items = self.search_items(attributes)
@@ -487,21 +492,37 @@ class SecretService(dbus.service.Object):
 
 	def add_standard_objects(self):
 		collection = SecretCollection(self, "english", label="Collection One", locked=False)
-		SecretItem(collection, "1", label="Item One",
-		           attributes={ "number": "1", "string": "one", "even": "false" },
-		           secret="111", type="org.mock.type.Store")
-		SecretItem(collection, "2", attributes={ "number": "2", "string": "two", "even": "true" }, secret="222")
-		SecretItem(collection, "3", attributes={ "number": "3", "string": "three", "even": "false" }, secret="3333")
+		SecretItem(collection, "1", label="Item One", secret="111",
+		           attributes={ "number": "1", "string": "one", "even": "false", "xdg:schema": "org.mock.Schema" })
+		SecretItem(collection, "2", label="Item Two", secret="222",
+		           attributes={ "number": "2", "string": "two", "even": "true", "xdg:schema": "org.mock.Schema" })
+		SecretItem(collection, "3", label="Item Three", secret="333",
+		           attributes={ "number": "3", "string": "three", "even": "false", "xdg:schema": "org.mock.Schema" })
 
 		self.set_alias('default', collection)
 
 		collection = SecretCollection(self, "spanish", locked=True)
-		SecretItem(collection, "10", attributes={ "number": "1", "string": "uno", "even": "false" }, secret="111")
-		SecretItem(collection, "20", attributes={ "number": "2", "string": "dos", "even": "true" }, secret="222")
-		SecretItem(collection, "30", attributes={ "number": "3", "string": "tres", "even": "false" }, secret="3333")
+		SecretItem(collection, "10", secret="111",
+		           attributes={ "number": "1", "string": "uno", "even": "false", "xdg:schema": "org.mock.Schema" })
+		SecretItem(collection, "20", secret="222",
+		           attributes={ "number": "2", "string": "dos", "even": "true", "xdg:schema": "org.mock.Schema" })
+		SecretItem(collection, "30", secret="3333",
+		           attributes={ "number": "3", "string": "tres", "even": "false", "xdg:schema": "org.mock.Schema" })
+
+		collection = SecretCollection(self, "german", locked=True)
+		SecretItem(collection, "300", secret="333",
+		           attributes={ "number": "3", "string": "drei", "prime": "true", "xdg:schema": "org.mock.Primes" })
+		SecretItem(collection, "400", secret="444",
+		           attributes={ "number": "4", "string": "vier", "prime": "false", "xdg:schema": "org.mock.Primes" })
+		SecretItem(collection, "500", secret="555",
+		           attributes={ "number": "5", "string": "fuenf", "prime": "true", "xdg:schema": "org.mock.Primes" })
+		SecretItem(collection, "600", secret="666",
+		           attributes={ "number": "6", "string": "sechs", "prime": "false", "xdg:schema": "org.mock.Primes" })
 
 		collection = SecretCollection(self, "empty", locked=False)
 		collection = SecretCollection(self, "session", label="Session Keyring", locked=False)
+
+		self.set_alias('session', collection)
 
 	def listen(self):
 		global ready_pipe

@@ -65,7 +65,6 @@ enum {
 	PROP_SERVICE,
 	PROP_ATTRIBUTES,
 	PROP_LABEL,
-	PROP_SCHEMA,
 	PROP_LOCKED,
 	PROP_CREATED,
 	PROP_MODIFIED
@@ -181,9 +180,6 @@ secret_item_get_property (GObject *obj,
 	case PROP_LABEL:
 		g_value_take_string (value, secret_item_get_label (self));
 		break;
-	case PROP_SCHEMA:
-		g_value_take_string (value, secret_item_get_schema (self));
-		break;
 	case PROP_LOCKED:
 		g_value_set_boolean (value, secret_item_get_locked (self));
 		break;
@@ -232,9 +228,6 @@ handle_property_changed (GObject *object,
 
 	else if (g_str_equal (property_name, "Label"))
 		g_object_notify (object, "label");
-
-	else if (g_str_equal (property_name, "Type"))
-		g_object_notify (object, "schema");
 
 	else if (g_str_equal (property_name, "Locked"))
 		g_object_notify (object, "locked");
@@ -293,8 +286,6 @@ secret_item_class_init (SecretItemClass *klass)
 	 *
 	 * The attributes set on this item. Attributes are used to locate an
 	 * item. They are not guaranteed to be stored or transferred securely.
-	 *
-	 * The schema describes which attributes should be present and their types.
 	 */
 	g_object_class_install_property (gobject_class, PROP_ATTRIBUTES,
 	             g_param_spec_boxed ("attributes", "Attributes", "Item attributes",
@@ -312,17 +303,6 @@ secret_item_class_init (SecretItemClass *klass)
 	g_object_class_install_property (gobject_class, PROP_LABEL,
 	            g_param_spec_string ("label", "Label", "Item label",
 	                                 NULL, G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
-
-	/**
-	 * SecretItem:schema:
-	 *
-	 * The schema for this item. This is a dotted string that describes
-	 * which attributes should be present and the types of values on
-	 * those attributes.
-	 */
-	g_object_class_install_property (gobject_class, PROP_SCHEMA,
-	            g_param_spec_string ("schema", "Schema", "Item schema",
-	                                 NULL, G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * SecretItem:locked:
@@ -643,8 +623,7 @@ on_create_path (GObject *source,
 }
 
 static GHashTable *
-item_properties_new (const gchar *schema_name,
-                     const gchar *label,
+item_properties_new (const gchar *label,
                      GHashTable *attributes)
 {
 	GHashTable *properties;
@@ -658,12 +637,7 @@ item_properties_new (const gchar *schema_name,
 	                     SECRET_ITEM_INTERFACE ".Label",
 	                     g_variant_ref_sink (value));
 
-	value = g_variant_new_string (schema_name);
-	g_hash_table_insert (properties,
-	                     SECRET_ITEM_INTERFACE ".Schema",
-	                     g_variant_ref_sink (value));
-
-	value = _secret_util_variant_for_attributes (attributes);
+	value = _secret_util_variant_for_attributes (attributes, NULL);
 	g_hash_table_insert (properties,
 	                     SECRET_ITEM_INTERFACE ".Attributes",
 	                     g_variant_ref_sink (value));
@@ -674,7 +648,6 @@ item_properties_new (const gchar *schema_name,
 /**
  * secret_item_create:
  * @collection: a secret collection to create this item in
- * @schema_name: schema name for the new item
  * @label: label for the new item
  * @attributes: (element-type utf8 utf8): attributes for the new item
  * @value: secret value for the new item
@@ -695,7 +668,6 @@ item_properties_new (const gchar *schema_name,
  */
 void
 secret_item_create (SecretCollection *collection,
-                    const gchar *schema_name,
                     const gchar *label,
                     GHashTable *attributes,
                     SecretValue *value,
@@ -722,7 +694,7 @@ secret_item_create (SecretCollection *collection,
 	closure->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
 	g_simple_async_result_set_op_res_gpointer (res, closure, create_closure_free);
 
-	properties = item_properties_new (schema_name, label, attributes);
+	properties = item_properties_new (label, attributes);
 	g_object_get (collection, "service", &service, NULL);
 
 	collection_path = g_dbus_proxy_get_object_path (G_DBUS_PROXY (collection));
@@ -772,7 +744,6 @@ secret_item_create_finish (GAsyncResult *result,
 /**
  * secret_item_create_sync:
  * @collection: a secret collection to create this item in
- * @schema_name: schema name for the new item
  * @label: label for the new item
  * @attributes: (element-type utf8 utf8): attributes for the new item
  * @value: secret value for the new item
@@ -795,7 +766,6 @@ secret_item_create_finish (GAsyncResult *result,
  */
 SecretItem *
 secret_item_create_sync (SecretCollection *collection,
-                         const gchar *schema_name,
                          const gchar *label,
                          GHashTable *attributes,
                          SecretValue *value,
@@ -816,7 +786,7 @@ secret_item_create_sync (SecretCollection *collection,
 	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
 	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 
-	properties = item_properties_new (schema_name, label, attributes);
+	properties = item_properties_new (label, attributes);
 	g_object_get (collection, "service", &service, NULL);
 
 	collection_path = g_dbus_proxy_get_object_path (G_DBUS_PROXY (collection));
@@ -1393,7 +1363,7 @@ secret_item_set_attributes (SecretItem *self,
 	g_return_if_fail (attributes != NULL);
 
 	_secret_util_set_property (G_DBUS_PROXY (self), "Attributes",
-	                           _secret_util_variant_for_attributes (attributes),
+	                           _secret_util_variant_for_attributes (attributes, NULL),
 	                           secret_item_set_attributes, cancellable,
 	                           callback, user_data);
 }
@@ -1448,37 +1418,8 @@ secret_item_set_attributes_sync (SecretItem *self,
 	g_return_val_if_fail (attributes != NULL, FALSE);
 
 	return _secret_util_set_property_sync (G_DBUS_PROXY (self), "Attributes",
-	                                       _secret_util_variant_for_attributes (attributes),
+	                                       _secret_util_variant_for_attributes (attributes, NULL),
 	                                       cancellable, error);
-}
-
-/**
- * secret_item_get_schema:
- * @self: an item
- *
- * Get the schema of this item.
- *
- * The schema is a dotted string like <literal>org.freedesktop.Secret.Generic</literal>.
- * A schema describes the set of attributes that should be set on this item.
- *
- * Returns: (transfer full): the schema, which should be freed with g_free()
- */
-gchar *
-secret_item_get_schema (SecretItem *self)
-{
-	GVariant *variant;
-	gchar *label;
-
-	g_return_val_if_fail (SECRET_IS_ITEM (self), NULL);
-
-	variant = g_dbus_proxy_get_cached_property (G_DBUS_PROXY (self), "Type");
-	if (variant == NULL)
-		return NULL;
-
-	label = g_variant_dup_string (variant, NULL);
-	g_variant_unref (variant);
-
-	return label;
 }
 
 /**

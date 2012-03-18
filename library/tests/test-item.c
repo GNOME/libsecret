@@ -174,7 +174,7 @@ test_create_sync (Test *test,
 
 	value = secret_value_new ("Hoohah", -1, "text/plain");
 
-	item = secret_item_create_sync (collection, "org.mock.Schema", "Tunnel",
+	item = secret_item_create_sync (collection, "Tunnel",
 	                                 attributes, value, FALSE, NULL, &error);
 	g_assert_no_error (error);
 
@@ -185,7 +185,6 @@ test_create_sync (Test *test,
 	g_assert (g_str_has_prefix (g_dbus_proxy_get_object_path (G_DBUS_PROXY (item)), collection_path));
 	g_assert_cmpstr (secret_item_get_label (item), ==, "Tunnel");
 	g_assert (secret_item_get_locked (item) == FALSE);
-	g_assert_cmpstr (secret_item_get_schema (item), ==, "org.freedesktop.Secret.Generic");
 
 	g_object_unref (item);
 	egg_assert_not_object (item);
@@ -213,7 +212,7 @@ test_create_async (Test *test,
 
 	value = secret_value_new ("Hoohah", -1, "text/plain");
 
-	secret_item_create (collection, "org.mock.Schema", "Tunnel",
+	secret_item_create (collection, "Tunnel",
 	                    attributes, value, FALSE, NULL, on_async_result, &result);
 	g_assert_no_error (error);
 
@@ -230,7 +229,6 @@ test_create_async (Test *test,
 	g_assert (g_str_has_prefix (g_dbus_proxy_get_object_path (G_DBUS_PROXY (item)), collection_path));
 	g_assert_cmpstr (secret_item_get_label (item), ==, "Tunnel");
 	g_assert (secret_item_get_locked (item) == FALSE);
-	g_assert_cmpstr (secret_item_get_schema (item), ==, "org.freedesktop.Secret.Generic");
 
 	g_object_unref (item);
 	egg_assert_not_object (item);
@@ -248,7 +246,6 @@ test_properties (Test *test,
 	guint64 created;
 	guint64 modified;
 	gboolean locked;
-	gchar *schema;
 	gchar *label;
 
 	item = secret_item_new_sync (test->service, item_path, NULL, &error);
@@ -258,10 +255,6 @@ test_properties (Test *test,
 	g_assert_cmpuint (secret_item_get_created (item), <=, time (NULL));
 	g_assert_cmpuint (secret_item_get_modified (item), <=, time (NULL));
 
-	schema = secret_item_get_schema (item);
-	g_assert_cmpstr (schema, ==, "org.mock.type.Store");
-	g_free (schema);
-
 	label = secret_item_get_label (item);
 	g_assert_cmpstr (label, ==, "Item One");
 	g_free (label);
@@ -270,7 +263,7 @@ test_properties (Test *test,
 	g_assert_cmpstr (g_hash_table_lookup (attributes, "string"), ==, "one");
 	g_assert_cmpstr (g_hash_table_lookup (attributes, "number"), ==, "1");
 	g_assert_cmpstr (g_hash_table_lookup (attributes, "even"), ==, "false");
-	g_assert_cmpuint (g_hash_table_size (attributes), ==, 3);
+	g_assert_cmpuint (g_hash_table_size (attributes), ==, 4);
 	g_hash_table_unref (attributes);
 
 	g_object_get (item,
@@ -278,7 +271,6 @@ test_properties (Test *test,
 	              "created", &created,
 	              "modified", &modified,
 	              "label", &label,
-	              "schema", &schema,
 	              "attributes", &attributes,
 	              "service", &service,
 	              NULL);
@@ -290,13 +282,10 @@ test_properties (Test *test,
 	g_assert_cmpstr (label, ==, "Item One");
 	g_free (label);
 
-	g_assert_cmpstr (schema, ==, "org.mock.type.Store");
-	g_free (schema);
-
 	g_assert_cmpstr (g_hash_table_lookup (attributes, "string"), ==, "one");
 	g_assert_cmpstr (g_hash_table_lookup (attributes, "number"), ==, "1");
 	g_assert_cmpstr (g_hash_table_lookup (attributes, "even"), ==, "false");
-	g_assert_cmpuint (g_hash_table_size (attributes), ==, 3);
+	g_assert_cmpuint (g_hash_table_size (attributes), ==, 4);
 	g_hash_table_unref (attributes);
 
 	g_assert (service == test->service);
@@ -415,7 +404,7 @@ test_set_attributes_sync (Test *test,
 	g_assert_cmpstr (g_hash_table_lookup (attributes, "string"), ==, "one");
 	g_assert_cmpstr (g_hash_table_lookup (attributes, "number"), ==, "1");
 	g_assert_cmpstr (g_hash_table_lookup (attributes, "even"), ==, "false");
-	g_assert_cmpuint (g_hash_table_size (attributes), ==, 3);
+	g_assert_cmpuint (g_hash_table_size (attributes), ==, 4);
 	g_hash_table_unref (attributes);
 
 	attributes = g_hash_table_new (g_str_hash, g_str_equal);
@@ -453,7 +442,7 @@ test_set_attributes_async (Test *test,
 	g_assert_cmpstr (g_hash_table_lookup (attributes, "string"), ==, "one");
 	g_assert_cmpstr (g_hash_table_lookup (attributes, "number"), ==, "1");
 	g_assert_cmpstr (g_hash_table_lookup (attributes, "even"), ==, "false");
-	g_assert_cmpuint (g_hash_table_size (attributes), ==, 3);
+	g_assert_cmpuint (g_hash_table_size (attributes), ==, 4);
 	g_hash_table_unref (attributes);
 
 	attributes = g_hash_table_new (g_str_hash, g_str_equal);
@@ -495,7 +484,7 @@ test_set_attributes_prop (Test *test,
 	g_assert_cmpstr (g_hash_table_lookup (attributes, "string"), ==, "one");
 	g_assert_cmpstr (g_hash_table_lookup (attributes, "number"), ==, "1");
 	g_assert_cmpstr (g_hash_table_lookup (attributes, "even"), ==, "false");
-	g_assert_cmpuint (g_hash_table_size (attributes), ==, 3);
+	g_assert_cmpuint (g_hash_table_size (attributes), ==, 4);
 	g_hash_table_unref (attributes);
 
 	g_signal_connect (item, "notify::attributes", G_CALLBACK (on_notify_stop), &sigs);

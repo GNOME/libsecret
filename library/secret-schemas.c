@@ -16,7 +16,7 @@
 
 static const SecretSchema network_schema = {
 	"org.gnome.keyring.NetworkPassword",
-	SECRET_SCHEMA_NONE,
+	SECRET_SCHEMA_DONT_MATCH_NAME,
 	{
 		{  "user", SECRET_SCHEMA_ATTRIBUTE_STRING },
 		{  "domain", SECRET_SCHEMA_ATTRIBUTE_STRING },
