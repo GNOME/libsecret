@@ -56,7 +56,9 @@
  * 	};
  * 	return &the_schema;
  * }
- * </programlisting></informalexample>s
+ * </programlisting></informalexample>
+ *
+ * @stability: Stable
  */
 
 /**
@@ -84,6 +86,8 @@
  * the schema's attributes are matched. This is useful when you are looking up items
  * that are not stored by the libsecret library. Other libraries such as libgnome-keyring
  * don't store the schema name.
+ *
+ * @stability: Stable
  */
 
 /**

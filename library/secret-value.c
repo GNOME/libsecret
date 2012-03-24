@@ -35,6 +35,8 @@
  *
  * #SecretValue is reference counted and immutable. The secret data is only
  * freed when all references have been released via secret_value_unref().
+ *
+ * @stability: Unstable
  */
 
 /**

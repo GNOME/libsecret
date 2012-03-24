@@ -35,6 +35,8 @@
  * In order to customize prompt handling, override the
  * SecretServiceClass::prompt_async and SecretServiceClass::prompt_finish
  * virtual methods of the #SecretService class.
+ *
+ * @stability: Unstable
  */
 
 /**

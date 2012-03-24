@@ -30,6 +30,7 @@ HEADER_FILES = \
 	secret-schemas.h \
 	secret-service.h \
 	secret-types.h \
+	secret-unstable.h \
 	secret-value.h \
 	$(NULL)
 

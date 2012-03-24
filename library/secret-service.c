@@ -62,6 +62,8 @@
  *
  * In order to customize prompt handling, override the <literal>prompt_async</literal>
  * and <literal>prompt_finish</literal> virtual methods of the #SecretService class.
+ *
+ * @stability: Unstable
  */
 
 /**

@@ -35,6 +35,8 @@
  *
  * Each of the functions accept a variable list of attributes names and their
  * values. Include a %NULL to terminate the list of attributes.
+ *
+ * @stability: Stable
  */
 
 typedef struct {

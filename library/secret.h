@@ -10,10 +10,6 @@
  * See the included COPYING file for more information.
  */
 
-#ifndef SECRET_API_SUBJECT_TO_CHANGE
-#error "This API has not yet reached stability."
-#endif
-
 #ifndef __SECRET_H__
 #define __SECRET_H__
 
@@ -21,15 +17,9 @@
 
 #define __SECRET_INSIDE_HEADER__
 
-#include <secret/secret-collection.h>
-#include <secret/secret-enum-types.h>
-#include <secret/secret-item.h>
 #include <secret/secret-password.h>
-#include <secret/secret-prompt.h>
 #include <secret/secret-schema.h>
-#include <secret/secret-schemas.h>
-#include <secret/secret-service.h>
-#include <secret/secret-value.h>
+#include <secret/secret-types.h>
 
 #undef __SECRET_INSIDE_HEADER__
 

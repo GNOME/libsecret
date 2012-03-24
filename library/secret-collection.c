@@ -35,6 +35,8 @@
  * Use the SecretCollection::items property or secret_collection_get_items() to
  * lookup the items in the collection. There may not be any items exposed when
  * the collection is locked.
+ *
+ * @stability: Unstable
  */
 
 /**

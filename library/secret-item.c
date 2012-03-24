@@ -45,6 +45,8 @@
  * the attributes associated with an item.
  *
  * Items can be created with secret_item_create() or secret_service_store().
+ *
+ * @stability: Unstable
  */
 
 /**

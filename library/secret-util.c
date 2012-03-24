@@ -18,6 +18,18 @@
 #include <string.h>
 
 /**
+ * SECTION:secret-error
+ * @title: SecretError
+ * @short_description: libsecret errors
+ *
+ * Various errors reported by the libsecret library. No error returned from
+ * the libsecret API is suitable for direct display to the user. It is up
+ * to the application to handle them appropriately.
+ *
+ * @stability: Stable
+ */
+
+/**
  * SecretError:
  * @SECRET_ERROR_PROTOCOL: received an invalid data or message from the Secret
  *                         Service
