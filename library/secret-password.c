@@ -112,7 +112,7 @@ on_store_connected (GObject *source,
 /**
  * secret_password_store:
  * @schema: the schema for attributes
- * @collection_path: (allow-none): the dbus path to the collection where to store the secret
+ * @collection_path: (allow-none): the D-Bus object path of the collection where to store the secret
  * @label: label for the secret
  * @password: the null-terminated password to store
  * @cancellable: optional cancellation object
@@ -168,7 +168,7 @@ secret_password_store (const SecretSchema *schema,
  * secret_password_storev:
  * @schema: the schema for attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
- * @collection_path: (allow-none): the dbus path to the collection where to store the secret
+ * @collection_path: (allow-none): the D-Bus object path of the collection where to store the secret
  * @label: label for the secret
  * @password: the null-terminated password to store
  * @cancellable: optional cancellation object
@@ -262,7 +262,7 @@ secret_password_store_finish (GAsyncResult *result,
 /**
  * secret_password_store_sync:
  * @schema: the schema for attributes
- * @collection_path: (allow-none): the dbus path to the collection where to store the secret
+ * @collection_path: (allow-none): the D-Bus object path of the collection where to store the secret
  * @label: label for the secret
  * @password: the null-terminated password to store
  * @cancellable: optional cancellation object
@@ -322,7 +322,7 @@ secret_password_store_sync (const SecretSchema *schema,
  * secret_password_storev_sync:
  * @schema: the schema for attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
- * @collection_path: (allow-none): the dbus path to the collection where to store the secret
+ * @collection_path: (allow-none): the D-Bus object path of the collection where to store the secret
  * @label: label for the secret
  * @password: the null-terminated password to store
  * @cancellable: optional cancellation object
@@ -406,7 +406,7 @@ lookup_closure_free (gpointer data)
 
 /**
  * secret_password_lookup: (skip)
- * @schema: the schema to for attributes
+ * @schema: the schema for the attributes
  * @cancellable: optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to be passed to the callback
@@ -622,7 +622,7 @@ secret_password_lookup_finish (GAsyncResult *result,
 
 /**
  * secret_password_lookup_sync: (skip)
- * @schema: the schema to for attributes
+ * @schema: the schema for the attributes
  * @cancellable: optional cancellation object
  * @error: location to place an error on failure
  * @...: the attribute keys and values, terminated with %NULL
@@ -670,7 +670,7 @@ secret_password_lookup_sync (const SecretSchema *schema,
 
 /**
  * secret_password_lookup_nonpageable_sync: (skip)
- * @schema: the schema to for attributes
+ * @schema: the schema for the attributes
  * @cancellable: optional cancellation object
  * @error: location to place an error on failure
  * @...: the attribute keys and values, terminated with %NULL
@@ -843,7 +843,7 @@ delete_closure_free (gpointer data)
 
 /**
  * secret_password_remove:
- * @schema: the schema to for attributes
+ * @schema: the schema for the attributes
  * @cancellable: optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to be passed to the callback
@@ -928,7 +928,7 @@ on_delete_connect (GObject *source,
 
 /**
  * secret_password_removev:
- * @schema: the schema to for attributes
+ * @schema: the schema for the attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
  * @cancellable: optional cancellation object
  * @callback: called when the operation completes
@@ -1007,7 +1007,7 @@ secret_password_remove_finish (GAsyncResult *result,
 
 /**
  * secret_password_remove_sync:
- * @schema: the schema to for attributes
+ * @schema: the schema for the attributes
  * @cancellable: optional cancellation object
  * @error: location to place an error on failure
  * @...: the attribute keys and values, terminated with %NULL
@@ -1054,7 +1054,7 @@ secret_password_remove_sync (const SecretSchema* schema,
 
 /**
  * secret_password_removev_sync:
- * @schema: the schema to for attributes
+ * @schema: the schema for the attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
  * @cancellable: optional cancellation object
  * @error: location to place an error on failure

@@ -277,7 +277,7 @@ secret_item_class_init (SecretItemClass *klass)
 	 * SecretItem:service:
 	 *
 	 * The #SecretService object that this item is associated with and
-	 * uses to interact with the actual DBus Secret Service.
+	 * uses to interact with the actual D-Bus Secret Service.
 	 */
 	g_object_class_install_property (gobject_class, PROP_SERVICE,
 	            g_param_spec_object ("service", "Service", "Secret Service",
@@ -442,7 +442,7 @@ secret_item_async_initable_iface (GAsyncInitableIface *iface)
 /**
  * secret_item_new:
  * @service: a secret service object
- * @item_path: the dbus path of the collection
+ * @item_path: the D-Bus path of the collection
  * @cancellable: optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to be passed to the callback
@@ -510,7 +510,7 @@ secret_item_new_finish (GAsyncResult *result,
 /**
  * secret_item_new_sync:
  * @service: a secret service object
- * @item_path: the dbus path of the item
+ * @item_path: the D-Bus path of the item
  * @cancellable: optional cancellation object
  * @error: location to place an error on failure
  *

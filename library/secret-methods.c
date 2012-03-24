@@ -49,10 +49,16 @@ on_search_items_complete (GObject *source,
  * @callback: called when the operation completes
  * @user_data: data to pass to the callback
  *
- * Search for items matching the @attributes. All collections are searched.
- * The @attributes should be a table of string keys and string values.
+ * Search for items matching the @attributes, and return their D-Bus object paths.
+ * All collections are searched. The @attributes should be a table of string keys
+ * and string values.
  *
  * This function returns immediately and completes asynchronously.
+ *
+ * When your callback is called use secret_service_search_for_paths_finish()
+ * to get the results of this function. Only the D-Bus object paths of the
+ * items will be returned. If you would like #SecretItem objects to be returned
+ * instead, then use the secret_service_search() function.
  */
 void
 secret_service_search_for_paths (SecretService *self,
@@ -98,17 +104,23 @@ _secret_service_search_for_paths_variant (SecretService *self,
  * @self: the secret service
  * @result: asynchronous result passed to callback
  * @unlocked: (out) (transfer full) (array zero-terminated=1) (allow-none):
- *            location to place an array of dbus object paths for matching
+ *            location to place an array of D-Bus object paths for matching
  *            items which were locked.
  * @locked: (out) (transfer full) (array zero-terminated=1) (allow-none):
- *          location to place an array of dbus object paths for matching
+ *          location to place an array of D-Bus object paths for matching
  *          items which were locked.
  * @error: location to place error on failure
  *
- * Complete asynchronous operation to search for items.
+ * Complete asynchronous operation to search for items, and return their
+ * D-Bus object paths.
  *
- * Matching items that are locked or unlocked, have their dbus paths placed
+ * Matching items that are locked or unlocked, have their D-Bus paths placed
  * in the @locked or @unlocked arrays respectively.
+ *
+ * D-Bus object paths of the items will be returned in the @unlocked or
+ * @locked arrays. If you would to have #SecretItem objects to be returned
+ * instead, then us the secret_service_search() and
+ * secret_service_search_finish() functions.
  *
  * Returns: whether the search was successful or not
  */
@@ -150,21 +162,26 @@ secret_service_search_for_paths_finish (SecretService *self,
  * @attributes: (element-type utf8 utf8): search for items matching these attributes
  * @cancellable: optional cancellation object
  * @unlocked: (out) (transfer full) (array zero-terminated=1) (allow-none):
- *            location to place an array of dbus object paths for matching
+ *            location to place an array of D-Bus object paths for matching
  *            items which were locked.
  * @locked: (out) (transfer full) (array zero-terminated=1) (allow-none):
- *          location to place an array of dbus object paths for matching
+ *          location to place an array of D-Bus object paths for matching
  *          items which were locked.
  * @error: location to place error on failure
  *
- * Search for items matching the @attributes. All collections are searched.
- * The @attributes should be a table of string keys and string values.
+ * Search for items matching the @attributes, and return their D-Bus object
+ * paths. All collections are searched. The @attributes should be a table of
+ * string keys and string values.
  *
  * This function may block indefinetely. Use the asynchronous version
  * in user interface threads.
  *
- * Matching items that are locked or unlocked, have their dbus paths placed
+ * Matching items that are locked or unlocked, have their D-Bus paths placed
  * in the @locked or @unlocked arrays respectively.
+ *
+ * D-Bus object paths of the items will be returned in the @unlocked or
+ * @locked arrays. If you would to have #SecretItem objects to be returned
+ * instead, then use the secret_service_search_sync() function.
  *
  * Returns: whether the search was successful or not
  */
@@ -315,6 +332,11 @@ on_search_paths (GObject *source,
  * The @attributes should be a table of string keys and string values.
  *
  * This function returns immediately and completes asynchronously.
+ *
+ * When your callback is called use secret_service_search_finish()
+ * to get the results of this function. #SecretItem proxy objects will be
+ * returned. If you prefer to only have the items D-Bus object paths returned,
+ * then then use the secret_service_search_for_paths() function.
  */
 void
 secret_service_search (SecretService *self,
@@ -372,8 +394,12 @@ search_finish_build (gchar **paths,
  *
  * Complete asynchronous operation to search for items.
  *
- * Matching items that are locked or unlocked are placed
- * in the @locked or @unlocked lists respectively.
+ * Matching items that are locked or unlocked are placed in the @locked or
+ * @unlocked lists respectively.
+ *
+ * #SecretItem proxy objects will be returned. If you prefer to only have
+ * the items' D-Bus object paths returned, then then use the
+ * secret_service_search_for_paths() function.
  *
  * Returns: whether the search was successful or not
  */
@@ -452,6 +478,10 @@ service_load_items_sync (SecretService *self,
  *
  * Matching items that are locked or unlocked are placed
  * in the @locked or @unlocked lists respectively.
+ *
+ * #SecretItem proxy objects will be returned. If you prefer to only have
+ * the items' D-Bus object paths returned, then then use the
+ * secret_service_search_sync() function.
  *
  * Returns: whether the search was successful or not
  */
@@ -554,12 +584,16 @@ on_get_secrets_session (GObject *source,
 /**
  * secret_service_get_secret_for_path:
  * @self: the secret service
- * @item_path: the dbus path to item to retrieve secret for
+ * @item_path: the D-Bus path to item to retrieve secret for
  * @cancellable: optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to pass to the callback
  *
  * Get the secret value for an secret item stored in the service.
+ *
+ * The item is represented by its D-Bus object path. If you already have a
+ * #SecretItem proxy object, use use secret_item_get_secret() to more simply
+ * get its secret value.
  *
  * This function returns immediately and completes asynchronously.
  */
@@ -675,11 +709,15 @@ secret_service_get_secret_for_path_finish (SecretService *self,
 /**
  * secret_service_get_secret_for_path_sync:
  * @self: the secret service
- * @item_path: the dbus path to item to retrieve secret for
+ * @item_path: the D-Bus path to item to retrieve secret for
  * @cancellable: optional cancellation object
  * @error: location to place an error on failure
  *
  * Get the secret value for an secret item stored in the service.
+ *
+ * The item is represented by its D-Bus object path. If you already have a
+ * #SecretItem proxy object, use use secret_item_get_secret_sync() to more simply
+ * get its secret value.
  *
  * This method may block indefinitely and should not be used in user interface
  * threads.
@@ -722,12 +760,16 @@ secret_service_get_secret_for_path_sync (SecretService *self,
 /**
  * secret_service_get_secrets_for_paths:
  * @self: the secret service
- * @item_paths: the dbus paths to items to retrieve secrets for
+ * @item_paths: the D-Bus paths to items to retrieve secrets for
  * @cancellable: optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to pass to the callback
  *
  * Get the secret values for an secret items stored in the service.
+ *
+ * The items are represented by their D-Bus object paths. If you already have
+ * #SecretItem proxy objects, use use secret_service_get_secrets() to more simply
+ * get their secret values.
  *
  * This function returns immediately and completes asynchronously.
  */
@@ -798,11 +840,15 @@ secret_service_get_secrets_for_paths_finish (SecretService *self,
 /**
  * secret_service_get_secrets_for_paths_sync:
  * @self: the secret service
- * @item_paths: the dbus paths to items to retrieve secrets for
+ * @item_paths: the D-Bus paths to items to retrieve secrets for
  * @cancellable: optional cancellation object
  * @error: location to place an error on failure
  *
  * Get the secret values for an secret items stored in the service.
+ *
+ * The items are represented by their D-Bus object paths. If you already have
+ * #SecretItem proxy objects, use use secret_service_get_secrets_sync() to more
+ * simply get their secret values.
  *
  * This method may block indefinitely and should not be used in user interface
  * threads.
@@ -851,6 +897,10 @@ secret_service_get_secrets_for_paths_sync (SecretService *self,
  * @user_data: data to pass to the callback
  *
  * Get the secret values for an secret items stored in the service.
+ *
+ * This method takes a list of #SecretItem proxy objects. If you only have the
+ * D-Bus object paths of the items, use secret_service_get_secrets_for_paths()
+ * instead.
  *
  * This function returns immediately and completes asynchronously.
  */
@@ -961,6 +1011,10 @@ secret_service_get_secrets_finish (SecretService *self,
  * @error: location to place an error on failure
  *
  * Get the secret values for an secret items stored in the service.
+ *
+ * This method takes a list of #SecretItem proxy objects. If you only have the
+ * D-Bus object paths of the items, use secret_service_get_secrets_for_paths_sync()
+ * instead.
  *
  * This method may block indefinitely and should not be used in user interface
  * threads.
@@ -1220,6 +1274,10 @@ service_xlock_finish (SecretService *self,
  *
  * Lock items or collections in the secret service.
  *
+ * This method takes a list of #SecretItem or #SecretCollection proxy objects.
+ * If you only have the D-Bus object paths of the items or collections, use
+ * secret_service_lock_paths() instead.
+ *
  * The secret service may not be able to lock items individually, and may
  * lock an entire collection instead.
  *
@@ -1279,6 +1337,10 @@ secret_service_lock_finish (SecretService *self,
  *
  * Lock items or collections in the secret service.
  *
+ * This method takes a list of #SecretItem or #SecretCollection proxy objects.
+ * If you only have the D-Bus object paths of the items or collections, use
+ * secret_service_lock_paths_sync() instead.
+ *
  * The secret service may not be able to lock items individually, and may
  * lock an entire collection instead.
  *
@@ -1321,14 +1383,18 @@ secret_service_lock_sync (SecretService *self,
 /**
  * secret_service_lock_paths_sync:
  * @self: the secret service
- * @paths: the dbus paths for items or collections to lock
+ * @paths: the D-Bus object paths of the items or collections to lock
  * @cancellable: optional cancellation object
  * @locked: (out) (array zero-terminated=1) (transfer full) (allow-none):
- *          location to place array of dbus paths of items or collections
+ *          location to place array of D-Bus paths of items or collections
  *          that were locked
  * @error: location to place an error on failure
  *
  * Lock items or collections in the secret service.
+ *
+ * The items or collections are represented by their D-Bus object paths. If you
+ * already have #SecretItem and #SecretCollection proxy objects, use use
+ * secret_service_lock_sync() instead.
  *
  * The secret service may not be able to lock items individually, and may
  * lock an entire collection instead.
@@ -1374,12 +1440,16 @@ secret_service_lock_paths_sync (SecretService *self,
 /**
  * secret_service_lock_paths:
  * @self: the secret service
- * @paths: the dbus paths for items or collections to lock
+ * @paths: the D-Bus paths for items or collections to lock
  * @cancellable: optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to pass to the callback
  *
  * Lock items or collections in the secret service.
+ *
+ * The items or collections are represented by their D-Bus object paths. If you
+ * already have #SecretItem and #SecretCollection proxy objects, use use
+ * secret_service_lock() instead.
  *
  * The secret service may not be able to lock items individually, and may
  * lock an entire collection instead.
@@ -1412,7 +1482,7 @@ secret_service_lock_paths (SecretService *self,
  * @self: the secret service
  * @result: asynchronous result passed to the callback
  * @locked: (out) (array zero-terminated=1) (transfer full) (allow-none):
- *          location to place array of dbus paths of items or collections
+ *          location to place array of D-Bus paths of items or collections
  *          that were locked
  * @error: location to place an error on failure
  *
@@ -1440,14 +1510,18 @@ secret_service_lock_paths_finish (SecretService *self,
 /**
  * secret_service_unlock_paths_sync:
  * @self: the secret service
- * @paths: the dbus paths for items or collections to unlock
+ * @paths: the D-Bus object paths of the items or collections to unlock
  * @cancellable: optional cancellation object
  * @unlocked: (out) (array zero-terminated=1) (transfer full) (allow-none):
- *            location to place array of dbus paths of items or collections
+ *            location to place array of D-Bus paths of items or collections
  *            that were unlocked
  * @error: location to place an error on failure
  *
  * Unlock items or collections in the secret service.
+ *
+ * The items or collections are represented by their D-Bus object paths. If you
+ * already have #SecretItem and #SecretCollection proxy objects, use use
+ * secret_service_unlock_sync() instead.
  *
  * The secret service may not be able to unlock items individually, and may
  * unlock an entire collection instead.
@@ -1494,12 +1568,16 @@ secret_service_unlock_paths_sync (SecretService *self,
 /**
  * secret_service_unlock_paths:
  * @self: the secret service
- * @paths: the dbus paths for items or collections to unlock
+ * @paths: the D-Bus paths for items or collections to unlock
  * @cancellable: optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to pass to the callback
  *
  * Unlock items or collections in the secret service.
+ *
+ * The items or collections are represented by their D-Bus object paths. If you
+ * already have #SecretItem and #SecretCollection proxy objects, use use
+ * secret_service_unlock() instead.
  *
  * The secret service may not be able to unlock items individually, and may
  * unlock an entire collection instead.
@@ -1533,7 +1611,7 @@ secret_service_unlock_paths (SecretService *self,
  * @self: the secret service
  * @result: asynchronous result passed to the callback
  * @unlocked: (out) (array zero-terminated=1) (transfer full) (allow-none):
- *            location to place array of dbus paths of items or collections
+ *            location to place array of D-Bus paths of items or collections
  *            that were unlocked
  * @error: location to place an error on failure
  *
@@ -1567,6 +1645,10 @@ secret_service_unlock_paths_finish (SecretService *self,
  * @user_data: data to pass to the callback
  *
  * Unlock items or collections in the secret service.
+ *
+ * This method takes a list of #SecretItem or #SecretCollection proxy objects.
+ * If you only have the D-Bus object paths of the items or collections, use
+ * secret_service_unlock_paths() instead.
  *
  * The secret service may not be able to unlock items individually, and may
  * unlock an entire collection instead.
@@ -1629,6 +1711,10 @@ secret_service_unlock_finish (SecretService *self,
  *
  * Unlock items or collections in the secret service.
  *
+ * This method takes a list of #SecretItem or #SecretCollection proxy objects.
+ * If you only have the D-Bus object paths of the items or collections, use
+ * secret_service_unlock_paths_sync() instead.
+ *
  * The secret service may not be able to unlock items individually, and may
  * unlock an entire collection instead.
  *
@@ -1672,8 +1758,8 @@ secret_service_unlock_sync (SecretService *self,
 /**
  * secret_service_store:
  * @self: the secret service
- * @schema: the schema to for attributes
- * @collection_path: (allow-none): the dbus path to the collection where to store the secret
+ * @schema: the schema for the attributes
+ * @collection_path: (allow-none): the D-Bus path to the collection where to store the secret
  * @label: label for the secret
  * @value: the secret value
  * @cancellable: optional cancellation object
@@ -1729,9 +1815,9 @@ secret_service_store (SecretService *self,
 /**
  * secret_service_storev:
  * @self: the secret service
- * @schema: the schema to for attributes
+ * @schema: the schema to use to check attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
- * @collection_path: (allow-none): the dbus path to the collection where to store the secret
+ * @collection_path: (allow-none): the D-Bus path to the collection where to store the secret
  * @label: label for the secret
  * @value: the secret value
  * @cancellable: optional cancellation object
@@ -1825,8 +1911,8 @@ secret_service_store_finish (SecretService *self,
 /**
  * secret_service_store_sync:
  * @self: the secret service
- * @schema: the schema to for attributes
- * @collection_path: (allow-none): the dbus path to the collection where to store the secret
+ * @schema: the schema for the attributes
+ * @collection_path: (allow-none): the D-Bus path to the collection where to store the secret
  * @label: label for the secret
  * @value: the secret value
  * @cancellable: optional cancellation object
@@ -1888,9 +1974,9 @@ secret_service_store_sync (SecretService *self,
 /**
  * secret_service_storev_sync:
  * @self: the secret service
- * @schema: the schema to for attributes
+ * @schema: the schema for the attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
- * @collection_path: (allow-none): the dbus path to the collection where to store the secret
+ * @collection_path: (allow-none): the D-Bus path to the collection where to store the secret
  * @label: label for the secret
  * @value: the secret value
  * @cancellable: optional cancellation object
@@ -1971,7 +2057,7 @@ lookup_closure_free (gpointer data)
 /**
  * secret_service_lookup:
  * @self: the secret service
- * @schema: the schema to for attributes
+ * @schema: the schema for the attributes
  * @cancellable: optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to be passed to the callback
@@ -2102,7 +2188,7 @@ on_lookup_searched (GObject *source,
 /**
  * secret_service_lookupv:
  * @self: the secret service
- * @schema: the schema to for attributes
+ * @schema: the schema for the attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
  * @cancellable: optional cancellation object
  * @callback: called when the operation completes
@@ -2191,7 +2277,7 @@ secret_service_lookup_finish (SecretService *self,
 /**
  * secret_service_lookup_sync:
  * @self: the secret service
- * @schema: the schema to for attributes
+ * @schema: the schema for the attributes
  * @cancellable: optional cancellation object
  * @error: location to place an error on failure
  * @...: the attribute keys and values, terminated with %NULL
@@ -2240,7 +2326,7 @@ secret_service_lookup_sync (SecretService *self,
 /**
  * secret_service_lookupv_sync:
  * @self: the secret service
- * @schema: the schema to for attributes
+ * @schema: the schema for the attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
  * @cancellable: optional cancellation object
  * @error: location to place an error on failure
@@ -2399,12 +2485,15 @@ _secret_service_delete_path (SecretService *self,
 /**
  * secret_service_delete_path:
  * @self: the secret service
- * @item_path: dbus path of item to delete
+ * @item_path: the D-Bus path of item to delete
  * @cancellable: optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to be passed to the callback
  *
  * Delete a secret item from the secret service.
+ *
+ * The item is represented by its D-Bus object path. If you already have a
+ * #SecretItem proxy objects, use use secret_item_delete() instead.
  *
  * This method will return immediately and complete asynchronously.
  */
@@ -2457,11 +2546,14 @@ secret_service_delete_path_finish (SecretService *self,
 /**
  * secret_service_delete_path_sync:
  * @self: the secret service
- * @item_path: dbus path of item to delete
+ * @item_path: the D-Bus path of item to delete
  * @cancellable: optional cancellation object
  * @error: location to place an error on failure
  *
  * Delete a secret item from the secret service.
+ *
+ * The item is represented by its D-Bus object path. If you already have a
+ * #SecretItem proxy objects, use use secret_item_delete_sync() instead.
  *
  * This method may block indefinitely and should not be used in user interface
  * threads.
@@ -2567,7 +2659,7 @@ on_search_delete_password (GObject *source,
 /**
  * secret_service_remove:
  * @self: the secret service
- * @schema: the schema to for attributes
+ * @schema: the schema for the attributes
  * @cancellable: optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to be passed to the callback
@@ -2612,7 +2704,7 @@ secret_service_remove (SecretService *self,
 /**
  * secret_service_removev:
  * @self: the secret service
- * @schema: the schema to for attributes
+ * @schema: the schema for the attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
  * @cancellable: optional cancellation object
  * @callback: called when the operation completes
@@ -2698,7 +2790,7 @@ secret_service_remove_finish (SecretService *self,
 /**
  * secret_service_remove_sync:
  * @self: the secret service
- * @schema: the schema to for attributes
+ * @schema: the schema for the attributes
  * @cancellable: optional cancellation object
  * @error: location to place an error on failure
  * @...: the attribute keys and values, terminated with %NULL
@@ -2747,7 +2839,7 @@ secret_service_remove_sync (SecretService *self,
 /**
  * secret_service_removev_sync:
  * @self: the secret service
- * @schema: the schema to for attributes
+ * @schema: the schema for the attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
  * @cancellable: optional cancellation object
  * @error: location to place an error on failure
@@ -2879,24 +2971,33 @@ on_create_collection_called (GObject *source,
 /**
  * secret_service_create_collection_path:
  * @self: a secret service object
- * @properties: hash table of properties for the new collection
+ * @properties: (element-type utf8 GLib.Variant): hash table of properties for
+ *              the new collection
  * @alias: (allow-none): an alias to check for before creating the new
  *         collection, or to assign to the new collection
  * @cancellable: optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to be passed to the callback
  *
- * Create a new collection in the secret service.
+ * Create a new collection in the secret service, and return its path.
  *
- * If a collection with the @alias already exists, then instead of creating a
- * new collection, the existing collection will be returned. If no collection
- * with this alias exists, then a new collection will be created and this
- * alias will be assigned to it.
+ * Using this method requires that you setup a correct hash table of D-Bus
+ * properties for the new collection. You may prefer to use
+ * secret_collection_create() which does handles this for you.
+ *
+ * An @alias is a well-known tag for a collection, such as 'default' (ie: the
+ * default collection to store items in). This allows other applications to
+ * easily identify and share a collection. If a collection with the @alias
+ * already exists, then instead of creating a new collection, the existing
+ * collection will be returned. If no collection with this alias exists, then a
+ * new collection will be created and this alias will be assigned to it.
  *
  * @properties is a set of properties for the new collection. The keys in the
  * hash table should be interface.property strings like
  * <literal>org.freedesktop.Secret.Collection.Label</literal>. The values
  * in the hash table should be #GVariant values of the properties.
+ *
+ * If you wish to have a
  *
  * This method will return immediately and complete asynchronously. The secret
  * service may prompt the user. secret_service_prompt() will be used to handle
@@ -2956,7 +3057,7 @@ secret_service_create_collection_path (SecretService *self,
  * Finish asynchronous operation to create a new collection in the secret
  * service.
  *
- * Returns: (transfer full): a new string containing the dbus object path
+ * Returns: (transfer full): a new string containing the D-Bus object path
  *          of the collection
  */
 gchar *
@@ -2986,18 +3087,25 @@ secret_service_create_collection_path_finish (SecretService *self,
 /**
  * secret_service_create_collection_path_sync:
  * @self: a secret service object
- * @properties: hash table of properties for the new collection
+ * @properties: (element-type utf8 GLib.Variant): hash table of D-Bus properties
+ *              for the new collection
  * @alias: (allow-none): an alias to check for before creating the new
  *         collection, or to assign to the new collection
  * @cancellable: optional cancellation object
  * @error: location to place an error on failure
  *
- * Create a new collection in the secret service.
+ * Create a new collection in the secret service and return its path.
  *
- * If a collection with the @alias already exists, then instead of creating a
- * new collection, the existing collection will be returned. If no collection
- * with this alias exists, then a new collection will be created and this
- * alias will be assigned to it.
+ * Using this method requires that you setup a correct hash table of D-Bus
+ * properties for the new collection. You may prefer to use
+ * secret_collection_create() which does handles this for you.
+ *
+ * An @alias is a well-known tag for a collection, such as 'default' (ie: the
+ * default collection to store items in). This allows other applications to
+ * easily identify and share a collection. If a collection with the @alias
+ * already exists, then instead of creating a new collection, the existing
+ * collection will be returned. If no collection with this alias exists, then
+ * a new collection will be created and this alias will be assigned to it.
  *
  * @properties is a set of properties for the new collection. The keys in the
  * hash table should be interface.property strings like
@@ -3008,7 +3116,7 @@ secret_service_create_collection_path_finish (SecretService *self,
  * threads. The secret service may prompt the user. secret_service_prompt()
  * will be used to handle any prompts that are required.
  *
- * Returns: (transfer full): a new string containing the dbus object path
+ * Returns: (transfer full): a new string containing the D-Bus object path
  *          of the collection
  */
 gchar *
@@ -3169,18 +3277,21 @@ on_create_item_session (GObject *source,
 /**
  * secret_service_create_item_path:
  * @self: a secret service object
- * @collection_path: (allow-none): dbus path to collection in which to create item
- * @properties: hash table of properties for the new collection
+ * @collection_path: (allow-none): the D-Bus object path of the collection in which to create item
+ * @properties: (element-type utf8 GLib.Variant): hash table of D-Bus properties
+ *              for the new collection
  * @value: the secret value to store in the item
  * @replace: whether to replace an item with the matching attributes
  * @cancellable: optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to be passed to the callback
  *
- * Create a new item in a secret service collection.
+ * Create a new item in a secret service collection and return its D-Bus
+ * object path.
  *
  * It is often easier to use secret_password_store() or secret_item_create()
- * rather than using this function.
+ * rather than using this function. Using this method requires that you setup
+ * a correct hash table of D-Bus @properties for the new collection.
  *
  * If @replace is set to %TRUE, and an item already in the collection matches
  * the attributes (specified in @properties) then the item will be updated
@@ -3247,7 +3358,7 @@ secret_service_create_item_path (SecretService *self,
  * Finish asynchronous operation to create a new item in the secret
  * service.
  *
- * Returns: (transfer full): a new string containing the dbus object path
+ * Returns: (transfer full): a new string containing the D-Bus object path
  *          of the item
  */
 gchar *
@@ -3277,17 +3388,20 @@ secret_service_create_item_path_finish (SecretService *self,
 /**
  * secret_service_create_item_path_sync:
  * @self: a secret service object
- * @collection_path: (allow-none): dbus path to collection in which to create item
- * @properties: hash table of properties for the new collection
+ * @collection_path: (allow-none): the D-Bus path of the collection in which to create item
+ * @properties: (element-type utf8 GLib.Variant): hash table of D-Bus properties
+ *              for the new collection
  * @value: the secret value to store in the item
  * @replace: whether to replace an item with the matching attributes
  * @cancellable: optional cancellation object
  * @error: location to place an error on failure
  *
- * Create a new item in a secret service collection.
+ * Create a new item in a secret service collection and return its D-Bus
+ * object path.
  *
  * It is often easier to use secret_password_store_sync() or secret_item_create_sync()
- * rather than using this function.
+ * rather than using this function. Using this method requires that you setup
+ * a correct hash table of D-Bus @properties for the new collection.
  *
  * If @replace is set to %TRUE, and an item already in the collection matches
  * the attributes (specified in @properties) then the item will be updated
@@ -3302,7 +3416,7 @@ secret_service_create_item_path_finish (SecretService *self,
  * threads. The secret service may prompt the user. secret_service_prompt()
  * will be used to handle any prompts that are required.
  *
- * Returns: (transfer full): a new string containing the dbus object path
+ * Returns: (transfer full): a new string containing the D-Bus object path
  *          of the item
  */
 gchar *

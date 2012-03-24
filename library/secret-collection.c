@@ -529,7 +529,7 @@ secret_collection_class_init (SecretCollectionClass *klass)
 	 * SecretCollection:service:
 	 *
 	 * The #SecretService object that this collection is associated with and
-	 * uses to interact with the actual DBus Secret Service.
+	 * uses to interact with the actual D-Bus Secret Service.
 	 */
 	g_object_class_install_property (gobject_class, PROP_SERVICE,
 	            g_param_spec_object ("service", "Service", "Secret Service",
@@ -737,7 +737,7 @@ secret_collection_async_initable_iface (GAsyncInitableIface *iface)
 /**
  * secret_collection_new:
  * @service: a secret service object
- * @collection_path: the dbus path of the collection
+ * @collection_path: the D-Bus path of the collection
  * @cancellable: optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to be passed to the callback
@@ -808,7 +808,7 @@ secret_collection_new_finish (GAsyncResult *result,
 /**
  * secret_collection_new_sync:
  * @service: a secret service object
- * @collection_path: the dbus path of the collection
+ * @collection_path: the D-Bus path of the collection
  * @cancellable: optional cancellation object
  * @error: location to place an error on failure
  *
@@ -951,6 +951,12 @@ collection_properties_new (const gchar *label)
  * This method returns immediately and completes asynchronously. The secret
  * service may prompt the user. secret_service_prompt() will be used to handle
  * any prompts that are required.
+ *
+ * An @alias is a well-known tag for a collection, such as 'default' (ie: the
+ * default collection to store items in). This allows other applications to
+ * easily identify and share a collection. If you specify an @alias, and a
+ * collection with that alias already exists, then a new collection will not
+ * be created. The previous one will be returned instead.
  */
 void
 secret_collection_create (SecretService *service,
@@ -1029,6 +1035,12 @@ secret_collection_create_finish (GAsyncResult *result,
  * This method may block indefinitely and should not be used in user interface
  * threads. The secret service may prompt the user. secret_service_prompt()
  * will be used to handle any prompts that are required.
+ *
+ * An @alias is a well-known tag for a collection, such as 'default' (ie: the
+ * default collection to store items in). This allows other applications to
+ * easily identify and share a collection. If you specify an @alias, and a
+ * collection with that alias already exists, then a new collection will not
+ * be created. The previous one will be returned instead.
  *
  * Returns: (transfer full): the new collection, which should be unreferenced
  *          with g_object_unref()

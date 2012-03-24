@@ -30,7 +30,7 @@
  * @short_description: the Secret Service
  *
  * A #SecretService object represents the Secret Service implementation which
- * runs as a DBus service.
+ * runs as a D-Bus service.
  *
  * Normally a single #SecretService object can be shared between multiple
  * callers. The secret_service_get() method is used to access this #SecretService
@@ -812,7 +812,7 @@ secret_service_get_sync (SecretServiceFlags flags,
 
 /**
  * secret_service_new:
- * @service_bus_name: (allow-none): dbus service name of the secret service
+ * @service_bus_name: (allow-none): the D-Bus service name of the secret service
  * @flags: flags for which service functionality to ensure is initialized
  * @cancellable: optional cancellation object
  * @callback: called when the operation completes
@@ -887,7 +887,7 @@ secret_service_new_finish (GAsyncResult *result,
 
 /**
  * secret_service_new_sync:
- * @service_bus_name: (allow-none): dbus service name of the secret service
+ * @service_bus_name: (allow-none): the D-Bus service name of the secret service
  * @flags: flags for which service functionality to ensure is initialized
  * @cancellable: optional cancellation object
  * @error: location to place an error on failure
@@ -1089,13 +1089,13 @@ secret_service_get_session_algorithms (SecretService *self)
  * secret_service_get_session_path:
  * @self: the secret service proxy
  *
- * Get the dbus object path of the session object being used to transfer
+ * Get the D-Bus object path of the session object being used to transfer
  * secrets between this secret service proxy and the Secret Service itself.
  *
  * This will be %NULL if no session has been established. Use
  * secret_service_ensure_session() to establish a session.
  *
- * Returns: (allow-none): a string representing the dbus object path of the
+ * Returns: (allow-none): a string representing the D-Bus object path of the
  *          session
  */
 const gchar *
