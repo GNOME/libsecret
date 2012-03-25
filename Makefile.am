@@ -3,7 +3,7 @@ include $(top_srcdir)/Makefile.decl
 
 ACLOCAL_AMFLAGS = -I build/m4 ${ACLOCAL_FLAGS}
 
-SUBDIRS = build egg library tool po docs
+SUBDIRS = build egg library tool po docs .
 
 DISTCHECK_CONFIGURE_FLAGS = \
 	--enable-debug=yes \
@@ -30,3 +30,6 @@ check-memory:
 		test -d $(builddir)/$$subdir/tests && \
 			make -C $(builddir)/$$subdir/tests check-memory; \
 	done
+
+upload-docs:
+	rsync -Hvax docs/reference/libsecret/html/./ master.gnome.org:public_html/libsecret-docs/
