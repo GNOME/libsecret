@@ -30,7 +30,7 @@ typedef struct _SecretSession SecretSession;
 
 #define              SECRET_SERVICE_PATH                      "/org/freedesktop/secrets"
 
-#define              SECRET_SERVICE_BUS_NAME                  "org.freedesktop.Secret.Service"
+#define              SECRET_SERVICE_BUS_NAME                  "org.freedesktop.secrets"
 
 #define              SECRET_ITEM_INTERFACE                    "org.freedesktop.Secret.Item"
 #define              SECRET_COLLECTION_INTERFACE              "org.freedesktop.Secret.Collection"
