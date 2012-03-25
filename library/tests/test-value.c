@@ -164,7 +164,7 @@ test_to_password_bad_content (void)
 	SecretValue *value;
 	gchar *password;
 
-	value = secret_value_new_full (g_strdup ("wooowhee"), -1,
+	value = secret_value_new_full (g_strdup ("w\xFFooowhee"), -1,
 	                                "application/octet-stream", g_free);
 
 	password = _secret_value_unref_to_password (value);

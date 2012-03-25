@@ -556,7 +556,6 @@ secret_password_lookup_nonpageable_finish (GAsyncResult *result,
 {
 	GSimpleAsyncResult *res;
 	LookupClosure *closure;
-	const gchar *content_type;
 	gchar *password = NULL;
 
 	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
@@ -571,12 +570,8 @@ secret_password_lookup_nonpageable_finish (GAsyncResult *result,
 	if (closure->value == NULL)
 		return NULL;
 
-	content_type = secret_value_get_content_type (closure->value);
-	if (content_type && g_str_equal (content_type, "text/plain")) {
-		password = _secret_value_unref_to_password (closure->value);
-		closure->value = NULL;
-	}
-
+	password = _secret_value_unref_to_password (closure->value);
+	closure->value = NULL;
 	return password;
 }
 
@@ -596,7 +591,6 @@ secret_password_lookup_finish (GAsyncResult *result,
 {
 	GSimpleAsyncResult *res;
 	LookupClosure *closure;
-	const gchar *content_type;
 	gchar *string = NULL;
 
 	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
@@ -611,12 +605,8 @@ secret_password_lookup_finish (GAsyncResult *result,
 	if (closure->value == NULL)
 		return NULL;
 
-	content_type = secret_value_get_content_type (closure->value);
-	if (content_type && g_str_equal (content_type, "text/plain")) {
-		string = _secret_value_unref_to_string (closure->value);
-		closure->value = NULL;
-	}
-
+	string = _secret_value_unref_to_string (closure->value);
+	closure->value = NULL;
 	return string;
 }
 

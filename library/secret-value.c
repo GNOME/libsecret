@@ -219,6 +219,19 @@ secret_value_unref (gpointer value)
 	}
 }
 
+static gboolean
+is_password_value (SecretValue *value)
+{
+	if (value->content_type && g_str_equal (value->content_type, "text/plain"))
+		return TRUE;
+
+	/* gnome-keyring-daemon used to return passwords like this, so support this, but validate */
+	if (!value->content_type || g_str_equal (value->content_type, "application/octet-stream"))
+		return g_utf8_validate (value->secret, value->length, NULL);
+
+	return FALSE;
+}
+
 gchar *
 _secret_value_unref_to_password (SecretValue *value)
 {
@@ -227,7 +240,7 @@ _secret_value_unref_to_password (SecretValue *value)
 
 	g_return_val_if_fail (value != NULL, NULL);
 
-	if (val->content_type && !g_str_equal (val->content_type, "text/plain")) {
+	if (!is_password_value (value)) {
 		secret_value_unref (value);
 		return NULL;
 	}
@@ -259,7 +272,7 @@ _secret_value_unref_to_string (SecretValue *value)
 
 	g_return_val_if_fail (value != NULL, NULL);
 
-	if (val->content_type && !g_str_equal (val->content_type, "text/plain")) {
+	if (!is_password_value (value)) {
 		secret_value_unref (value);
 		return NULL;
 	}
