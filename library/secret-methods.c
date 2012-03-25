@@ -1815,7 +1815,7 @@ secret_service_store (SecretService *self,
 /**
  * secret_service_storev:
  * @self: the secret service
- * @schema: the schema to use to check attributes
+ * @schema: (allow-none): the schema to use to check attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
  * @collection_path: (allow-none): the D-Bus path to the collection where to store the secret
  * @label: label for the secret
@@ -1848,18 +1848,18 @@ secret_service_storev (SecretService *self,
                        GAsyncReadyCallback callback,
                        gpointer user_data)
 {
+	const gchar *schema_name;
 	GHashTable *properties;
 	GVariant *propval;
 
 	g_return_if_fail (SECRET_IS_SERVICE (self));
-	g_return_if_fail (schema != NULL);
 	g_return_if_fail (attributes != NULL);
 	g_return_if_fail (label != NULL);
 	g_return_if_fail (value != NULL);
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
 	/* Warnings raised already */
-	if (!_secret_util_attributes_validate (schema, attributes))
+	if (schema != NULL && !_secret_util_attributes_validate (schema, attributes))
 		return;
 
 	properties = g_hash_table_new_full (g_str_hash, g_str_equal, NULL,
@@ -1871,7 +1871,8 @@ secret_service_storev (SecretService *self,
 	                     g_variant_ref_sink (propval));
 
 	/* Always store the schema name in the attributes */
-	propval = _secret_util_variant_for_attributes (attributes, schema->name);
+	schema_name = (schema == NULL) ? NULL : schema->name;
+	propval = _secret_util_variant_for_attributes (attributes, schema_name);
 	g_hash_table_insert (properties,
 	                     SECRET_ITEM_INTERFACE ".Attributes",
 	                     g_variant_ref_sink (propval));
@@ -1974,7 +1975,7 @@ secret_service_store_sync (SecretService *self,
 /**
  * secret_service_storev_sync:
  * @self: the secret service
- * @schema: the schema for the attributes
+ * @schema: (allow-none): the schema for the attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
  * @collection_path: (allow-none): the D-Bus path to the collection where to store the secret
  * @label: label for the secret
@@ -2012,7 +2013,6 @@ secret_service_storev_sync (SecretService *self,
 	gboolean ret;
 
 	g_return_val_if_fail (SECRET_IS_SERVICE (self), FALSE);
-	g_return_val_if_fail (schema != NULL, FALSE);
 	g_return_val_if_fail (attributes != NULL, FALSE);
 	g_return_val_if_fail (label != NULL, FALSE);
 	g_return_val_if_fail (value != NULL, FALSE);
@@ -2020,7 +2020,7 @@ secret_service_storev_sync (SecretService *self,
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
 	/* Warnings raised already */
-	if (!_secret_util_attributes_validate (schema, attributes))
+	if (schema != NULL && !_secret_util_attributes_validate (schema, attributes))
 		return FALSE;
 
 	sync = _secret_sync_new ();
@@ -2188,7 +2188,7 @@ on_lookup_searched (GObject *source,
 /**
  * secret_service_lookupv:
  * @self: the secret service
- * @schema: the schema for the attributes
+ * @schema: (allow-none): the schema for the attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
  * @cancellable: optional cancellation object
  * @callback: called when the operation completes
@@ -2208,18 +2208,17 @@ secret_service_lookupv (SecretService *self,
                         GAsyncReadyCallback callback,
                         gpointer user_data)
 {
+	const gchar *schema_name = NULL;
 	GSimpleAsyncResult *res;
 	LookupClosure *closure;
-	const gchar *schema_name;
 	GVariant *variant;
 
 	g_return_if_fail (SECRET_IS_SERVICE (self));
-	g_return_if_fail (schema != NULL);
 	g_return_if_fail (attributes != NULL);
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
 	/* Warnings raised already */
-	if (!_secret_util_attributes_validate (schema, attributes))
+	if (schema != NULL && !_secret_util_attributes_validate (schema, attributes))
 		return;
 
 	res = g_simple_async_result_new (G_OBJECT (self), callback, user_data,
@@ -2228,7 +2227,8 @@ secret_service_lookupv (SecretService *self,
 	closure->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
 	g_simple_async_result_set_op_res_gpointer (res, closure, lookup_closure_free);
 
-	schema_name = (schema->flags & SECRET_SCHEMA_DONT_MATCH_NAME) ? NULL : schema->name;
+	if (schema != NULL && !(schema->flags & SECRET_SCHEMA_DONT_MATCH_NAME))
+		schema_name = schema->name;
 	variant = _secret_util_variant_for_attributes (attributes, schema_name);
 
 	_secret_service_search_for_paths_variant (self, variant, cancellable,
@@ -2326,7 +2326,7 @@ secret_service_lookup_sync (SecretService *self,
 /**
  * secret_service_lookupv_sync:
  * @self: the secret service
- * @schema: the schema for the attributes
+ * @schema: (allow-none): the schema for the attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
  * @cancellable: optional cancellation object
  * @error: location to place an error on failure
@@ -2352,12 +2352,11 @@ secret_service_lookupv_sync (SecretService *self,
 	SecretValue *value;
 
 	g_return_val_if_fail (SECRET_IS_SERVICE (self), NULL);
-	g_return_val_if_fail (schema != NULL, NULL);
 	g_return_val_if_fail (attributes != NULL, NULL);
 	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
 
 	/* Warnings raised already */
-	if (!_secret_util_attributes_validate (schema, attributes))
+	if (schema != NULL && !_secret_util_attributes_validate (schema, attributes))
 		return NULL;
 
 	sync = _secret_sync_new ();
@@ -2704,7 +2703,7 @@ secret_service_remove (SecretService *self,
 /**
  * secret_service_removev:
  * @self: the secret service
- * @schema: the schema for the attributes
+ * @schema: (allow-none): the schema for the attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
  * @cancellable: optional cancellation object
  * @callback: called when the operation completes
@@ -2726,18 +2725,17 @@ secret_service_removev (SecretService *self,
                         GAsyncReadyCallback callback,
                         gpointer user_data)
 {
+	const gchar *schema_name = NULL;
 	GSimpleAsyncResult *res;
 	DeleteClosure *closure;
-	const gchar *schema_name;
 	GVariant *variant;
 
 	g_return_if_fail (SECRET_SERVICE (self));
-	g_return_if_fail (schema != NULL);
 	g_return_if_fail (attributes != NULL);
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
 	/* Warnings raised already */
-	if (!_secret_util_attributes_validate (schema, attributes))
+	if (schema != NULL && !_secret_util_attributes_validate (schema, attributes))
 		return;
 
 	res = g_simple_async_result_new (G_OBJECT (self), callback, user_data,
@@ -2746,7 +2744,8 @@ secret_service_removev (SecretService *self,
 	closure->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
 	g_simple_async_result_set_op_res_gpointer (res, closure, delete_closure_free);
 
-	schema_name = (schema->flags & SECRET_SCHEMA_DONT_MATCH_NAME) ? NULL : schema->name;
+	if (schema != NULL && !(schema->flags & SECRET_SCHEMA_DONT_MATCH_NAME))
+		schema_name = schema->name;
 	variant = _secret_util_variant_for_attributes (attributes, schema_name);
 
 	_secret_service_search_for_paths_variant (self, variant, cancellable,
@@ -2839,7 +2838,7 @@ secret_service_remove_sync (SecretService *self,
 /**
  * secret_service_removev_sync:
  * @self: the secret service
- * @schema: the schema for the attributes
+ * @schema: (allow-none): the schema for the attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
  * @cancellable: optional cancellation object
  * @error: location to place an error on failure
@@ -2866,12 +2865,11 @@ secret_service_removev_sync (SecretService *self,
 	gboolean result;
 
 	g_return_val_if_fail (SECRET_IS_SERVICE (self), FALSE);
-	g_return_val_if_fail (schema != NULL, FALSE);
 	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), FALSE);
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
 	/* Warnings raised already */
-	if (!_secret_util_attributes_validate (schema, attributes))
+	if (schema != NULL && !_secret_util_attributes_validate (schema, attributes))
 		return FALSE;
 
 	sync = _secret_sync_new ();
