@@ -1125,3 +1125,18 @@ secret_password_free (gchar *password)
 
 	egg_secure_strfree (password);
 }
+
+/**
+ * secret_password_clear:
+ * @password: (allow-none): password to clear
+ *
+ * Clear the memory used by a password.
+ */
+void
+secret_password_clear (gchar *password)
+{
+	if (password == NULL)
+		return;
+
+	egg_secure_strclear (password);
+}

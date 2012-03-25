@@ -126,6 +126,8 @@ gboolean    secret_password_removev_sync               (const SecretSchema *sche
 
 void        secret_password_free                       (gchar *password);
 
+void        secret_password_clear                      (gchar *password);
+
 G_END_DECLS
 
 #endif /* __SECRET_PASSWORD_H___ */
