@@ -70,3 +70,4 @@ stamp*
 !/library/tests/test-*.js
 !/library/tests/test-*.py
 
+/tool/secret-tool

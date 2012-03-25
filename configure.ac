@@ -238,6 +238,7 @@ AC_CONFIG_FILES([
 	library/Makefile
 	library/libsecret.pc
 	library/tests/Makefile
+	tool/Makefile
 ])
 AC_OUTPUT
 
