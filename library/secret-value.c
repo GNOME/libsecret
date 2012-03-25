@@ -237,7 +237,7 @@ _secret_value_unref_to_password (SecretValue *value)
 			result = val->secret;
 
 		} else {
-			result = egg_secure_strdup (val->secret);
+			result = egg_secure_strndup (val->secret, val->length);
 			if (val->destroy)
 				(val->destroy) (val->secret);
 		}
@@ -245,7 +245,7 @@ _secret_value_unref_to_password (SecretValue *value)
 		g_slice_free (SecretValue, val);
 
 	} else {
-		result = egg_secure_strdup (val->secret);
+		result = egg_secure_strndup (val->secret, val->length);
 	}
 
 	return result;
@@ -269,7 +269,7 @@ _secret_value_unref_to_string (SecretValue *value)
 			result = val->secret;
 
 		} else {
-			result = g_strdup (val->secret);
+			result = g_strndup (val->secret, val->length);
 			if (val->destroy)
 				(val->destroy) (val->secret);
 		}
@@ -277,7 +277,7 @@ _secret_value_unref_to_string (SecretValue *value)
 		g_slice_free (SecretValue, val);
 
 	} else {
-		result = g_strdup (val->secret);
+		result = g_strndup (val->secret, val->length);
 	}
 
 	return result;

@@ -1317,6 +1317,28 @@ egg_secure_strdup_full (const char *tag,
 	return res;
 }
 
+char *
+egg_secure_strndup_full (const char *tag,
+                         const char *str,
+                         size_t length,
+                         int options)
+{
+	size_t len;
+	char *res;
+	const char *end;
+
+	if (!str)
+		return NULL;
+
+	end = memchr (str, '\0', length);
+	if (end != NULL)
+		length = (end - str);
+	len = length + 1;
+	res = (char *)egg_secure_alloc_full (tag, len, options);
+	memcpy (res, str, len);
+	return res;
+}
+
 void
 egg_secure_clear (void *p, size_t length)
 {

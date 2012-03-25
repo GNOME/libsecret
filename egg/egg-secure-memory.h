@@ -81,6 +81,9 @@ extern void*  egg_memory_fallback (void *p, size_t length);
 	} \
 	static inline void* egg_secure_strdup (const char *str) { \
 		return egg_secure_strdup_full (G_STRINGIFY (tag), str, EGG_SECURE_USE_FALLBACK); \
+	} \
+	static inline void* egg_secure_strndup (const char *str, size_t length) { \
+		return egg_secure_strndup_full (G_STRINGIFY (tag), str, length, EGG_SECURE_USE_FALLBACK); \
 	}
 
 void*  egg_secure_alloc_full   (const char *tag, size_t length, int options);
@@ -98,6 +101,8 @@ int    egg_secure_check        (const void* p);
 void   egg_secure_validate     (void);
 
 char*  egg_secure_strdup_full  (const char *tag, const char *str, int options);
+
+char*  egg_secure_strndup_full (const char *tag, const char *str, size_t length, int options);
 
 void   egg_secure_strclear     (char *str);
 
