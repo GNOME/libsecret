@@ -9,7 +9,8 @@ DISTCHECK_CONFIGURE_FLAGS = \
 	--enable-debug=yes \
 	--disable-coverage \
 	--enable-strict \
-	--disable-silent-rules
+	--disable-silent-rules \
+	--enable-gtk-doc
 
 dist-hook:
 	@if test -d "$(srcdir)/.git"; \

@@ -1,33 +1,3 @@
-2.27.90
-=======
-  * Fixed configure script to actually error out if installed glib
-    version is too old (Emilio Pozuelo Monfort)
+0.1
 
-  * gnutls: updated GTlsClientConnectionGnutls for :accepted-cas type
-    change (Stef Walter)
-  * gnutls: fixed an uninitialized variable (Dan Winship)
-
-2.27.5
-======
-  * gnutls: finish implementing GTlsRehandshakeMode, which was present
-    but non-functional in 2.27.4
-  * gnutls: updates for glib TLS API changes
-  * gnutls: fix some async bugs that caused the main loop to spin
-  * gnutls: implement a client-side session cache, to speed up
-    handshakes
-
-  * Compile with gcc warnings by default
-
-2.27.4
-======
-  * GNUTLS-based implementation of GTlsBackend
-
-2.26.0
-======
-
-  * No changes, just a version bump
-
-2.25.0
-======
-
-  * Initial release, with libproxy-based GProxyResolver
+ * Initial release, not yet stable

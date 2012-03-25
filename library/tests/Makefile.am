@@ -47,15 +47,6 @@ check_PROGRAMS = \
 noinst_PROGRAMS =  \
 	$(NULL)
 
-EXTRA_DIST = \
-	mock \
-	mock-service-delete.py \
-	mock-service-lock.py \
-	mock-service-normal.py \
-	mock-service-only-plain.py \
-	mock-service-prompt.py \
-	$(NULL)
-
 JS_TESTS = \
 	test-lookup-password.js \
 	test-remove-password.js \
@@ -76,10 +67,10 @@ test-c: $(TEST_PROGS)
 	@gtester --verbose -m $(TEST_MODE) --g-fatal-warnings $(TEST_PROGS)
 
 test-js:
-	@for js in $(JS_TESTS); do echo "TEST: $$js"; $(JS_ENV) gjs $$js; done
+	@for js in $(JS_TESTS); do echo "TEST: $$js"; $(JS_ENV) gjs $(srcdir)/$$js; done
 
 test-py:
-	@for py in $(PY_TESTS); do echo "TEST: $$py"; $(PY_ENV) python $$py; done
+	@for py in $(PY_TESTS); do echo "TEST: $$py"; $(PY_ENV) python $(srcdir)/$$py; done
 
 test: test-c test-py test-js
 
@@ -111,6 +102,21 @@ noinst_DATA = \
 endif
 
 #--------------------------------------------------------------------
+
+EXTRA_DIST = \
+	mock \
+	mock-service-delete.py \
+	mock-service-lock.py \
+	mock-service-normal.py \
+	mock-service-only-plain.py \
+	mock-service-prompt.py \
+	$(JS_TESTS) \
+	$(PY_TESTS) \
+	$(NULL)
+
+CLEANFILES = \
+	$(noinst_DATA) \
+	$(NULL)
 
 all-local: $(check_PROGRAMS)
 

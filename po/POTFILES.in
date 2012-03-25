@@ -1,2 +1,3 @@
 library/secret-item.c
 library/secret-session.c
+tool/secret-tool.c
