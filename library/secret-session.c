@@ -76,6 +76,8 @@ request_open_session_aes (SecretSession *session)
 	g_assert (session->privat == NULL);
 	g_assert (session->publi == NULL);
 
+	egg_libgcrypt_initialize ();
+
 	/* Initialize our local parameters and values */
 	if (!egg_dh_default_params ("ietf-ike-grp-modp-1024",
 	                            &session->prime, &base))
