@@ -27,7 +27,7 @@ libmock_service_la_LIBADD = \
 LDADD =  \
 	$(top_builddir)/egg/libegg.la \
 	$(top_builddir)/library/libsecret-@SECRET_MAJOR@.la \
-	$(top_builddir)/library/tests/libmock_service.la \
+	libmock_service.la \
 	$(NULL)
 
 TEST_PROGS = \
