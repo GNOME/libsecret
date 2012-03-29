@@ -148,7 +148,7 @@ else
 	CFLAGS="$CFLAGS -Wno-error"
 	TEST_MODE="quick"
 	INTROSPECTION_FLAGS=""
-	$enable_strict="no"
+	enable_strict="no"
 fi
 
 AC_MSG_RESULT($enable_strict)
