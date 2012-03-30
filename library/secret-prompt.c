@@ -53,12 +53,12 @@
  * The class for #SecretPrompt.
  */
 
-typedef struct _SecretPromptPrivate {
+struct _SecretPromptPrivate {
 	/* Locked by mutex */
 	GMutex mutex;
 	gint prompted;
 	GVariant *last_result;
-} SecretPromptPrivate;
+};
 
 G_DEFINE_TYPE (SecretPrompt, secret_prompt, G_TYPE_DBUS_PROXY);
 

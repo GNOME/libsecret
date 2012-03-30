@@ -108,7 +108,7 @@ enum {
 	PROP_COLLECTIONS
 };
 
-typedef struct _SecretServicePrivate {
+struct _SecretServicePrivate {
 	/* No change between construct and finalize */
 	GCancellable *cancellable;
 	SecretServiceFlags init_flags;
@@ -117,7 +117,7 @@ typedef struct _SecretServicePrivate {
 	GMutex mutex;
 	gpointer session;
 	GHashTable *collections;
-} SecretServicePrivate;
+};
 
 G_LOCK_DEFINE (service_instance);
 static gpointer service_instance = NULL;
