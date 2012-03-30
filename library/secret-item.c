@@ -73,10 +73,10 @@ enum {
 };
 
 /* Thread safe: no changes between construct and finalize */
-typedef struct _SecretItemPrivate {
+struct _SecretItemPrivate {
 	SecretService *service;
 	GCancellable *cancellable;
-} SecretItemPrivate;
+};
 
 static GInitableIface *secret_item_initable_parent_iface = NULL;
 
