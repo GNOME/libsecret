@@ -19,6 +19,7 @@
 
 #include <secret/secret-password.h>
 #include <secret/secret-schema.h>
+#include <secret/secret-schemas.h>
 #include <secret/secret-types.h>
 
 #undef __SECRET_INSIDE_HEADER__

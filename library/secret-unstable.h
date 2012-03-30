@@ -27,7 +27,6 @@
 #include <secret/secret-enum-types.h>
 #include <secret/secret-item.h>
 #include <secret/secret-prompt.h>
-#include <secret/secret-schemas.h>
 #include <secret/secret-service.h>
 #include <secret/secret-value.h>
 
