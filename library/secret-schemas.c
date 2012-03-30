@@ -24,6 +24,7 @@ static const SecretSchema network_schema = {
 		{  "protocol", SECRET_SCHEMA_ATTRIBUTE_STRING },
 		{  "port", SECRET_SCHEMA_ATTRIBUTE_INTEGER },
 		{  "server", SECRET_SCHEMA_ATTRIBUTE_STRING },
+		{  "authtype", SECRET_SCHEMA_ATTRIBUTE_STRING },
 		{  "NULL", 0 },
 	}
 };
