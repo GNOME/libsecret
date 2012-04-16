@@ -1,3 +1,8 @@
-0.1
+0.2
+ * Fix header copyright issues
+ * Build fixes
+ * Add missing 'authtype' attribute to the 'network' schema
+ * Add secret-schemas.h to the 'stable' API
 
+0.1
  * Initial release, not yet stable
