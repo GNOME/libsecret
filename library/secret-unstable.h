@@ -21,7 +21,7 @@
 
 #include <glib.h>
 
-#include <secret.h>
+#include <secret/secret.h>
 
 #define __SECRET_INSIDE_HEADER__
 
