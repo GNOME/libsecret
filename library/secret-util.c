@@ -28,7 +28,7 @@
  * the libsecret API is suitable for direct display to the user. It is up
  * to the application to handle them appropriately.
  *
- * @stability: Stable
+ * Stability: Stable
  */
 
 /**

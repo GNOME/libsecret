@@ -38,7 +38,7 @@
  * #SecretValue is reference counted and immutable. The secret data is only
  * freed when all references have been released via secret_value_unref().
  *
- * @stability: Unstable
+ * Stability: Unstable
  */
 
 /**
@@ -74,7 +74,7 @@ secret_value_get_type (void)
 }
 
 /**
- * secret_value_new_full:
+ * secret_value_new:
  * @secret: the secret data
  * @length: the length of the data
  * @content_type: the content type of the data
@@ -183,7 +183,7 @@ secret_value_get_content_type (SecretValue *value)
 }
 
 /**
- * secret_value_unref:
+ * secret_value_ref:
  * @value: value to reference
  *
  * Add another reference to the #SecretValue. For each reference

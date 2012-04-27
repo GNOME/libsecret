@@ -38,7 +38,7 @@
  * lookup the items in the collection. There may not be any items exposed when
  * the collection is locked.
  *
- * @stability: Unstable
+ * Stability: Unstable
  */
 
 /**

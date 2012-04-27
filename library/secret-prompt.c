@@ -38,7 +38,7 @@
  * SecretServiceClass::prompt_async and SecretServiceClass::prompt_finish
  * virtual methods of the #SecretService class.
  *
- * @stability: Unstable
+ * Stability: Unstable
  */
 
 /**

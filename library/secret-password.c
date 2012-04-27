@@ -38,7 +38,7 @@
  * Each of the functions accept a variable list of attributes names and their
  * values. Include a %NULL to terminate the list of attributes.
  *
- * @stability: Stable
+ * Stability: Stable
  */
 
 typedef struct {
@@ -233,8 +233,7 @@ secret_password_storev (const SecretSchema *schema,
 }
 
 /**
- * secret_service_store_finish:
- * @self: the secret service
+ * secret_password_store_finish:
  * @result: the asynchronous result passed to the callback
  * @error: location to place an error on failure
  *
@@ -969,7 +968,7 @@ secret_password_removev (const SecretSchema *schema,
 }
 
 /**
- * secret_password_remove_finish
+ * secret_password_remove_finish:
  * @result: the asynchronous result passed to the callback
  * @error: location to place an error on failure
  *

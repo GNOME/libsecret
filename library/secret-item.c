@@ -48,7 +48,7 @@
  *
  * Items can be created with secret_item_create() or secret_service_store().
  *
- * @stability: Unstable
+ * Stability: Unstable
  */
 
 /**
@@ -832,13 +832,13 @@ on_item_deleted (GObject *source,
 }
 
 /**
- * secret_collection_delete:
- * @self: a collection
+ * secret_item_delete:
+ * @self: an item
  * @cancellable: optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to pass to the callback
  *
- * Delete this collection.
+ * Delete this item.
  *
  * This method returns immediately and completes asynchronously. The secret
  * service may prompt the user. secret_service_prompt() will be used to handle

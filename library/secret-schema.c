@@ -60,7 +60,7 @@
  * }
  * </programlisting></informalexample>
  *
- * @stability: Stable
+ * Stability: Stable
  */
 
 /**
@@ -89,7 +89,7 @@
  * that are not stored by the libsecret library. Other libraries such as libgnome-keyring
  * don't store the schema name.
  *
- * @stability: Stable
+ * Stability: Stable
  */
 
 /**
