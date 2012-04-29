@@ -51,14 +51,16 @@ struct _SecretPromptClass {
 
 GType               secret_prompt_get_type                  (void) G_GNUC_CONST;
 
-gboolean            secret_prompt_run                       (SecretPrompt *self,
+GVariant *          secret_prompt_run                       (SecretPrompt *self,
                                                              gulong window_id,
                                                              GCancellable *cancellable,
+                                                             const GVariantType *return_type,
                                                              GError **error);
 
-gboolean            secret_prompt_perform_sync              (SecretPrompt *self,
+GVariant *          secret_prompt_perform_sync              (SecretPrompt *self,
                                                              gulong window_id,
                                                              GCancellable *cancellable,
+                                                             const GVariantType *return_type,
                                                              GError **error);
 
 void                secret_prompt_perform                   (SecretPrompt *self,
@@ -67,12 +69,10 @@ void                secret_prompt_perform                   (SecretPrompt *self,
                                                              GAsyncReadyCallback callback,
                                                              gpointer user_data);
 
-gboolean            secret_prompt_perform_finish            (SecretPrompt *self,
+GVariant *          secret_prompt_perform_finish            (SecretPrompt *self,
                                                              GAsyncResult *result,
+                                                             const GVariantType *return_type,
                                                              GError **error);
-
-GVariant *          secret_prompt_get_result_value          (SecretPrompt *self,
-                                                             const GVariantType *expected_type);
 
 G_END_DECLS
 

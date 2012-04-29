@@ -56,10 +56,7 @@
  */
 
 struct _SecretPromptPrivate {
-	/* Locked by mutex */
-	GMutex mutex;
 	gint prompted;
-	GVariant *last_result;
 };
 
 G_DEFINE_TYPE (SecretPrompt, secret_prompt, G_TYPE_DBUS_PROXY);
@@ -69,29 +66,11 @@ secret_prompt_init (SecretPrompt *self)
 {
 	self->pv = G_TYPE_INSTANCE_GET_PRIVATE (self, SECRET_TYPE_PROMPT,
 	                                        SecretPromptPrivate);
-
-	g_mutex_init (&self->pv->mutex);
-}
-
-static void
-secret_prompt_finalize (GObject *obj)
-{
-	SecretPrompt *self = SECRET_PROMPT (obj);
-
-	g_mutex_clear (&self->pv->mutex);
-	if (self->pv->last_result)
-		g_variant_unref (self->pv->last_result);
-
-	G_OBJECT_CLASS (secret_prompt_parent_class)->finalize (obj);
 }
 
 static void
 secret_prompt_class_init (SecretPromptClass *klass)
 {
-	GObjectClass *object_class = G_OBJECT_CLASS (klass);
-
-	object_class->finalize = secret_prompt_finalize;
-
 	g_type_class_add_private (klass, sizeof (SecretPromptPrivate));
 }
 
@@ -145,10 +124,13 @@ _secret_prompt_instance (SecretService *service,
  * @self: a prompt
  * @window_id: XWindow id for parent window to be transient for
  * @cancellable: optional cancellation object
+ * @return_type: the variant type of the prompt result
  * @error: location to place an error on failure
  *
- * Runs a prompt and performs the prompting. Returns %TRUE if the prompt
- * was completed and not dismissed.
+ * Runs a prompt and performs the prompting. Returns a variant result if the
+ * prompt was completed and not dismissed. The type of result depends on the
+ * action the prompt is completing, and is defined in the Secret Service DBus
+ * API specification.
  *
  * If @window_id is non-zero then it is used as an XWindow id. The Secret
  * Service can make its prompt transient for the window with this id. In some
@@ -160,21 +142,22 @@ _secret_prompt_instance (SecretService *service,
  * taken that appropriate user interface actions are disabled while running the
  * prompt.
  *
- * Returns: %FALSE if the prompt was dismissed or an error occurred
+ * Returns: (transfer full): %NULL if the prompt was dismissed or an error occurred
  */
-gboolean
+GVariant *
 secret_prompt_run (SecretPrompt *self,
                    gulong window_id,
                    GCancellable *cancellable,
+                   const GVariantType *return_type,
                    GError **error)
 {
 	GMainContext *context;
 	RunClosure *closure;
-	gboolean ret;
+	GVariant *retval;
 
-	g_return_val_if_fail (SECRET_IS_PROMPT (self), FALSE);
-	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), FALSE);
-	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+	g_return_val_if_fail (SECRET_IS_PROMPT (self), NULL);
+	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
+	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 
 	context = g_main_context_get_thread_default ();
 
@@ -186,13 +169,13 @@ secret_prompt_run (SecretPrompt *self,
 
 	g_main_loop_run (closure->loop);
 
-	ret = secret_prompt_perform_finish (self, closure->result, error);
+	retval = secret_prompt_perform_finish (self, closure->result, return_type, error);
 
 	g_main_loop_unref (closure->loop);
 	g_object_unref (closure->result);
 	g_free (closure);
 
-	return ret;
+	return retval;
 }
 
 /**
@@ -200,10 +183,13 @@ secret_prompt_run (SecretPrompt *self,
  * @self: a prompt
  * @window_id: XWindow id for parent window to be transient for
  * @cancellable: optional cancellation object
+ * @return_type: the variant type of the prompt result
  * @error: location to place an error on failure
  *
- * Runs a prompt and performs the prompting. Returns %TRUE if the prompt
- * was completed and not dismissed.
+ * Runs a prompt and performs the prompting. Returns a variant result if the
+ * prompt was completed and not dismissed. The type of result depends on the
+ * action the prompt is completing, and is defined in the Secret Service DBus
+ * API specification.
  *
  * If @window_id is non-zero then it is used as an XWindow id. The Secret
  * Service can make its prompt transient for the window with this id. In some
@@ -213,25 +199,26 @@ secret_prompt_run (SecretPrompt *self,
  * This method may block indefinitely and should not be used in user interface
  * threads.
  *
- * Returns: %FALSE if the prompt was dismissed or an error occurred
+ * Returns: (transfer full): %NULL if the prompt was dismissed or an error occurred
  */
-gboolean
+GVariant *
 secret_prompt_perform_sync (SecretPrompt *self,
                             gulong window_id,
                             GCancellable *cancellable,
+                            const GVariantType *return_type,
                             GError **error)
 {
 	GMainContext *context;
-	gboolean ret;
+	GVariant *retval;
 
-	g_return_val_if_fail (SECRET_IS_PROMPT (self), FALSE);
-	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), FALSE);
-	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+	g_return_val_if_fail (SECRET_IS_PROMPT (self), NULL);
+	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
+	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 
 	context = g_main_context_new ();
 	g_main_context_push_thread_default (context);
 
-	ret = secret_prompt_run (self, window_id, cancellable, error);
+	retval = secret_prompt_run (self, window_id, cancellable, return_type, error);
 
 	/* Needed to prevent memory leaks */
 	while (g_main_context_iteration (context, FALSE));
@@ -239,7 +226,7 @@ secret_prompt_perform_sync (SecretPrompt *self,
 	g_main_context_pop_thread_default (context);
 	g_main_context_unref (context);
 
-	return ret;
+	return retval;
 }
 
 typedef struct {
@@ -251,6 +238,7 @@ typedef struct {
 	gboolean dismissed;
 	gboolean vanished;
 	gboolean completed;
+	GVariant *result;
 	guint signal;
 	guint watch;
 } PerformClosure;
@@ -262,6 +250,8 @@ perform_closure_free (gpointer data)
 	g_object_unref (closure->call_cancellable);
 	g_clear_object (&closure->async_cancellable);
 	g_object_unref (closure->connection);
+	if (closure->result)
+		g_variant_unref (closure->result);
 	g_assert (closure->signal == 0);
 	g_assert (closure->watch == 0);
 	g_slice_free (PerformClosure, closure);
@@ -315,10 +305,7 @@ on_prompt_completed (GDBusConnection *connection,
 		perform_prompt_complete (res, TRUE);
 
 	} else {
-		g_mutex_lock (&self->pv->mutex);
-		g_variant_get (parameters, "(bv)", &dismissed, &self->pv->last_result);
-		g_mutex_unlock (&self->pv->mutex);
-
+		g_variant_get (parameters, "(bv)", &dismissed, &closure->result);
 		perform_prompt_complete (res, dismissed);
 	}
 
@@ -348,10 +335,8 @@ on_prompt_prompted (GObject *source,
 		perform_prompt_complete (res, TRUE);
 
 	} else {
-		g_mutex_lock (&self->pv->mutex);
 		closure->prompting = TRUE;
-		self->pv->prompted = TRUE;
-		g_mutex_unlock (&self->pv->mutex);
+		g_atomic_int_set (&self->pv->prompted, 1);
 
 		/* And now we wait for the signal */
 	}
@@ -453,10 +438,7 @@ secret_prompt_perform (SecretPrompt *self,
 	g_return_if_fail (SECRET_IS_PROMPT (self));
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
-	g_mutex_lock (&self->pv->mutex);
-	prompted = self->pv->prompted;
-	g_mutex_unlock (&self->pv->mutex);
-
+	prompted = g_atomic_int_get (&self->pv->prompted);
 	if (prompted) {
 		g_warning ("The prompt object has already had its prompt called.");
 		return;
@@ -513,76 +495,47 @@ secret_prompt_perform (SecretPrompt *self,
  * secret_prompt_perform_finish:
  * @self: a prompt
  * @result: the asynchronous result passed to the callback
+ * @return_type: the variant type of the prompt result
  * @error: location to place an error on failure
  *
  * Complete asynchronous operation to run a prompt and perform the prompting.
  *
- * Returns: %FALSE if the prompt was dismissed or an error occurred
+ * Returns a variant result if the prompt was completed and not dismissed. The
+ * type of result depends on the action the prompt is completing, and is
+ * defined in the Secret Service DBus API specification.
+ *
+ * Returns: (transfer full): %NULL if the prompt was dismissed or an error occurred,
+ *          a variant result if the prompt was successful
  */
-gboolean
+GVariant *
 secret_prompt_perform_finish (SecretPrompt *self,
                               GAsyncResult *result,
+                              const GVariantType *return_type,
                               GError **error)
 {
 	PerformClosure *closure;
 	GSimpleAsyncResult *res;
+	gchar *string;
 
-	g_return_val_if_fail (SECRET_IS_PROMPT (self), FALSE);
-	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+	g_return_val_if_fail (SECRET_IS_PROMPT (self), NULL);
+	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (self),
-	                                                      secret_prompt_perform), FALSE);
+	                                                      secret_prompt_perform), NULL);
 
 	res = G_SIMPLE_ASYNC_RESULT (result);
 
 	if (g_simple_async_result_propagate_error (res, error))
-		return FALSE;
+		return NULL;
 
 	closure = g_simple_async_result_get_op_res_gpointer (res);
-	return !closure->dismissed;
-}
-
-/**
- * secret_prompt_get_result_value:
- * @self: a prompt
- * @expected_type: (allow-none): expected variant type of the result
- *
- * Get the result returned from a completed prompt.
- *
- * After performing a prompt in the Secret Service API, the prompt can
- * return a result value. The type of value returned is dependent on
- * the prompt.
- *
- * It is not normally necessary to call this function, as this is done
- * automatically by other functions in this library.
- *
- * Returns: (transfer full): the result value which should be released with
- *          g_variant_unref() when done, or %NULL if no result
- */
-GVariant *
-secret_prompt_get_result_value (SecretPrompt *self,
-                                const GVariantType *expected_type)
-{
-	GVariant *last_result;
-	gchar *string;
-
-	g_return_val_if_fail (SECRET_IS_PROMPT (self), NULL);
-
-	g_mutex_lock (&self->pv->mutex);
-	if (self->pv->last_result)
-		last_result = g_variant_ref (self->pv->last_result);
-	else
-		last_result = NULL;
-	g_mutex_unlock (&self->pv->mutex);
-
-	if (last_result != NULL && expected_type != NULL &&
-	    !g_variant_is_of_type (last_result, expected_type)) {
-		string = g_variant_type_dup_string (expected_type);
+	if (closure->result == NULL)
+		return NULL;
+	if (return_type != NULL && !g_variant_is_of_type (closure->result, return_type)) {
+		string = g_variant_type_dup_string (return_type);
 		g_warning ("received unexpected result type %s from Completed signal instead of expected %s",
-		           g_variant_get_type_string (last_result), string);
-		g_variant_unref (last_result);
+		           g_variant_get_type_string (closure->result), string);
 		g_free (string);
 		return NULL;
 	}
-
-	return last_result;
+	return g_variant_ref (closure->result);
 }

@@ -83,7 +83,7 @@ test_perform_sync (Test *test,
 {
 	SecretPrompt *prompt;
 	GError *error = NULL;
-	gboolean ret;
+	GVariant *retval;
 	guint value = 0;
 	guint increment_id;
 
@@ -92,9 +92,10 @@ test_perform_sync (Test *test,
 
 	prompt = _secret_prompt_instance (test->service, "/org/freedesktop/secrets/prompts/simple");
 
-	ret = secret_prompt_perform_sync (prompt, 0, NULL, &error);
+	retval = secret_prompt_perform_sync (prompt, 0, NULL, NULL, &error);
 	g_assert_no_error (error);
-	g_assert (ret == TRUE);
+	g_assert (retval != NULL);
+	g_variant_unref (retval);
 
 	g_assert_cmpuint (value, ==, 0);
 	g_source_remove (increment_id);
@@ -109,7 +110,7 @@ test_perform_run (Test *test,
 {
 	SecretPrompt *prompt;
 	GError *error = NULL;
-	gboolean ret;
+	GVariant *retval;
 	guint value = 0;
 	guint increment_id;
 
@@ -118,9 +119,10 @@ test_perform_run (Test *test,
 
 	prompt = _secret_prompt_instance (test->service, "/org/freedesktop/secrets/prompts/simple");
 
-	ret = secret_prompt_run (prompt, 0, NULL, &error);
+	retval = secret_prompt_run (prompt, 0, NULL, NULL, &error);
 	g_assert_no_error (error);
-	g_assert (ret);
+	g_assert (retval != NULL);
+	g_variant_unref (retval);
 
 	g_assert_cmpuint (value, >, 0);
 	g_source_remove (increment_id);
@@ -139,7 +141,7 @@ test_perform_async (Test *test,
 	SecretPrompt *prompt;
 	GError *error = NULL;
 	GAsyncResult *result = NULL;
-	gboolean ret;
+	GVariant *retval;
 
 	prompt = _secret_prompt_instance (test->service, "/org/freedesktop/secrets/prompts/simple");
 
@@ -148,9 +150,10 @@ test_perform_async (Test *test,
 
 	egg_test_wait ();
 
-	ret = secret_prompt_perform_finish (prompt, result, &error);
+	retval = secret_prompt_perform_finish (prompt, result, NULL, &error);
 	g_assert_no_error (error);
-	g_assert (ret == TRUE);
+	g_assert (retval != NULL);
+	g_variant_unref (retval);
 	g_object_unref (result);
 
 	/* Make sure everything completes */
@@ -168,7 +171,7 @@ test_perform_cancel (Test *test,
 	GError *error = NULL;
 	GAsyncResult *result = NULL;
 	GCancellable *cancellable;
-	gboolean ret;
+	GVariant *retval;
 
 	prompt = _secret_prompt_instance (test->service, "/org/freedesktop/secrets/prompts/delay");
 
@@ -181,9 +184,10 @@ test_perform_cancel (Test *test,
 
 	egg_test_wait ();
 
-	ret = secret_prompt_perform_finish (prompt, result, &error);
+	retval = secret_prompt_perform_finish (prompt, result, NULL, &error);
 	g_assert_no_error (error);
-	g_assert (ret == TRUE);
+	g_assert (retval != NULL);
+	g_variant_unref (retval);
 
 	g_object_unref (result);
 	g_object_unref (prompt);
@@ -200,13 +204,13 @@ test_perform_fail (Test *test,
 {
 	SecretPrompt *prompt;
 	GError *error = NULL;
-	gboolean ret;
+	GVariant *retval;
 
 	prompt = _secret_prompt_instance (test->service, "/org/freedesktop/secrets/prompts/error");
 
-	ret = secret_prompt_perform_sync (prompt, 0, NULL, &error);
+	retval = secret_prompt_perform_sync (prompt, 0, NULL, NULL, &error);
 	g_assert_error (error, G_DBUS_ERROR, G_DBUS_ERROR_NOT_SUPPORTED);
-	g_assert (ret == FALSE);
+	g_assert (retval == NULL);
 
 	g_object_unref (prompt);
 	egg_assert_not_object (prompt);
@@ -218,13 +222,13 @@ test_perform_vanish (Test *test,
 {
 	SecretPrompt *prompt;
 	GError *error = NULL;
-	gboolean ret;
+	GVariant *retval;
 
 	prompt = _secret_prompt_instance (test->service, "/org/freedesktop/secrets/prompts/vanish");
 
-	ret = secret_prompt_perform_sync (prompt, 0, NULL, &error);
+	retval = secret_prompt_perform_sync (prompt, 0, NULL, NULL, &error);
 	g_assert_no_error (error);
-	g_assert (ret == FALSE);
+	g_assert (retval == NULL);
 
 	g_object_unref (prompt);
 	egg_assert_not_object (prompt);
@@ -236,22 +240,15 @@ test_prompt_result (Test *test,
 {
 	SecretPrompt *prompt;
 	GError *error = NULL;
-	gboolean ret;
-	GVariant *result;
+	GVariant *retval;
 
 	prompt = _secret_prompt_instance (test->service, "/org/freedesktop/secrets/prompts/result");
 
-	result = secret_prompt_get_result_value (prompt, NULL);
-	g_assert (result == NULL);
-
-	ret = secret_prompt_perform_sync (prompt, 0, NULL, &error);
+	retval = secret_prompt_perform_sync (prompt, 0, NULL, G_VARIANT_TYPE_STRING, &error);
 	g_assert_no_error (error);
-	g_assert (ret == TRUE);
-
-	result = secret_prompt_get_result_value (prompt, G_VARIANT_TYPE_STRING);
-	g_assert (result != NULL);
-	g_assert_cmpstr (g_variant_get_string (result, NULL), ==, "Special Result");
-	g_variant_unref (result);
+	g_assert (retval != NULL);
+	g_assert_cmpstr (g_variant_get_string (retval, NULL), ==, "Special Result");
+	g_variant_unref (retval);
 
 	g_object_unref (prompt);
 	egg_assert_not_object (prompt);
@@ -263,19 +260,15 @@ test_prompt_window_id (Test *test,
 {
 	SecretPrompt *prompt;
 	GError *error = NULL;
-	gboolean ret;
-	GVariant *result;
+	GVariant *retval;
 
 	prompt = _secret_prompt_instance (test->service, "/org/freedesktop/secrets/prompts/window");
 
-	ret = secret_prompt_perform_sync (prompt, 555, NULL, &error);
+	retval = secret_prompt_perform_sync (prompt, 555, NULL, G_VARIANT_TYPE_STRING, &error);
 	g_assert_no_error (error);
-	g_assert (ret == TRUE);
-
-	result = secret_prompt_get_result_value (prompt, G_VARIANT_TYPE_STRING);
-	g_assert (result != NULL);
-	g_assert_cmpstr (g_variant_get_string (result, NULL), ==, "555");
-	g_variant_unref (result);
+	g_assert (retval != NULL);
+	g_assert_cmpstr (g_variant_get_string (retval, NULL), ==, "555");
+	g_variant_unref (retval);
 
 	g_object_unref (prompt);
 	egg_assert_not_object (prompt);
@@ -287,13 +280,14 @@ test_service_sync (Test *test,
 {
 	SecretPrompt *prompt;
 	GError *error = NULL;
-	gboolean ret;
+	GVariant *retval;
 
 	prompt = _secret_prompt_instance (test->service, "/org/freedesktop/secrets/prompts/simple");
 
-	ret = secret_service_prompt_sync (test->service, prompt, NULL, &error);
+	retval = secret_service_prompt_sync (test->service, prompt, NULL, NULL, &error);
 	g_assert_no_error (error);
-	g_assert (ret == TRUE);
+	g_assert (retval != NULL);
+	g_variant_unref (retval);
 
 	g_object_unref (prompt);
 	egg_assert_not_object (prompt);
@@ -306,7 +300,7 @@ test_service_async (Test *test,
 	SecretPrompt *prompt;
 	GError *error = NULL;
 	GAsyncResult *result = NULL;
-	gboolean ret;
+	GVariant *retval;
 
 	prompt = _secret_prompt_instance (test->service, "/org/freedesktop/secrets/prompts/simple");
 
@@ -315,9 +309,10 @@ test_service_async (Test *test,
 
 	egg_test_wait ();
 
-	ret = secret_service_prompt_finish (test->service, result, &error);
+	retval = secret_service_prompt_finish (test->service, result, NULL, &error);
 	g_assert_no_error (error);
-	g_assert (ret == TRUE);
+	g_assert (retval != NULL);
+	g_variant_unref (retval);
 	g_object_unref (result);
 
 	/* Make sure everything completes */
@@ -334,7 +329,7 @@ test_service_fail (Test *test,
 	SecretPrompt *prompt;
 	GError *error = NULL;
 	GAsyncResult *result = NULL;
-	gboolean ret;
+	GVariant *retval;
 
 	prompt = _secret_prompt_instance (test->service, "/org/freedesktop/secrets/prompts/error");
 
@@ -343,9 +338,9 @@ test_service_fail (Test *test,
 
 	egg_test_wait ();
 
-	ret = secret_service_prompt_finish (test->service, result, &error);
+	retval = secret_service_prompt_finish (test->service, result, NULL, &error);
 	g_assert_error (error, G_DBUS_ERROR, G_DBUS_ERROR_NOT_SUPPORTED);
-	g_assert (ret == FALSE);
+	g_assert (retval == NULL);
 	g_object_unref (result);
 
 	/* Make sure everything completes */
@@ -362,7 +357,7 @@ test_service_path (Test *test,
 	GError *error = NULL;
 	GAsyncResult *result = NULL;
 	SecretPrompt *prompt;
-	gboolean ret;
+	GVariant *retval;
 
 	prompt = _secret_prompt_instance (test->service, "/org/freedesktop/secrets/prompts/simple");
 
@@ -372,9 +367,10 @@ test_service_path (Test *test,
 	g_object_unref (prompt);
 	egg_test_wait ();
 
-	ret = secret_service_prompt_finish (test->service, result, &error);
+	retval = secret_service_prompt_finish (test->service, result, NULL, &error);
 	g_assert_no_error (error);
-	g_assert (ret == TRUE);
+	g_assert (retval != NULL);
+	g_variant_unref (retval);
 	g_object_unref (result);
 
 	/* Make sure everything completes */

@@ -1087,14 +1087,12 @@ on_xlock_prompted (GObject *source,
 	GVariantIter iter;
 	GVariant *retval;
 	gchar *path;
-	gboolean ret;
 
-	ret = secret_service_prompt_finish (self, result, &error);
+	retval = secret_service_prompt_finish (self, result, G_VARIANT_TYPE ("ao"), &error);
 	if (error != NULL)
 		g_simple_async_result_take_error (res, error);
 
-	if (ret) {
-		retval = secret_prompt_get_result_value (closure->prompt, G_VARIANT_TYPE ("ao"));
+	if (retval != NULL) {
 		g_variant_iter_init (&iter, retval);
 		while (g_variant_iter_loop (&iter, "o", &path))
 			g_ptr_array_add (closure->xlocked, g_strdup (path));
@@ -2400,14 +2398,17 @@ on_delete_prompted (GObject *source,
 	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
 	DeleteClosure *closure = g_simple_async_result_get_op_res_gpointer (res);
 	GError *error = NULL;
+	GVariant *retval;
 
-	secret_service_prompt_finish (SECRET_SERVICE (source), result, &error);
+	retval = secret_service_prompt_finish (SECRET_SERVICE (source), result,
+	                                       NULL, &error);
 
 	if (error == NULL)
 		closure->deleted = TRUE;
 	else
 		g_simple_async_result_take_error (res, error);
-
+	if (retval != NULL)
+		g_variant_unref (retval);
 	g_simple_async_result_complete (res);
 	g_object_unref (res);
 }
@@ -2913,15 +2914,13 @@ on_create_collection_prompt (GObject *source,
 	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
 	CollectionClosure *closure = g_simple_async_result_get_op_res_gpointer (res);
 	GError *error = NULL;
-	gboolean created;
 	GVariant *value;
 
-	created = secret_service_prompt_finish (SECRET_SERVICE (source), result, &error);
+	value = secret_service_prompt_finish (SECRET_SERVICE (source), result,
+	                                      G_VARIANT_TYPE ("o"), &error);
 	if (error != NULL)
 		g_simple_async_result_take_error (res, error);
-
-	if (created) {
-		value = secret_prompt_get_result_value (closure->prompt, G_VARIANT_TYPE ("o"));
+	if (value != NULL) {
 		closure->collection_path = g_variant_dup_string (value, NULL);
 		g_variant_unref (value);
 	}
@@ -3180,15 +3179,13 @@ on_create_item_prompt (GObject *source,
 	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
 	ItemClosure *closure = g_simple_async_result_get_op_res_gpointer (res);
 	GError *error = NULL;
-	gboolean created;
 	GVariant *value;
 
-	created = secret_service_prompt_finish (SECRET_SERVICE (source), result, &error);
+	value = secret_service_prompt_finish (SECRET_SERVICE (source), result,
+	                                      G_VARIANT_TYPE ("o"), &error);
 	if (error != NULL)
 		g_simple_async_result_take_error (res, error);
-
-	if (created) {
-		value = secret_prompt_get_result_value (closure->prompt, G_VARIANT_TYPE ("o"));
+	if (value != NULL) {
 		closure->item_path = g_variant_dup_string (value, NULL);
 		g_variant_unref (value);
 	}

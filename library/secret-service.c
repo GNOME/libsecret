@@ -209,13 +209,14 @@ secret_service_finalize (GObject *obj)
 	G_OBJECT_CLASS (secret_service_parent_class)->finalize (obj);
 }
 
-static gboolean
+static GVariant *
 secret_service_real_prompt_sync (SecretService *self,
                                  SecretPrompt *prompt,
                                  GCancellable *cancellable,
+                                 const GVariantType *return_type,
                                  GError **error)
 {
-	return secret_prompt_perform_sync (prompt, 0, cancellable, error);
+	return secret_prompt_perform_sync (prompt, 0, cancellable, return_type, error);
 }
 
 static void
@@ -225,14 +226,14 @@ on_real_prompt_completed (GObject *source,
 {
 	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
 	GError *error = NULL;
-	gboolean ret;
+	GVariant *retval;
 
-	ret = secret_prompt_perform_finish (SECRET_PROMPT (source), result, &error);
-	g_simple_async_result_set_op_res_gboolean (res, ret);
+	retval = secret_prompt_perform_finish (SECRET_PROMPT (source), result, NULL, &error);
+	if (retval != NULL)
+		g_simple_async_result_set_op_res_gpointer (res, retval, (GDestroyNotify)g_variant_unref);
 	if (error != NULL)
 		g_simple_async_result_take_error (res, error);
 	g_simple_async_result_complete (res);
-
 	g_object_unref (res);
 }
 
@@ -255,17 +256,36 @@ secret_service_real_prompt_async (SecretService *self,
 	g_object_unref (res);
 }
 
-static gboolean
+static GVariant *
 secret_service_real_prompt_finish (SecretService *self,
                                    GAsyncResult *result,
+                                   const GVariantType *return_type,
                                    GError **error)
 {
-	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (result);
+	GSimpleAsyncResult *res;
+	GVariant *retval;
+	gchar *string;
 
+	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (self),
+	                      secret_service_real_prompt_async), NULL);
+
+	res = G_SIMPLE_ASYNC_RESULT (result);
 	if (g_simple_async_result_propagate_error (res, error))
-		return FALSE;
+		return NULL;
 
-	return g_simple_async_result_get_op_res_gboolean (res);
+	retval = g_simple_async_result_get_op_res_gpointer (res);
+	if (retval == NULL)
+		return NULL;
+
+	if (return_type != NULL && !g_variant_is_of_type (retval, return_type)) {
+		string = g_variant_type_dup_string (return_type);
+		g_warning ("received unexpected result type %s from prompt's Completed signal instead of expected %s",
+		           g_variant_get_type_string (retval), string);
+		g_free (string);
+		return NULL;
+	}
+
+	return g_variant_ref (retval);
 }
 
 static void
@@ -1492,9 +1512,15 @@ secret_service_ensure_collections_sync (SecretService *self,
  * @self: the secret service
  * @prompt: the prompt
  * @cancellable: optional cancellation object
+ * @return_type: the variant type of the prompt result
  * @error: location to place an error on failure
  *
  * Perform prompting for a #SecretPrompt.
+ *
+ * Runs a prompt and performs the prompting. Returns a variant result if the
+ * prompt was completed and not dismissed. The type of result depends on the
+ * action the prompt is completing, and is defined in the Secret Service DBus
+ * API specification.
  *
  * This function is called by other parts of this library to handle prompts
  * for the various actions that can require prompting.
@@ -1503,25 +1529,27 @@ secret_service_ensure_collections_sync (SecretService *self,
  * to change the behavior of the propmting. The default behavior is to simply
  * run secret_prompt_perform_sync() on the prompt.
  *
- * Returns: %FALSE if the prompt was dismissed or an error occurred
+ * Returns: (transfer full): %NULL if the prompt was dismissed or an error occurred,
+ *          a variant result if the prompt was successful
  */
-gboolean
+GVariant *
 secret_service_prompt_sync (SecretService *self,
                             SecretPrompt *prompt,
                             GCancellable *cancellable,
+                            const GVariantType *return_type,
                             GError **error)
 {
 	SecretServiceClass *klass;
 
-	g_return_val_if_fail (SECRET_IS_SERVICE (self), FALSE);
-	g_return_val_if_fail (SECRET_IS_PROMPT (prompt), FALSE);
-	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), FALSE);
-	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+	g_return_val_if_fail (SECRET_IS_SERVICE (self), NULL);
+	g_return_val_if_fail (SECRET_IS_PROMPT (prompt), NULL);
+	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
+	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 
 	klass = SECRET_SERVICE_GET_CLASS (self);
-	g_return_val_if_fail (klass->prompt_sync != NULL, FALSE);
+	g_return_val_if_fail (klass->prompt_sync != NULL, NULL);
 
-	return (klass->prompt_sync) (self, prompt, cancellable, error);
+	return (klass->prompt_sync) (self, prompt, cancellable, return_type, error);
 }
 
 /**
@@ -1564,25 +1592,118 @@ secret_service_prompt (SecretService *self,
  * secret_service_prompt_finish:
  * @self: the secret service
  * @result: the asynchronous result passed to the callback
+ * @return_type: the variant type of the prompt result
  * @error: location to place an error on failure
  *
  * Complete asynchronous operation to perform prompting for a #SecretPrompt.
  *
- * Returns: %FALSE if the prompt was dismissed or an error occurred
+ * Returns a variant result if the prompt was completed and not dismissed. The
+ * type of result depends on the action the prompt is completing, and is defined
+ * in the Secret Service DBus API specification.
+ *
+ * Returns: (transfer full): %NULL if the prompt was dismissed or an error occurred,
+ *          a variant result if the prompt was successful
  */
-gboolean
+GVariant *
 secret_service_prompt_finish (SecretService *self,
                               GAsyncResult *result,
+                              const GVariantType *return_type,
                               GError **error)
 {
 	SecretServiceClass *klass;
 
-	g_return_val_if_fail (SECRET_IS_SERVICE (self), FALSE);
-	g_return_val_if_fail (G_IS_ASYNC_RESULT (result), FALSE);
-	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+	g_return_val_if_fail (SECRET_IS_SERVICE (self), NULL);
+	g_return_val_if_fail (G_IS_ASYNC_RESULT (result), NULL);
+	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 
 	klass = SECRET_SERVICE_GET_CLASS (self);
-	g_return_val_if_fail (klass->prompt_finish != NULL, FALSE);
+	g_return_val_if_fail (klass->prompt_finish != NULL, NULL);
 
-	return (klass->prompt_finish) (self, result, error);
+	return (klass->prompt_finish) (self, result, return_type, error);
+}
+
+GVariant *
+secret_service_prompt_path_sync (SecretService *self,
+                                 const gchar *prompt_path,
+                                 GCancellable *cancellable,
+                                 const GVariantType *return_type,
+                                 GError **error)
+{
+	SecretPrompt *prompt;
+	GVariant *retval;
+
+	g_return_val_if_fail (SECRET_IS_SERVICE (self), NULL);
+	g_return_val_if_fail (prompt_path != NULL, NULL);
+	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
+	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
+
+	prompt = _secret_prompt_instance (self, prompt_path);
+	retval = secret_service_prompt_sync (self, prompt, cancellable, return_type, error);
+	g_object_unref (prompt);
+
+	return retval;
+}
+
+/**
+ * secret_service_prompt_path:
+ * @self: the secret service
+ * @prompt_path: the D-Bus object path of the prompt
+ * @cancellable: optional cancellation object
+ * @callback: called when the operation completes
+ * @user_data: data to be passed to the callback
+ *
+ * Perform prompting for a #SecretPrompt.
+ *
+ * This function is called by other parts of this library to handle prompts
+ * for the various actions that can require prompting.
+ *
+ * Override the #SecretServiceClass <literal>prompt_async</literal> virtual method
+ * to change the behavior of the propmting. The default behavior is to simply
+ * run secret_prompt_perform() on the prompt.
+ */
+void
+secret_service_prompt_path (SecretService *self,
+                            const gchar *prompt_path,
+                            GCancellable *cancellable,
+                            GAsyncReadyCallback callback,
+                            gpointer user_data)
+{
+	SecretPrompt *prompt;
+
+	g_return_if_fail (SECRET_IS_SERVICE (self));
+	g_return_if_fail (prompt_path != NULL);
+	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+	prompt = _secret_prompt_instance (self, prompt_path);
+	secret_service_prompt (self, prompt, cancellable, callback, user_data);
+	g_object_unref (prompt);
+}
+
+/**
+ * secret_service_prompt_path_finish:
+ * @self: the secret service
+ * @result: the asynchronous result passed to the callback
+ * @return_type: the variant type of the prompt result
+ * @error: location to place an error on failure
+ *
+ * Complete asynchronous operation to perform prompting for a #SecretPrompt.
+ *
+ * Returns a variant result if the prompt was completed and not dismissed. The
+ * type of result depends on the action the prompt is completing, and is defined
+ * in the Secret Service DBus API specification.
+ *
+ * Returns: (transfer full): %NULL if the prompt was dismissed or an error occurred,
+ *          a variant result if the prompt was successful
+ */
+GVariant *
+secret_service_prompt_path_finish (SecretService *self,
+                                   GAsyncResult *result,
+                                   const GVariantType *return_type,
+                                   GError **error)
+{
+	g_return_val_if_fail (SECRET_IS_SERVICE (self), NULL);
+	g_return_val_if_fail (G_IS_ASYNC_RESULT (result), NULL);
+	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
+
+	return secret_service_prompt_finish (self, result, return_type, error);
 }

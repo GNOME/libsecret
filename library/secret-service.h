@@ -58,19 +58,21 @@ struct _SecretServiceClass {
 	GType collection_gtype;
 	GType item_gtype;
 
-	gboolean (*prompt_sync)          (SecretService *self,
+	GVariant *  (* prompt_sync)      (SecretService *self,
 	                                  SecretPrompt *prompt,
 	                                  GCancellable *cancellable,
+	                                  const GVariantType *return_type,
 	                                  GError **error);
 
-	void     (*prompt_async)         (SecretService *self,
+	void        (* prompt_async)     (SecretService *self,
 	                                  SecretPrompt *prompt,
 	                                  GCancellable *cancellable,
 	                                  GAsyncReadyCallback callback,
 	                                  gpointer user_data);
 
-	gboolean (*prompt_finish)        (SecretService *self,
+	GVariant *  (* prompt_finish)    (SecretService *self,
 	                                  GAsyncResult *result,
+	                                  const GVariantType *return_type,
 	                                  GError **error);
 
 	/*< private >*/
@@ -290,9 +292,10 @@ gint                 secret_service_unlock_paths_finish           (SecretService
                                                                    gchar ***unlocked,
                                                                    GError **error);
 
-gboolean             secret_service_prompt_sync                   (SecretService *self,
+GVariant *           secret_service_prompt_sync                   (SecretService *self,
                                                                    SecretPrompt *prompt,
                                                                    GCancellable *cancellable,
+                                                                   const GVariantType *return_type,
                                                                    GError **error);
 
 void                 secret_service_prompt                        (SecretService *self,
@@ -301,8 +304,26 @@ void                 secret_service_prompt                        (SecretService
                                                                    GAsyncReadyCallback callback,
                                                                    gpointer user_data);
 
-gboolean             secret_service_prompt_finish                 (SecretService *self,
+GVariant *           secret_service_prompt_finish                 (SecretService *self,
                                                                    GAsyncResult *result,
+                                                                   const GVariantType *return_type,
+                                                                   GError **error);
+
+GVariant *           secret_service_prompt_path_sync              (SecretService *self,
+                                                                   const gchar *prompt_path,
+                                                                   GCancellable *cancellable,
+                                                                   const GVariantType *return_type,
+                                                                   GError **error);
+
+void                 secret_service_prompt_path                   (SecretService *self,
+                                                                   const gchar *prompt_path,
+                                                                   GCancellable *cancellable,
+                                                                   GAsyncReadyCallback callback,
+                                                                   gpointer user_data);
+
+GVariant *           secret_service_prompt_path_finish            (SecretService *self,
+                                                                   GAsyncResult *result,
+                                                                   const GVariantType *return_type,
                                                                    GError **error);
 
 void                 secret_service_store                         (SecretService *self,
