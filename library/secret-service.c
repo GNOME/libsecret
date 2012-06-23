@@ -1029,13 +1029,7 @@ _secret_service_find_item_instance (SecretService *self,
 
 	collection_path = _secret_util_parent_path (item_path);
 
-	g_mutex_lock (&self->pv->mutex);
-	if (self->pv->collections) {
-		collection = g_hash_table_lookup (self->pv->collections, collection_path);
-		if (collection != NULL)
-			g_object_ref (collection);
-	}
-	g_mutex_unlock (&self->pv->mutex);
+	collection = _secret_service_find_collection_instance (self, collection_path);
 
 	g_free (collection_path);
 
@@ -1046,6 +1040,23 @@ _secret_service_find_item_instance (SecretService *self,
 	g_object_unref (collection);
 
 	return item;
+}
+
+SecretCollection *
+_secret_service_find_collection_instance (SecretService *self,
+                                          const gchar *collection_path)
+{
+	SecretCollection *collection = NULL;
+
+	g_mutex_lock (&self->pv->mutex);
+	if (self->pv->collections) {
+		collection = g_hash_table_lookup (self->pv->collections, collection_path);
+		if (collection != NULL)
+			g_object_ref (collection);
+	}
+	g_mutex_unlock (&self->pv->mutex);
+
+	return collection;
 }
 
 SecretSession *

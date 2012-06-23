@@ -139,6 +139,9 @@ void                 _secret_service_search_for_paths_variant (SecretService *se
 SecretItem *         _secret_service_find_item_instance       (SecretService *self,
                                                                const gchar *item_path);
 
+SecretCollection *   _secret_service_find_collection_instance (SecretService *self,
+                                                               const gchar *collection_path);
+
 SecretItem *         _secret_collection_find_item_instance    (SecretCollection *self,
                                                                const gchar *item_path);
 

@@ -1351,6 +1351,127 @@ test_store_async (Test *test,
 	g_strfreev (paths);
 }
 
+static void
+test_read_alias_sync (Test *test,
+                      gconstpointer used)
+{
+	const gchar *collection_path;
+	SecretCollection *collection;
+	GError *error = NULL;
+
+	collection = secret_service_read_alias_sync (test->service, "default", NULL, &error);
+	g_assert_no_error (error);
+
+	collection_path = g_dbus_proxy_get_object_path (G_DBUS_PROXY (collection));
+	g_assert_cmpstr (collection_path, ==, "/org/freedesktop/secrets/collection/english");
+	g_object_unref (collection);
+
+	collection = secret_service_read_alias_sync (test->service, "unknown", NULL, &error);
+	g_assert_no_error (error);
+	g_assert (collection == NULL);
+}
+
+static void
+test_read_alias_async (Test *test,
+                       gconstpointer used)
+{
+	const gchar *collection_path;
+	SecretCollection *collection;
+	GAsyncResult *result = NULL;
+	GError *error = NULL;
+
+	secret_service_read_alias (test->service, "default", NULL,
+	                           on_complete_get_result, &result);
+	g_assert (result == NULL);
+	egg_test_wait ();
+
+	collection = secret_service_read_alias_finish (test->service, result, &error);
+	g_assert_no_error (error);
+	g_object_unref (result);
+
+	collection_path = g_dbus_proxy_get_object_path (G_DBUS_PROXY (collection));
+	g_assert_cmpstr (collection_path, ==, "/org/freedesktop/secrets/collection/english");
+	g_object_unref (collection);
+	result = NULL;
+
+	secret_service_read_alias (test->service, "unknown", NULL,
+	                           on_complete_get_result, &result);
+	g_assert (result == NULL);
+	egg_test_wait ();
+
+	collection = secret_service_read_alias_finish (test->service, result, &error);
+	g_assert_no_error (error);
+	g_assert (collection == NULL);
+	g_object_unref (result);
+}
+
+static void
+test_set_alias_sync (Test *test,
+                     gconstpointer used)
+{
+	SecretCollection *collection;
+	SecretCollection *blah;
+	GError *error = NULL;
+	gboolean ret;
+
+	blah = secret_service_read_alias_sync (test->service, "blah", NULL, &error);
+	g_assert_no_error (error);
+	g_assert (blah == NULL);
+
+	collection = secret_collection_new_sync (test->service, "/org/freedesktop/secrets/collection/english", NULL, &error);
+	g_assert_no_error (error);
+	g_assert (SECRET_IS_COLLECTION (collection));
+
+	ret = secret_service_set_alias_sync (test->service, "blah", collection, NULL, &error);
+	g_assert_no_error (error);
+	g_assert (ret == TRUE);
+
+	blah = secret_service_read_alias_sync (test->service, "blah", NULL, &error);
+	g_assert_no_error (error);
+	g_assert_cmpstr (g_dbus_proxy_get_object_path (G_DBUS_PROXY (blah)), ==, g_dbus_proxy_get_object_path (G_DBUS_PROXY (collection)));
+	g_object_unref (blah);
+
+	ret = secret_service_set_alias_sync (test->service, "blah", NULL, NULL, &error);
+	g_assert_no_error (error);
+	g_assert (ret == TRUE);
+
+	blah = secret_service_read_alias_sync (test->service, "blah", NULL, &error);
+	g_assert_no_error (error);
+	g_assert (blah == NULL);
+
+	g_object_unref (collection);
+}
+
+static void
+test_set_alias_path (Test *test,
+                     gconstpointer used)
+{
+	gchar *path;
+	GError *error = NULL;
+	gboolean ret;
+
+	path = secret_service_read_alias_path_sync (test->service, "blah", NULL, &error);
+	g_assert_no_error (error);
+	g_assert (path == NULL);
+
+	ret = secret_service_set_alias_path_sync (test->service, "blah", "/org/freedesktop/secrets/collection/english", NULL, &error);
+	g_assert_no_error (error);
+	g_assert (ret == TRUE);
+
+	path = secret_service_read_alias_path_sync (test->service, "blah", NULL, &error);
+	g_assert_no_error (error);
+	g_assert_cmpstr (path, ==, "/org/freedesktop/secrets/collection/english");
+	g_free (path);
+
+	ret = secret_service_set_alias_path_sync (test->service, "blah", NULL, NULL, &error);
+	g_assert_no_error (error);
+	g_assert (ret == TRUE);
+
+	path = secret_service_read_alias_path_sync (test->service, "blah", NULL, &error);
+	g_assert_no_error (error);
+	g_assert (path == NULL);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -1405,6 +1526,12 @@ main (int argc, char **argv)
 	g_test_add ("/service/store-sync", Test, "mock-service-normal.py", setup, test_store_sync, teardown);
 	g_test_add ("/service/store-async", Test, "mock-service-normal.py", setup, test_store_async, teardown);
 	g_test_add ("/service/store-replace", Test, "mock-service-normal.py", setup, test_store_replace, teardown);
+
+	g_test_add ("/service/read-alias-sync", Test, "mock-service-normal.py", setup, test_read_alias_sync, teardown);
+	g_test_add ("/service/read-alias-async", Test, "mock-service-normal.py", setup, test_read_alias_async, teardown);
+
+	g_test_add ("/service/set-alias-sync", Test, "mock-service-normal.py", setup, test_set_alias_sync, teardown);
+	g_test_add ("/service/set-alias-path", Test, "mock-service-normal.py", setup, test_set_alias_path, teardown);
 
 	return egg_tests_run_with_loop ();
 }

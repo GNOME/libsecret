@@ -3448,3 +3448,536 @@ secret_service_create_item_path_sync (SecretService *self,
 
 	return path;
 }
+
+typedef struct {
+	GCancellable *cancellable;
+	SecretCollection *collection;
+} ReadClosure;
+
+static void
+read_closure_free (gpointer data)
+{
+	ReadClosure *read = data;
+	if (read->collection)
+		g_object_unref (read->collection);
+	if (read->cancellable)
+		g_object_unref (read->cancellable);
+	g_slice_free (ReadClosure, read);
+}
+
+static void
+on_read_alias_collection (GObject *source,
+                          GAsyncResult *result,
+                          gpointer user_data)
+{
+	GSimpleAsyncResult *async = G_SIMPLE_ASYNC_RESULT (user_data);
+	ReadClosure *read = g_simple_async_result_get_op_res_gpointer (async);
+	GError *error = NULL;
+
+	read->collection = secret_collection_new_finish (result, &error);
+	if (error != NULL)
+		g_simple_async_result_take_error (async, error);
+
+	g_simple_async_result_complete (async);
+	g_object_unref (async);
+}
+
+static void
+on_read_alias_path (GObject *source,
+                    GAsyncResult *result,
+                    gpointer user_data)
+{
+	GSimpleAsyncResult *async = G_SIMPLE_ASYNC_RESULT (user_data);
+	ReadClosure *read = g_simple_async_result_get_op_res_gpointer (async);
+	SecretService *self = SECRET_SERVICE (source);
+	GError *error = NULL;
+	gchar *collection_path;
+
+	collection_path = secret_service_read_alias_path_finish (self, result, &error);
+	if (error == NULL) {
+
+		/* No collection for this alias */
+		if (collection_path == NULL) {
+			g_simple_async_result_complete (async);
+
+		} else {
+			read->collection = _secret_service_find_collection_instance (self,
+			                                                             collection_path);
+			if (read->collection != NULL) {
+				g_simple_async_result_complete (async);
+
+			/* No collection loaded, but valid path, load */
+			} else {
+				secret_collection_new (self, collection_path, read->cancellable,
+				                       on_read_alias_collection, g_object_ref (async));
+			}
+		}
+
+	} else {
+		g_simple_async_result_take_error (async, error);
+		g_simple_async_result_complete (async);
+	}
+
+	g_free (collection_path);
+	g_object_unref (async);
+}
+
+/**
+ * secret_service_read_alias:
+ * @self: a secret service object
+ * @alias: the alias to lookup
+ * @cancellable: (allow-none): optional cancellation object
+ * @callback: called when the operation completes
+ * @user_data: data to pass to the callback
+ *
+ * Lookup which collection is assigned to this alias. Aliases help determine
+ * well known collections, such as 'default'.
+ *
+ * This method will return immediately and complete asynchronously.
+ */
+void
+secret_service_read_alias (SecretService *self,
+                           const gchar *alias,
+                           GCancellable *cancellable,
+                           GAsyncReadyCallback callback,
+                           gpointer user_data)
+{
+	GSimpleAsyncResult *async;
+	ReadClosure *read;
+
+	g_return_if_fail (SECRET_IS_SERVICE (self));
+	g_return_if_fail (alias != NULL);
+	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+	async = g_simple_async_result_new (G_OBJECT (self), callback, user_data,
+	                                   secret_service_read_alias);
+	read = g_slice_new0 (ReadClosure);
+	read->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
+	g_simple_async_result_set_op_res_gpointer (async, read, read_closure_free);
+
+	secret_service_read_alias_path (self, alias, cancellable,
+	                                on_read_alias_path, g_object_ref (async));
+
+	g_object_unref (async);
+}
+
+/**
+ * secret_service_read_alias_finish:
+ * @self: a secret service object
+ * @result: asynchronous result passed to callback
+ * @error: location to place error on failure
+ *
+ * Finish an asynchronous operation to lookup which collection is assigned
+ * to an alias.
+ *
+ * Returns: (transfer full): the collection, or %NULL if none assigned to the alias
+ */
+SecretCollection *
+secret_service_read_alias_finish (SecretService *self,
+                                  GAsyncResult *result,
+                                  GError **error)
+{
+	GSimpleAsyncResult *async;
+	ReadClosure *read;
+
+	g_return_val_if_fail (SECRET_IS_SERVICE (self), NULL);
+	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (self),
+	                      secret_service_read_alias), NULL);
+	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
+
+	async = G_SIMPLE_ASYNC_RESULT (result);
+	if (g_simple_async_result_propagate_error (async, error))
+		return NULL;
+	read = g_simple_async_result_get_op_res_gpointer (async);
+	if (read->collection)
+		g_object_ref (read->collection);
+	return read->collection;
+}
+
+/**
+ * secret_service_read_alias_sync:
+ * @self: a secret service object
+ * @alias: the alias to lookup
+ * @cancellable: (allow-none): optional cancellation object
+ * @error: location to place error on failure
+ *
+ * Lookup which collection is assigned to this alias. Aliases help determine
+ * well known collections, such as 'default'.
+ *
+ * This method may block and should not be used in user interface threads.
+ *
+ * Returns: (transfer full): the collection, or %NULL if none assigned to the alias
+ */
+SecretCollection *
+secret_service_read_alias_sync (SecretService *self,
+                                const gchar *alias,
+                                GCancellable *cancellable,
+                                GError **error)
+{
+	SecretCollection *collection;
+	gchar *collection_path;
+
+	g_return_val_if_fail (SECRET_IS_SERVICE (self), NULL);
+	g_return_val_if_fail (alias != NULL, NULL);
+	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
+	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
+
+	collection_path = secret_service_read_alias_path_sync (self, alias,
+	                                                       cancellable, error);
+	if (collection_path == NULL)
+		return NULL;
+
+	/* No collection for this alias */
+	if (collection_path == NULL) {
+		collection = NULL;
+
+	} else {
+		collection = _secret_service_find_collection_instance (self,
+		                                                       collection_path);
+
+		/* No collection loaded, but valid path, load */
+		if (collection == NULL) {
+			collection = secret_collection_new_sync (self, collection_path,
+			                                         cancellable, error);
+		}
+	}
+
+	g_free (collection_path);
+	return collection;
+}
+
+/**
+ * secret_service_read_alias_path:
+ * @self: a secret service object
+ * @alias: the alias to lookup
+ * @cancellable: (allow-none): optional cancellation object
+ * @callback: called when the operation completes
+ * @user_data: data to pass to the callback
+ *
+ * Lookup which collection is assigned to this alias. Aliases help determine
+ * well known collections, such as 'default'. This method looks up the
+ * dbus object path of the well known collection.
+ *
+ * This method will return immediately and complete asynchronously.
+ */
+void
+secret_service_read_alias_path (SecretService *self,
+                                const gchar *alias,
+                                GCancellable *cancellable,
+                                GAsyncReadyCallback callback,
+                                gpointer user_data)
+{
+	g_return_if_fail (SECRET_IS_SERVICE (self));
+	g_return_if_fail (alias != NULL);
+	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+	g_dbus_proxy_call (G_DBUS_PROXY (self), "ReadAlias",
+	                   g_variant_new ("(s)", alias),
+	                   G_DBUS_CALL_FLAGS_NONE, -1,
+	                   cancellable, callback, user_data);
+}
+
+/**
+ * secret_service_read_alias_path_finish:
+ * @self: a secret service object
+ * @result: asynchronous result passed to callback
+ * @error: location to place error on failure
+ *
+ * Finish an asynchronous operation to lookup which collection is assigned
+ * to an alias. This method returns the DBus object path of the collection
+ *
+ * Returns: (transfer full): the collection dbus object path, or %NULL if
+ *          none assigned to the alias
+ */
+gchar *
+secret_service_read_alias_path_finish (SecretService *self,
+                                       GAsyncResult *result,
+                                       GError **error)
+{
+	gchar *collection_path;
+	GVariant *retval;
+
+	retval = g_dbus_proxy_call_finish (G_DBUS_PROXY (self), result, error);
+	if (retval == NULL)
+		return NULL;
+
+	g_variant_get (retval, "(o)", &collection_path);
+	g_variant_unref (retval);
+
+	if (g_str_equal (collection_path, "/")) {
+		g_free (collection_path);
+		collection_path = NULL;
+	}
+
+	return collection_path;
+}
+
+/**
+ * secret_service_read_alias_path_sync:
+ * @self: a secret service object
+ * @alias: the alias to lookup
+ * @cancellable: (allow-none): optional cancellation object
+ * @error: location to place error on failure
+ *
+ * Lookup which collection is assigned to this alias. Aliases help determine
+ * well known collections, such as 'default'. This method returns the dbus
+ * object path of the collection.
+ *
+ * This method may block and should not be used in user interface threads.
+ *
+ * Returns: (transfer full): the collection dbus object path, or %NULL if
+ *          none assigned to the alias
+ */
+gchar *
+secret_service_read_alias_path_sync (SecretService *self,
+                                     const gchar *alias,
+                                     GCancellable *cancellable,
+                                     GError **error)
+{
+	SecretSync *sync;
+	gchar *collection_path;
+
+	g_return_val_if_fail (SECRET_IS_SERVICE (self), NULL);
+	g_return_val_if_fail (alias != NULL, NULL);
+	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
+	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
+
+	sync = _secret_sync_new ();
+	g_main_context_push_thread_default (sync->context);
+
+	secret_service_read_alias_path (self, alias, cancellable, _secret_sync_on_result, sync);
+
+	g_main_loop_run (sync->loop);
+
+	collection_path = secret_service_read_alias_path_finish (self, sync->result, error);
+
+	g_main_context_pop_thread_default (sync->context);
+	_secret_sync_free (sync);
+
+	return collection_path;
+}
+
+/**
+ * secret_service_set_alias:
+ * @self: a secret service object
+ * @alias: the alias to assign the collection to
+ * @collection: (allow-none): the collection to assign to the alias
+ * @cancellable: (allow-none): optional cancellation object
+ * @callback: called when the operation completes
+ * @user_data: data to pass to the callback
+ *
+ * Assign a collection to this alias. Aliases help determine
+ * well known collections, such as 'default'.
+ *
+ * This method will return immediately and complete asynchronously.
+ */
+void
+secret_service_set_alias (SecretService *self,
+                          const gchar *alias,
+                          SecretCollection *collection,
+                          GCancellable *cancellable,
+                          GAsyncReadyCallback callback,
+                          gpointer user_data)
+{
+	const gchar *collection_path;
+
+	g_return_if_fail (SECRET_IS_SERVICE (self));
+	g_return_if_fail (alias != NULL);
+	g_return_if_fail (collection == NULL || SECRET_IS_COLLECTION (collection));
+	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+	if (collection) {
+		collection_path = g_dbus_proxy_get_object_path (G_DBUS_PROXY (collection));
+		g_return_if_fail (collection != NULL);
+	} else {
+		collection_path = NULL;
+	}
+
+	secret_service_set_alias_path (self, alias, collection_path, cancellable,
+	                               callback, user_data);
+}
+
+/**
+ * secret_service_set_alias_finish:
+ * @self: a secret service object
+ * @result: asynchronous result passed to callback
+ * @error: location to place error on failure
+ *
+ * Finish an asynchronous operation to assign a collection to an alias.
+ *
+ * Returns: %TRUE if successful
+ */
+gboolean
+secret_service_set_alias_finish (SecretService *self,
+                                 GAsyncResult *result,
+                                 GError **error)
+{
+	g_return_val_if_fail (SECRET_IS_SERVICE (self), FALSE);
+	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+
+	return secret_service_set_alias_path_finish (self, result, error);
+}
+
+/**
+ * secret_service_set_alias_sync:
+ * @self: a secret service object
+ * @alias: the alias to assign the collection to
+ * @collection: (allow-none): the collection to assign to the alias
+ * @cancellable: (allow-none): optional cancellation object
+ * @error: location to place error on failure
+ *
+ * Assign a collection to this alias. Aliases help determine
+ * well known collections, such as 'default'.
+ *
+ * This method may block and should not be used in user interface threads.
+ *
+ * Returns: %TRUE if successful
+ */
+gboolean
+secret_service_set_alias_sync (SecretService *self,
+                               const gchar *alias,
+                               SecretCollection *collection,
+                               GCancellable *cancellable,
+                               GError **error)
+{
+	SecretSync *sync;
+	gboolean ret;
+
+	g_return_val_if_fail (SECRET_IS_SERVICE (self), FALSE);
+	g_return_val_if_fail (alias != NULL, FALSE);
+	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), FALSE);
+	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+
+	sync = _secret_sync_new ();
+	g_main_context_push_thread_default (sync->context);
+
+	secret_service_set_alias (self, alias, collection, cancellable,
+	                          _secret_sync_on_result, sync);
+
+	g_main_loop_run (sync->loop);
+
+	ret = secret_service_set_alias_finish (self, sync->result, error);
+
+	g_main_context_pop_thread_default (sync->context);
+	_secret_sync_free (sync);
+
+	return ret;
+}
+
+/**
+ * secret_service_set_alias_path:
+ * @self: a secret service object
+ * @alias: the alias to assign the collection to
+ * @collection_path: (allow-none): the dbus object path of the collection to assign to the alias
+ * @cancellable: (allow-none): optional cancellation object
+ * @callback: called when the operation completes
+ * @user_data: data to pass to the callback
+ *
+ * Assign a collection to this alias. Aliases help determine
+ * well known collections, such as 'default'. This method takes the dbus object
+ * path of the collection to assign to the alias.
+ *
+ * This method will return immediately and complete asynchronously.
+ */
+void
+secret_service_set_alias_path (SecretService *self,
+                               const gchar *alias,
+                               const gchar *collection_path,
+                               GCancellable *cancellable,
+                               GAsyncReadyCallback callback,
+                               gpointer user_data)
+{
+	g_return_if_fail (SECRET_IS_SERVICE (self));
+	g_return_if_fail (alias != NULL);
+	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+	if (collection_path == NULL)
+		collection_path = "/";
+	else
+		g_return_if_fail (g_variant_is_object_path (collection_path));
+
+	g_dbus_proxy_call (G_DBUS_PROXY (self), "SetAlias",
+	                   g_variant_new ("(so)", alias, collection_path),
+	                   G_DBUS_CALL_FLAGS_NONE, -1, cancellable,
+	                   callback, user_data);
+}
+
+/**
+ * secret_service_set_alias_path_finish:
+ * @self: a secret service object
+ * @result: asynchronous result passed to callback
+ * @error: location to place error on failure
+ *
+ * Finish an asynchronous operation to assign a collection to an alias.
+ *
+ * Returns: %TRUE if successful
+ */
+gboolean
+secret_service_set_alias_path_finish (SecretService *self,
+                                      GAsyncResult *result,
+                                      GError **error)
+{
+	GVariant *retval;
+
+	g_return_val_if_fail (SECRET_IS_SERVICE (self), FALSE);
+	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+
+	retval = g_dbus_proxy_call_finish (G_DBUS_PROXY (self), result, error);
+	if (retval == NULL)
+		return FALSE;
+
+	g_variant_unref (retval);
+	return TRUE;
+}
+
+/**
+ * secret_service_set_alias_path_sync:
+ * @self: a secret service object
+ * @alias: the alias to assign the collection to
+ * @collection_path: (allow-none): the dbus object path of the collection to assign to the alias
+ * @cancellable: (allow-none): optional cancellation object
+ * @error: location to place error on failure
+ *
+ * Assign a collection to this alias. Aliases help determine
+ * well known collections, such as 'default'. This method takes the dbus object
+ * path of the collection to assign to the alias.
+ *
+ * This method may block and should not be used in user interface threads.
+ *
+ * Returns: %TRUE if successful
+ */
+gboolean
+secret_service_set_alias_path_sync (SecretService *self,
+                                    const gchar *alias,
+                                    const gchar *collection_path,
+                                    GCancellable *cancellable,
+                                    GError **error)
+{
+	SecretSync *sync;
+	gboolean ret;
+
+	g_return_val_if_fail (SECRET_IS_SERVICE (self), FALSE);
+	g_return_val_if_fail (alias != NULL, FALSE);
+	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), FALSE);
+	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+
+	if (collection_path == NULL)
+		collection_path = "/";
+	else
+		g_return_val_if_fail (g_variant_is_object_path (collection_path), FALSE);
+
+	sync = _secret_sync_new ();
+	g_main_context_push_thread_default (sync->context);
+
+	secret_service_set_alias_path (self, alias, collection_path,
+	                               cancellable, _secret_sync_on_result, sync);
+
+	g_main_loop_run (sync->loop);
+
+	ret = secret_service_set_alias_path_finish (self, sync->result, error);
+
+	g_main_context_pop_thread_default (sync->context);
+	_secret_sync_free (sync);
+
+	return ret;
+}

@@ -551,8 +551,11 @@ class SecretService(dbus.service.Object):
 
 	def set_alias(self, name, collection):
 		self.remove_alias(name)
-		collection.add_alias(name)
-		self.aliases[name] = collection
+		if collection:
+			collection.add_alias(name)
+			self.aliases[name] = collection
+		elif name in self.aliases:
+			del self.aliases[name]
 
 	def remove_alias(self, name):
 		if name in self.aliases:
@@ -656,9 +659,12 @@ class SecretService(dbus.service.Object):
 
 	@dbus.service.method('org.freedesktop.Secret.Service')
 	def SetAlias(self, name, collection):
-		if collection not in self.collections:
-			raise NoSuchObject("no such Collection")
-		self.set_alias(name, self.collections[collection])
+		if collection == dbus.ObjectPath("/"):
+			self.set_alias(name, None)
+		else:
+			if collection not in self.collections:
+				raise NoSuchObject("no such Collection")
+			self.set_alias(name, self.collections[collection])
 
 	@dbus.service.method(dbus.PROPERTIES_IFACE, in_signature='ss', out_signature='v')
 	def Get(self, interface_name, property_name):

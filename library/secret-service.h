@@ -481,6 +481,70 @@ gchar *              secret_service_create_item_path_sync         (SecretService
                                                                    GCancellable *cancellable,
                                                                    GError **error);
 
+void                 secret_service_read_alias                    (SecretService *self,
+                                                                   const gchar *alias,
+                                                                   GCancellable *cancellable,
+                                                                   GAsyncReadyCallback callback,
+                                                                   gpointer user_data);
+
+SecretCollection *   secret_service_read_alias_finish             (SecretService *self,
+                                                                   GAsyncResult *result,
+                                                                   GError **error);
+
+SecretCollection *   secret_service_read_alias_sync               (SecretService *self,
+                                                                   const gchar *alias,
+                                                                   GCancellable *cancellable,
+                                                                   GError **error);
+
+void                 secret_service_read_alias_path               (SecretService *self,
+                                                                   const gchar *alias,
+                                                                   GCancellable *cancellable,
+                                                                   GAsyncReadyCallback callback,
+                                                                   gpointer user_data);
+
+gchar *              secret_service_read_alias_path_finish        (SecretService *self,
+                                                                   GAsyncResult *result,
+                                                                   GError **error);
+
+gchar *              secret_service_read_alias_path_sync          (SecretService *self,
+                                                                   const gchar *alias,
+                                                                   GCancellable *cancellable,
+                                                                   GError **error);
+
+void                 secret_service_set_alias                     (SecretService *self,
+                                                                   const gchar *alias,
+                                                                   SecretCollection *collection,
+                                                                   GCancellable *cancellable,
+                                                                   GAsyncReadyCallback callback,
+                                                                   gpointer user_data);
+
+gboolean             secret_service_set_alias_finish              (SecretService *self,
+                                                                   GAsyncResult *result,
+                                                                   GError **error);
+
+gboolean             secret_service_set_alias_sync                (SecretService *self,
+                                                                   const gchar *alias,
+                                                                   SecretCollection *collection,
+                                                                   GCancellable *cancellable,
+                                                                   GError **error);
+
+void                 secret_service_set_alias_path                (SecretService *self,
+                                                                   const gchar *alias,
+                                                                   const gchar *collection_path,
+                                                                   GCancellable *cancellable,
+                                                                   GAsyncReadyCallback callback,
+                                                                   gpointer user_data);
+
+gboolean             secret_service_set_alias_path_finish         (SecretService *self,
+                                                                   GAsyncResult *result,
+                                                                   GError **error);
+
+gboolean             secret_service_set_alias_path_sync           (SecretService *self,
+                                                                   const gchar *alias,
+                                                                   const gchar *collection_path,
+                                                                   GCancellable *cancellable,
+                                                                   GError **error);
+
 G_END_DECLS
 
 #endif /* __SECRET_SERVICE_H___ */
