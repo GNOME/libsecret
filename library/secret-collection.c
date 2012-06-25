@@ -1171,6 +1171,21 @@ secret_collection_delete_sync (SecretCollection *self,
 }
 
 /**
+ * secret_collection_get_service:
+ * @self: a collection
+ *
+ * Get the Secret Service object that this collection was created with.
+ *
+ * Returns: (transfer none): the Secret Service object
+ */
+SecretService *
+secret_collection_get_service (SecretCollection *self)
+{
+	g_return_val_if_fail (SECRET_IS_COLLECTION (self), NULL);
+	return self->pv->service;
+}
+
+/**
  * secret_collection_get_items:
  * @self: a collection
  *

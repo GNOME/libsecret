@@ -937,6 +937,22 @@ secret_item_delete_sync (SecretItem *self,
 	return ret;
 }
 
+/**
+ * secret_item_get_service:
+ * @self: an item
+ *
+ * Get the Secret Service object that this item was created with.
+ *
+ * Returns: (transfer none): the Secret Service object
+ */
+SecretService *
+secret_item_get_service (SecretItem *self)
+{
+	g_return_val_if_fail (SECRET_IS_COLLECTION (self), NULL);
+	return self->pv->service;
+}
+
+
 typedef struct {
 	GCancellable *cancellable;
 	SecretValue *value;

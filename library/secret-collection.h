@@ -96,6 +96,8 @@ gboolean            secret_collection_delete_sync              (SecretCollection
                                                                 GCancellable *cancellable,
                                                                 GError **error);
 
+SecretService *     secret_collection_get_service              (SecretCollection *self);
+
 GList *             secret_collection_get_items                (SecretCollection *self);
 
 gchar *             secret_collection_get_label                (SecretCollection *self);

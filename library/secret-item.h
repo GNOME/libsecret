@@ -102,6 +102,8 @@ gboolean            secret_item_delete_sync                (SecretItem *self,
                                                             GCancellable *cancellable,
                                                             GError **error);
 
+SecretService *     secret_item_get_service                (SecretItem *self);
+
 void                secret_item_get_secret                 (SecretItem *self,
                                                             GCancellable *cancellable,
                                                             GAsyncReadyCallback callback,
