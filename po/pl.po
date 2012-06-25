@@ -1,0 +1,47 @@
+# -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+# Aviary.pl
+# Jeśli masz jakiekolwiek uwagi odnoszące się do tłumaczenia lub chcesz
+# pomóc w jego rozwijaniu i pielęgnowaniu, napisz do nas:
+# gnomepl@aviary.pl
+# -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+msgid ""
+msgstr ""
+"Project-Id-Version: libsecret\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2012-06-25 20:18+0200\n"
+"PO-Revision-Date: 2012-06-25 20:22+0200\n"
+"Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
+"Language-Team: Polish <gnomepl@aviary.pl>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
+"|| n%100>=20) ? 1 : 2);\n"
+"X-Poedit-Language: Polish\n"
+"X-Poedit-Country: Poland\n"
+
+#: ../library/secret-item.c:994
+#, c-format
+msgid "Received invalid secret from the secret storage"
+msgstr "Otrzymano nieprawidłowy sekret z przechowalni"
+
+#: ../library/secret-session.c:244 ../library/secret-session.c:281
+msgid "Couldn't communicate with the secret storage"
+msgstr "Nie można komunikować się z przechowalnią"
+
+#: ../tool/secret-tool.c:36
+msgid "the label for the new stored item"
+msgstr "etykieta dla nowo przechowywanego elementu"
+
+#: ../tool/secret-tool.c:38
+msgid "the collection in which to place the stored item"
+msgstr "kolekcja, w której umieścić przechowywany element"
+
+#: ../tool/secret-tool.c:40 ../tool/secret-tool.c:47
+msgid "attribute value pairs of item to lookup"
+msgstr "pary wartości atrybutu wyszukiwanego elementu"
+
+#: ../tool/secret-tool.c:54
+msgid "attribute value pairs which match item to remove"
+msgstr "pary wartości atrybutu pasujące do usuwanego elementu"
