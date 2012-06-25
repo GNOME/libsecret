@@ -189,7 +189,7 @@ secret_tool_action_lookup (int argc,
 	GOptionContext *context;
 	SecretService *service;
 	GHashTable *attributes;
-	SecretValue *value;
+	SecretValue *value = NULL;
 
 	context = g_option_context_new ("attribute value ...");
 	g_option_context_add_main_entries (context, LOOKUP_OPTIONS, GETTEXT_PACKAGE);
