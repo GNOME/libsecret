@@ -16,6 +16,17 @@
 
 #include "secret-schema.h"
 
+static const SecretSchema note_schema = {
+	"org.gnome.keyring.Note",
+	SECRET_SCHEMA_DONT_MATCH_NAME,
+	{
+		{  "NULL", 0 },
+	}
+};
+
+const SecretSchema *  SECRET_SCHEMA_NOTE = &note_schema;
+
+
 static const SecretSchema network_schema = {
 	"org.gnome.keyring.NetworkPassword",
 	SECRET_SCHEMA_DONT_MATCH_NAME,

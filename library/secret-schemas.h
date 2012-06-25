@@ -26,6 +26,11 @@
 G_BEGIN_DECLS
 
 /*
+ * A note or password stored manually by the user.
+ */
+extern const SecretSchema *  SECRET_SCHEMA_NOTE;
+
+/*
  * This schema is here for compatibility with libgnome-keyring's network
  * password functions.
  */
