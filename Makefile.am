@@ -32,5 +32,8 @@ check-memory:
 			make -C $(builddir)/$$subdir/tests check-memory; \
 	done
 
+upload-release: $(DIST_ARCHIVES)
+		scp $(DIST_ARCHIVES) master.gnome.org:
+
 upload-docs:
 	rsync -Hvax docs/reference/libsecret/html/./ master.gnome.org:public_html/libsecret-docs/

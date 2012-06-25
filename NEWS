@@ -1,3 +1,10 @@
+0.3
+ * Add methods to get services from collections, items
+ * Add methods to read and set aliases
+ * Add methods which handle prompts for a DBus object path
+ * Header path fix
+ * Documentation fixes
+
 0.2
  * Fix header copyright issues
  * Build fixes
