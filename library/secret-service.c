@@ -1364,7 +1364,7 @@ on_ensure_collection (GObject *source,
 		g_simple_async_result_take_error (res, error);
 
 	if (collection != NULL) {
-		path = g_dbus_proxy_get_object_path (G_DBUS_PROXY (self));
+		path = g_dbus_proxy_get_object_path (G_DBUS_PROXY (collection));
 		g_hash_table_insert (closure->collections, g_strdup (path), collection);
 	}
 
