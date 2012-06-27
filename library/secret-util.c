@@ -359,7 +359,7 @@ on_get_properties (GObject *source,
                    GAsyncResult *result,
                    gpointer user_data)
 {
-	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (result);
+	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
 	GDBusProxy *proxy = G_DBUS_PROXY (g_async_result_get_source_object (user_data));
 	GError *error = NULL;
 	GVariant *retval;
