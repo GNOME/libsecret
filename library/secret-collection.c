@@ -507,8 +507,10 @@ secret_collection_signal (GDBusProxy *proxy,
 
 		g_mutex_unlock (&self->pv->mutex);
 
-		secret_item_refresh (item);
-		g_object_unref (item);
+		if (item) {
+			secret_item_refresh (item);
+			g_object_unref (item);
+		}
 	}
 
 	g_variant_unref (paths);

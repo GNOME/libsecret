@@ -403,8 +403,10 @@ secret_service_signal (GDBusProxy *proxy,
 
 		g_mutex_unlock (&self->pv->mutex);
 
-		secret_collection_refresh (collection);
-		g_object_unref (collection);
+		if (collection) {
+			secret_collection_refresh (collection);
+			g_object_unref (collection);
+		}
 	}
 
 	g_variant_unref (paths);
