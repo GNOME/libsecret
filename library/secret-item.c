@@ -818,10 +818,8 @@ on_item_deleted (GObject *source,
 	SecretItem *self = SECRET_ITEM (g_async_result_get_source_object (user_data));
 	GError *error = NULL;
 
-	if (secret_service_delete_path_finish (SECRET_SERVICE (source), result, &error)) {
+	if (secret_service_delete_path_finish (SECRET_SERVICE (source), result, &error))
 		g_simple_async_result_set_op_res_gboolean (res, TRUE);
-		g_object_run_dispose (G_OBJECT (self));
-	}
 
 	if (error != NULL)
 		g_simple_async_result_take_error (res, error);
