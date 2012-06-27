@@ -5,8 +5,6 @@ import unittest
 from gi.repository import MockService as Mock
 from gi.repository import Secret, GLib
 
-Mock.start("mock-service-normal.py")
-
 STORE_SCHEMA = Secret.Schema.new("org.mock.Schema",
 	Secret.SchemaFlags.NONE,
 	{
