@@ -354,7 +354,7 @@ secret_service_signal (GDBusProxy *proxy,
 
 	/* A new collection was added, add it to the Collections property */
 	if (g_str_equal (signal_name, SECRET_SIGNAL_COLLECTION_CREATED)) {
-		g_variant_get (parameters, "@o", &value);
+		g_variant_get (parameters, "(@o)", &value);
 		g_variant_builder_init (&builder, G_VARIANT_TYPE ("ao"));
 		g_variant_iter_init (&iter, paths);
 		while ((path = g_variant_iter_next_value (&iter)) != NULL) {
@@ -374,7 +374,7 @@ secret_service_signal (GDBusProxy *proxy,
 
 	/* A collection was deleted, remove it from the Collections property */
 	} else if (g_str_equal (signal_name, SECRET_SIGNAL_COLLECTION_DELETED)) {
-		g_variant_get (parameters, "@o", &value);
+		g_variant_get (parameters, "(@o)", &value);
 		g_variant_builder_init (&builder, G_VARIANT_TYPE ("ao"));
 		g_variant_iter_init (&iter, paths);
 		while ((path = g_variant_iter_next_value (&iter)) != NULL) {
@@ -390,7 +390,7 @@ secret_service_signal (GDBusProxy *proxy,
 
 	/* The collection changed, update it */
 	} else if (g_str_equal (signal_name, SECRET_SIGNAL_COLLECTION_CHANGED)) {
-		g_variant_get (parameters, "&o", &collection_path);
+		g_variant_get (parameters, "(&o)", &collection_path);
 
 		g_mutex_lock (&self->pv->mutex);
 
