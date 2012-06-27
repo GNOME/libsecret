@@ -1221,7 +1221,7 @@ service_xlock_async (SecretService *self,
 	}
 	g_ptr_array_add (paths, NULL);
 
-	res = service_xlock_paths_async (self, "Lock", (const gchar **)paths->pdata,
+	res = service_xlock_paths_async (self, method, (const gchar **)paths->pdata,
 	                                 cancellable, callback, user_data);
 
 	closure = g_simple_async_result_get_op_res_gpointer (res);
