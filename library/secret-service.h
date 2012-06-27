@@ -93,7 +93,8 @@ SecretService *      secret_service_get_sync                      (SecretService
                                                                    GCancellable *cancellable,
                                                                    GError **error);
 
-void                 secret_service_new                           (const gchar *service_bus_name,
+void                 secret_service_new                           (GType service_gtype,
+                                                                   const gchar *service_bus_name,
                                                                    SecretServiceFlags flags,
                                                                    GCancellable *cancellable,
                                                                    GAsyncReadyCallback callback,
@@ -102,7 +103,8 @@ void                 secret_service_new                           (const gchar *
 SecretService *      secret_service_new_finish                    (GAsyncResult *result,
                                                                    GError **error);
 
-SecretService *      secret_service_new_sync                      (const gchar *service_bus_name,
+SecretService *      secret_service_new_sync                      (GType service_gtype,
+                                                                   const gchar *service_bus_name,
                                                                    SecretServiceFlags flags,
                                                                    GCancellable *cancellable,
                                                                    GError **error);

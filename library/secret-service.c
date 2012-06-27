@@ -834,6 +834,7 @@ secret_service_get_sync (SecretServiceFlags flags,
 
 /**
  * secret_service_new:
+ * @service_gtype: the GType of the new secret service
  * @service_bus_name: (allow-none): the D-Bus service name of the secret service
  * @flags: flags for which service functionality to ensure is initialized
  * @cancellable: optional cancellation object
@@ -844,6 +845,9 @@ secret_service_get_sync (SecretServiceFlags flags,
  *
  * This function is rarely used, see secret_service_get() instead.
  *
+ * The @service_gtype argument should be set to %SECRET_TYPE_SERVICE or a the type
+ * of a derived class.
+ *
  * If @flags contains any flags of which parts of the secret service to
  * ensure are initialized, then those will be initialized before returning.
  *
@@ -852,18 +856,20 @@ secret_service_get_sync (SecretServiceFlags flags,
  * This method will return immediately and complete asynchronously.
  */
 void
-secret_service_new (const gchar *service_bus_name,
+secret_service_new (GType service_gtype,
+                    const gchar *service_bus_name,
                     SecretServiceFlags flags,
                     GCancellable *cancellable,
                     GAsyncReadyCallback callback,
                     gpointer user_data)
 {
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+	g_return_if_fail (g_type_is_a (service_gtype, SECRET_TYPE_SERVICE));
 
 	if (service_bus_name == NULL)
 		service_bus_name = default_bus_name;
 
-	g_async_initable_new_async (SECRET_TYPE_SERVICE, G_PRIORITY_DEFAULT,
+	g_async_initable_new_async (service_gtype, G_PRIORITY_DEFAULT,
 	                            cancellable, callback, user_data,
 	                            "g-flags", G_DBUS_PROXY_FLAGS_NONE,
 	                            "g-interface-info", _secret_gen_service_interface_info (),
@@ -909,6 +915,7 @@ secret_service_new_finish (GAsyncResult *result,
 
 /**
  * secret_service_new_sync:
+ * @service_gtype: the GType of the new secret service
  * @service_bus_name: (allow-none): the D-Bus service name of the secret service
  * @flags: flags for which service functionality to ensure is initialized
  * @cancellable: optional cancellation object
@@ -917,6 +924,9 @@ secret_service_new_finish (GAsyncResult *result,
  * Create a new #SecretService proxy for the Secret Service.
  *
  * This function is rarely used, see secret_service_get_sync() instead.
+ *
+ * The @service_gtype argument should be set to %SECRET_TYPE_SERVICE or a the
+ * type of a derived class.
  *
  * If @flags contains any flags of which parts of the secret service to
  * ensure are initialized, then those will be initialized before returning.
@@ -930,17 +940,19 @@ secret_service_new_finish (GAsyncResult *result,
  *          should be released with g_object_unref().
  */
 SecretService *
-secret_service_new_sync (const gchar *service_bus_name,
+secret_service_new_sync (GType service_gtype,
+                         const gchar *service_bus_name,
                          SecretServiceFlags flags,
                          GCancellable *cancellable,
                          GError **error)
 {
 	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
+	g_return_val_if_fail (g_type_is_a (service_gtype, SECRET_TYPE_SERVICE), NULL);
 
 	if (service_bus_name == NULL)
 		service_bus_name = default_bus_name;
 
-	return g_initable_new (SECRET_TYPE_SERVICE, cancellable, error,
+	return g_initable_new (service_gtype, cancellable, error,
 	                       "g-flags", G_DBUS_PROXY_FLAGS_NONE,
 	                       "g-interface-info", _secret_gen_service_interface_info (),
 	                       "g-name", service_bus_name,

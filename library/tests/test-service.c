@@ -245,10 +245,12 @@ test_new_sync (void)
 
 	/* Both these sohuld point to different things */
 
-	service1 = secret_service_new_sync (NULL, SECRET_SERVICE_NONE, NULL, &error);
+	service1 = secret_service_new_sync (SECRET_TYPE_SERVICE, NULL,
+	                                    SECRET_SERVICE_NONE, NULL, &error);
 	g_assert_no_error (error);
 
-	service2 = secret_service_new_sync (NULL, SECRET_SERVICE_NONE, NULL, &error);
+	service2 = secret_service_new_sync (SECRET_TYPE_SERVICE, NULL,
+	                                    SECRET_SERVICE_NONE, NULL, &error);
 	g_assert_no_error (error);
 
 	g_assert (SECRET_IS_SERVICE (service1));
@@ -272,14 +274,16 @@ test_new_async (void)
 
 	/* Both these sohuld point to different things */
 
-	secret_service_new (NULL, SECRET_SERVICE_NONE, NULL, on_complete_get_result, &result);
+	secret_service_new (SECRET_TYPE_SERVICE, NULL, SECRET_SERVICE_NONE,
+	                    NULL, on_complete_get_result, &result);
 	g_assert (result == NULL);
 	egg_test_wait ();
 	service1 = secret_service_new_finish (result, &error);
 	g_assert_no_error (error);
 	g_clear_object (&result);
 
-	secret_service_new (NULL, SECRET_SERVICE_NONE, NULL, on_complete_get_result, &result);
+	secret_service_new (SECRET_TYPE_SERVICE, NULL, SECRET_SERVICE_NONE, NULL,
+	                    on_complete_get_result, &result);
 	g_assert (result == NULL);
 	egg_test_wait ();
 	service2 = secret_service_new_finish (result, &error);
@@ -306,7 +310,8 @@ test_new_more_sync (Test *test,
 	const gchar *path;
 	GList *collections;
 
-	service = secret_service_new_sync (NULL, SECRET_SERVICE_NONE, NULL, &error);
+	service = secret_service_new_sync (SECRET_TYPE_SERVICE, NULL, SECRET_SERVICE_NONE,
+	                                   NULL, &error);
 	g_assert_no_error (error);
 	g_assert (SECRET_IS_SERVICE (service));
 
@@ -317,7 +322,8 @@ test_new_more_sync (Test *test,
 	g_object_unref (service);
 	egg_assert_not_object (service);
 
-	service = secret_service_new_sync (NULL, SECRET_SERVICE_LOAD_COLLECTIONS, NULL, &error);
+	service = secret_service_new_sync (SECRET_TYPE_SERVICE, NULL,
+	                                   SECRET_SERVICE_LOAD_COLLECTIONS, NULL, &error);
 	g_assert_no_error (error);
 	g_assert (SECRET_IS_SERVICE (service));
 
@@ -330,7 +336,8 @@ test_new_more_sync (Test *test,
 	g_object_unref (service);
 	egg_assert_not_object (service);
 
-	service = secret_service_new_sync (NULL, SECRET_SERVICE_OPEN_SESSION, NULL, &error);
+	service = secret_service_new_sync (SECRET_TYPE_SERVICE, NULL,
+	                                   SECRET_SERVICE_OPEN_SESSION, NULL, &error);
 	g_assert_no_error (error);
 	g_assert (SECRET_IS_SERVICE (service));
 
@@ -353,7 +360,8 @@ test_new_more_async (Test *test,
 	const gchar *path;
 	GList *collections;
 
-	secret_service_new (NULL, SECRET_SERVICE_LOAD_COLLECTIONS | SECRET_SERVICE_OPEN_SESSION, NULL, on_complete_get_result, &result);
+	secret_service_new (SECRET_TYPE_SERVICE, NULL,
+	                    SECRET_SERVICE_LOAD_COLLECTIONS | SECRET_SERVICE_OPEN_SESSION, NULL, on_complete_get_result, &result);
 	g_assert (result == NULL);
 
 	egg_test_wait ();
@@ -376,7 +384,8 @@ test_new_more_async (Test *test,
 
 	/* Now get a session with just collections */
 
-	secret_service_new (NULL, SECRET_SERVICE_LOAD_COLLECTIONS, NULL, on_complete_get_result, &result);
+	secret_service_new (SECRET_TYPE_SERVICE, NULL, SECRET_SERVICE_LOAD_COLLECTIONS,
+	                    NULL, on_complete_get_result, &result);
 	g_assert (result == NULL);
 
 	egg_test_wait ();
@@ -462,7 +471,8 @@ test_ensure_sync (Test *test,
 	gboolean ret;
 
 	/* Passing true, ensures session is established */
-	service = secret_service_new_sync (NULL, SECRET_SERVICE_NONE, NULL, &error);
+	service = secret_service_new_sync (SECRET_TYPE_SERVICE, NULL,
+	                                   SECRET_SERVICE_NONE, NULL, &error);
 	g_assert_no_error (error);
 	g_assert (service != NULL);
 
@@ -499,7 +509,8 @@ test_ensure_async (Test *test,
 	gboolean ret;
 
 	/* Passing true, ensures session is established */
-	service = secret_service_new_sync (NULL, SECRET_SERVICE_NONE, NULL, &error);
+	service = secret_service_new_sync (SECRET_TYPE_SERVICE, NULL,
+	                                   SECRET_SERVICE_NONE, NULL, &error);
 	g_assert_no_error (error);
 	g_assert (service != NULL);
 
