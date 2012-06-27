@@ -623,6 +623,7 @@ secret_collection_initable_init (GInitable *initable,
 	if (!collection_load_items_sync (self, cancellable, error))
 		return FALSE;
 
+	self->pv->constructing = FALSE;
 	return TRUE;
 }
 
@@ -721,12 +722,15 @@ secret_collection_async_initable_init_finish (GAsyncInitable *initable,
                                               GAsyncResult *result,
                                               GError **error)
 {
+	SecretCollection *self = SECRET_COLLECTION (initable);
+
 	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (initable),
 	                      secret_collection_async_initable_init_async), FALSE);
 
 	if (g_simple_async_result_propagate_error (G_SIMPLE_ASYNC_RESULT (result), error))
 		return FALSE;
 
+	self->pv->constructing = FALSE;
 	return TRUE;
 }
 
