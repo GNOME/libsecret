@@ -4,6 +4,7 @@
 *.gcno
 *.gcda
 *.gir
+*.gmo
 *.la
 *.lo
 *.o
