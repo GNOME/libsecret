@@ -241,6 +241,7 @@ collection_update_items (SecretCollection *self,
 	g_mutex_unlock (&self->pv->mutex);
 
 	g_hash_table_unref (previous);
+	g_object_notify (G_OBJECT (self), "items");
 }
 
 typedef struct {

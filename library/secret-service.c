@@ -1316,6 +1316,8 @@ service_update_collections (SecretService *self,
 
 	if (previous != NULL)
 		g_hash_table_unref (previous);
+
+	g_object_notify (G_OBJECT (self), "collections");
 }
 
 typedef struct {
