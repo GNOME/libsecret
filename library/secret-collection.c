@@ -1086,6 +1086,20 @@ secret_collection_create_sync (SecretService *service,
 	return collection;
 }
 
+static void
+on_service_delete_path (GObject *source,
+                        GAsyncResult *result,
+                        gpointer user_data)
+{
+	GSimpleAsyncResult *async = G_SIMPLE_ASYNC_RESULT (user_data);
+	GError *error = NULL;
+
+	secret_service_delete_path_finish (SECRET_SERVICE (source), result, &error);
+	if (error != NULL)
+		g_simple_async_result_take_error (async, error);
+	g_simple_async_result_complete (async);
+	g_object_unref (async);
+}
 /**
  * secret_collection_delete:
  * @self: a collection
@@ -1105,14 +1119,21 @@ secret_collection_delete (SecretCollection *self,
                           GAsyncReadyCallback callback,
                           gpointer user_data)
 {
+	GSimpleAsyncResult *async;
 	const gchar *object_path;
 
 	g_return_if_fail (SECRET_IS_COLLECTION (self));
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
+	async = g_simple_async_result_new (G_OBJECT (self), callback, user_data,
+	                                   secret_collection_delete);
+
 	object_path = g_dbus_proxy_get_object_path (G_DBUS_PROXY (self));
 	_secret_service_delete_path (self->pv->service, object_path, FALSE,
-	                             cancellable, callback, user_data);
+	                             cancellable, on_service_delete_path,
+	                             g_object_ref (async));
+
+	g_object_unref (async);
 }
 
 /**
@@ -1132,8 +1153,13 @@ secret_collection_delete_finish (SecretCollection *self,
 {
 	g_return_val_if_fail (SECRET_IS_COLLECTION (self), FALSE);
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (self),
+	                      secret_collection_delete), FALSE);
 
-	return secret_service_delete_path_finish (self->pv->service, result, error);
+	if (g_simple_async_result_propagate_error (G_SIMPLE_ASYNC_RESULT (result), error))
+		return FALSE;
+
+	return TRUE;
 }
 
 /**
