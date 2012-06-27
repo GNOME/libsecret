@@ -349,7 +349,7 @@ process_get_all_reply (GDBusProxy *proxy,
 	g_variant_iter_free (iter);
 
 	g_variant_get (retval, "(@a{sv})", &changed_properties);
-	g_signal_emit_by_name (proxy, "properties-changed",
+	g_signal_emit_by_name (proxy, "g-properties-changed",
 	                       changed_properties, invalidated_properties);
 	g_variant_unref (changed_properties);
 }
