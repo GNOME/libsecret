@@ -60,7 +60,11 @@ GType             secret_schema_get_type           (void) G_GNUC_CONST;
 
 SecretSchema *    secret_schema_new                (const gchar *name,
                                                     SecretSchemaFlags flags,
-                                                    GHashTable *attributes);
+                                                    ...) G_GNUC_NULL_TERMINATED;
+
+SecretSchema *    secret_schema_newv               (const gchar *name,
+                                                    SecretSchemaFlags flags,
+                                                    GHashTable *attribute_names_and_types);
 
 SecretSchema *    secret_schema_ref                (SecretSchema *schema);
 

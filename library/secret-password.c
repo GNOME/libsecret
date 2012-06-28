@@ -112,7 +112,7 @@ on_store_connected (GObject *source,
 }
 
 /**
- * secret_password_store:
+ * secret_password_store: (skip)
  * @schema: the schema for attributes
  * @collection_path: (allow-none): the D-Bus object path of the collection where to store the secret
  * @label: label for the secret

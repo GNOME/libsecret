@@ -143,10 +143,10 @@ G_DEFINE_BOXED_TYPE (SecretSchemaAttribute, secret_schema_attribute,
                      schema_attribute_copy, schema_attribute_free);
 
 /**
- * secret_schema_new:
+ * secret_schema_newv:
  * @name: the dotted name of the schema
  * @flags: the flags for the schema
- * @attributes: (element-type utf8 Secret.SchemaAttributeType): the attribute names and types of those attributes
+ * @attribute_names_and_types: (element-type utf8 Secret.SchemaAttributeType): the attribute names and types of those attributes
  *
  * Using this function is not normally necessary from C code. This is useful
  * for constructing #SecretSchema structures in bindings.
@@ -170,13 +170,15 @@ G_DEFINE_BOXED_TYPE (SecretSchemaAttribute, secret_schema_attribute,
  * that are not stored by the libsecret library. Other libraries such as libgnome-keyring
  * don't store the schema name.
  *
+ * Rename to: secret_schema_new
+ *
  * Returns: (transfer full): the new schema, which should be unreferenced with
  *          secret_schema_unref() when done
  */
 SecretSchema *
-secret_schema_new (const gchar *name,
-                   SecretSchemaFlags flags,
-                   GHashTable *attributes)
+secret_schema_newv (const gchar *name,
+                    SecretSchemaFlags flags,
+                    GHashTable *attribute_names_and_types)
 {
 	SecretSchema *schema;
 	GHashTableIter iter;
@@ -187,14 +189,15 @@ secret_schema_new (const gchar *name,
 	gint ind = 0;
 
 	g_return_val_if_fail (name != NULL, NULL);
+	g_return_val_if_fail (attribute_names_and_types != NULL, NULL);
 
 	schema = g_slice_new0 (SecretSchema);
 	schema->name = g_strdup (name);
 	schema->flags = flags;
 	schema->reserved = 1;
 
-	if (attributes) {
-		g_hash_table_iter_init (&iter, attributes);
+	if (attribute_names_and_types) {
+		g_hash_table_iter_init (&iter, attribute_names_and_types);
 		while (g_hash_table_iter_next (&iter, &key, &value)) {
 
 			if (ind >= G_N_ELEMENTS (schema->attributes)) {
@@ -221,6 +224,67 @@ secret_schema_new (const gchar *name,
 			ind++;
 		}
 	}
+
+	return schema;
+}
+
+/**
+ * secret_schema_new: (skip)
+ * @name: the dotted name of the schema
+ * @flags: the flags for the schema
+ * @...: the attribute names and types, terminated with %NULL
+ *
+ * Using this function is not normally necessary from C code.
+ *
+ * A schema represents a set of attributes that are stored with an item. These
+ * schemas are used for interoperability between various services storing the
+ * same types of items.
+ *
+ * Each schema has an @name like "org.gnome.keyring.NetworkPassword", and
+ * defines a set of attributes names, and types (string, integer, boolean) for
+ * those attributes.
+ *
+ * The variable argument list should contain pairs of a) The attribute name as
+ * a null-terminated string, followed by b) integers from the
+ * #SecretSchemaAttributeType enumeration, representing the attribute type for
+ * each attribute name. The list of attribtues should be terminated with a %NULL.
+ *
+ * Normally when looking up passwords only those with matching schema names are
+ * returned. If the schema @flags contain the %SECRET_SCHEMA_DONT_MATCH_NAME flag,
+ * then lookups will not check that the schema name matches that on the item, only
+ * the schema's attributes are matched. This is useful when you are looking up items
+ * that are not stored by the libsecret library. Other libraries such as libgnome-keyring
+ * don't store the schema name.
+ *
+ * Returns: (transfer full): the new schema, which should be unreferenced with
+ *          secret_schema_unref() when done
+ */
+SecretSchema *
+secret_schema_new (const gchar *name,
+                   SecretSchemaFlags flags,
+                   ...)
+{
+	SecretSchemaAttributeType type;
+	GHashTable *attributes;
+	SecretSchema *schema;
+	const gchar *attribute;
+	va_list va;
+
+	g_return_val_if_fail (name != NULL, NULL);
+
+	va_start (va, flags);
+	attributes = g_hash_table_new (g_str_hash, g_str_equal);
+
+	while ((attribute = va_arg (va, const gchar *)) != NULL) {
+		type = va_arg (va, SecretSchemaAttributeType);
+		g_hash_table_insert (attributes, (gpointer *)attribute,
+		                     GINT_TO_POINTER (type));
+	}
+
+	schema = secret_schema_newv (name, flags, attributes);
+
+	g_hash_table_unref (attributes);
+	va_end (va);
 
 	return schema;
 }
