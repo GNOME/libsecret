@@ -86,7 +86,7 @@ rm -rf autom4te.cache
 # regenerated from their corresponding *.in files by ./configure anyway.
 touch README INSTALL
 
-$ACLOCAL $ACLOCAL_FLAGS || exit $?
+$ACLOCAL -I build/m4 $ACLOCAL_FLAGS || exit $?
 
 libtoolize --force || exit $?
 intltoolize --force --copy || exit $?
