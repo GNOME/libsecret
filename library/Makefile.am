@@ -78,7 +78,7 @@ libsecret_@SECRET_MAJOR@_la_LIBADD = \
 	$(LIBS)
 
 DBUS_XML_DEFINITIONS = \
-	org.freedesktop.Secrets.xml
+	$(srcdir)/org.freedesktop.Secrets.xml
 
 secret-dbus-generated.c: $(DBUS_XML_DEFINITIONS) Makefile.am
 	$(AM_V_GEN) gdbus-codegen --interface-prefix org.freedesktop.Secret. \
