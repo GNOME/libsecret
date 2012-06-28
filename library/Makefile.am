@@ -94,6 +94,8 @@ secret-enum-types.h: secret-enum-types.h.template $(HEADER_FILES)
 secret-enum-types.c: secret-enum-types.c.template $(HEADER_FILES)
 	$(AM_V_GEN) $(GLIB_MKENUMS) --template $^ > $@
 
+CLEANFILES =
+
 # ------------------------------------------------------------------
 # INTROSPECTION
 
@@ -121,7 +123,24 @@ gir_DATA = $(INTROSPECTION_GIRS)
 typelibsdir = $(libdir)/girepository-1.0
 typelibs_DATA = $(INTROSPECTION_GIRS:.gir=.typelib)
 
-endif
+if ENABLE_VAPIGEN
+include $(VAPIGEN_MAKEFILE)
+
+libsecret-@SECRET_MAJOR@.vapi: Secret-@SECRET_MAJOR@.gir Secret-@SECRET_MAJOR@.metadata
+
+VAPIGEN_VAPIS = libsecret-@SECRET_MAJOR@.vapi
+
+libsecret_@SECRET_MAJOR@_vapi_DEPS = gio-2.0
+libsecret_@SECRET_MAJOR@_vapi_METADATADIRS = $(srcdir)
+libsecret_@SECRET_MAJOR@_vapi_FILES = Secret-@SECRET_MAJOR@.gir
+
+vapidir = $(datadir)/vala/vapi
+vapi_DATA = $(VAPIGEN_VAPIS)
+
+CLEANFILES += $(VAPIGEN_VAPIS)
+
+endif # ENABLE_VAPIGEN
+endif # HAVE_INTROSPECTION
 
 # ------------------------------------------------------------------
 # PKG CONFIG
@@ -139,9 +158,10 @@ EXTRA_DIST = \
 	secret-enum-types.h.template \
 	secret-enum-types.c.template \
 	org.freedesktop.Secrets.xml \
+	Secret-@SECRET_MAJOR@.metadata \
 	$(NULL)
 
-CLEANFILES = \
+CLEANFILES += \
 	$(pkgconfig_DATA) \
 	$(gir_DATA) \
 	$(typelibs_DATA) \

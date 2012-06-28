@@ -12,6 +12,7 @@
 *.pc
 *.tar.gz
 *.typelib
+*.vapi
 .deps
 .cproject
 .libs
@@ -39,7 +40,8 @@ stamp*
 .cproject
 
 /build/coverage*
-/build/m4
+/build/m4/*
+!/build/m4/vapigen.m4
 /build/valgrind-suppressions
 
 /docs/reference/libsecret/version.xml
@@ -67,8 +69,11 @@ stamp*
 /library/secret-dbus-generated.[ch]
 /library/secret-enum-types.[ch]
 /library/tests/test-*
+/library/tests/*.metadata
 !/library/tests/test-*.c
 !/library/tests/test-*.js
 !/library/tests/test-*.py
+!/library/tests/test-*.vala
+/library/tests/test-vala-lang.c
 
 /tool/secret-tool

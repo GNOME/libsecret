@@ -72,6 +72,18 @@ GOBJECT_INTROSPECTION_CHECK([1.29])
 AC_PATH_PROG(GLIB_MKENUMS, glib-mkenums)
 
 # --------------------------------------------------------------------
+# Vala
+
+VALA_REQUIRED=0.17.2.12
+
+VAPIGEN_CHECK($VALA_REQUIRED)
+
+if test "$enable_vala" != "no"; then
+	AC_PATH_PROG([VALAC], [valac], [])
+fi
+AM_CONDITIONAL(HAVE_VALAC, test "x$VALAC" != "x")
+
+# --------------------------------------------------------------------
 # libgcrypt
 
 GCRYPT_VERSION=1.2.2
