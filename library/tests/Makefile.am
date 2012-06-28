@@ -53,7 +53,7 @@ JS_TESTS = \
 	test-store-password.js
 
 JS_ENV = \
-	LD_LIBRARY_PATH=$(builddir)/.libs \
+	LD_LIBRARY_PATH=$(builddir)/../.libs:$(builddir)/.libs \
 	GI_TYPELIB_PATH=$(builddir)/..:$(builddir)
 
 PY_TESTS = \
