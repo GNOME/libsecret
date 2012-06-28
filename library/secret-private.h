@@ -69,17 +69,14 @@ gint                 _secret_util_array_index_of              (GVariant *array,
 
 GType                _secret_list_get_type                    (void) G_GNUC_CONST;
 
-GVariant *           _secret_util_variant_for_attributes      (GHashTable *attributes,
+GVariant *           _secret_attributes_to_variant            (GHashTable *attributes,
                                                                const gchar *schema_name);
 
-GHashTable *         _secret_util_attributes_for_variant      (GVariant *variant);
+GHashTable *         _secret_attributes_for_variant           (GVariant *variant);
 
-GHashTable *         _secret_util_attributes_for_varargs      (const SecretSchema *schema,
-                                                               va_list va);
+GHashTable *         _secret_attributes_copy                  (GHashTable *attributes);
 
-GHashTable *         _secret_util_attributes_copy             (GHashTable *attributes);
-
-gboolean             _secret_util_attributes_validate         (const SecretSchema *schema,
+gboolean             _secret_attributes_validate              (const SecretSchema *schema,
                                                                GHashTable *attributes);
 
 GVariant *           _secret_util_variant_for_properties      (GHashTable *properties);

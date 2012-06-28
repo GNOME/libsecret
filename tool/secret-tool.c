@@ -135,7 +135,7 @@ secret_tool_action_remove (int argc,
 
 	service = secret_service_get_sync (SECRET_SERVICE_NONE, NULL, &error);
 	if (error == NULL)
-		secret_service_removev_sync (service, NULL, attributes, NULL, &error);
+		secret_service_remove_sync (service, NULL, attributes, NULL, &error);
 
 	g_object_unref (service);
 	g_hash_table_unref (attributes);
@@ -205,7 +205,7 @@ secret_tool_action_lookup (int argc,
 
 	service = secret_service_get_sync (SECRET_SERVICE_NONE, NULL, &error);
 	if (error == NULL)
-		value = secret_service_lookupv_sync (service, NULL, attributes, NULL, &error);
+		value = secret_service_lookup_sync (service, NULL, attributes, NULL, &error);
 
 	g_object_unref (service);
 	g_hash_table_unref (attributes);
@@ -312,7 +312,7 @@ secret_tool_action_store (int argc,
 		else
 			value = read_password_stdin ();
 
-		secret_service_storev_sync (service, NULL, attributes, collection, store_label, value, NULL, &error);
+		secret_service_store_sync (service, NULL, attributes, collection, store_label, value, NULL, &error);
 		secret_value_unref (value);
 	}
 

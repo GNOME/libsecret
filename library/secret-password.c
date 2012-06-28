@@ -14,6 +14,7 @@
 
 #include "config.h"
 
+#include "secret-attributes.h"
 #include "secret-password.h"
 #include "secret-private.h"
 #include "secret-value.h"
@@ -94,13 +95,13 @@ on_store_connected (GObject *source,
 
 	service = secret_service_get_finish (result, &error);
 	if (error == NULL) {
-		secret_service_storev (service, closure->schema,
-		                       closure->attributes,
-		                       closure->collection_path,
-		                       closure->label, closure->value,
-		                       closure->cancellable,
-		                       on_store_complete,
-		                       g_object_ref (res));
+		secret_service_store (service, closure->schema,
+		                      closure->attributes,
+		                      closure->collection_path,
+		                      closure->label, closure->value,
+		                      closure->cancellable,
+		                      on_store_complete,
+		                      g_object_ref (res));
 		g_object_unref (service);
 
 	} else {
@@ -157,7 +158,7 @@ secret_password_store (const SecretSchema *schema,
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
 	va_start (va, user_data);
-	attributes = _secret_util_attributes_for_varargs (schema, va);
+	attributes = secret_attributes_buildv (schema, va);
 	va_end (va);
 
 	secret_password_storev (schema, attributes, collection_path, label, password,
@@ -212,7 +213,7 @@ secret_password_storev (const SecretSchema *schema,
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
 	/* Warnings raised already */
-	if (!_secret_util_attributes_validate (schema, attributes))
+	if (!_secret_attributes_validate (schema, attributes))
 		return;
 
 	res = g_simple_async_result_new (NULL, callback, user_data,
@@ -222,7 +223,7 @@ secret_password_storev (const SecretSchema *schema,
 	closure->collection_path = g_strdup (collection_path);
 	closure->label = g_strdup (label);
 	closure->value = secret_value_new (password, -1, "text/plain");
-	closure->attributes = _secret_util_attributes_copy (attributes);
+	closure->attributes = _secret_attributes_copy (attributes);
 	closure->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
 	g_simple_async_result_set_op_res_gpointer (res, closure, store_closure_free);
 
@@ -309,7 +310,7 @@ secret_password_store_sync (const SecretSchema *schema,
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
 	va_start (va, error);
-	attributes = _secret_util_attributes_for_varargs (schema, va);
+	attributes = secret_attributes_buildv (schema, va);
 	va_end (va);
 
 	ret = secret_password_storev_sync (schema, attributes, collection_path,
@@ -367,7 +368,7 @@ secret_password_storev_sync (const SecretSchema *schema,
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
 	/* Warnings raised already */
-	if (!_secret_util_attributes_validate (schema, attributes))
+	if (!_secret_attributes_validate (schema, attributes))
 		return FALSE;
 
 	sync = _secret_sync_new ();
@@ -438,7 +439,7 @@ secret_password_lookup (const SecretSchema *schema,
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
 	va_start (va, user_data);
-	attributes = _secret_util_attributes_for_varargs (schema, va);
+	attributes = secret_attributes_buildv (schema, va);
 	va_end (va);
 
 	secret_password_lookupv (schema, attributes, cancellable,
@@ -482,9 +483,9 @@ on_lookup_connected (GObject *source,
 		g_simple_async_result_complete (res);
 
 	} else {
-		secret_service_lookupv (service, closure->schema, closure->attributes,
-		                        closure->cancellable, on_lookup_complete,
-		                        g_object_ref (res));
+		secret_service_lookup (service, closure->schema, closure->attributes,
+		                       closure->cancellable, on_lookup_complete,
+		                       g_object_ref (res));
 		g_object_unref (service);
 	}
 
@@ -524,7 +525,7 @@ secret_password_lookupv (const SecretSchema *schema,
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
 	/* Warnings raised already */
-	if (!_secret_util_attributes_validate (schema, attributes))
+	if (!_secret_attributes_validate (schema, attributes))
 		return;
 
 	res = g_simple_async_result_new (NULL, callback, user_data,
@@ -532,7 +533,7 @@ secret_password_lookupv (const SecretSchema *schema,
 	closure = g_slice_new0 (LookupClosure);
 	closure->schema = _secret_schema_ref_if_nonstatic (schema);
 	closure->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
-	closure->attributes = _secret_util_attributes_copy (attributes);
+	closure->attributes = _secret_attributes_copy (attributes);
 	g_simple_async_result_set_op_res_gpointer (res, closure, lookup_closure_free);
 
 	secret_service_get (SECRET_SERVICE_OPEN_SESSION, cancellable,
@@ -648,7 +649,7 @@ secret_password_lookup_sync (const SecretSchema *schema,
 	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 
 	va_start (va, error);
-	attributes = _secret_util_attributes_for_varargs (schema, va);
+	attributes = secret_attributes_buildv (schema, va);
 	va_end (va);
 
 	password = secret_password_lookupv_sync (schema, attributes,
@@ -696,7 +697,7 @@ secret_password_lookup_nonpageable_sync (const SecretSchema *schema,
 	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 
 	va_start (va, error);
-	attributes = _secret_util_attributes_for_varargs (schema, va);
+	attributes = secret_attributes_buildv (schema, va);
 	va_end (va);
 
 	password = secret_password_lookupv_nonpageable_sync (schema, attributes,
@@ -741,7 +742,7 @@ secret_password_lookupv_nonpageable_sync (const SecretSchema *schema,
 	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 
 	/* Warnings raised already */
-	if (!_secret_util_attributes_validate (schema, attributes))
+	if (!_secret_attributes_validate (schema, attributes))
 		return FALSE;
 
 	sync = _secret_sync_new ();
@@ -796,7 +797,7 @@ secret_password_lookupv_sync (const SecretSchema *schema,
 	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 
 	/* Warnings raised already */
-	if (!_secret_util_attributes_validate (schema, attributes))
+	if (!_secret_attributes_validate (schema, attributes))
 		return FALSE;
 
 	sync = _secret_sync_new ();
@@ -865,7 +866,7 @@ secret_password_remove (const SecretSchema *schema,
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
 	va_start (va, user_data);
-	attributes = _secret_util_attributes_for_varargs (schema, va);
+	attributes = secret_attributes_buildv (schema, va);
 	va_end (va);
 
 	secret_password_removev (schema, attributes, cancellable,
@@ -904,9 +905,9 @@ on_delete_connect (GObject *source,
 
 	service = secret_service_get_finish (result, &error);
 	if (error == NULL) {
-		secret_service_removev (service, closure->schema, closure->attributes,
-		                        closure->cancellable, on_delete_complete,
-		                        g_object_ref (res));
+		secret_service_remove (service, closure->schema, closure->attributes,
+		                       closure->cancellable, on_delete_complete,
+		                       g_object_ref (res));
 		g_object_unref (service);
 
 	} else {
@@ -950,14 +951,14 @@ secret_password_removev (const SecretSchema *schema,
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
 	/* Warnings raised already */
-	if (!_secret_util_attributes_validate (schema, attributes))
+	if (!_secret_attributes_validate (schema, attributes))
 		return;
 
 	res = g_simple_async_result_new (NULL, callback, user_data,
 	                                 secret_password_removev);
 	closure = g_slice_new0 (DeleteClosure);
 	closure->schema = _secret_schema_ref_if_nonstatic (schema);
-	closure->attributes = _secret_util_attributes_copy (attributes);
+	closure->attributes = _secret_attributes_copy (attributes);
 	closure->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
 	g_simple_async_result_set_op_res_gpointer (res, closure, delete_closure_free);
 
@@ -1032,7 +1033,7 @@ secret_password_remove_sync (const SecretSchema* schema,
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
 	va_start (va, error);
-	attributes = _secret_util_attributes_for_varargs (schema, va);
+	attributes = secret_attributes_buildv (schema, va);
 	va_end (va);
 
 	result = secret_password_removev_sync (schema, attributes,
@@ -1078,7 +1079,7 @@ secret_password_removev_sync (const SecretSchema *schema,
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
 	/* Warnings raised already */
-	if (!_secret_util_attributes_validate (schema, attributes))
+	if (!_secret_attributes_validate (schema, attributes))
 		return FALSE;
 
 	sync = _secret_sync_new ();

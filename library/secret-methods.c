@@ -73,7 +73,7 @@ secret_service_search_for_paths (SecretService *self,
 	g_return_if_fail (attributes != NULL);
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
-	_secret_service_search_for_paths_variant (self, _secret_util_variant_for_attributes (attributes, NULL),
+	_secret_service_search_for_paths_variant (self, _secret_attributes_to_variant (attributes, NULL),
 	                                          cancellable, callback, user_data);
 }
 
@@ -205,7 +205,7 @@ secret_service_search_for_paths_sync (SecretService *self,
 
 	response = g_dbus_proxy_call_sync (G_DBUS_PROXY (self), "SearchItems",
 	                                   g_variant_new ("(@a{ss})",
-	                                                  _secret_util_variant_for_attributes (attributes, NULL)),
+	                                                  _secret_attributes_to_variant (attributes, NULL)),
 	                                   G_DBUS_CALL_FLAGS_NONE, -1, cancellable, error);
 
 	if (response != NULL) {
@@ -1758,63 +1758,6 @@ secret_service_unlock_sync (SecretService *self,
 /**
  * secret_service_store:
  * @self: the secret service
- * @schema: the schema for the attributes
- * @collection_path: (allow-none): the D-Bus path to the collection where to store the secret
- * @label: label for the secret
- * @value: the secret value
- * @cancellable: optional cancellation object
- * @callback: called when the operation completes
- * @user_data: data to be passed to the callback
- * @...: the attribute keys and values, terminated with %NULL
- *
- * Store a secret value in the secret service.
- *
- * The variable argument list should contain pairs of a) The attribute name as
- * a null-terminated string, followed by b) attribute value, either a character
- * string, an int number, or a gboolean value, as defined in the password
- * @schema. The list of attribtues should be terminated with a %NULL.
- *
- * If the attributes match a secret item already stored in the collection, then
- * the item will be updated with these new values.
- *
- * If @collection_path is not specified, then the default collection will be
- * used. Use #SECRET_COLLECTION_SESSION to store the password in the session
- * collection, which doesn't get stored across login sessions.
- *
- * This method will return immediately and complete asynchronously.
- */
-void
-secret_service_store (SecretService *self,
-                      const SecretSchema *schema,
-                      const gchar *collection_path,
-                      const gchar *label,
-                      SecretValue *value,
-                      GCancellable *cancellable,
-                      GAsyncReadyCallback callback,
-                      gpointer user_data,
-                      ...)
-{
-	GHashTable *attributes;
-	va_list va;
-
-	g_return_if_fail (SECRET_IS_SERVICE (self));
-	g_return_if_fail (schema != NULL);
-	g_return_if_fail (label != NULL);
-	g_return_if_fail (value != NULL);
-
-	va_start (va, user_data);
-	attributes = _secret_util_attributes_for_varargs (schema, va);
-	va_end (va);
-
-	secret_service_storev (self, schema, attributes, collection_path,
-	                       label, value, cancellable, callback, user_data);
-
-	g_hash_table_unref (attributes);
-}
-
-/**
- * secret_service_storev:
- * @self: the secret service
  * @schema: (allow-none): the schema to use to check attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
  * @collection_path: (allow-none): the D-Bus path to the collection where to store the secret
@@ -1838,15 +1781,15 @@ secret_service_store (SecretService *self,
  * This method will return immediately and complete asynchronously.
  */
 void
-secret_service_storev (SecretService *self,
-                       const SecretSchema *schema,
-                       GHashTable *attributes,
-                       const gchar *collection_path,
-                       const gchar *label,
-                       SecretValue *value,
-                       GCancellable *cancellable,
-                       GAsyncReadyCallback callback,
-                       gpointer user_data)
+secret_service_store (SecretService *self,
+                      const SecretSchema *schema,
+                      GHashTable *attributes,
+                      const gchar *collection_path,
+                      const gchar *label,
+                      SecretValue *value,
+                      GCancellable *cancellable,
+                      GAsyncReadyCallback callback,
+                      gpointer user_data)
 {
 	const gchar *schema_name;
 	GHashTable *properties;
@@ -1859,7 +1802,7 @@ secret_service_storev (SecretService *self,
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
 	/* Warnings raised already */
-	if (schema != NULL && !_secret_util_attributes_validate (schema, attributes))
+	if (schema != NULL && !_secret_attributes_validate (schema, attributes))
 		return;
 
 	properties = g_hash_table_new_full (g_str_hash, g_str_equal, NULL,
@@ -1872,7 +1815,7 @@ secret_service_storev (SecretService *self,
 
 	/* Always store the schema name in the attributes */
 	schema_name = (schema == NULL) ? NULL : schema->name;
-	propval = _secret_util_variant_for_attributes (attributes, schema_name);
+	propval = _secret_attributes_to_variant (attributes, schema_name);
 	g_hash_table_insert (properties,
 	                     SECRET_ITEM_INTERFACE ".Attributes",
 	                     g_variant_ref_sink (propval));
@@ -1912,69 +1855,6 @@ secret_service_store_finish (SecretService *self,
 /**
  * secret_service_store_sync:
  * @self: the secret service
- * @schema: the schema for the attributes
- * @collection_path: (allow-none): the D-Bus path to the collection where to store the secret
- * @label: label for the secret
- * @value: the secret value
- * @cancellable: optional cancellation object
- * @error: location to place an error on failure
- * @...: the attribute keys and values, terminated with %NULL
- *
- * Store a secret value in the secret service.
- *
- * The variable argument list should contain pairs of a) The attribute name as
- * a null-terminated string, followed by b) attribute value, either a character
- * string, an int number, or a gboolean value, as defined in the password
- * @schema. The list of attribtues should be terminated with a %NULL.
- *
- * If the attributes match a secret item already stored in the collection, then
- * the item will be updated with these new values.
- *
- * If @collection_path is %NULL, then the default collection will be
- * used. Use #SECRET_COLLECTION_SESSION to store the password in the session
- * collection, which doesn't get stored across login sessions.
- *
- * This method may block indefinitely and should not be used in user interface
- * threads.
- *
- * Returns: whether the storage was successful or not
- */
-gboolean
-secret_service_store_sync (SecretService *self,
-                           const SecretSchema *schema,
-                           const gchar *collection_path,
-                           const gchar *label,
-                           SecretValue *value,
-                           GCancellable *cancellable,
-                           GError **error,
-                           ...)
-{
-	GHashTable *attributes;
-	gboolean ret;
-	va_list va;
-
-	g_return_val_if_fail (SECRET_IS_SERVICE (self), FALSE);
-	g_return_val_if_fail (schema != NULL, FALSE);
-	g_return_val_if_fail (label != NULL, FALSE);
-	g_return_val_if_fail (value != NULL, FALSE);
-	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), FALSE);
-	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
-
-	va_start (va, error);
-	attributes = _secret_util_attributes_for_varargs (schema, va);
-	va_end (va);
-
-	ret = secret_service_storev_sync (self, schema, attributes, collection_path,
-	                                  label, value, cancellable, error);
-
-	g_hash_table_unref (attributes);
-
-	return ret;
-}
-
-/**
- * secret_service_storev_sync:
- * @self: the secret service
  * @schema: (allow-none): the schema for the attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
  * @collection_path: (allow-none): the D-Bus path to the collection where to store the secret
@@ -2000,14 +1880,14 @@ secret_service_store_sync (SecretService *self,
  * Returns: whether the storage was successful or not
  */
 gboolean
-secret_service_storev_sync (SecretService *self,
-                            const SecretSchema *schema,
-                            GHashTable *attributes,
-                            const gchar *collection_path,
-                            const gchar *label,
-                            SecretValue *value,
-                            GCancellable *cancellable,
-                            GError **error)
+secret_service_store_sync (SecretService *self,
+                           const SecretSchema *schema,
+                           GHashTable *attributes,
+                           const gchar *collection_path,
+                           const gchar *label,
+                           SecretValue *value,
+                           GCancellable *cancellable,
+                           GError **error)
 {
 	SecretSync *sync;
 	gboolean ret;
@@ -2020,13 +1900,13 @@ secret_service_storev_sync (SecretService *self,
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
 	/* Warnings raised already */
-	if (schema != NULL && !_secret_util_attributes_validate (schema, attributes))
+	if (schema != NULL && !_secret_attributes_validate (schema, attributes))
 		return FALSE;
 
 	sync = _secret_sync_new ();
 	g_main_context_push_thread_default (sync->context);
 
-	secret_service_storev (self, schema, attributes, collection_path,
+	secret_service_store (self, schema, attributes, collection_path,
 	                       label, value, cancellable, _secret_sync_on_result, sync);
 
 	g_main_loop_run (sync->loop);
@@ -2052,49 +1932,6 @@ lookup_closure_free (gpointer data)
 		secret_value_unref (closure->value);
 	g_clear_object (&closure->cancellable);
 	g_slice_free (LookupClosure, closure);
-}
-
-/**
- * secret_service_lookup:
- * @self: the secret service
- * @schema: the schema for the attributes
- * @cancellable: optional cancellation object
- * @callback: called when the operation completes
- * @user_data: data to be passed to the callback
- * @...: the attribute keys and values, terminated with %NULL
- *
- * Lookup a secret value in the secret service.
- *
- * The variable argument list should contain pairs of a) The attribute name as
- * a null-terminated string, followed by b) attribute value, either a character
- * string, an int number, or a gboolean value, as defined in the password
- * @schema. The list of attribtues should be terminated with a %NULL.
- *
- * This method will return immediately and complete asynchronously.
- */
-void
-secret_service_lookup (SecretService *self,
-                       const SecretSchema *schema,
-                       GCancellable *cancellable,
-                       GAsyncReadyCallback callback,
-                       gpointer user_data,
-                       ...)
-{
-	GHashTable *attributes;
-	va_list va;
-
-	g_return_if_fail (SECRET_IS_SERVICE (self));
-	g_return_if_fail (schema != NULL);
-	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
-
-	va_start (va, user_data);
-	attributes = _secret_util_attributes_for_varargs (schema, va);
-	va_end (va);
-
-	secret_service_lookupv (self, schema, attributes, cancellable,
-	                        callback, user_data);
-
-	g_hash_table_unref (attributes);
 }
 
 static void
@@ -2186,7 +2023,7 @@ on_lookup_searched (GObject *source,
 }
 
 /**
- * secret_service_lookupv:
+ * secret_service_lookup:
  * @self: the secret service
  * @schema: (allow-none): the schema for the attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
@@ -2201,12 +2038,12 @@ on_lookup_searched (GObject *source,
  * This method will return immediately and complete asynchronously.
  */
 void
-secret_service_lookupv (SecretService *self,
-                        const SecretSchema *schema,
-                        GHashTable *attributes,
-                        GCancellable *cancellable,
-                        GAsyncReadyCallback callback,
-                        gpointer user_data)
+secret_service_lookup (SecretService *self,
+                       const SecretSchema *schema,
+                       GHashTable *attributes,
+                       GCancellable *cancellable,
+                       GAsyncReadyCallback callback,
+                       gpointer user_data)
 {
 	const gchar *schema_name = NULL;
 	GSimpleAsyncResult *res;
@@ -2218,18 +2055,18 @@ secret_service_lookupv (SecretService *self,
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
 	/* Warnings raised already */
-	if (schema != NULL && !_secret_util_attributes_validate (schema, attributes))
+	if (schema != NULL && !_secret_attributes_validate (schema, attributes))
 		return;
 
 	res = g_simple_async_result_new (G_OBJECT (self), callback, user_data,
-	                                 secret_service_lookupv);
+	                                 secret_service_lookup);
 	closure = g_slice_new0 (LookupClosure);
 	closure->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
 	g_simple_async_result_set_op_res_gpointer (res, closure, lookup_closure_free);
 
 	if (schema != NULL && !(schema->flags & SECRET_SCHEMA_DONT_MATCH_NAME))
 		schema_name = schema->name;
-	variant = _secret_util_variant_for_attributes (attributes, schema_name);
+	variant = _secret_attributes_to_variant (attributes, schema_name);
 
 	_secret_service_search_for_paths_variant (self, variant, cancellable,
 	                                          on_lookup_searched, g_object_ref (res));
@@ -2262,7 +2099,7 @@ secret_service_lookup_finish (SecretService *self,
 	g_return_val_if_fail (SECRET_IS_SERVICE (self), NULL);
 	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (self),
-	                      secret_service_lookupv), NULL);
+	                      secret_service_lookup), NULL);
 
 	res = G_SIMPLE_ASYNC_RESULT (result);
 	if (g_simple_async_result_propagate_error (res, error))
@@ -2276,55 +2113,6 @@ secret_service_lookup_finish (SecretService *self,
 
 /**
  * secret_service_lookup_sync:
- * @self: the secret service
- * @schema: the schema for the attributes
- * @cancellable: optional cancellation object
- * @error: location to place an error on failure
- * @...: the attribute keys and values, terminated with %NULL
- *
- * Lookup a secret value in the secret service.
- *
- * The variable argument list should contain pairs of a) The attribute name as
- * a null-terminated string, followed by b) attribute value, either a character
- * string, an int number, or a gboolean value, as defined in the password
- * @schema. The list of attribtues should be terminated with a %NULL.
- *
- * If no secret is found then %NULL is returned.
- *
- * This method may block indefinitely and should not be used in user interface
- * threads.
- *
- * Returns: (transfer full): a newly allocated #SecretValue, which should be
- *          released with secret_value_unref(), or %NULL if no secret found
- */
-SecretValue *
-secret_service_lookup_sync (SecretService *self,
-                            const SecretSchema *schema,
-                            GCancellable *cancellable,
-                            GError **error,
-                            ...)
-{
-	GHashTable *attributes;
-	SecretValue *value;
-	va_list va;
-
-	g_return_val_if_fail (SECRET_IS_SERVICE (self), NULL);
-	g_return_val_if_fail (schema != NULL, NULL);
-	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
-
-	va_start (va, error);
-	attributes = _secret_util_attributes_for_varargs (schema, va);
-	va_end (va);
-
-	value = secret_service_lookupv_sync (self, schema, attributes, cancellable, error);
-
-	g_hash_table_unref (attributes);
-
-	return value;
-}
-
-/**
- * secret_service_lookupv_sync:
  * @self: the secret service
  * @schema: (allow-none): the schema for the attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
@@ -2342,11 +2130,11 @@ secret_service_lookup_sync (SecretService *self,
  *          released with secret_value_unref(), or %NULL if no secret found
  */
 SecretValue *
-secret_service_lookupv_sync (SecretService *self,
-                             const SecretSchema *schema,
-                             GHashTable *attributes,
-                             GCancellable *cancellable,
-                             GError **error)
+secret_service_lookup_sync (SecretService *self,
+                            const SecretSchema *schema,
+                            GHashTable *attributes,
+                            GCancellable *cancellable,
+                            GError **error)
 {
 	SecretSync *sync;
 	SecretValue *value;
@@ -2356,14 +2144,14 @@ secret_service_lookupv_sync (SecretService *self,
 	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
 
 	/* Warnings raised already */
-	if (schema != NULL && !_secret_util_attributes_validate (schema, attributes))
+	if (schema != NULL && !_secret_attributes_validate (schema, attributes))
 		return NULL;
 
 	sync = _secret_sync_new ();
 	g_main_context_push_thread_default (sync->context);
 
-	secret_service_lookupv (self, schema, attributes, cancellable,
-	                        _secret_sync_on_result, sync);
+	secret_service_lookup (self, schema, attributes, cancellable,
+	                       _secret_sync_on_result, sync);
 
 	g_main_loop_run (sync->loop);
 
@@ -2661,51 +2449,6 @@ on_search_delete_password (GObject *source,
 /**
  * secret_service_remove:
  * @self: the secret service
- * @schema: the schema for the attributes
- * @cancellable: optional cancellation object
- * @callback: called when the operation completes
- * @user_data: data to be passed to the callback
- * @...: the attribute keys and values, terminated with %NULL
- *
- * Remove a secret value from the secret service.
- *
- * The variable argument list should contain pairs of a) The attribute name as
- * a null-terminated string, followed by b) attribute value, either a character
- * string, an int number, or a gboolean value, as defined in the password
- * @schema. The list of attribtues should be terminated with a %NULL.
- *
- * If multiple items match the attributes, then only one will be deleted.
- *
- * This method will return immediately and complete asynchronously.
- */
-void
-secret_service_remove (SecretService *self,
-                       const SecretSchema *schema,
-                       GCancellable *cancellable,
-                       GAsyncReadyCallback callback,
-                       gpointer user_data,
-                       ...)
-{
-	GHashTable *attributes;
-	va_list va;
-
-	g_return_if_fail (SECRET_SERVICE (self));
-	g_return_if_fail (schema != NULL);
-	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
-
-	va_start (va, user_data);
-	attributes = _secret_util_attributes_for_varargs (schema, va);
-	va_end (va);
-
-	secret_service_removev (self, schema, attributes, cancellable,
-	                        callback, user_data);
-
-	g_hash_table_unref (attributes);
-}
-
-/**
- * secret_service_removev:
- * @self: the secret service
  * @schema: (allow-none): the schema for the attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
  * @cancellable: optional cancellation object
@@ -2721,12 +2464,12 @@ secret_service_remove (SecretService *self,
  * This method will return immediately and complete asynchronously.
  */
 void
-secret_service_removev (SecretService *self,
-                        const SecretSchema *schema,
-                        GHashTable *attributes,
-                        GCancellable *cancellable,
-                        GAsyncReadyCallback callback,
-                        gpointer user_data)
+secret_service_remove (SecretService *self,
+                       const SecretSchema *schema,
+                       GHashTable *attributes,
+                       GCancellable *cancellable,
+                       GAsyncReadyCallback callback,
+                       gpointer user_data)
 {
 	const gchar *schema_name = NULL;
 	GSimpleAsyncResult *res;
@@ -2738,7 +2481,7 @@ secret_service_removev (SecretService *self,
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
 	/* Warnings raised already */
-	if (schema != NULL && !_secret_util_attributes_validate (schema, attributes))
+	if (schema != NULL && !_secret_attributes_validate (schema, attributes))
 		return;
 
 	res = g_simple_async_result_new (G_OBJECT (self), callback, user_data,
@@ -2749,7 +2492,7 @@ secret_service_removev (SecretService *self,
 
 	if (schema != NULL && !(schema->flags & SECRET_SCHEMA_DONT_MATCH_NAME))
 		schema_name = schema->name;
-	variant = _secret_util_variant_for_attributes (attributes, schema_name);
+	variant = _secret_attributes_to_variant (attributes, schema_name);
 
 	_secret_service_search_for_paths_variant (self, variant, cancellable,
 	                                          on_search_delete_password, g_object_ref (res));
@@ -2792,55 +2535,6 @@ secret_service_remove_finish (SecretService *self,
 /**
  * secret_service_remove_sync:
  * @self: the secret service
- * @schema: the schema for the attributes
- * @cancellable: optional cancellation object
- * @error: location to place an error on failure
- * @...: the attribute keys and values, terminated with %NULL
- *
- * Remove a secret value from the secret service.
- *
- * The variable argument list should contain pairs of a) The attribute name as
- * a null-terminated string, followed by b) attribute value, either a character
- * string, an int number, or a gboolean value, as defined in the password
- * @schema. The list of attribtues should be terminated with a %NULL.
- *
- * If multiple items match the attributes, then only one will be deleted.
- *
- * This method may block indefinitely and should not be used in user interface
- * threads.
- *
- * Returns: whether the removal was successful or not
- */
-gboolean
-secret_service_remove_sync (SecretService *self,
-                            const SecretSchema* schema,
-                            GCancellable *cancellable,
-                            GError **error,
-                            ...)
-{
-	GHashTable *attributes;
-	gboolean result;
-	va_list va;
-
-	g_return_val_if_fail (SECRET_IS_SERVICE (self), FALSE);
-	g_return_val_if_fail (schema != NULL, FALSE);
-	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), FALSE);
-	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
-
-	va_start (va, error);
-	attributes = _secret_util_attributes_for_varargs (schema, va);
-	va_end (va);
-
-	result = secret_service_removev_sync (self, schema, attributes, cancellable, error);
-
-	g_hash_table_unref (attributes);
-
-	return result;
-}
-
-/**
- * secret_service_removev_sync:
- * @self: the secret service
  * @schema: (allow-none): the schema for the attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
  * @cancellable: optional cancellation object
@@ -2858,11 +2552,11 @@ secret_service_remove_sync (SecretService *self,
  * Returns: whether the removal was successful or not
  */
 gboolean
-secret_service_removev_sync (SecretService *self,
-                             const SecretSchema *schema,
-                             GHashTable *attributes,
-                             GCancellable *cancellable,
-                             GError **error)
+secret_service_remove_sync (SecretService *self,
+                            const SecretSchema *schema,
+                            GHashTable *attributes,
+                            GCancellable *cancellable,
+                            GError **error)
 {
 	SecretSync *sync;
 	gboolean result;
@@ -2872,14 +2566,14 @@ secret_service_removev_sync (SecretService *self,
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
 	/* Warnings raised already */
-	if (schema != NULL && !_secret_util_attributes_validate (schema, attributes))
+	if (schema != NULL && !_secret_attributes_validate (schema, attributes))
 		return FALSE;
 
 	sync = _secret_sync_new ();
 	g_main_context_push_thread_default (sync->context);
 
-	secret_service_removev (self, schema, attributes, cancellable,
-	                        _secret_sync_on_result, sync);
+	secret_service_remove (self, schema, attributes, cancellable,
+	                       _secret_sync_on_result, sync);
 
 	g_main_loop_run (sync->loop);
 

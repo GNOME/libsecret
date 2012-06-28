@@ -22,6 +22,7 @@ incdir = $(includedir)/secret-@SECRET_MAJOR@/secret
 
 HEADER_FILES = \
 	secret.h \
+	secret-attributes.h \
 	secret-collection.h \
 	secret-item.h \
 	secret-password.h \
@@ -45,6 +46,7 @@ BUILT_SOURCES = \
 	$(NULL)
 
 PUBLIC_FILES = \
+	secret-attributes.h secret-attributes.c \
 	secret-collection.h secret-collection.c \
 	secret-item.h secret-item.c \
 	secret-methods.c \

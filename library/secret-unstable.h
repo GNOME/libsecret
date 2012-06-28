@@ -25,6 +25,7 @@
 
 #define __SECRET_INSIDE_HEADER__
 
+#include <secret/secret-attributes.h>
 #include <secret/secret-collection.h>
 #include <secret/secret-enum-types.h>
 #include <secret/secret-item.h>

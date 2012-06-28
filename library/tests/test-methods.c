@@ -13,6 +13,7 @@
 
 #include "config.h"
 
+#include "secret-attributes.h"
 #include "secret-collection.h"
 #include "secret-item.h"
 #include "secret-service.h"
@@ -914,7 +915,7 @@ test_item_sync (Test *test,
 	g_hash_table_insert (properties, SECRET_COLLECTION_INTERFACE ".Label",
 	                     g_variant_ref_sink (g_variant_new_string ("Wheeee")));
 	g_hash_table_insert (properties, SECRET_COLLECTION_INTERFACE ".Attributes",
-	                     g_variant_ref_sink (_secret_util_variant_for_attributes (attributes, "org.gnome.Test")));
+	                     g_variant_ref_sink (_secret_attributes_to_variant (attributes, "org.gnome.Test")));
 
 	g_hash_table_unref (attributes);
 
@@ -956,7 +957,7 @@ test_item_async (Test *test,
 	g_hash_table_insert (properties, SECRET_COLLECTION_INTERFACE ".Label",
 	                     g_variant_ref_sink (g_variant_new_string ("Wheeee")));
 	g_hash_table_insert (properties, SECRET_COLLECTION_INTERFACE ".Attributes",
-	                     g_variant_ref_sink (_secret_util_variant_for_attributes (attributes, NULL)));
+	                     g_variant_ref_sink (_secret_attributes_to_variant (attributes, NULL)));
 
 	g_hash_table_unref (attributes);
 
@@ -987,16 +988,21 @@ test_remove_sync (Test *test,
                   gconstpointer used)
 {
 	GError *error = NULL;
+	GHashTable *attributes;
 	gboolean ret;
 
-	ret = secret_service_remove_sync (test->service, &MOCK_SCHEMA, NULL, &error,
-	                                   "even", FALSE,
-	                                   "string", "one",
-	                                   "number", 1,
-	                                   NULL);
+	attributes = secret_attributes_build (&MOCK_SCHEMA,
+	                                      "even", FALSE,
+	                                      "string", "one",
+	                                      "number", 1,
+	                                      NULL);
+
+	ret = secret_service_remove_sync (test->service, &MOCK_SCHEMA, attributes, NULL, &error);
 
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
+
+	g_hash_table_unref (attributes);
 }
 
 static void
@@ -1005,15 +1011,19 @@ test_remove_async (Test *test,
 {
 	GError *error = NULL;
 	GAsyncResult *result = NULL;
+	GHashTable *attributes;
 	gboolean ret;
 
-	secret_service_remove (test->service, &MOCK_SCHEMA, NULL,
-	                        on_complete_get_result, &result,
-	                        "even", FALSE,
-	                        "string", "one",
-	                        "number", 1,
-	                        NULL);
+	attributes = secret_attributes_build (&MOCK_SCHEMA,
+	                                      "even", FALSE,
+	                                      "string", "one",
+	                                      "number", 1,
+	                                      NULL);
 
+	secret_service_remove (test->service, &MOCK_SCHEMA, attributes, NULL,
+	                        on_complete_get_result, &result);
+
+	g_hash_table_unref (attributes);
 	g_assert (result == NULL);
 
 	egg_test_wait ();
@@ -1030,14 +1040,18 @@ test_remove_locked (Test *test,
                     gconstpointer used)
 {
 	GError *error = NULL;
+	GHashTable *attributes;
 	gboolean ret;
 
-	ret = secret_service_remove_sync (test->service, &MOCK_SCHEMA, NULL, &error,
-	                                   "even", FALSE,
-	                                   "string", "tres",
-	                                   "number", 3,
-	                                   NULL);
+	attributes = secret_attributes_build (&MOCK_SCHEMA,
+	                                      "even", FALSE,
+	                                      "string", "tres",
+	                                      "number", 3,
+	                                      NULL);
 
+	ret = secret_service_remove_sync (test->service, &MOCK_SCHEMA, attributes, NULL, &error);
+
+	g_hash_table_unref (attributes);
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
 }
@@ -1047,14 +1061,18 @@ test_remove_no_match (Test *test,
                       gconstpointer used)
 {
 	GError *error = NULL;
+	GHashTable *attributes;
 	gboolean ret;
 
-	/* Won't match anything */
-	ret = secret_service_remove_sync (test->service, &MOCK_SCHEMA, NULL, &error,
-	                                   "even", TRUE,
-	                                   "string", "one",
-	                                   NULL);
+	attributes = secret_attributes_build (&MOCK_SCHEMA,
+	                                      "even", TRUE,
+	                                      "string", "one",
+	                                      NULL);
 
+	/* Won't match anything */
+	ret = secret_service_remove_sync (test->service, &MOCK_SCHEMA, attributes, NULL, &error);
+
+	g_hash_table_unref (attributes);
 	g_assert_no_error (error);
 	g_assert (ret == FALSE);
 }
@@ -1064,22 +1082,24 @@ test_remove_no_name (Test *test,
                      gconstpointer used)
 {
 	GError *error = NULL;
+	GHashTable *attributes;
 	gboolean ret;
 
+	attributes = secret_attributes_build (&MOCK_SCHEMA,
+	                                      "number", 5,
+	                                      NULL);
+
 	/* Shouldn't match anything, because no item with 5 in mock schema */
-	ret = secret_service_remove_sync (test->service, &MOCK_SCHEMA, NULL, &error,
-	                                  "number", 5,
-	                                  NULL);
+	ret = secret_service_remove_sync (test->service, &MOCK_SCHEMA, attributes, NULL, &error);
 	g_assert_no_error (error);
 	g_assert (ret == FALSE);
 
 	/* We have an item with 5 in prime schema, but should match anyway becase of flags */
-	ret = secret_service_remove_sync (test->service, &NO_NAME_SCHEMA, NULL, &error,
-	                                  "number", 5,
-	                                  NULL);
-
+	ret = secret_service_remove_sync (test->service, &NO_NAME_SCHEMA, attributes, NULL, &error);
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
+
+	g_hash_table_unref (attributes);
 }
 
 static void
@@ -1087,16 +1107,20 @@ test_lookup_sync (Test *test,
                   gconstpointer used)
 {
 	GError *error = NULL;
+	GHashTable *attributes;
 	SecretValue *value;
 	gsize length;
 
-	value = secret_service_lookup_sync (test->service, &MOCK_SCHEMA, NULL, &error,
-	                                     "even", FALSE,
-	                                     "string", "one",
-	                                     "number", 1,
-	                                     NULL);
+	attributes = secret_attributes_build (&MOCK_SCHEMA,
+	                                      "even", FALSE,
+	                                      "string", "one",
+	                                      "number", 1,
+	                                      NULL);
+
+	value = secret_service_lookup_sync (test->service, &MOCK_SCHEMA, attributes, NULL, &error);
 
 	g_assert_no_error (error);
+	g_hash_table_unref (attributes);
 
 	g_assert (value != NULL);
 	g_assert_cmpstr (secret_value_get (value, &length), ==, "111");
@@ -1110,18 +1134,22 @@ test_lookup_async (Test *test,
                    gconstpointer used)
 {
 	GError *error = NULL;
+	GHashTable *attributes;
 	GAsyncResult *result = NULL;
 	SecretValue *value;
 	gsize length;
 
-	secret_service_lookup (test->service, &MOCK_SCHEMA, NULL,
-	                        on_complete_get_result, &result,
-	                        "even", FALSE,
-	                        "string", "one",
-	                        "number", 1,
-	                        NULL);
+	attributes = secret_attributes_build (&MOCK_SCHEMA,
+	                                      "even", FALSE,
+	                                      "string", "one",
+	                                      "number", 1,
+	                                      NULL);
+
+	secret_service_lookup (test->service, &MOCK_SCHEMA, attributes, NULL,
+	                        on_complete_get_result, &result);
 
 	g_assert (result == NULL);
+	g_hash_table_unref (attributes);
 
 	egg_test_wait ();
 
@@ -1141,16 +1169,20 @@ test_lookup_locked (Test *test,
                     gconstpointer used)
 {
 	GError *error = NULL;
+	GHashTable *attributes;
 	SecretValue *value;
 	gsize length;
 
-	value = secret_service_lookup_sync (test->service, &MOCK_SCHEMA, NULL, &error,
-	                                     "even", FALSE,
-	                                     "string", "tres",
-	                                     "number", 3,
-	                                     NULL);
+	attributes = secret_attributes_build (&MOCK_SCHEMA,
+	                                      "even", FALSE,
+	                                      "string", "tres",
+	                                      "number", 3,
+	                                      NULL);
+
+	value = secret_service_lookup_sync (test->service, &MOCK_SCHEMA, attributes, NULL, &error);
 
 	g_assert_no_error (error);
+	g_hash_table_unref (attributes);
 
 	g_assert (value != NULL);
 	g_assert_cmpstr (secret_value_get (value, &length), ==, "3333");
@@ -1164,16 +1196,20 @@ test_lookup_no_match (Test *test,
                       gconstpointer used)
 {
 	GError *error = NULL;
+	GHashTable *attributes;
 	SecretValue *value;
 
+	attributes = secret_attributes_build (&MOCK_SCHEMA,
+	                                      "even", TRUE,
+	                                      "string", "one",
+	                                      NULL);
+
 	/* Won't match anything */
-	value = secret_service_lookup_sync (test->service, &MOCK_SCHEMA, NULL, &error,
-	                                     "even", TRUE,
-	                                     "string", "one",
-	                                     NULL);
+	value = secret_service_lookup_sync (test->service, &MOCK_SCHEMA, attributes, NULL, &error);
 
 	g_assert_no_error (error);
 	g_assert (value == NULL);
+	g_hash_table_unref (attributes);
 }
 
 static void
@@ -1181,20 +1217,21 @@ test_lookup_no_name (Test *test,
                      gconstpointer used)
 {
 	GError *error = NULL;
+	GHashTable *attributes;
 	SecretValue *value;
 	gsize length;
 
+	attributes = secret_attributes_build (&MOCK_SCHEMA,
+	                                      "number", 5,
+	                                      NULL);
+
 	/* should return null, because nothing with mock schema and 5 */
-	value = secret_service_lookup_sync (test->service, &MOCK_SCHEMA, NULL, &error,
-	                                    "number", 5,
-	                                    NULL);
+	value = secret_service_lookup_sync (test->service, &MOCK_SCHEMA, attributes, NULL, &error);
 	g_assert_no_error (error);
 	g_assert (value == NULL);
 
 	/* should return an item, because we have a prime schema with 5, and flags not to match name */
-	value = secret_service_lookup_sync (test->service, &NO_NAME_SCHEMA, NULL, &error,
-	                                    "number", 5,
-	                                    NULL);
+	value = secret_service_lookup_sync (test->service, &NO_NAME_SCHEMA, attributes, NULL, &error);
 
 	g_assert_no_error (error);
 
@@ -1203,6 +1240,7 @@ test_lookup_no_name (Test *test,
 	g_assert_cmpuint (length, ==, 3);
 
 	secret_value_unref (value);
+	g_hash_table_unref (attributes);
 }
 
 static void
@@ -1217,14 +1255,17 @@ test_store_sync (Test *test,
 	gboolean ret;
 	gsize length;
 
-	ret = secret_service_store_sync (test->service, &MOCK_SCHEMA, collection_path,
-	                                  "New Item Label", value, NULL, &error,
-	                                  "even", FALSE,
-	                                  "string", "seventeen",
-	                                  "number", 17,
-	                                  NULL);
+	attributes = secret_attributes_build (&MOCK_SCHEMA,
+	                                      "even", FALSE,
+	                                      "string", "seventeen",
+	                                      "number", 17,
+	                                      NULL);
+
+	ret = secret_service_store_sync (test->service, &MOCK_SCHEMA, attributes, collection_path,
+	                                 "New Item Label", value, NULL, &error);
 	g_assert_no_error (error);
 	secret_value_unref (value);
+	g_hash_table_unref (attributes);
 
 	attributes = g_hash_table_new (g_str_hash, g_str_equal);
 	g_hash_table_insert (attributes, "even", "false");
@@ -1263,22 +1304,21 @@ test_store_replace (Test *test,
 	gchar **paths;
 	gboolean ret;
 
-	ret = secret_service_store_sync (test->service, &MOCK_SCHEMA, collection_path,
-	                                  "New Item Label", value, NULL, &error,
-	                                  "even", FALSE,
-	                                  "string", "seventeen",
-	                                  "number", 17,
-	                                  NULL);
+	attributes = secret_attributes_build (&MOCK_SCHEMA,
+	                                      "even", FALSE,
+	                                      "string", "seventeen",
+	                                      "number", 17,
+	                                      NULL);
+
+	ret = secret_service_store_sync (test->service, &MOCK_SCHEMA, attributes, collection_path,
+	                                  "New Item Label", value, NULL, &error);
 	g_assert_no_error (error);
 
-	ret = secret_service_store_sync (test->service, &MOCK_SCHEMA, collection_path,
-	                                  "Another Label", value, NULL, &error,
-	                                  "even", FALSE,
-	                                  "string", "seventeen",
-	                                  "number", 17,
-	                                  NULL);
+	ret = secret_service_store_sync (test->service, &MOCK_SCHEMA, attributes, collection_path,
+	                                  "Another Label", value, NULL, &error);
 	g_assert_no_error (error);
 	secret_value_unref (value);
+	g_hash_table_unref (attributes);
 
 	attributes = g_hash_table_new (g_str_hash, g_str_equal);
 	g_hash_table_insert (attributes, "even", "false");
@@ -1310,14 +1350,17 @@ test_store_async (Test *test,
 	gboolean ret;
 	gsize length;
 
-	secret_service_store (test->service, &MOCK_SCHEMA, collection_path,
-	                       "New Item Label", value, NULL, on_complete_get_result, &result,
-	                       "even", FALSE,
-	                       "string", "seventeen",
-	                       "number", 17,
-	                       NULL);
+	attributes = secret_attributes_build (&MOCK_SCHEMA,
+	                                      "even", FALSE,
+	                                      "string", "seventeen",
+	                                      "number", 17,
+	                                      NULL);
+
+	secret_service_store (test->service, &MOCK_SCHEMA, attributes, collection_path,
+	                       "New Item Label", value, NULL, on_complete_get_result, &result);
 	g_assert (result == NULL);
 	secret_value_unref (value);
+	g_hash_table_unref (attributes);
 
 	egg_test_wait ();
 

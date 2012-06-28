@@ -641,7 +641,7 @@ item_properties_new (const gchar *label,
 	                     SECRET_ITEM_INTERFACE ".Label",
 	                     g_variant_ref_sink (value));
 
-	value = _secret_util_variant_for_attributes (attributes, NULL);
+	value = _secret_attributes_to_variant (attributes, NULL);
 	g_hash_table_insert (properties,
 	                     SECRET_ITEM_INTERFACE ".Attributes",
 	                     g_variant_ref_sink (value));
@@ -1348,7 +1348,7 @@ secret_item_get_attributes (SecretItem *self)
 	variant = g_dbus_proxy_get_cached_property (G_DBUS_PROXY (self), "Attributes");
 	g_return_val_if_fail (variant != NULL, NULL);
 
-	attributes = _secret_util_attributes_for_variant (variant);
+	attributes = _secret_attributes_for_variant (variant);
 	g_variant_unref (variant);
 
 	return attributes;
@@ -1381,7 +1381,7 @@ secret_item_set_attributes (SecretItem *self,
 	g_return_if_fail (attributes != NULL);
 
 	_secret_util_set_property (G_DBUS_PROXY (self), "Attributes",
-	                           _secret_util_variant_for_attributes (attributes, NULL),
+	                           _secret_attributes_to_variant (attributes, NULL),
 	                           secret_item_set_attributes, cancellable,
 	                           callback, user_data);
 }
@@ -1436,7 +1436,7 @@ secret_item_set_attributes_sync (SecretItem *self,
 	g_return_val_if_fail (attributes != NULL, FALSE);
 
 	return _secret_util_set_property_sync (G_DBUS_PROXY (self), "Attributes",
-	                                       _secret_util_variant_for_attributes (attributes, NULL),
+	                                       _secret_attributes_to_variant (attributes, NULL),
 	                                       cancellable, error);
 }
 

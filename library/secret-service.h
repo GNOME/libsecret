@@ -330,16 +330,6 @@ GVariant *           secret_service_prompt_path_finish            (SecretService
 
 void                 secret_service_store                         (SecretService *self,
                                                                    const SecretSchema *schema,
-                                                                   const gchar *collection_path,
-                                                                   const gchar *label,
-                                                                   SecretValue *value,
-                                                                   GCancellable *cancellable,
-                                                                   GAsyncReadyCallback callback,
-                                                                   gpointer user_data,
-                                                                   ...) G_GNUC_NULL_TERMINATED;
-
-void                 secret_service_storev                        (SecretService *self,
-                                                                   const SecretSchema *schema,
                                                                    GHashTable *attributes,
                                                                    const gchar *collection_path,
                                                                    const gchar *label,
@@ -354,15 +344,6 @@ gboolean             secret_service_store_finish                  (SecretService
 
 gboolean             secret_service_store_sync                    (SecretService *self,
                                                                    const SecretSchema *schema,
-                                                                   const gchar *collection_path,
-                                                                   const gchar *label,
-                                                                   SecretValue *value,
-                                                                   GCancellable *cancellable,
-                                                                   GError **error,
-                                                                   ...) G_GNUC_NULL_TERMINATED;
-
-gboolean             secret_service_storev_sync                   (SecretService *self,
-                                                                   const SecretSchema *schema,
                                                                    GHashTable *attributes,
                                                                    const gchar *collection_path,
                                                                    const gchar *label,
@@ -371,13 +352,6 @@ gboolean             secret_service_storev_sync                   (SecretService
                                                                    GError **error);
 
 void                 secret_service_lookup                        (SecretService *self,
-                                                                   const SecretSchema *schema,
-                                                                   GCancellable *cancellable,
-                                                                   GAsyncReadyCallback callback,
-                                                                   gpointer user_data,
-                                                                   ...) G_GNUC_NULL_TERMINATED;
-
-void                 secret_service_lookupv                       (SecretService *self,
                                                                    const SecretSchema *schema,
                                                                    GHashTable *attributes,
                                                                    GCancellable *cancellable,
@@ -389,12 +363,6 @@ SecretValue *        secret_service_lookup_finish                 (SecretService
                                                                    GError **error);
 
 SecretValue *        secret_service_lookup_sync                   (SecretService *self,
-                                                                   const SecretSchema *schema,
-                                                                   GCancellable *cancellable,
-                                                                   GError **error,
-                                                                   ...) G_GNUC_NULL_TERMINATED;
-
-SecretValue *        secret_service_lookupv_sync                  (SecretService *self,
                                                                    const SecretSchema *schema,
                                                                    GHashTable *attributes,
                                                                    GCancellable *cancellable,
@@ -417,13 +385,6 @@ gboolean             secret_service_delete_path_sync              (SecretService
 
 void                 secret_service_remove                        (SecretService *self,
                                                                    const SecretSchema *schema,
-                                                                   GCancellable *cancellable,
-                                                                   GAsyncReadyCallback callback,
-                                                                   gpointer user_data,
-                                                                   ...) G_GNUC_NULL_TERMINATED;
-
-void                 secret_service_removev                       (SecretService *self,
-                                                                   const SecretSchema *schema,
                                                                    GHashTable *attributes,
                                                                    GCancellable *cancellable,
                                                                    GAsyncReadyCallback callback,
@@ -434,12 +395,6 @@ gboolean             secret_service_remove_finish                 (SecretService
                                                                    GError **error);
 
 gboolean             secret_service_remove_sync                   (SecretService *self,
-                                                                   const SecretSchema* schema,
-                                                                   GCancellable *cancellable,
-                                                                   GError **error,
-                                                                   ...) G_GNUC_NULL_TERMINATED;
-
-gboolean             secret_service_removev_sync                  (SecretService *self,
                                                                    const SecretSchema *schema,
                                                                    GHashTable *attributes,
                                                                    GCancellable *cancellable,
