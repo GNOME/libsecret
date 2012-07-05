@@ -121,29 +121,22 @@ test_search_sync (Test *test,
                   gconstpointer used)
 {
 	GHashTable *attributes;
-	gboolean ret;
-	GList *locked;
-	GList *unlocked;
 	GError *error = NULL;
+	GList *items;
 
 	attributes = g_hash_table_new (g_str_hash, g_str_equal);
 	g_hash_table_insert (attributes, "number", "1");
 
-	ret = secret_service_search_sync (test->service, attributes, NULL,
-	                                   &unlocked, &locked, &error);
+	items = secret_service_search_sync (test->service, attributes, SECRET_SEARCH_NONE,
+	                                    NULL, &error);
 	g_assert_no_error (error);
-	g_assert (ret == TRUE);
-
-	g_assert (locked != NULL);
-	g_assert_cmpstr (g_dbus_proxy_get_object_path (locked->data), ==, "/org/freedesktop/secrets/collection/spanish/10");
-
-	g_assert (unlocked != NULL);
-	g_assert_cmpstr (g_dbus_proxy_get_object_path (unlocked->data), ==, "/org/freedesktop/secrets/collection/english/1");
-
-	g_list_free_full (unlocked, g_object_unref);
-	g_list_free_full (locked, g_object_unref);
-
 	g_hash_table_unref (attributes);
+
+	g_assert (items != NULL);
+	g_assert_cmpstr (g_dbus_proxy_get_object_path (items->data), ==, "/org/freedesktop/secrets/collection/english/1");
+
+	g_assert (items->next == NULL);
+	g_list_free_full (items, g_object_unref);
 }
 
 static void
@@ -152,109 +145,243 @@ test_search_async (Test *test,
 {
 	GAsyncResult *result = NULL;
 	GHashTable *attributes;
-	gboolean ret;
-	GList *locked;
-	GList *unlocked;
 	GError *error = NULL;
+	GList *items;
 
 	attributes = g_hash_table_new (g_str_hash, g_str_equal);
 	g_hash_table_insert (attributes, "number", "1");
 
-	secret_service_search (test->service, attributes, NULL,
-	                        on_complete_get_result, &result);
+	secret_service_search (test->service, attributes, SECRET_SEARCH_NONE, NULL,
+	                       on_complete_get_result, &result);
+	g_hash_table_unref (attributes);
+	g_assert (result == NULL);
+
 	egg_test_wait ();
 
 	g_assert (G_IS_ASYNC_RESULT (result));
-	ret = secret_service_search_finish (test->service, result,
-	                                     &unlocked, &locked,
-	                                     &error);
+	items = secret_service_search_finish (test->service, result, &error);
 	g_assert_no_error (error);
-	g_assert (ret == TRUE);
-
-	g_assert (locked != NULL);
-	g_assert_cmpstr (g_dbus_proxy_get_object_path (locked->data), ==, "/org/freedesktop/secrets/collection/spanish/10");
-
-	g_assert (unlocked != NULL);
-	g_assert_cmpstr (g_dbus_proxy_get_object_path (unlocked->data), ==, "/org/freedesktop/secrets/collection/english/1");
-
-	g_list_free_full (unlocked, g_object_unref);
-	g_list_free_full (locked, g_object_unref);
 	g_object_unref (result);
 
-	g_hash_table_unref (attributes);
+	g_assert (items != NULL);
+	g_assert_cmpstr (g_dbus_proxy_get_object_path (items->data), ==, "/org/freedesktop/secrets/collection/english/1");
+
+	g_assert (items->next == NULL);
+	g_list_free_full (items, g_object_unref);
 }
 
 static void
-test_search_nulls (Test *test,
+test_search_all_sync (Test *test,
+                  gconstpointer used)
+{
+	GHashTable *attributes;
+	GError *error = NULL;
+	GList *items;
+
+	attributes = g_hash_table_new (g_str_hash, g_str_equal);
+	g_hash_table_insert (attributes, "number", "1");
+
+	items = secret_service_search_sync (test->service, attributes, SECRET_SEARCH_ALL,
+	                                    NULL, &error);
+	g_assert_no_error (error);
+	g_hash_table_unref (attributes);
+
+	g_assert (items != NULL);
+	g_assert_cmpstr (g_dbus_proxy_get_object_path (items->data), ==, "/org/freedesktop/secrets/collection/english/1");
+	g_assert (secret_item_get_locked (items->data) == FALSE);
+	g_assert (secret_item_get_secret (items->data) == NULL);
+
+	g_assert (items->next != NULL);
+	g_assert_cmpstr (g_dbus_proxy_get_object_path (items->next->data), ==, "/org/freedesktop/secrets/collection/spanish/10");
+	g_assert (secret_item_get_locked (items->next->data) == TRUE);
+	g_assert (secret_item_get_secret (items->next->data) == NULL);
+
+	g_assert (items->next->next == NULL);
+	g_list_free_full (items, g_object_unref);
+}
+
+static void
+test_search_all_async (Test *test,
                    gconstpointer used)
 {
 	GAsyncResult *result = NULL;
 	GHashTable *attributes;
-	gboolean ret;
-	GList *items;
 	GError *error = NULL;
+	GList *items;
 
 	attributes = g_hash_table_new (g_str_hash, g_str_equal);
 	g_hash_table_insert (attributes, "number", "1");
 
-	ret = secret_service_search_sync (test->service, attributes, NULL,
-	                                   &items, NULL, &error);
-	g_assert_no_error (error);
-	g_assert (ret == TRUE);
-	g_assert (items != NULL);
-	g_assert_cmpstr (g_dbus_proxy_get_object_path (items->data), ==, "/org/freedesktop/secrets/collection/english/1");
-	g_list_free_full (items, g_object_unref);
-
-	ret = secret_service_search_sync (test->service, attributes, NULL,
-	                                   NULL, &items, &error);
-	g_assert_no_error (error);
-	g_assert (ret == TRUE);
-	g_assert (items != NULL);
-	g_assert_cmpstr (g_dbus_proxy_get_object_path (items->data), ==, "/org/freedesktop/secrets/collection/spanish/10");
-	g_list_free_full (items, g_object_unref);
-
-	ret = secret_service_search_sync (test->service, attributes, NULL,
-	                                   NULL, NULL, &error);
-	g_assert_no_error (error);
-	g_assert (ret == TRUE);
-
-	secret_service_search (test->service, attributes, NULL,
-	                        on_complete_get_result, &result);
-	egg_test_wait ();
-	g_assert (G_IS_ASYNC_RESULT (result));
-	ret = secret_service_search_finish (test->service, result,
-	                                     &items, NULL, &error);
-	g_assert_no_error (error);
-	g_assert (ret == TRUE);
-	g_assert (items != NULL);
-	g_assert_cmpstr (g_dbus_proxy_get_object_path (items->data), ==, "/org/freedesktop/secrets/collection/english/1");
-	g_list_free_full (items, g_object_unref);
-	g_clear_object (&result);
-
-	secret_service_search (test->service, attributes, NULL,
-	                        on_complete_get_result, &result);
-	egg_test_wait ();
-	g_assert (G_IS_ASYNC_RESULT (result));
-	ret = secret_service_search_finish (test->service, result,
-	                                     NULL, &items, &error);
-	g_assert_no_error (error);
-	g_assert (ret == TRUE);
-	g_assert (items != NULL);
-	g_assert_cmpstr (g_dbus_proxy_get_object_path (items->data), ==, "/org/freedesktop/secrets/collection/spanish/10");
-	g_list_free_full (items, g_object_unref);
-	g_clear_object (&result);
-
-	secret_service_search (test->service, attributes, NULL,
-	                        on_complete_get_result, &result);
-	egg_test_wait ();
-	g_assert (G_IS_ASYNC_RESULT (result));
-	ret = secret_service_search_finish (test->service, result,
-	                                     NULL, NULL, &error);
-	g_assert_no_error (error);
-	g_assert (ret == TRUE);
-	g_clear_object (&result);
-
+	secret_service_search (test->service, attributes, SECRET_SEARCH_ALL, NULL,
+	                       on_complete_get_result, &result);
 	g_hash_table_unref (attributes);
+	g_assert (result == NULL);
+
+	egg_test_wait ();
+
+	g_assert (G_IS_ASYNC_RESULT (result));
+	items = secret_service_search_finish (test->service, result, &error);
+	g_assert_no_error (error);
+	g_object_unref (result);
+
+	g_assert (items != NULL);
+	g_assert_cmpstr (g_dbus_proxy_get_object_path (items->data), ==, "/org/freedesktop/secrets/collection/english/1");
+	g_assert (secret_item_get_locked (items->data) == FALSE);
+	g_assert (secret_item_get_secret (items->data) == NULL);
+
+	g_assert (items->next != NULL);
+	g_assert_cmpstr (g_dbus_proxy_get_object_path (items->next->data), ==, "/org/freedesktop/secrets/collection/spanish/10");
+	g_assert (secret_item_get_locked (items->next->data) == TRUE);
+	g_assert (secret_item_get_secret (items->next->data) == NULL);
+
+	g_assert (items->next->next == NULL);
+	g_list_free_full (items, g_object_unref);
+}
+
+static void
+test_search_unlock_sync (Test *test,
+                         gconstpointer used)
+{
+	GHashTable *attributes;
+	GError *error = NULL;
+	GList *items;
+
+	attributes = g_hash_table_new (g_str_hash, g_str_equal);
+	g_hash_table_insert (attributes, "number", "1");
+
+	items = secret_service_search_sync (test->service, attributes,
+	                                    SECRET_SEARCH_ALL | SECRET_SEARCH_UNLOCK,
+	                                    NULL, &error);
+	g_assert_no_error (error);
+	g_hash_table_unref (attributes);
+
+	g_assert (items != NULL);
+	g_assert_cmpstr (g_dbus_proxy_get_object_path (items->data), ==, "/org/freedesktop/secrets/collection/english/1");
+	g_assert (secret_item_get_locked (items->data) == FALSE);
+	g_assert (secret_item_get_secret (items->data) == NULL);
+
+	g_assert (items->next != NULL);
+	g_assert_cmpstr (g_dbus_proxy_get_object_path (items->next->data), ==, "/org/freedesktop/secrets/collection/spanish/10");
+	g_assert (secret_item_get_locked (items->next->data) == FALSE);
+	g_assert (secret_item_get_secret (items->next->data) == NULL);
+
+	g_assert (items->next->next == NULL);
+	g_list_free_full (items, g_object_unref);
+}
+
+static void
+test_search_unlock_async (Test *test,
+                          gconstpointer used)
+{
+	GAsyncResult *result = NULL;
+	GHashTable *attributes;
+	GError *error = NULL;
+	GList *items;
+
+	attributes = g_hash_table_new (g_str_hash, g_str_equal);
+	g_hash_table_insert (attributes, "number", "1");
+
+	secret_service_search (test->service, attributes,
+	                       SECRET_SEARCH_ALL | SECRET_SEARCH_UNLOCK, NULL,
+	                       on_complete_get_result, &result);
+	g_hash_table_unref (attributes);
+	g_assert (result == NULL);
+
+	egg_test_wait ();
+
+	g_assert (G_IS_ASYNC_RESULT (result));
+	items = secret_service_search_finish (test->service, result, &error);
+	g_assert_no_error (error);
+	g_object_unref (result);
+
+	g_assert (items != NULL);
+	g_assert_cmpstr (g_dbus_proxy_get_object_path (items->data), ==, "/org/freedesktop/secrets/collection/english/1");
+	g_assert (secret_item_get_locked (items->data) == FALSE);
+	g_assert (secret_item_get_secret (items->data) == NULL);
+
+	g_assert (items->next != NULL);
+	g_assert_cmpstr (g_dbus_proxy_get_object_path (items->next->data), ==, "/org/freedesktop/secrets/collection/spanish/10");
+	g_assert (secret_item_get_locked (items->next->data) == FALSE);
+	g_assert (secret_item_get_secret (items->next->data) == NULL);
+
+	g_assert (items->next->next == NULL);
+	g_list_free_full (items, g_object_unref);
+}
+
+static void
+test_search_secrets_sync (Test *test,
+                          gconstpointer used)
+{
+	GHashTable *attributes;
+	GError *error = NULL;
+	SecretValue *value;
+	GList *items;
+
+	attributes = g_hash_table_new (g_str_hash, g_str_equal);
+	g_hash_table_insert (attributes, "number", "1");
+
+	items = secret_service_search_sync (test->service, attributes,
+	                                    SECRET_SEARCH_ALL | SECRET_SEARCH_LOAD_SECRETS,
+	                                    NULL, &error);
+	g_assert_no_error (error);
+	g_hash_table_unref (attributes);
+
+	g_assert (items != NULL);
+	g_assert_cmpstr (g_dbus_proxy_get_object_path (items->data), ==, "/org/freedesktop/secrets/collection/english/1");
+	g_assert (secret_item_get_locked (items->data) == FALSE);
+	value = secret_item_get_secret (items->data);
+	g_assert (value != NULL);
+	secret_value_unref (value);
+
+	g_assert (items->next != NULL);
+	g_assert_cmpstr (g_dbus_proxy_get_object_path (items->next->data), ==, "/org/freedesktop/secrets/collection/spanish/10");
+	g_assert (secret_item_get_locked (items->next->data) == TRUE);
+	g_assert (secret_item_get_secret (items->next->data) == NULL);
+
+	g_assert (items->next->next == NULL);
+	g_list_free_full (items, g_object_unref);
+}
+
+static void
+test_search_secrets_async (Test *test,
+                           gconstpointer used)
+{
+	GAsyncResult *result = NULL;
+	GHashTable *attributes;
+	GError *error = NULL;
+	SecretValue *value;
+	GList *items;
+
+	attributes = g_hash_table_new (g_str_hash, g_str_equal);
+	g_hash_table_insert (attributes, "number", "1");
+
+	secret_service_search (test->service, attributes,
+	                       SECRET_SEARCH_ALL | SECRET_SEARCH_LOAD_SECRETS, NULL,
+	                       on_complete_get_result, &result);
+	g_hash_table_unref (attributes);
+	g_assert (result == NULL);
+
+	egg_test_wait ();
+
+	g_assert (G_IS_ASYNC_RESULT (result));
+	items = secret_service_search_finish (test->service, result, &error);
+	g_assert_no_error (error);
+	g_object_unref (result);
+
+	g_assert (items != NULL);
+	g_assert_cmpstr (g_dbus_proxy_get_object_path (items->data), ==, "/org/freedesktop/secrets/collection/english/1");
+	g_assert (secret_item_get_locked (items->data) == FALSE);
+	value = secret_item_get_secret (items->data);
+	g_assert (value != NULL);
+	secret_value_unref (value);
+
+	g_assert (items->next != NULL);
+	g_assert_cmpstr (g_dbus_proxy_get_object_path (items->next->data), ==, "/org/freedesktop/secrets/collection/spanish/10");
+	g_assert (secret_item_get_locked (items->next->data) == TRUE);
+	g_assert (secret_item_get_secret (items->next->data) == NULL);
+
+	g_assert (items->next->next == NULL);
+	g_list_free_full (items, g_object_unref);
 }
 
 static void
@@ -826,7 +953,12 @@ main (int argc, char **argv)
 
 	g_test_add ("/service/search-sync", Test, "mock-service-normal.py", setup, test_search_sync, teardown);
 	g_test_add ("/service/search-async", Test, "mock-service-normal.py", setup, test_search_async, teardown);
-	g_test_add ("/service/search-nulls", Test, "mock-service-normal.py", setup, test_search_nulls, teardown);
+	g_test_add ("/service/search-all-sync", Test, "mock-service-normal.py", setup, test_search_all_sync, teardown);
+	g_test_add ("/service/search-all-async", Test, "mock-service-normal.py", setup, test_search_all_async, teardown);
+	g_test_add ("/service/search-unlock-sync", Test, "mock-service-normal.py", setup, test_search_unlock_sync, teardown);
+	g_test_add ("/service/search-unlock-async", Test, "mock-service-normal.py", setup, test_search_unlock_async, teardown);
+	g_test_add ("/service/search-secrets-sync", Test, "mock-service-normal.py", setup, test_search_secrets_sync, teardown);
+	g_test_add ("/service/search-secrets-async", Test, "mock-service-normal.py", setup, test_search_secrets_async, teardown);
 
 	g_test_add ("/service/lock-sync", Test, "mock-service-lock.py", setup, test_lock_sync, teardown);
 

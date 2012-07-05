@@ -25,17 +25,20 @@
 #include "secret-value.h"
 
 typedef struct {
+	SecretService *service;
 	GCancellable *cancellable;
 	GHashTable *items;
 	gchar **unlocked;
 	gchar **locked;
 	guint loading;
+	SecretSearchFlags flags;
 } SearchClosure;
 
 static void
 search_closure_free (gpointer data)
 {
 	SearchClosure *closure = data;
+	g_object_unref (closure->service);
 	g_clear_object (&closure->cancellable);
 	g_hash_table_unref (closure->items);
 	g_strfreev (closure->unlocked);
@@ -51,6 +54,64 @@ search_closure_take_item (SearchClosure *closure,
 	g_hash_table_insert (closure->items, (gpointer)path, item);
 }
 
+static GList *
+search_closure_build_items (SearchClosure *closure,
+                            gchar **paths)
+{
+	GList *results = NULL;
+	SecretItem *item;
+	guint i;
+
+	for (i = 0; paths[i]; i++) {
+		item = g_hash_table_lookup (closure->items, paths[i]);
+		if (item != NULL)
+			results = g_list_prepend (results, g_object_ref (item));
+	}
+
+	return g_list_reverse (results);
+}
+
+static void
+on_search_secrets (GObject *source,
+                   GAsyncResult *result,
+                   gpointer user_data)
+{
+	GSimpleAsyncResult *async = G_SIMPLE_ASYNC_RESULT (user_data);
+
+	/* Note that we ignore any unlock failure */
+	secret_item_load_secrets_finish (result, NULL);
+
+	g_simple_async_result_complete (async);
+	g_object_unref (async);
+}
+
+static void
+on_search_unlocked (GObject *source,
+                    GAsyncResult *result,
+                    gpointer user_data)
+{
+	GSimpleAsyncResult *async = G_SIMPLE_ASYNC_RESULT (user_data);
+	SearchClosure *search = g_simple_async_result_get_op_res_gpointer (async);
+	GList *items;
+
+	/* Note that we ignore any unlock failure */
+	secret_service_unlock_finish (search->service, result, NULL, NULL);
+
+	/* If loading secrets ... locked items automatically ignored */
+	if (search->flags & SECRET_SEARCH_LOAD_SECRETS) {
+		items = g_hash_table_get_values (search->items);
+		secret_item_load_secrets (items, search->cancellable,
+		                          on_search_secrets, g_object_ref (async));
+		g_list_free (items);
+
+	/* No additional options, just complete */
+	} else {
+		g_simple_async_result_complete (async);
+	}
+
+	g_object_unref (async);
+}
+
 static void
 on_search_loaded (GObject *source,
                   GAsyncResult *result,
@@ -60,6 +121,7 @@ on_search_loaded (GObject *source,
 	SearchClosure *closure = g_simple_async_result_get_op_res_gpointer (res);
 	GError *error = NULL;
 	SecretItem *item;
+	GList *items;
 
 	closure->loading--;
 
@@ -69,8 +131,29 @@ on_search_loaded (GObject *source,
 
 	if (item != NULL)
 		search_closure_take_item (closure, item);
-	if (closure->loading == 0)
-		g_simple_async_result_complete (res);
+
+	/* We're done loading, lets go to the next step */
+	if (closure->loading == 0) {
+
+		/* If unlocking then unlock all the locked items */
+		if (closure->flags & SECRET_SEARCH_UNLOCK) {
+			items = search_closure_build_items (closure, closure->locked);
+			secret_service_unlock (closure->service, items, closure->cancellable,
+			                       on_search_unlocked, g_object_ref (res));
+			g_list_free_full (items, g_object_unref);
+
+		/* If loading secrets ... locked items automatically ignored */
+		} else if (closure->flags & SECRET_SEARCH_LOAD_SECRETS) {
+			items = g_hash_table_get_values (closure->items);
+			secret_item_load_secrets (items, closure->cancellable,
+			                          on_search_secrets, g_object_ref (res));
+			g_list_free (items);
+
+		/* No additional options, just complete */
+		} else {
+			g_simple_async_result_complete (res);
+		}
+	}
 
 	g_object_unref (res);
 }
@@ -100,23 +183,31 @@ on_search_paths (GObject *source,
 {
 	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
 	SearchClosure *closure = g_simple_async_result_get_op_res_gpointer (res);
-	SecretService *self = SECRET_SERVICE (source);
+	SecretService *self = closure->service;
 	GError *error = NULL;
+	gint want = 1;
 	guint i;
 
-	if (!secret_service_search_for_paths_finish (self, result, &closure->unlocked,
-	                                              &closure->locked, &error)) {
+	secret_service_search_for_paths_finish (self, result, &closure->unlocked,
+	                                        &closure->locked, &error);
+	if (error == NULL) {
+		want = 1;
+		if (closure->flags & SECRET_SEARCH_ALL)
+			want = G_MAXINT;
+
+		for (i = 0; closure->loading < want && closure->unlocked[i] != NULL; i++)
+			search_load_item_async (self, res, closure, closure->unlocked[i]);
+		for (i = 0; closure->loading < want && closure->locked[i] != NULL; i++)
+			search_load_item_async (self, res, closure, closure->locked[i]);
+
+		/* No items loading, complete operation now */
+		if (closure->loading == 0)
+			g_simple_async_result_complete (res);
+
+	} else {
 		g_simple_async_result_take_error (res, error);
 		g_simple_async_result_complete (res);
 	}
-
-	for (i = 0; closure->unlocked[i] != NULL; i++)
-		search_load_item_async (self, res, closure, closure->unlocked[i]);
-	for (i = 0; closure->locked[i] != NULL; i++)
-		search_load_item_async (self, res, closure, closure->locked[i]);
-
-	if (closure->loading == 0)
-		g_simple_async_result_complete (res);
 
 	g_object_unref (res);
 }
@@ -125,6 +216,7 @@ on_search_paths (GObject *source,
  * secret_service_search:
  * @self: the secret service
  * @attributes: (element-type utf8 utf8): search for items matching these attributes
+ * @flags: search option flags
  * @cancellable: optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to pass to the callback
@@ -132,16 +224,23 @@ on_search_paths (GObject *source,
  * Search for items matching the @attributes. All collections are searched.
  * The @attributes should be a table of string keys and string values.
  *
- * This function returns immediately and completes asynchronously.
+ * If %SECRET_SEARCH_ALL is set in @flags, then all the items matching the
+ * search will be returned. Otherwise only the first item will be returned.
+ * This is almost always the unlocked item that was most recently stored.
  *
- * When your callback is called use secret_service_search_finish()
- * to get the results of this function. #SecretItem proxy objects will be
- * returned. If you prefer to only have the items D-Bus object paths returned,
- * then then use the secret_service_search_for_paths() function.
+ * If %SECRET_SEARCH_UNLOCK is set in @flags, then items will be unlocked
+ * if necessary. In either case, locked and unlocked items will match the
+ * search and be returned. If the unlock fails, the search does not fail.
+ *
+ * If %SECRET_SEARCH_LOAD_SECRETS is set in @flags, then the items will have
+ * their secret values loaded and available via secret_item_get_secret().
+ *
+ * This function returns immediately and completes asynchronously.
  */
 void
 secret_service_search (SecretService *self,
                        GHashTable *attributes,
+                       SecretSearchFlags flags,
                        GCancellable *cancellable,
                        GAsyncReadyCallback callback,
                        gpointer user_data)
@@ -156,8 +255,10 @@ secret_service_search (SecretService *self,
 	res = g_simple_async_result_new (G_OBJECT (self), callback, user_data,
 	                                 secret_service_search);
 	closure = g_slice_new0 (SearchClosure);
+	closure->service = g_object_ref (self);
 	closure->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
 	closure->items = g_hash_table_new_full (g_str_hash, g_str_equal, NULL, g_object_unref);
+	closure->flags = flags;
 	g_simple_async_result_set_op_res_gpointer (res, closure, search_closure_free);
 
 	secret_service_search_for_paths (self, attributes, cancellable,
@@ -166,53 +267,25 @@ secret_service_search (SecretService *self,
 	g_object_unref (res);
 }
 
-static GList *
-search_finish_build (gchar **paths,
-                     SearchClosure *closure)
-{
-	GList *results = NULL;
-	SecretItem *item;
-	guint i;
-
-	for (i = 0; paths[i]; i++) {
-		item = g_hash_table_lookup (closure->items, paths[i]);
-		if (item != NULL)
-			results = g_list_prepend (results, g_object_ref (item));
-	}
-
-	return g_list_reverse (results);
-}
-
 /**
  * secret_service_search_finish:
  * @self: the secret service
  * @result: asynchronous result passed to callback
- * @unlocked: (out) (transfer full) (element-type Secret.Item) (allow-none):
- *            location to place a list of matching items which were not locked.
- * @locked: (out) (transfer full) (element-type Secret.Item) (allow-none):
- *          location to place a list of matching items which were locked.
  * @error: location to place error on failure
  *
  * Complete asynchronous operation to search for items.
  *
- * Matching items that are locked or unlocked are placed in the @locked or
- * @unlocked lists respectively.
- *
- * #SecretItem proxy objects will be returned. If you prefer to only have
- * the items' D-Bus object paths returned, then then use the
- * secret_service_search_for_paths() function.
- *
- * Returns: whether the search was successful or not
+ * Returns: (transfer full) (element-type Secret.Item):
+ *          a list of items that matched the search
  */
-gboolean
+GList *
 secret_service_search_finish (SecretService *self,
                               GAsyncResult *result,
-                              GList **unlocked,
-                              GList **locked,
                               GError **error)
 {
 	GSimpleAsyncResult *res;
 	SearchClosure *closure;
+	GList *items;
 
 	g_return_val_if_fail (SECRET_IS_SERVICE (self), FALSE);
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
@@ -225,12 +298,11 @@ secret_service_search_finish (SecretService *self,
 		return FALSE;
 
 	closure = g_simple_async_result_get_op_res_gpointer (res);
-	if (unlocked)
-		*unlocked = search_finish_build (closure->unlocked, closure);
-	if (locked)
-		*locked = search_finish_build (closure->locked, closure);
-
-	return TRUE;
+	if (closure->unlocked)
+		items = search_closure_build_items (closure, closure->unlocked);
+	if (closure->locked)
+		items = g_list_concat (items, search_closure_build_items (closure, closure->locked));
+	return items;
 }
 
 static gboolean
@@ -238,26 +310,27 @@ service_load_items_sync (SecretService *self,
                          GCancellable *cancellable,
                          gchar **paths,
                          GList **items,
+                         gint want,
+                         gint *have,
                          GError **error)
 {
 	SecretItem *item;
-	GList *result = NULL;
 	guint i;
 
-	for (i = 0; paths[i] != NULL; i++) {
+	for (i = 0; *have < want && paths[i] != NULL; i++) {
 		item = _secret_service_find_item_instance (self, paths[i]);
 		if (item == NULL)
 			item = secret_item_new_sync (self, paths[i], SECRET_ITEM_NONE,
 			                             cancellable, error);
 		if (item == NULL) {
-			g_list_free_full (result, g_object_unref);
 			return FALSE;
+
 		} else {
-			result = g_list_prepend (result, item);
+			*items = g_list_prepend (*items, item);
+			(*have)++;
 		}
 	}
 
-	*items = g_list_reverse (result);
 	return TRUE;
 }
 
@@ -265,60 +338,98 @@ service_load_items_sync (SecretService *self,
  * secret_service_search_sync:
  * @self: the secret service
  * @attributes: (element-type utf8 utf8): search for items matching these attributes
+ * @flags: search option flags
  * @cancellable: optional cancellation object
- * @unlocked: (out) (transfer full) (element-type Secret.Item) (allow-none):
- *            location to place a list of matching items which were not locked.
- * @locked: (out) (transfer full) (element-type Secret.Item) (allow-none):
- *          location to place a list of matching items which were locked.
  * @error: location to place error on failure
  *
  * Search for items matching the @attributes. All collections are searched.
  * The @attributes should be a table of string keys and string values.
  *
+ * If %SECRET_SEARCH_ALL is set in @flags, then all the items matching the
+ * search will be returned. Otherwise only the first item will be returned.
+ * This is almost always the unlocked item that was most recently stored.
+ *
+ * If %SECRET_SEARCH_UNLOCK is set in @flags, then items will be unlocked
+ * if necessary. In either case, locked and unlocked items will match the
+ * search and be returned. If the unlock fails, the search does not fail.
+ *
+ * If %SECRET_SEARCH_LOAD_SECRETS is set in @flags, then the items' secret
+ * values will be loaded for any unlocked items. Loaded item secret values
+ * are available via secret_item_get_secret(). If the load of a secret values
+ * fail, then the
+ *
  * This function may block indefinetely. Use the asynchronous version
  * in user interface threads.
  *
- * Matching items that are locked or unlocked are placed
- * in the @locked or @unlocked lists respectively.
- *
- * #SecretItem proxy objects will be returned. If you prefer to only have
- * the items' D-Bus object paths returned, then then use the
- * secret_service_search_sync() function.
- *
- * Returns: whether the search was successful or not
+ * Returns: (transfer full) (element-type Secret.Item):
+ *          a list of items that matched the search
  */
-gboolean
+GList *
 secret_service_search_sync (SecretService *self,
                             GHashTable *attributes,
+                            SecretSearchFlags flags,
                             GCancellable *cancellable,
-                            GList **unlocked,
-                            GList **locked,
                             GError **error)
 {
 	gchar **unlocked_paths = NULL;
 	gchar **locked_paths = NULL;
+	GList *items = NULL;
+	GList *locked = NULL;
+	GList *unlocked = NULL;
 	gboolean ret;
+	gint want;
+	gint have;
 
-	g_return_val_if_fail (SECRET_IS_SERVICE (self), FALSE);
-	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), FALSE);
-	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+	g_return_val_if_fail (SECRET_IS_SERVICE (self), NULL);
+	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
+	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 
 	if (!secret_service_search_for_paths_sync (self, attributes, cancellable,
-	                                           unlocked ? &unlocked_paths : NULL,
-	                                           locked ? &locked_paths : NULL, error))
-		return FALSE;
+	                                           &unlocked_paths, &locked_paths, error))
+		return NULL;
 
 	ret = TRUE;
 
-	if (unlocked)
-		ret = service_load_items_sync (self, cancellable, unlocked_paths, unlocked, error);
-	if (ret && locked)
-		ret = service_load_items_sync (self, cancellable, locked_paths, locked, error);
+	want = 1;
+	if (flags & SECRET_SEARCH_ALL)
+		want = G_MAXINT;
+	have = 0;
+
+	/* Remember, we're adding to the list backwards */
+
+	if (unlocked_paths) {
+		ret = service_load_items_sync (self, cancellable, unlocked_paths,
+		                               &unlocked, want, &have, error);
+	}
+
+	if (ret && locked_paths) {
+		ret = service_load_items_sync (self, cancellable, locked_paths,
+		                               &locked, want, &have, error);
+	}
 
 	g_strfreev (unlocked_paths);
 	g_strfreev (locked_paths);
 
-	return ret;
+	if (!ret) {
+		g_list_free_full (unlocked, g_object_unref);
+		g_list_free_full (locked, g_object_unref);
+		return NULL;
+	}
+
+	/* The lists are backwards at this point ... */
+	items = g_list_concat (items, g_list_copy (locked));
+	items = g_list_concat (items, g_list_copy (unlocked));
+	items = g_list_reverse (items);
+
+	if (flags & SECRET_SEARCH_UNLOCK)
+		secret_service_unlock_sync (self, locked, cancellable, NULL, NULL);
+
+	if (flags & SECRET_SEARCH_LOAD_SECRETS)
+		secret_item_load_secrets_sync (items, NULL, NULL);
+
+	g_list_free (locked);
+	g_list_free (unlocked);
+	return items;
 }
 
 SecretValue *

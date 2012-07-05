@@ -30,10 +30,17 @@
 G_BEGIN_DECLS
 
 typedef enum {
-	SECRET_SERVICE_NONE,
+	SECRET_SERVICE_NONE = 0,
 	SECRET_SERVICE_OPEN_SESSION = 1 << 1,
 	SECRET_SERVICE_LOAD_COLLECTIONS = 1 << 2,
 } SecretServiceFlags;
+
+typedef enum {
+	SECRET_SEARCH_NONE = 0,
+	SECRET_SEARCH_ALL = 1 << 1,
+	SECRET_SEARCH_UNLOCK = 1 << 2,
+	SECRET_SEARCH_LOAD_SECRETS = 1 << 3,
+} SecretSearchFlags;
 
 #define SECRET_TYPE_SERVICE            (secret_service_get_type ())
 #define SECRET_SERVICE(inst)           (G_TYPE_CHECK_INSTANCE_CAST ((inst), SECRET_TYPE_SERVICE, SecretService))
@@ -145,21 +152,19 @@ gboolean             secret_service_ensure_collections_sync       (SecretService
 
 void                 secret_service_search                        (SecretService *self,
                                                                    GHashTable *attributes,
+                                                                   SecretSearchFlags flags,
                                                                    GCancellable *cancellable,
                                                                    GAsyncReadyCallback callback,
                                                                    gpointer user_data);
 
-gboolean             secret_service_search_finish                 (SecretService *self,
+GList *              secret_service_search_finish                 (SecretService *self,
                                                                    GAsyncResult *result,
-                                                                   GList **unlocked,
-                                                                   GList **locked,
                                                                    GError **error);
 
-gboolean             secret_service_search_sync                   (SecretService *self,
+GList *              secret_service_search_sync                   (SecretService *self,
                                                                    GHashTable *attributes,
+                                                                   SecretSearchFlags flags,
                                                                    GCancellable *cancellable,
-                                                                   GList **unlocked,
-                                                                   GList **locked,
                                                                    GError **error);
 
 void                 secret_service_lock                          (SecretService *self,
