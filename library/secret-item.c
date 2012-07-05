@@ -1124,7 +1124,7 @@ secret_item_get_flags (SecretItem *self)
 SecretService *
 secret_item_get_service (SecretItem *self)
 {
-	g_return_val_if_fail (SECRET_IS_COLLECTION (self), NULL);
+	g_return_val_if_fail (SECRET_IS_ITEM (self), NULL);
 	return self->pv->service;
 }
 
