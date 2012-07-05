@@ -592,10 +592,9 @@ on_init_base (GObject *source,
 		g_simple_async_result_take_error (res, error);
 		g_simple_async_result_complete (res);
 	} else {
-
+		service_ensure_for_flags_async (self, self->pv->init_flags, res);
 	}
 
-	service_ensure_for_flags_async (self, self->pv->init_flags, res);
 	g_object_unref (res);
 }
 
