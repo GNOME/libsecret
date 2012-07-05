@@ -88,7 +88,8 @@ test_new_sync (Test *test,
 	GError *error = NULL;
 	SecretCollection *collection;
 
-	collection = secret_collection_new_sync (test->service, collection_path, NULL, &error);
+	collection = secret_collection_new_sync (test->service, collection_path,
+	                                         SECRET_COLLECTION_NONE, NULL, &error);
 	g_assert_no_error (error);
 
 	g_assert_cmpstr (g_dbus_proxy_get_object_path (G_DBUS_PROXY (collection)), ==, collection_path);
@@ -106,7 +107,8 @@ test_new_async (Test *test,
 	SecretCollection *collection;
 	GAsyncResult *result = NULL;
 
-	secret_collection_new (test->service, collection_path, NULL, on_async_result, &result);
+	secret_collection_new (test->service, collection_path,
+	                       SECRET_COLLECTION_NONE, NULL, on_async_result, &result);
 	g_assert (result == NULL);
 
 	egg_test_wait ();
@@ -129,7 +131,8 @@ test_new_sync_noexist (Test *test,
 	GError *error = NULL;
 	SecretCollection *collection;
 
-	collection = secret_collection_new_sync (test->service, collection_path, NULL, &error);
+	collection = secret_collection_new_sync (test->service, collection_path,
+	                                         SECRET_COLLECTION_NONE, NULL, &error);
 	g_assert_error (error, G_DBUS_ERROR, G_DBUS_ERROR_UNKNOWN_METHOD);
 	g_assert (collection == NULL);
 }
@@ -143,7 +146,8 @@ test_new_async_noexist (Test *test,
 	SecretCollection *collection;
 	GAsyncResult *result = NULL;
 
-	secret_collection_new (test->service, collection_path, NULL, on_async_result, &result);
+	secret_collection_new (test->service, collection_path,
+	                       SECRET_COLLECTION_NONE, NULL, on_async_result, &result);
 	g_assert (result == NULL);
 
 	egg_test_wait ();
@@ -211,7 +215,8 @@ test_properties (Test *test,
 	gboolean locked;
 	gchar *label;
 
-	collection = secret_collection_new_sync (test->service, collection_path, NULL, &error);
+	collection = secret_collection_new_sync (test->service, collection_path,
+	                                         SECRET_COLLECTION_NONE, NULL, &error);
 	g_assert_no_error (error);
 
 	g_assert (secret_collection_get_locked (collection) == FALSE);
@@ -281,7 +286,8 @@ test_items (Test *test,
 	GError *error = NULL;
 	GList *items;
 
-	collection = secret_collection_new_sync (test->service, collection_path, NULL, &error);
+	collection = secret_collection_new_sync (test->service, collection_path,
+	                                         SECRET_COLLECTION_LOAD_ITEMS, NULL, &error);
 	g_assert_no_error (error);
 
 	items = secret_collection_get_items (collection);
@@ -312,7 +318,8 @@ test_items_empty (Test *test,
 	GError *error = NULL;
 	GList *items;
 
-	collection = secret_collection_new_sync (test->service, collection_path, NULL, &error);
+	collection = secret_collection_new_sync (test->service, collection_path,
+	                                         SECRET_COLLECTION_LOAD_ITEMS, NULL, &error);
 	g_assert_no_error (error);
 
 	items = secret_collection_get_items (collection);
@@ -336,7 +343,9 @@ test_items_empty_async (Test *test,
 	GError *error = NULL;
 	GList *items;
 
-	secret_collection_new (test->service, collection_path, NULL, on_async_result, &result);
+	secret_collection_new (test->service, collection_path,
+	                       SECRET_COLLECTION_LOAD_ITEMS,
+	                       NULL, on_async_result, &result);
 	g_assert (result == NULL);
 
 	egg_test_wait ();
@@ -366,7 +375,8 @@ test_set_label_sync (Test *test,
 	gboolean ret;
 	gchar *label;
 
-	collection = secret_collection_new_sync (test->service, collection_path, NULL, &error);
+	collection = secret_collection_new_sync (test->service, collection_path,
+	                                         SECRET_COLLECTION_NONE, NULL, &error);
 	g_assert_no_error (error);
 
 	label = secret_collection_get_label (collection);
@@ -395,7 +405,8 @@ test_set_label_async (Test *test,
 	gboolean ret;
 	gchar *label;
 
-	collection = secret_collection_new_sync (test->service, collection_path, NULL, &error);
+	collection = secret_collection_new_sync (test->service, collection_path,
+	                                         SECRET_COLLECTION_NONE, NULL, &error);
 	g_assert_no_error (error);
 
 	label = secret_collection_get_label (collection);
@@ -429,7 +440,8 @@ test_set_label_prop (Test *test,
 	guint sigs = 2;
 	gchar *label;
 
-	collection = secret_collection_new_sync (test->service, collection_path, NULL, &error);
+	collection = secret_collection_new_sync (test->service, collection_path,
+	                                         SECRET_COLLECTION_NONE, NULL, &error);
 	g_assert_no_error (error);
 
 	label = secret_collection_get_label (collection);
@@ -458,7 +470,8 @@ test_delete_sync (Test *test,
 	GError *error = NULL;
 	gboolean ret;
 
-	collection = secret_collection_new_sync (test->service, collection_path, NULL, &error);
+	collection = secret_collection_new_sync (test->service, collection_path,
+	                                         SECRET_COLLECTION_NONE, NULL, &error);
 	g_assert_no_error (error);
 
 	ret = secret_collection_delete_sync (collection, NULL, &error);
@@ -467,7 +480,8 @@ test_delete_sync (Test *test,
 
 	g_object_unref (collection);
 
-	collection = secret_collection_new_sync (test->service, collection_path, NULL, &error);
+	collection = secret_collection_new_sync (test->service, collection_path,
+	                                         SECRET_COLLECTION_NONE, NULL, &error);
 	g_assert_error (error, G_DBUS_ERROR, G_DBUS_ERROR_UNKNOWN_METHOD);
 	g_assert (collection == NULL);
 }
@@ -482,7 +496,8 @@ test_delete_async (Test *test,
 	GError *error = NULL;
 	gboolean ret;
 
-	collection = secret_collection_new_sync (test->service, collection_path, NULL, &error);
+	collection = secret_collection_new_sync (test->service, collection_path,
+	                                         SECRET_COLLECTION_NONE, NULL, &error);
 	g_assert_no_error (error);
 
 	secret_collection_delete (collection, NULL, on_async_result, &result);
@@ -497,7 +512,8 @@ test_delete_async (Test *test,
 
 	g_object_unref (collection);
 
-	collection = secret_collection_new_sync (test->service, collection_path, NULL, &error);
+	collection = secret_collection_new_sync (test->service, collection_path,
+	                                         SECRET_COLLECTION_NONE, NULL, &error);
 	g_assert_error (error, G_DBUS_ERROR, G_DBUS_ERROR_UNKNOWN_METHOD);
 	g_assert (collection == NULL);
 }

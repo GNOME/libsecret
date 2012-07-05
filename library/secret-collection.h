@@ -25,6 +25,11 @@
 
 G_BEGIN_DECLS
 
+typedef enum {
+	SECRET_COLLECTION_NONE = 0,
+	SECRET_COLLECTION_LOAD_ITEMS = 1 << 1,
+} SecretCollectionFlags;
+
 #define SECRET_TYPE_COLLECTION            (secret_collection_get_type ())
 #define SECRET_COLLECTION(inst)           (G_TYPE_CHECK_INSTANCE_CAST ((inst), SECRET_TYPE_COLLECTION, SecretCollection))
 #define SECRET_COLLECTION_CLASS(class)    (G_TYPE_CHECK_CLASS_CAST ((class), SECRET_TYPE_COLLECTION, SecretCollectionClass))
@@ -53,6 +58,7 @@ GType               secret_collection_get_type                 (void) G_GNUC_CON
 
 void                secret_collection_new                      (SecretService *service,
                                                                 const gchar *collection_path,
+                                                                SecretCollectionFlags flags,
                                                                 GCancellable *cancellable,
                                                                 GAsyncReadyCallback callback,
                                                                 gpointer user_data);
@@ -62,6 +68,20 @@ SecretCollection *  secret_collection_new_finish               (GAsyncResult *re
 
 SecretCollection *  secret_collection_new_sync                 (SecretService *service,
                                                                 const gchar *collection_path,
+                                                                SecretCollectionFlags flags,
+                                                                GCancellable *cancellable,
+                                                                GError **error);
+
+void                secret_collection_load_items               (SecretCollection *self,
+                                                                GCancellable *cancellable,
+                                                                GAsyncReadyCallback callback,
+                                                                gpointer user_data);
+
+gboolean            secret_collection_load_items_finish        (SecretCollection *self,
+                                                                GAsyncResult *result,
+                                                                GError **error);
+
+gboolean            secret_collection_load_items_sync          (SecretCollection *self,
                                                                 GCancellable *cancellable,
                                                                 GError **error);
 
@@ -97,6 +117,8 @@ gboolean            secret_collection_delete_sync              (SecretCollection
                                                                 GError **error);
 
 SecretService *     secret_collection_get_service              (SecretCollection *self);
+
+SecretCollectionFlags secret_collection_get_flags              (SecretCollection *self);
 
 GList *             secret_collection_get_items                (SecretCollection *self);
 

@@ -54,7 +54,7 @@
  * represent those collections while initializing a #SecretService then pass
  * the %SECRET_SERVICE_LOAD_COLLECTIONS flag to the secret_service_get() or
  * secret_service_new() functions. In order to establish a session on an already
- * existing #SecretService, use the secret_service_ensure_collections() function.
+ * existing #SecretService, use the secret_service_load_collections() function.
  * To access the list of collections use secret_service_get_collections().
  *
  * Certain actions on the Secret Service require user prompting to complete,
@@ -306,7 +306,7 @@ handle_property_changed (SecretService *self,
 		g_mutex_unlock (&self->pv->mutex);
 
 		if (perform)
-			secret_service_ensure_collections (self, self->pv->cancellable, NULL, NULL);
+			secret_service_load_collections (self, self->pv->cancellable, NULL, NULL);
 	}
 
 	g_variant_unref (value);
@@ -455,7 +455,7 @@ secret_service_class_init (SecretServiceClass *klass)
 	 *
 	 * To load the collections, specify the %SECRET_SERVICE_LOAD_COLLECTIONS
 	 * initialization flag when calling the secret_service_get() or
-	 * secret_service_new() functions. Or call the secret_service_ensure_collections()
+	 * secret_service_new() functions. Or call the secret_service_load_collections()
 	 * method.
 	 */
 	g_object_class_install_property (object_class, PROP_COLLECTIONS,
@@ -489,22 +489,22 @@ service_ensure_for_flags_sync (SecretService *self,
 			return FALSE;
 
 	if (flags & SECRET_SERVICE_LOAD_COLLECTIONS)
-		if (!secret_service_ensure_collections_sync (self, cancellable, error))
+		if (!secret_service_load_collections_sync (self, cancellable, error))
 			return FALSE;
 
 	return TRUE;
 }
 
 static void
-on_ensure_collections (GObject *source,
-                       GAsyncResult *result,
-                       gpointer user_data)
+on_load_collections (GObject *source,
+                     GAsyncResult *result,
+                     gpointer user_data)
 {
 	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
 	SecretService *self = SECRET_SERVICE (source);
 	GError *error = NULL;
 
-	if (!secret_service_ensure_collections_finish (self, result, &error))
+	if (!secret_service_load_collections_finish (self, result, &error))
 		g_simple_async_result_take_error (res, error);
 
 	g_simple_async_result_complete (res);
@@ -526,8 +526,8 @@ on_ensure_session (GObject *source,
 		g_simple_async_result_complete (res);
 
 	} else if (closure->flags & SECRET_SERVICE_LOAD_COLLECTIONS) {
-		secret_service_ensure_collections (self, closure->cancellable,
-		                                   on_ensure_collections, g_object_ref (res));
+		secret_service_load_collections (self, closure->cancellable,
+		                                 on_load_collections, g_object_ref (res));
 
 	} else {
 		g_simple_async_result_complete_in_idle (res);
@@ -550,8 +550,8 @@ service_ensure_for_flags_async (SecretService *self,
 		                               on_ensure_session, g_object_ref (res));
 
 	else if (closure->flags & SECRET_SERVICE_LOAD_COLLECTIONS)
-		secret_service_ensure_collections (self, closure->cancellable,
-		                                   on_ensure_collections, g_object_ref (res));
+		secret_service_load_collections (self, closure->cancellable,
+		                                 on_load_collections, g_object_ref (res));
 
 	else
 		g_simple_async_result_complete_in_idle (res);
@@ -973,7 +973,7 @@ secret_service_new_sync (GType service_gtype,
  * Get the flags representing what features of the #SecretService proxy
  * have been initialized.
  *
- * Use secret_service_ensure_session() or secret_service_ensure_collections()
+ * Use secret_service_ensure_session() or secret_service_load_collections()
  * to initialize further features and change the flags.
  *
  * Returns: the flags for features initialized
@@ -1006,7 +1006,7 @@ secret_service_get_flags (SecretService *self)
  *
  * If the %SECRET_SERVICE_LOAD_COLLECTIONS flag was not specified when
  * initializing #SecretService proxy object, then this method will return
- * %NULL. Use secret_service_ensure_collections() to load the collections.
+ * %NULL. Use secret_service_load_collections() to load the collections.
  *
  * Returns: (transfer full) (element-type Secret.Collection) (allow-none): a
  *          list of the collections in the secret service
@@ -1379,7 +1379,7 @@ on_ensure_collection (GObject *source,
 }
 
 /**
- * secret_service_ensure_collections:
+ * secret_service_load_collections:
  * @self: the secret service
  * @cancellable: optional cancellation object
  * @callback: called when the operation completes
@@ -1396,10 +1396,10 @@ on_ensure_collection (GObject *source,
  * This method will return immediately and complete asynchronously.
  */
 void
-secret_service_ensure_collections (SecretService *self,
-                                   GCancellable *cancellable,
-                                   GAsyncReadyCallback callback,
-                                   gpointer user_data)
+secret_service_load_collections (SecretService *self,
+                                 GCancellable *cancellable,
+                                 GAsyncReadyCallback callback,
+                                 gpointer user_data)
 {
 	EnsureClosure *closure;
 	SecretCollection *collection;
@@ -1415,7 +1415,7 @@ secret_service_ensure_collections (SecretService *self,
 	g_return_if_fail (paths != NULL);
 
 	res = g_simple_async_result_new (G_OBJECT (self), callback, user_data,
-	                                 secret_service_ensure_collections);
+	                                 secret_service_load_collections);
 	closure = g_slice_new0 (EnsureClosure);
 	closure->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
 	closure->collections = collections_table_new ();
@@ -1427,7 +1427,7 @@ secret_service_ensure_collections (SecretService *self,
 
 		/* No such collection yet create a new one */
 		if (collection == NULL) {
-			secret_collection_new (self, path, cancellable,
+			secret_collection_new (self, path, SECRET_COLLECTION_LOAD_ITEMS, cancellable,
 			                       on_ensure_collection, g_object_ref (res));
 			closure->collections_loading++;
 		} else {
@@ -1445,7 +1445,7 @@ secret_service_ensure_collections (SecretService *self,
 }
 
 /**
- * secret_service_ensure_collections_finish:
+ * secret_service_load_collections_finish:
  * @self: the secret service
  * @result: the asynchronous result passed to the callback
  * @error: location to place an error on failure
@@ -1456,14 +1456,14 @@ secret_service_ensure_collections (SecretService *self,
  * Returns: whether the load was successful or not
  */
 gboolean
-secret_service_ensure_collections_finish (SecretService *self,
-                                          GAsyncResult *result,
-                                          GError **error)
+secret_service_load_collections_finish (SecretService *self,
+                                        GAsyncResult *result,
+                                        GError **error)
 {
 	g_return_val_if_fail (SECRET_IS_SERVICE (self), FALSE);
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (self),
-	                      secret_service_ensure_collections), FALSE);
+	                      secret_service_load_collections), FALSE);
 
 	if (g_simple_async_result_propagate_error (G_SIMPLE_ASYNC_RESULT (result), error))
 		return FALSE;
@@ -1472,7 +1472,7 @@ secret_service_ensure_collections_finish (SecretService *self,
 }
 
 /**
- * secret_service_ensure_collections_sync:
+ * secret_service_load_collections_sync:
  * @self: the secret service
  * @cancellable: optional cancellation object
  * @error: location to place an error on failure
@@ -1491,9 +1491,9 @@ secret_service_ensure_collections_finish (SecretService *self,
  * Returns: whether the load was successful or not
  */
 gboolean
-secret_service_ensure_collections_sync (SecretService *self,
-                                        GCancellable *cancellable,
-                                        GError **error)
+secret_service_load_collections_sync (SecretService *self,
+                                      GCancellable *cancellable,
+                                      GError **error)
 {
 	SecretCollection *collection;
 	GHashTable *collections;
@@ -1517,7 +1517,9 @@ secret_service_ensure_collections_sync (SecretService *self,
 
 		/* No such collection yet create a new one */
 		if (collection == NULL) {
-			collection = secret_collection_new_sync (self, path, cancellable, error);
+			collection = secret_collection_new_sync (self, path,
+			                                         SECRET_COLLECTION_LOAD_ITEMS,
+			                                         cancellable, error);
 			if (collection == NULL) {
 				ret = FALSE;
 				break;

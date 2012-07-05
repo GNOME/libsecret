@@ -397,7 +397,8 @@ test_lock_sync (Test *test,
 	GList *objects;
 	gboolean ret;
 
-	collection = secret_collection_new_sync (test->service, collection_path, NULL, &error);
+	collection = secret_collection_new_sync (test->service, collection_path,
+	                                         SECRET_COLLECTION_NONE, NULL, &error);
 	g_assert_no_error (error);
 
 	objects = g_list_append (NULL, collection);
@@ -426,7 +427,8 @@ test_unlock_sync (Test *test,
 	GList *objects;
 	gboolean ret;
 
-	collection = secret_collection_new_sync (test->service, collection_path, NULL, &error);
+	collection = secret_collection_new_sync (test->service, collection_path,
+	                                         SECRET_COLLECTION_NONE, NULL, &error);
 	g_assert_no_error (error);
 
 	objects = g_list_append (NULL, collection);
@@ -922,7 +924,8 @@ test_set_alias_sync (Test *test,
 	g_assert_no_error (error);
 	g_assert (blah == NULL);
 
-	collection = secret_collection_new_sync (test->service, "/org/freedesktop/secrets/collection/english", NULL, &error);
+	collection = secret_collection_new_sync (test->service, "/org/freedesktop/secrets/collection/english",
+	                                         SECRET_COLLECTION_NONE, NULL, &error);
 	g_assert_no_error (error);
 	g_assert (SECRET_IS_COLLECTION (collection));
 

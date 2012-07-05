@@ -137,16 +137,16 @@ const gchar *        secret_service_ensure_session_sync           (SecretService
                                                                    GCancellable *cancellable,
                                                                    GError **error);
 
-void                 secret_service_ensure_collections            (SecretService *self,
+void                 secret_service_load_collections              (SecretService *self,
                                                                    GCancellable *cancellable,
                                                                    GAsyncReadyCallback callback,
                                                                    gpointer user_data);
 
-gboolean             secret_service_ensure_collections_finish     (SecretService *self,
+gboolean             secret_service_load_collections_finish       (SecretService *self,
                                                                    GAsyncResult *result,
                                                                    GError **error);
 
-gboolean             secret_service_ensure_collections_sync       (SecretService *self,
+gboolean             secret_service_load_collections_sync         (SecretService *self,
                                                                    GCancellable *cancellable,
                                                                    GError **error);
 

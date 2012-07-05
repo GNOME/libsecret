@@ -479,7 +479,7 @@ test_ensure_sync (Test *test,
 	flags = secret_service_get_flags (service);
 	g_assert_cmpuint (flags, ==, SECRET_SERVICE_NONE);
 
-	ret = secret_service_ensure_collections_sync (service, NULL, &error);
+	ret = secret_service_load_collections_sync (service, NULL, &error);
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
 
@@ -517,12 +517,12 @@ test_ensure_async (Test *test,
 	flags = secret_service_get_flags (service);
 	g_assert_cmpuint (flags, ==, SECRET_SERVICE_NONE);
 
-	secret_service_ensure_collections (service, NULL, on_complete_get_result, &result);
+	secret_service_load_collections (service, NULL, on_complete_get_result, &result);
 	g_assert (result == NULL);
 
 	egg_test_wait ();
 
-	ret = secret_service_ensure_collections_finish (service, result, &error);
+	ret = secret_service_load_collections_finish (service, result, &error);
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
 	g_object_unref (result);

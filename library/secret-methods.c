@@ -1532,7 +1532,8 @@ on_read_alias_path (GObject *source,
 
 			/* No collection loaded, but valid path, load */
 			} else {
-				secret_collection_new (self, collection_path, read->cancellable,
+				secret_collection_new (self, collection_path, SECRET_COLLECTION_NONE,
+				                       read->cancellable,
 				                       on_read_alias_collection, g_object_ref (async));
 			}
 		}
@@ -1662,6 +1663,7 @@ secret_service_read_alias_sync (SecretService *self,
 		/* No collection loaded, but valid path, load */
 		if (collection == NULL) {
 			collection = secret_collection_new_sync (self, collection_path,
+			                                         SECRET_COLLECTION_LOAD_ITEMS,
 			                                         cancellable, error);
 		}
 	}

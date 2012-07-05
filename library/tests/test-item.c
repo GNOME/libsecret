@@ -166,7 +166,8 @@ test_create_sync (Test *test,
 	GHashTable *attributes;
 	SecretValue *value;
 
-	collection = secret_collection_new_sync (test->service, collection_path, NULL, &error);
+	collection = secret_collection_new_sync (test->service, collection_path,
+	                                         SECRET_COLLECTION_NONE, NULL, &error);
 	g_assert_no_error (error);
 
 	attributes = g_hash_table_new (g_str_hash, g_str_equal);
@@ -204,7 +205,8 @@ test_create_async (Test *test,
 	GHashTable *attributes;
 	SecretValue *value;
 
-	collection = secret_collection_new_sync (test->service, collection_path, NULL, &error);
+	collection = secret_collection_new_sync (test->service, collection_path,
+	                                         SECRET_COLLECTION_NONE, NULL, &error);
 	g_assert_no_error (error);
 
 	attributes = g_hash_table_new (g_str_hash, g_str_equal);

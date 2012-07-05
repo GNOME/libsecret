@@ -16,6 +16,7 @@
 
 #include "secret-collection.h"
 #include "secret-dbus-generated.h"
+#include "secret-enum-types.h"
 #include "secret-item.h"
 #include "secret-paths.h"
 #include "secret-private.h"
@@ -55,9 +56,20 @@
  * The class for #SecretCollection.
  */
 
+/**
+ * SecretCollectionFlags:
+ * @SECRET_COLLECTION_NONE: no flags for initializing the #SecretCollection
+ * @SECRET_COLLECTION_LOAD_ITEMS: load items while initializing the
+ *                                #SecretCollection
+ *
+ * Flags which determine which parts of the #SecretCollection proxy are initialized
+ * during a secret_collection_new() or secret_collection_new_sync() operation.
+ */
+
 enum {
 	PROP_0,
 	PROP_SERVICE,
+	PROP_FLAGS,
 	PROP_ITEMS,
 	PROP_LABEL,
 	PROP_LOCKED,
@@ -70,6 +82,7 @@ struct _SecretCollectionPrivate {
 	SecretService *service;
 	GCancellable *cancellable;
 	gboolean constructing;
+	SecretCollectionFlags init_flags;
 
 	/* Protected by mutex */
 	GMutex mutex;
@@ -141,6 +154,9 @@ secret_collection_set_property (GObject *obj,
 			g_object_add_weak_pointer (G_OBJECT (self->pv->service),
 			                           (gpointer *)&self->pv->service);
 		break;
+	case PROP_FLAGS:
+		self->pv->init_flags = g_value_get_flags (value);
+		break;
 	case PROP_LABEL:
 		secret_collection_set_label (self, g_value_get_string (value),
 		                             self->pv->cancellable, on_set_label,
@@ -163,6 +179,9 @@ secret_collection_get_property (GObject *obj,
 	switch (prop_id) {
 	case PROP_SERVICE:
 		g_value_set_object (value, self->pv->service);
+		break;
+	case PROP_FLAGS:
+		g_value_set_flags (value, secret_collection_get_flags (self));
 		break;
 	case PROP_ITEMS:
 		g_value_take_boxed (value, secret_collection_get_items (self));
@@ -245,175 +264,33 @@ collection_update_items (SecretCollection *self,
 	g_object_notify (G_OBJECT (self), "items");
 }
 
-typedef struct {
-	GCancellable *cancellable;
-	GHashTable *items;
-	gint items_loading;
-} ItemsClosure;
-
-static void
-items_closure_free (gpointer data)
-{
-	ItemsClosure *closure = data;
-	g_clear_object (&closure->cancellable);
-	g_hash_table_unref (closure->items);
-	g_slice_free (ItemsClosure, closure);
-}
-
-static void
-on_load_item (GObject *source,
-              GAsyncResult *result,
-              gpointer user_data)
-{
-	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
-	ItemsClosure *closure = g_simple_async_result_get_op_res_gpointer (res);
-	SecretCollection *self = SECRET_COLLECTION (g_async_result_get_source_object (user_data));
-	const gchar *path;
-	GError *error = NULL;
-	SecretItem *item;
-
-	closure->items_loading--;
-
-	item = secret_item_new_finish (result, &error);
-
-	if (error != NULL)
-		g_simple_async_result_take_error (res, error);
-
-	if (item != NULL) {
-		path = g_dbus_proxy_get_object_path (G_DBUS_PROXY (item));
-		g_hash_table_insert (closure->items, g_strdup (path), item);
-	}
-
-	if (closure->items_loading == 0) {
-		collection_update_items (self, closure->items);
-		g_simple_async_result_complete_in_idle (res);
-	}
-
-	g_object_unref (self);
-	g_object_unref (res);
-}
-
-static void
-collection_load_items_async (SecretCollection *self,
-                             GCancellable *cancellable,
-                             GAsyncReadyCallback callback,
-                             gpointer user_data)
-{
-	ItemsClosure *closure;
-	SecretItem *item;
-	GSimpleAsyncResult *res;
-	const gchar *path;
-	GVariant *paths;
-	GVariantIter iter;
-
-	paths = g_dbus_proxy_get_cached_property (G_DBUS_PROXY (self), "Items");
-	g_return_if_fail (paths != NULL);
-
-	res = g_simple_async_result_new (G_OBJECT (self), callback, user_data,
-	                                 collection_load_items_async);
-	closure = g_slice_new0 (ItemsClosure);
-	closure->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
-	closure->items = items_table_new ();
-	g_simple_async_result_set_op_res_gpointer (res, closure, items_closure_free);
-
-	g_variant_iter_init (&iter, paths);
-	while (g_variant_iter_loop (&iter, "&o", &path)) {
-		item = collection_lookup_item (self, path);
-
-		/* No such collection yet create a new one */
-		if (item == NULL) {
-			secret_item_new (self->pv->service, path, SECRET_ITEM_NONE,
-			                 cancellable, on_load_item, g_object_ref (res));
-			closure->items_loading++;
-
-		} else {
-			g_hash_table_insert (closure->items, g_strdup (path), item);
-		}
-	}
-
-	if (closure->items_loading == 0) {
-		collection_update_items (self, closure->items);
-		g_simple_async_result_complete_in_idle (res);
-	}
-
-	g_variant_unref (paths);
-	g_object_unref (res);
-}
-
-static gboolean
-collection_load_items_finish (SecretCollection *self,
-                              GAsyncResult *result,
-                              GError **error)
-{
-	if (g_simple_async_result_propagate_error (G_SIMPLE_ASYNC_RESULT (result), error))
-		return FALSE;
-
-	return TRUE;
-}
-
-
-static gboolean
-collection_load_items_sync (SecretCollection *self,
-                            GCancellable *cancellable,
-                            GError **error)
-{
-	SecretItem *item;
-	GHashTable *items;
-	GVariant *paths;
-	GVariantIter iter;
-	const gchar *path;
-	gboolean ret = TRUE;
-
-	paths = g_dbus_proxy_get_cached_property (G_DBUS_PROXY (self), "Items");
-	g_return_val_if_fail (paths != NULL, FALSE);
-
-	items = items_table_new ();
-
-	g_variant_iter_init (&iter, paths);
-	while (g_variant_iter_next (&iter, "&o", &path)) {
-		item = collection_lookup_item (self, path);
-
-		/* No such collection yet create a new one */
-		if (item == NULL) {
-			item = secret_item_new_sync (self->pv->service, path,
-			                             SECRET_ITEM_NONE,
-			                             cancellable, error);
-			if (item == NULL) {
-				ret = FALSE;
-				break;
-			}
-		}
-
-		g_hash_table_insert (items, g_strdup (path), item);
-	}
-
-	if (ret)
-		collection_update_items (self, items);
-
-	g_hash_table_unref (items);
-	g_variant_unref (paths);
-	return ret;
-}
-
 static void
 handle_property_changed (SecretCollection *self,
                          const gchar *property_name,
                          GVariant *value)
 {
-	if (g_str_equal (property_name, "Label"))
+	gboolean perform;
+
+	if (g_str_equal (property_name, "Label")) {
 		g_object_notify (G_OBJECT (self), "label");
 
-	else if (g_str_equal (property_name, "Locked"))
+	} else if (g_str_equal (property_name, "Locked")) {
 		g_object_notify (G_OBJECT (self), "locked");
 
-	else if (g_str_equal (property_name, "Created"))
+	} else if (g_str_equal (property_name, "Created")) {
 		g_object_notify (G_OBJECT (self), "created");
 
-	else if (g_str_equal (property_name, "Modified"))
+	} else if (g_str_equal (property_name, "Modified")) {
 		g_object_notify (G_OBJECT (self), "modified");
 
-	else if (g_str_equal (property_name, "Items") && !self->pv->constructing)
-		collection_load_items_async (self, self->pv->cancellable, NULL, NULL);
+	} else if (g_str_equal (property_name, "Items") && !self->pv->constructing) {
+		g_mutex_lock (&self->pv->mutex);
+		perform = self->pv->items != NULL;
+		g_mutex_unlock (&self->pv->mutex);
+
+		if (perform)
+			secret_collection_load_items (self, self->pv->cancellable, NULL, NULL);
+	}
 }
 
 static void
@@ -543,6 +420,17 @@ secret_collection_class_init (SecretCollectionClass *klass)
 	                                 SECRET_TYPE_SERVICE, G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS));
 
 	/**
+	 * SecretCollection:flags:
+	 *
+	 * A set of flags describing which parts of the secret collection have
+	 * been initialized.
+	 */
+	g_object_class_install_property (gobject_class, PROP_FLAGS,
+	             g_param_spec_flags ("flags", "Flags", "Collection flags",
+	                                 secret_collection_flags_get_type (), SECRET_COLLECTION_NONE,
+	                                 G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS));
+
+	/**
 	 * SecretCollection:items:
 	 *
 	 * A list of #SecretItem objects representing the items that are in
@@ -622,8 +510,10 @@ secret_collection_initable_init (GInitable *initable,
 
 	self = SECRET_COLLECTION (initable);
 
-	if (!collection_load_items_sync (self, cancellable, error))
-		return FALSE;
+	if (self->pv->init_flags & SECRET_COLLECTION_LOAD_ITEMS) {
+		if (!secret_collection_load_items_sync (self, cancellable, error))
+			return FALSE;
+	}
 
 	self->pv->constructing = FALSE;
 	return TRUE;
@@ -658,7 +548,7 @@ on_init_items (GObject *source,
 	SecretCollection *self = SECRET_COLLECTION (source);
 	GError *error = NULL;
 
-	if (!collection_load_items_finish (self, result, &error))
+	if (!secret_collection_load_items_finish (self, result, &error))
 		g_simple_async_result_take_error (res, error);
 
 	g_simple_async_result_complete (res);
@@ -687,9 +577,12 @@ on_init_base (GObject *source,
 		                                 g_dbus_proxy_get_object_path (proxy));
 		g_simple_async_result_complete (res);
 
+	} else if (self->pv->init_flags & SECRET_COLLECTION_LOAD_ITEMS) {
+		secret_collection_load_items (self, closure->cancellable,
+		                              on_init_items, g_object_ref (res));
+
 	} else {
-		collection_load_items_async (self, closure->cancellable,
-		                             on_init_items, g_object_ref (res));
+		g_simple_async_result_complete (res);
 	}
 
 	g_object_unref (res);
@@ -749,6 +642,7 @@ secret_collection_async_initable_iface (GAsyncInitableIface *iface)
  * secret_collection_new:
  * @service: a secret service object
  * @collection_path: the D-Bus path of the collection
+ * @flags: options for the collection initialization
  * @cancellable: optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to be passed to the callback
@@ -760,6 +654,7 @@ secret_collection_async_initable_iface (GAsyncInitableIface *iface)
 void
 secret_collection_new (SecretService *service,
                        const gchar *collection_path,
+                       SecretCollectionFlags flags,
                        GCancellable *cancellable,
                        GAsyncReadyCallback callback,
                        gpointer user_data)
@@ -781,6 +676,7 @@ secret_collection_new (SecretService *service,
 	                            "g-object-path", collection_path,
 	                            "g-interface-name", SECRET_COLLECTION_INTERFACE,
 	                            "service", service,
+	                            "flags", flags,
 	                            NULL);
 }
 
@@ -820,6 +716,7 @@ secret_collection_new_finish (GAsyncResult *result,
  * secret_collection_new_sync:
  * @service: a secret service object
  * @collection_path: the D-Bus path of the collection
+ * @flags: options for the collection initialization
  * @cancellable: optional cancellation object
  * @error: location to place an error on failure
  *
@@ -834,6 +731,7 @@ secret_collection_new_finish (GAsyncResult *result,
 SecretCollection *
 secret_collection_new_sync (SecretService *service,
                             const gchar *collection_path,
+                            SecretCollectionFlags flags,
                             GCancellable *cancellable,
                             GError **error)
 {
@@ -855,7 +753,216 @@ secret_collection_new_sync (SecretService *service,
 	                       "g-object-path", collection_path,
 	                       "g-interface-name", SECRET_COLLECTION_INTERFACE,
 	                       "service", service,
+	                       "flags", flags,
 	                       NULL);
+}
+
+typedef struct {
+	GCancellable *cancellable;
+	GHashTable *items;
+	gint items_loading;
+} ItemsClosure;
+
+static void
+items_closure_free (gpointer data)
+{
+	ItemsClosure *closure = data;
+	g_clear_object (&closure->cancellable);
+	g_hash_table_unref (closure->items);
+	g_slice_free (ItemsClosure, closure);
+}
+
+static void
+on_load_item (GObject *source,
+              GAsyncResult *result,
+              gpointer user_data)
+{
+	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
+	ItemsClosure *closure = g_simple_async_result_get_op_res_gpointer (res);
+	SecretCollection *self = SECRET_COLLECTION (g_async_result_get_source_object (user_data));
+	const gchar *path;
+	GError *error = NULL;
+	SecretItem *item;
+
+	closure->items_loading--;
+
+	item = secret_item_new_finish (result, &error);
+
+	if (error != NULL)
+		g_simple_async_result_take_error (res, error);
+
+	if (item != NULL) {
+		path = g_dbus_proxy_get_object_path (G_DBUS_PROXY (item));
+		g_hash_table_insert (closure->items, g_strdup (path), item);
+	}
+
+	if (closure->items_loading == 0) {
+		collection_update_items (self, closure->items);
+		g_simple_async_result_complete_in_idle (res);
+	}
+
+	g_object_unref (self);
+	g_object_unref (res);
+}
+
+/**
+ * secret_collection_load_items:
+ * @self: the secret collection
+ * @cancellable: optional cancellation object
+ * @callback: called when the operation completes
+ * @user_data: data to be passed to the callback
+ *
+ * Ensure that the #SecretCollection proxy has loaded all the items present
+ * in the Secret Service. This affects the result of
+ * secret_collection_get_items().
+ *
+ * You can also pass the %SECRET_COLLECTION_LOAD_ITEMS to
+ * secret_collection_new() in order to ensure that the collections have been
+ * loaded by the time you get the #SecretCollection proxy.
+ *
+ * This method will return immediately and complete asynchronously.
+ */
+void
+secret_collection_load_items (SecretCollection *self,
+                              GCancellable *cancellable,
+                              GAsyncReadyCallback callback,
+                              gpointer user_data)
+{
+	ItemsClosure *closure;
+	SecretItem *item;
+	GSimpleAsyncResult *res;
+	const gchar *path;
+	GVariant *paths;
+	GVariantIter iter;
+
+	g_return_if_fail (SECRET_IS_COLLECTION (self));
+	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+	paths = g_dbus_proxy_get_cached_property (G_DBUS_PROXY (self), "Items");
+	g_return_if_fail (paths != NULL);
+
+	res = g_simple_async_result_new (G_OBJECT (self), callback, user_data,
+	                                 secret_collection_load_items);
+	closure = g_slice_new0 (ItemsClosure);
+	closure->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
+	closure->items = items_table_new ();
+	g_simple_async_result_set_op_res_gpointer (res, closure, items_closure_free);
+
+	g_variant_iter_init (&iter, paths);
+	while (g_variant_iter_loop (&iter, "&o", &path)) {
+		item = collection_lookup_item (self, path);
+
+		/* No such collection yet create a new one */
+		if (item == NULL) {
+			secret_item_new (self->pv->service, path, SECRET_ITEM_NONE,
+			                 cancellable, on_load_item, g_object_ref (res));
+			closure->items_loading++;
+
+		} else {
+			g_hash_table_insert (closure->items, g_strdup (path), item);
+		}
+	}
+
+	if (closure->items_loading == 0) {
+		collection_update_items (self, closure->items);
+		g_simple_async_result_complete_in_idle (res);
+	}
+
+	g_variant_unref (paths);
+	g_object_unref (res);
+}
+
+/**
+ * secret_collection_load_items_finish:
+ * @self: the secret collection
+ * @result: the asynchronous result passed to the callback
+ * @error: location to place an error on failure
+ *
+ * Complete an asynchronous operation to ensure that the #SecretCollection proxy
+ * has loaded all the items present in the Secret Service.
+ *
+ * Returns: whether the load was successful or not
+ */
+gboolean
+secret_collection_load_items_finish (SecretCollection *self,
+                                     GAsyncResult *result,
+                                     GError **error)
+{
+	g_return_val_if_fail (SECRET_IS_COLLECTION (self), FALSE);
+	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (self),
+	                      secret_collection_load_items), FALSE);
+
+	if (g_simple_async_result_propagate_error (G_SIMPLE_ASYNC_RESULT (result), error))
+		return FALSE;
+
+	return TRUE;
+}
+
+/**
+ * secret_collection_load_items_sync:
+ * @self: the secret collection
+ * @cancellable: optional cancellation object
+ * @error: location to place an error on failure
+ *
+ * Ensure that the #SecretCollection proxy has loaded all the items present
+ * in the Secret Service. This affects the result of
+ * secret_collection_get_items().
+ *
+ * You can also pass the %SECRET_COLLECTION_LOAD_ITEMS to
+ * secret_collection_new_sync() in order to ensure that the items have been
+ * loaded by the time you get the #SecretCollection proxy.
+ *
+ * This method may block indefinitely and should not be used in user interface
+ * threads.
+ *
+ * Returns: whether the load was successful or not
+ */
+gboolean
+secret_collection_load_items_sync (SecretCollection *self,
+                                   GCancellable *cancellable,
+                                   GError **error)
+{
+	SecretItem *item;
+	GHashTable *items;
+	GVariant *paths;
+	GVariantIter iter;
+	const gchar *path;
+	gboolean ret = TRUE;
+
+	g_return_val_if_fail (SECRET_IS_COLLECTION (self), FALSE);
+	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), FALSE);
+	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+
+	paths = g_dbus_proxy_get_cached_property (G_DBUS_PROXY (self), "Items");
+	g_return_val_if_fail (paths != NULL, FALSE);
+
+	items = items_table_new ();
+
+	g_variant_iter_init (&iter, paths);
+	while (g_variant_iter_next (&iter, "&o", &path)) {
+		item = collection_lookup_item (self, path);
+
+		/* No such collection yet create a new one */
+		if (item == NULL) {
+			item = secret_item_new_sync (self->pv->service, path,
+			                             SECRET_ITEM_NONE,
+			                             cancellable, error);
+			if (item == NULL) {
+				ret = FALSE;
+				break;
+			}
+		}
+
+		g_hash_table_insert (items, g_strdup (path), item);
+	}
+
+	if (ret)
+		collection_update_items (self, items);
+
+	g_hash_table_unref (items);
+	g_variant_unref (paths);
+	return ret;
 }
 
 /**
@@ -922,7 +1029,8 @@ on_create_path (GObject *source,
 
 	path = secret_service_create_collection_path_finish (service, result, &error);
 	if (error == NULL) {
-		secret_collection_new (service, path, closure->cancellable,
+		secret_collection_new (service, path, SECRET_COLLECTION_LOAD_ITEMS,
+		                       closure->cancellable,
 		                       on_create_collection, g_object_ref (res));
 	} else {
 		g_simple_async_result_take_error (res, error);
@@ -1082,7 +1190,9 @@ secret_collection_create_sync (SecretService *service,
 	if (path == NULL)
 		return NULL;
 
-	collection = secret_collection_new_sync (service, path, cancellable, error);
+	collection = secret_collection_new_sync (service, path,
+	                                         SECRET_COLLECTION_LOAD_ITEMS,
+	                                         cancellable, error);
 	g_free (path);
 
 	return collection;
@@ -1218,6 +1328,35 @@ secret_collection_get_service (SecretCollection *self)
 {
 	g_return_val_if_fail (SECRET_IS_COLLECTION (self), NULL);
 	return self->pv->service;
+}
+
+/**
+ * secret_collection_get_flags:
+ * @self: the secret collection proxy
+ *
+ * Get the flags representing what features of the #SecretCollection proxy
+ * have been initialized.
+ *
+ * Use secret_collection_load_items()  to initialize further features
+ * and change the flags.
+ *
+ * Returns: the flags for features initialized
+ */
+SecretCollectionFlags
+secret_collection_get_flags (SecretCollection *self)
+{
+	SecretCollectionFlags flags = 0;
+
+	g_return_val_if_fail (SECRET_IS_COLLECTION (self), SECRET_COLLECTION_NONE);
+
+	g_mutex_lock (&self->pv->mutex);
+
+	if (self->pv->items)
+		flags |= SECRET_COLLECTION_LOAD_ITEMS;
+
+	g_mutex_unlock (&self->pv->mutex);
+
+	return flags;
 }
 
 /**
