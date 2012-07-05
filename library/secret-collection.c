@@ -321,8 +321,8 @@ collection_load_items_async (SecretCollection *self,
 
 		/* No such collection yet create a new one */
 		if (item == NULL) {
-			secret_item_new (self->pv->service, path, cancellable,
-			                 on_load_item, g_object_ref (res));
+			secret_item_new (self->pv->service, path, SECRET_ITEM_NONE,
+			                 cancellable, on_load_item, g_object_ref (res));
 			closure->items_loading++;
 
 		} else {
@@ -375,6 +375,7 @@ collection_load_items_sync (SecretCollection *self,
 		/* No such collection yet create a new one */
 		if (item == NULL) {
 			item = secret_item_new_sync (self->pv->service, path,
+			                             SECRET_ITEM_NONE,
 			                             cancellable, error);
 			if (item == NULL) {
 				ret = FALSE;

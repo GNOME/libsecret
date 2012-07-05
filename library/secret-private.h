@@ -166,6 +166,9 @@ GVariant *           _secret_session_encode_secret            (SecretSession *se
 SecretValue *        _secret_session_decode_secret            (SecretSession *session,
                                                                GVariant *encoded);
 
+void                 _secret_item_set_cached_secret           (SecretItem *self,
+                                                               SecretValue *value);
+
 const SecretSchema * _secret_schema_ref_if_nonstatic          (const SecretSchema *schema);
 
 void                 _secret_schema_unref_if_nonstatic        (const SecretSchema *schema);

@@ -561,9 +561,9 @@ test_secrets_sync (Test *test,
 	GList *items = NULL;
 	gsize length;
 
-	item_one = secret_item_new_sync (test->service, path_item_one, NULL, &error);
-	item_two = secret_item_new_sync (test->service, path_item_two, NULL, &error);
-	item_three = secret_item_new_sync (test->service, path_item_three, NULL, &error);
+	item_one = secret_item_new_sync (test->service, path_item_one, SECRET_ITEM_NONE, NULL, &error);
+	item_two = secret_item_new_sync (test->service, path_item_two, SECRET_ITEM_NONE, NULL, &error);
+	item_three = secret_item_new_sync (test->service, path_item_three, SECRET_ITEM_NONE, NULL, &error);
 
 	items = g_list_append (items, item_one);
 	items = g_list_append (items, item_two);
@@ -608,13 +608,13 @@ test_secrets_async (Test *test,
 	GList *items = NULL;
 	gsize length;
 
-	item_one = secret_item_new_sync (test->service, path_item_one, NULL, &error);
+	item_one = secret_item_new_sync (test->service, path_item_one, SECRET_ITEM_NONE, NULL, &error);
 	g_assert_no_error (error);
 
-	item_two = secret_item_new_sync (test->service, path_item_two, NULL, &error);
+	item_two = secret_item_new_sync (test->service, path_item_two, SECRET_ITEM_NONE, NULL, &error);
 	g_assert_no_error (error);
 
-	item_three = secret_item_new_sync (test->service, path_item_three, NULL, &error);
+	item_three = secret_item_new_sync (test->service, path_item_three, SECRET_ITEM_NONE, NULL, &error);
 	g_assert_no_error (error);
 
 

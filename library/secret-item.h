@@ -27,6 +27,11 @@
 
 G_BEGIN_DECLS
 
+typedef enum {
+	SECRET_ITEM_NONE,
+	SECRET_ITEM_LOAD_SECRET = 1 << 1
+} SecretItemFlags;
+
 #define SECRET_TYPE_ITEM            (secret_item_get_type ())
 #define SECRET_ITEM(inst)           (G_TYPE_CHECK_INSTANCE_CAST ((inst), SECRET_TYPE_ITEM, SecretItem))
 #define SECRET_ITEM_CLASS(class)    (G_TYPE_CHECK_CLASS_CAST ((class), SECRET_TYPE_ITEM, SecretItemClass))
@@ -55,6 +60,7 @@ GType               secret_item_get_type                   (void) G_GNUC_CONST;
 
 void                secret_item_new                        (SecretService *service,
                                                             const gchar *item_path,
+                                                            SecretItemFlags flags,
                                                             GCancellable *cancellable,
                                                             GAsyncReadyCallback callback,
                                                             gpointer user_data);
@@ -64,6 +70,7 @@ SecretItem *        secret_item_new_finish                 (GAsyncResult *result
 
 SecretItem *        secret_item_new_sync                   (SecretService *service,
                                                             const gchar *item_path,
+                                                            SecretItemFlags flags,
                                                             GCancellable *cancellable,
                                                             GError **error);
 
@@ -102,18 +109,22 @@ gboolean            secret_item_delete_sync                (SecretItem *self,
                                                             GCancellable *cancellable,
                                                             GError **error);
 
+SecretItemFlags     secret_item_get_flags                  (SecretItem *self);
+
 SecretService *     secret_item_get_service                (SecretItem *self);
 
-void                secret_item_get_secret                 (SecretItem *self,
+SecretValue *       secret_item_get_secret                 (SecretItem *self);
+
+void                secret_item_load_secret                (SecretItem *self,
                                                             GCancellable *cancellable,
                                                             GAsyncReadyCallback callback,
                                                             gpointer user_data);
 
-SecretValue *       secret_item_get_secret_finish          (SecretItem *self,
+gboolean            secret_item_load_secret_finish         (SecretItem *self,
                                                             GAsyncResult *result,
                                                             GError **error);
 
-SecretValue *       secret_item_get_secret_sync            (SecretItem *self,
+gboolean            secret_item_load_secret_sync           (SecretItem *self,
                                                             GCancellable *cancellable,
                                                             GError **error);
 

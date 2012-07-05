@@ -89,7 +89,7 @@ test_new_sync (Test *test,
 	GError *error = NULL;
 	SecretItem *item;
 
-	item = secret_item_new_sync (test->service, item_path, NULL, &error);
+	item = secret_item_new_sync (test->service, item_path, SECRET_ITEM_NONE, NULL, &error);
 	g_assert_no_error (error);
 
 	g_assert_cmpstr (g_dbus_proxy_get_object_path (G_DBUS_PROXY (item)), ==, item_path);
@@ -105,7 +105,7 @@ test_new_sync_noexist (Test *test,
 	GError *error = NULL;
 	SecretItem *item;
 
-	item = secret_item_new_sync (test->service, item_path, NULL, &error);
+	item = secret_item_new_sync (test->service, item_path, SECRET_ITEM_NONE, NULL, &error);
 	g_assert_error (error, G_DBUS_ERROR, G_DBUS_ERROR_UNKNOWN_METHOD);
 	g_assert (item == NULL);
 }
@@ -119,7 +119,8 @@ test_new_async (Test *test,
 	GError *error = NULL;
 	SecretItem *item;
 
-	secret_item_new (test->service, item_path, NULL, on_async_result, &result);
+	secret_item_new (test->service, item_path, SECRET_ITEM_NONE,
+	                 NULL, on_async_result, &result);
 	g_assert (result == NULL);
 
 	egg_test_wait ();
@@ -142,7 +143,8 @@ test_new_async_noexist (Test *test,
 	GError *error = NULL;
 	SecretItem *item;
 
-	secret_item_new (test->service, item_path, NULL, on_async_result, &result);
+	secret_item_new (test->service, item_path, SECRET_ITEM_NONE,
+	                 NULL, on_async_result, &result);
 	g_assert (result == NULL);
 
 	egg_test_wait ();
@@ -248,7 +250,7 @@ test_properties (Test *test,
 	gboolean locked;
 	gchar *label;
 
-	item = secret_item_new_sync (test->service, item_path, NULL, &error);
+	item = secret_item_new_sync (test->service, item_path, SECRET_ITEM_NONE, NULL, &error);
 	g_assert_no_error (error);
 
 	g_assert (secret_item_get_locked (item) == FALSE);
@@ -304,7 +306,7 @@ test_set_label_sync (Test *test,
 	gboolean ret;
 	gchar *label;
 
-	item = secret_item_new_sync (test->service, item_path, NULL, &error);
+	item = secret_item_new_sync (test->service, item_path, SECRET_ITEM_NONE, NULL, &error);
 	g_assert_no_error (error);
 
 	label = secret_item_get_label (item);
@@ -333,7 +335,7 @@ test_set_label_async (Test *test,
 	gboolean ret;
 	gchar *label;
 
-	item = secret_item_new_sync (test->service, item_path, NULL, &error);
+	item = secret_item_new_sync (test->service, item_path, SECRET_ITEM_NONE, NULL, &error);
 	g_assert_no_error (error);
 
 	label = secret_item_get_label (item);
@@ -367,7 +369,7 @@ test_set_label_prop (Test *test,
 	guint sigs = 2;
 	gchar *label;
 
-	item = secret_item_new_sync (test->service, item_path, NULL, &error);
+	item = secret_item_new_sync (test->service, item_path, SECRET_ITEM_NONE, NULL, &error);
 	g_assert_no_error (error);
 
 	label = secret_item_get_label (item);
@@ -397,7 +399,7 @@ test_set_attributes_sync (Test *test,
 	gboolean ret;
 	GHashTable *attributes;
 
-	item = secret_item_new_sync (test->service, item_path, NULL, &error);
+	item = secret_item_new_sync (test->service, item_path, SECRET_ITEM_NONE, NULL, &error);
 	g_assert_no_error (error);
 
 	attributes = secret_item_get_attributes (item);
@@ -435,7 +437,7 @@ test_set_attributes_async (Test *test,
 	SecretItem *item;
 	gboolean ret;
 
-	item = secret_item_new_sync (test->service, item_path, NULL, &error);
+	item = secret_item_new_sync (test->service, item_path, SECRET_ITEM_NONE, NULL, &error);
 	g_assert_no_error (error);
 
 	attributes = secret_item_get_attributes (item);
@@ -477,7 +479,7 @@ test_set_attributes_prop (Test *test,
 	GHashTable *attributes;
 	guint sigs = 2;
 
-	item = secret_item_new_sync (test->service, item_path, NULL, &error);
+	item = secret_item_new_sync (test->service, item_path, SECRET_ITEM_NONE, NULL, &error);
 	g_assert_no_error (error);
 
 	attributes = secret_item_get_attributes (item);
@@ -508,21 +510,28 @@ test_set_attributes_prop (Test *test,
 }
 
 static void
-test_get_secret_sync (Test *test,
-                      gconstpointer unused)
+test_load_secret_sync (Test *test,
+                       gconstpointer unused)
 {
 	const gchar *item_path = "/org/freedesktop/secrets/collection/english/1";
 	GError *error = NULL;
 	SecretItem *item;
 	SecretValue *value;
 	gconstpointer data;
+	gboolean ret;
 	gsize length;
 
-	item = secret_item_new_sync (test->service, item_path, NULL, &error);
+	item = secret_item_new_sync (test->service, item_path, SECRET_ITEM_NONE, NULL, &error);
 	g_assert_no_error (error);
 
-	value = secret_item_get_secret_sync (item, NULL, &error);
+	value = secret_item_get_secret (item);
+	g_assert (value == NULL);
+
+	ret = secret_item_load_secret_sync (item, NULL, &error);
 	g_assert_no_error (error);
+	g_assert (ret == TRUE);
+
+	value = secret_item_get_secret (item);
 	g_assert (value != NULL);
 
 	data = secret_value_get (value, &length);
@@ -534,8 +543,8 @@ test_get_secret_sync (Test *test,
 }
 
 static void
-test_get_secret_async (Test *test,
-                       gconstpointer unused)
+test_load_secret_async (Test *test,
+                        gconstpointer unused)
 {
 	const gchar *item_path = "/org/freedesktop/secrets/collection/english/1";
 	GAsyncResult *result = NULL;
@@ -543,20 +552,27 @@ test_get_secret_async (Test *test,
 	SecretItem *item;
 	SecretValue *value;
 	gconstpointer data;
+	gboolean ret;
 	gsize length;
 
-	item = secret_item_new_sync (test->service, item_path, NULL, &error);
+	item = secret_item_new_sync (test->service, item_path, SECRET_ITEM_NONE, NULL, &error);
 	g_assert_no_error (error);
 
-	secret_item_get_secret (item, NULL, on_async_result, &result);
+	value = secret_item_get_secret (item);
+	g_assert (value == NULL);
+
+	secret_item_load_secret (item, NULL, on_async_result, &result);
 	g_assert (result == NULL);
 
 	egg_test_wait ();
 
-	value = secret_item_get_secret_finish (item, result, &error);
+	ret = secret_item_load_secret_finish (item, result, &error);
 	g_assert_no_error (error);
-	g_assert (value != NULL);
+	g_assert (ret == TRUE);
 	g_object_unref (result);
+
+	value = secret_item_get_secret (item);
+	g_assert (value != NULL);
 
 	data = secret_value_get (value, &length);
 	egg_assert_cmpmem (data, length, ==, "111", 3);
@@ -575,22 +591,29 @@ test_set_secret_sync (Test *test,
 	SecretItem *item;
 	gconstpointer data;
 	SecretValue *value;
-	gsize length;
+	SecretValue *check;
 	gboolean ret;
+	gsize length;
 
 	value = secret_value_new ("Sinking", -1, "strange/content-type");
 
-	item = secret_item_new_sync (test->service, item_path, NULL, &error);
+	item = secret_item_new_sync (test->service, item_path, SECRET_ITEM_NONE, NULL, &error);
 	g_assert_no_error (error);
 
 	ret = secret_item_set_secret_sync (item, value, NULL, &error);
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
 
+	check = secret_item_get_secret (item);
+	g_assert (check == value);
+	secret_value_unref (check);
 	secret_value_unref (value);
 
-	value = secret_item_get_secret_sync (item, NULL, &error);
+	ret = secret_item_load_secret_sync (item, NULL, &error);
 	g_assert_no_error (error);
+	g_assert (ret == TRUE);
+
+	value = secret_item_get_secret (item);
 	g_assert (value != NULL);
 
 	data = secret_value_get (value, &length);
@@ -610,7 +633,7 @@ test_delete_sync (Test *test,
 	SecretItem *item;
 	gboolean ret;
 
-	item = secret_item_new_sync (test->service, item_path, NULL, &error);
+	item = secret_item_new_sync (test->service, item_path, SECRET_ITEM_NONE, NULL, &error);
 	g_assert_no_error (error);
 
 	ret = secret_item_delete_sync (item, NULL, &error);
@@ -619,7 +642,7 @@ test_delete_sync (Test *test,
 
 	g_object_unref (item);
 
-	item = secret_item_new_sync (test->service, item_path, NULL, &error);
+	item = secret_item_new_sync (test->service, item_path, SECRET_ITEM_NONE, NULL, &error);
 	g_assert_error (error, G_DBUS_ERROR, G_DBUS_ERROR_UNKNOWN_METHOD);
 	g_assert (item == NULL);
 }
@@ -634,7 +657,7 @@ test_delete_async (Test *test,
 	SecretItem *item;
 	gboolean ret;
 
-	item = secret_item_new_sync (test->service, item_path, NULL, &error);
+	item = secret_item_new_sync (test->service, item_path, SECRET_ITEM_NONE, NULL, &error);
 	g_assert_no_error (error);
 
 	secret_item_delete (item, NULL, on_async_result, &result);
@@ -648,7 +671,7 @@ test_delete_async (Test *test,
 
 	g_object_unref (item);
 
-	item = secret_item_new_sync (test->service, item_path, NULL, &error);
+	item = secret_item_new_sync (test->service, item_path, SECRET_ITEM_NONE, NULL, &error);
 	g_assert_error (error, G_DBUS_ERROR, G_DBUS_ERROR_UNKNOWN_METHOD);
 	g_assert (item == NULL);
 }
@@ -673,8 +696,8 @@ main (int argc, char **argv)
 	g_test_add ("/item/set-attributes-sync", Test, "mock-service-normal.py", setup, test_set_attributes_sync, teardown);
 	g_test_add ("/item/set-attributes-async", Test, "mock-service-normal.py", setup, test_set_attributes_async, teardown);
 	g_test_add ("/item/set-attributes-prop", Test, "mock-service-normal.py", setup, test_set_attributes_prop, teardown);
-	g_test_add ("/item/get-secret-sync", Test, "mock-service-normal.py", setup, test_get_secret_sync, teardown);
-	g_test_add ("/item/get-secret-async", Test, "mock-service-normal.py", setup, test_get_secret_async, teardown);
+	g_test_add ("/item/load-secret-sync", Test, "mock-service-normal.py", setup, test_load_secret_sync, teardown);
+	g_test_add ("/item/load-secret-async", Test, "mock-service-normal.py", setup, test_load_secret_async, teardown);
 	g_test_add ("/item/set-secret-sync", Test, "mock-service-normal.py", setup, test_set_secret_sync, teardown);
 	g_test_add ("/item/delete-sync", Test, "mock-service-normal.py", setup, test_delete_sync, teardown);
 	g_test_add ("/item/delete-async", Test, "mock-service-normal.py", setup, test_delete_async, teardown);

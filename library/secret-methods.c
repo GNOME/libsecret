@@ -286,7 +286,7 @@ search_load_item_async (SecretService *self,
 
 	item = _secret_service_find_item_instance (self, path);
 	if (item == NULL) {
-		secret_item_new (self, path, closure->cancellable,
+		secret_item_new (self, path, SECRET_ITEM_NONE, closure->cancellable,
 		                  on_search_loaded, g_object_ref (res));
 		closure->loading++;
 	} else {
@@ -448,7 +448,8 @@ service_load_items_sync (SecretService *self,
 	for (i = 0; paths[i] != NULL; i++) {
 		item = _secret_service_find_item_instance (self, paths[i]);
 		if (item == NULL)
-			item = secret_item_new_sync (self, paths[i], cancellable, error);
+			item = secret_item_new_sync (self, paths[i], SECRET_ITEM_NONE,
+			                             cancellable, error);
 		if (item == NULL) {
 			g_list_free_full (result, g_object_unref);
 			return FALSE;
