@@ -30,6 +30,7 @@
 G_BEGIN_DECLS
 
 void                 secret_service_search_for_paths              (SecretService *self,
+                                                                   const SecretSchema *schema,
                                                                    GHashTable *attributes,
                                                                    GCancellable *cancellable,
                                                                    GAsyncReadyCallback callback,
@@ -42,6 +43,7 @@ gboolean             secret_service_search_for_paths_finish       (SecretService
                                                                    GError **error);
 
 gboolean             secret_service_search_for_paths_sync         (SecretService *self,
+                                                                   const SecretSchema *schema,
                                                                    GHashTable *attributes,
                                                                    GCancellable *cancellable,
                                                                    gchar ***unlocked,

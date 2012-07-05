@@ -62,6 +62,7 @@ on_search_items_complete (GObject *source,
 /**
  * secret_service_search_for_paths:
  * @self: the secret service
+ * @schema: (allow-none): the schema for the attributes
  * @attributes: (element-type utf8 utf8): search for items matching these attributes
  * @cancellable: optional cancellation object
  * @callback: called when the operation completes
@@ -80,16 +81,26 @@ on_search_items_complete (GObject *source,
  */
 void
 secret_service_search_for_paths (SecretService *self,
+                                 const SecretSchema *schema,
                                  GHashTable *attributes,
                                  GCancellable *cancellable,
                                  GAsyncReadyCallback callback,
                                  gpointer user_data)
 {
+	const gchar *schema_name = NULL;
+
 	g_return_if_fail (SECRET_IS_SERVICE (self));
 	g_return_if_fail (attributes != NULL);
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
-	_secret_service_search_for_paths_variant (self, _secret_attributes_to_variant (attributes, NULL),
+	/* Warnings raised already */
+	if (schema != NULL && !_secret_attributes_validate (schema, attributes))
+		return;
+
+	if (schema != NULL && !(schema->flags & SECRET_SCHEMA_DONT_MATCH_NAME))
+		schema_name = schema->name;
+
+	_secret_service_search_for_paths_variant (self, _secret_attributes_to_variant (attributes, schema_name),
 	                                          cancellable, callback, user_data);
 }
 
@@ -177,6 +188,7 @@ secret_service_search_for_paths_finish (SecretService *self,
 /**
  * secret_service_search_for_paths_sync:
  * @self: the secret service
+ * @schema: (allow-none): the schema for the attributes
  * @attributes: (element-type utf8 utf8): search for items matching these attributes
  * @cancellable: optional cancellation object
  * @unlocked: (out) (transfer full) (array zero-terminated=1) (allow-none):
@@ -205,12 +217,14 @@ secret_service_search_for_paths_finish (SecretService *self,
  */
 gboolean
 secret_service_search_for_paths_sync (SecretService *self,
+                                      const SecretSchema *schema,
                                       GHashTable *attributes,
                                       GCancellable *cancellable,
                                       gchar ***unlocked,
                                       gchar ***locked,
                                       GError **error)
 {
+	const gchar *schema_name = NULL;
 	gchar **dummy = NULL;
 	GVariant *response;
 
@@ -219,9 +233,16 @@ secret_service_search_for_paths_sync (SecretService *self,
 	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), FALSE);
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
+	/* Warnings raised already */
+	if (schema != NULL && !_secret_attributes_validate (schema, attributes))
+		return FALSE;
+
+	if (schema != NULL && !(schema->flags & SECRET_SCHEMA_DONT_MATCH_NAME))
+		schema_name = schema->name;
+
 	response = g_dbus_proxy_call_sync (G_DBUS_PROXY (self), "SearchItems",
 	                                   g_variant_new ("(@a{ss})",
-	                                                  _secret_attributes_to_variant (attributes, NULL)),
+	                                                  _secret_attributes_to_variant (attributes, schema_name)),
 	                                   G_DBUS_CALL_FLAGS_NONE, -1, cancellable, error);
 
 	if (response != NULL) {

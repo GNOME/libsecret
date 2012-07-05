@@ -215,6 +215,7 @@ on_search_paths (GObject *source,
 /**
  * secret_service_search:
  * @self: the secret service
+ * @schema: (allow-none): the schema for the attributes
  * @attributes: (element-type utf8 utf8): search for items matching these attributes
  * @flags: search option flags
  * @cancellable: optional cancellation object
@@ -239,6 +240,7 @@ on_search_paths (GObject *source,
  */
 void
 secret_service_search (SecretService *self,
+                       const SecretSchema *schema,
                        GHashTable *attributes,
                        SecretSearchFlags flags,
                        GCancellable *cancellable,
@@ -252,6 +254,10 @@ secret_service_search (SecretService *self,
 	g_return_if_fail (attributes != NULL);
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
+	/* Warnings raised already */
+	if (schema != NULL && !_secret_attributes_validate (schema, attributes))
+		return;
+
 	res = g_simple_async_result_new (G_OBJECT (self), callback, user_data,
 	                                 secret_service_search);
 	closure = g_slice_new0 (SearchClosure);
@@ -261,7 +267,7 @@ secret_service_search (SecretService *self,
 	closure->flags = flags;
 	g_simple_async_result_set_op_res_gpointer (res, closure, search_closure_free);
 
-	secret_service_search_for_paths (self, attributes, cancellable,
+	secret_service_search_for_paths (self, schema, attributes, cancellable,
 	                                 on_search_paths, g_object_ref (res));
 
 	g_object_unref (res);
@@ -337,6 +343,7 @@ service_load_items_sync (SecretService *self,
 /**
  * secret_service_search_sync:
  * @self: the secret service
+ * @schema: (allow-none): the schema for the attributes
  * @attributes: (element-type utf8 utf8): search for items matching these attributes
  * @flags: search option flags
  * @cancellable: optional cancellation object
@@ -366,6 +373,7 @@ service_load_items_sync (SecretService *self,
  */
 GList *
 secret_service_search_sync (SecretService *self,
+                            const SecretSchema *schema,
                             GHashTable *attributes,
                             SecretSearchFlags flags,
                             GCancellable *cancellable,
@@ -384,7 +392,11 @@ secret_service_search_sync (SecretService *self,
 	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
 	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 
-	if (!secret_service_search_for_paths_sync (self, attributes, cancellable,
+	/* Warnings raised already */
+	if (schema != NULL && !_secret_attributes_validate (schema, attributes))
+		return NULL;
+
+	if (!secret_service_search_for_paths_sync (self, schema, attributes, cancellable,
 	                                           &unlocked_paths, &locked_paths, error))
 		return NULL;
 

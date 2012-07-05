@@ -127,8 +127,8 @@ test_search_sync (Test *test,
 	attributes = g_hash_table_new (g_str_hash, g_str_equal);
 	g_hash_table_insert (attributes, "number", "1");
 
-	items = secret_service_search_sync (test->service, attributes, SECRET_SEARCH_NONE,
-	                                    NULL, &error);
+	items = secret_service_search_sync (test->service, &MOCK_SCHEMA, attributes,
+	                                    SECRET_SEARCH_NONE, NULL, &error);
 	g_assert_no_error (error);
 	g_hash_table_unref (attributes);
 
@@ -151,7 +151,8 @@ test_search_async (Test *test,
 	attributes = g_hash_table_new (g_str_hash, g_str_equal);
 	g_hash_table_insert (attributes, "number", "1");
 
-	secret_service_search (test->service, attributes, SECRET_SEARCH_NONE, NULL,
+	secret_service_search (test->service, &MOCK_SCHEMA, attributes,
+	                       SECRET_SEARCH_NONE, NULL,
 	                       on_complete_get_result, &result);
 	g_hash_table_unref (attributes);
 	g_assert (result == NULL);
@@ -181,8 +182,8 @@ test_search_all_sync (Test *test,
 	attributes = g_hash_table_new (g_str_hash, g_str_equal);
 	g_hash_table_insert (attributes, "number", "1");
 
-	items = secret_service_search_sync (test->service, attributes, SECRET_SEARCH_ALL,
-	                                    NULL, &error);
+	items = secret_service_search_sync (test->service, &MOCK_SCHEMA, attributes,
+	                                    SECRET_SEARCH_ALL, NULL, &error);
 	g_assert_no_error (error);
 	g_hash_table_unref (attributes);
 
@@ -212,7 +213,8 @@ test_search_all_async (Test *test,
 	attributes = g_hash_table_new (g_str_hash, g_str_equal);
 	g_hash_table_insert (attributes, "number", "1");
 
-	secret_service_search (test->service, attributes, SECRET_SEARCH_ALL, NULL,
+	secret_service_search (test->service, &MOCK_SCHEMA, attributes,
+	                       SECRET_SEARCH_ALL, NULL,
 	                       on_complete_get_result, &result);
 	g_hash_table_unref (attributes);
 	g_assert (result == NULL);
@@ -249,7 +251,7 @@ test_search_unlock_sync (Test *test,
 	attributes = g_hash_table_new (g_str_hash, g_str_equal);
 	g_hash_table_insert (attributes, "number", "1");
 
-	items = secret_service_search_sync (test->service, attributes,
+	items = secret_service_search_sync (test->service, &MOCK_SCHEMA, attributes,
 	                                    SECRET_SEARCH_ALL | SECRET_SEARCH_UNLOCK,
 	                                    NULL, &error);
 	g_assert_no_error (error);
@@ -281,7 +283,7 @@ test_search_unlock_async (Test *test,
 	attributes = g_hash_table_new (g_str_hash, g_str_equal);
 	g_hash_table_insert (attributes, "number", "1");
 
-	secret_service_search (test->service, attributes,
+	secret_service_search (test->service, &MOCK_SCHEMA, attributes,
 	                       SECRET_SEARCH_ALL | SECRET_SEARCH_UNLOCK, NULL,
 	                       on_complete_get_result, &result);
 	g_hash_table_unref (attributes);
@@ -320,7 +322,7 @@ test_search_secrets_sync (Test *test,
 	attributes = g_hash_table_new (g_str_hash, g_str_equal);
 	g_hash_table_insert (attributes, "number", "1");
 
-	items = secret_service_search_sync (test->service, attributes,
+	items = secret_service_search_sync (test->service, &MOCK_SCHEMA, attributes,
 	                                    SECRET_SEARCH_ALL | SECRET_SEARCH_LOAD_SECRETS,
 	                                    NULL, &error);
 	g_assert_no_error (error);
@@ -355,7 +357,7 @@ test_search_secrets_async (Test *test,
 	attributes = g_hash_table_new (g_str_hash, g_str_equal);
 	g_hash_table_insert (attributes, "number", "1");
 
-	secret_service_search (test->service, attributes,
+	secret_service_search (test->service, &MOCK_SCHEMA, attributes,
 	                       SECRET_SEARCH_ALL | SECRET_SEARCH_LOAD_SECRETS, NULL,
 	                       on_complete_get_result, &result);
 	g_hash_table_unref (attributes);
@@ -731,8 +733,8 @@ test_store_sync (Test *test,
 	g_hash_table_insert (attributes, "string", "seventeen");
 	g_hash_table_insert (attributes, "number", "17");
 
-	ret = secret_service_search_for_paths_sync (test->service, attributes, NULL,
-	                                             &paths, NULL, &error);
+	ret = secret_service_search_for_paths_sync (test->service, &MOCK_SCHEMA, attributes,
+	                                            NULL, &paths, NULL, &error);
 	g_hash_table_unref (attributes);
 	g_assert (ret == TRUE);
 
@@ -784,8 +786,8 @@ test_store_replace (Test *test,
 	g_hash_table_insert (attributes, "string", "seventeen");
 	g_hash_table_insert (attributes, "number", "17");
 
-	ret = secret_service_search_for_paths_sync (test->service, attributes, NULL,
-	                                             &paths, NULL, &error);
+	ret = secret_service_search_for_paths_sync (test->service, &MOCK_SCHEMA, attributes,
+	                                            NULL, &paths, NULL, &error);
 	g_hash_table_unref (attributes);
 	g_assert (ret == TRUE);
 
@@ -832,8 +834,8 @@ test_store_async (Test *test,
 	g_hash_table_insert (attributes, "string", "seventeen");
 	g_hash_table_insert (attributes, "number", "17");
 
-	ret = secret_service_search_for_paths_sync (test->service, attributes, NULL,
-	                                             &paths, NULL, &error);
+	ret = secret_service_search_for_paths_sync (test->service, &MOCK_SCHEMA, attributes,
+	                                            NULL, &paths, NULL, &error);
 	g_hash_table_unref (attributes);
 	g_assert (ret == TRUE);
 

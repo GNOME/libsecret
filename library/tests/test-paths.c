@@ -129,8 +129,8 @@ test_search_paths_sync (Test *test,
 	attributes = g_hash_table_new (g_str_hash, g_str_equal);
 	g_hash_table_insert (attributes, "number", "1");
 
-	ret = secret_service_search_for_paths_sync (test->service, attributes, NULL,
-	                                             &unlocked, &locked, &error);
+	ret = secret_service_search_for_paths_sync (test->service, &MOCK_SCHEMA, attributes, NULL,
+	                                            &unlocked, &locked, &error);
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
 
@@ -160,7 +160,7 @@ test_search_paths_async (Test *test,
 	attributes = g_hash_table_new (g_str_hash, g_str_equal);
 	g_hash_table_insert (attributes, "number", "1");
 
-	secret_service_search_for_paths (test->service, attributes, NULL,
+	secret_service_search_for_paths (test->service, &MOCK_SCHEMA, attributes, NULL,
 	                                  on_complete_get_result, &result);
 	egg_test_wait ();
 
@@ -197,7 +197,7 @@ test_search_paths_nulls (Test *test,
 	attributes = g_hash_table_new (g_str_hash, g_str_equal);
 	g_hash_table_insert (attributes, "number", "1");
 
-	ret = secret_service_search_for_paths_sync (test->service, attributes, NULL,
+	ret = secret_service_search_for_paths_sync (test->service, &MOCK_SCHEMA, attributes, NULL,
 	                                             &paths, NULL, &error);
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
@@ -205,7 +205,7 @@ test_search_paths_nulls (Test *test,
 	g_assert_cmpstr (paths[0], ==, "/org/freedesktop/secrets/collection/english/1");
 	g_strfreev (paths);
 
-	ret = secret_service_search_for_paths_sync (test->service, attributes, NULL,
+	ret = secret_service_search_for_paths_sync (test->service, &MOCK_SCHEMA, attributes, NULL,
 	                                             NULL, &paths, &error);
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
@@ -213,12 +213,12 @@ test_search_paths_nulls (Test *test,
 	g_assert_cmpstr (paths[0], ==, "/org/freedesktop/secrets/collection/spanish/10");
 	g_strfreev (paths);
 
-	ret = secret_service_search_for_paths_sync (test->service, attributes, NULL,
+	ret = secret_service_search_for_paths_sync (test->service, &MOCK_SCHEMA, attributes, NULL,
 	                                             NULL, NULL, &error);
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
 
-	secret_service_search_for_paths (test->service, attributes, NULL,
+	secret_service_search_for_paths (test->service, &MOCK_SCHEMA, attributes, NULL,
 	                                  on_complete_get_result, &result);
 	egg_test_wait ();
 	g_assert (G_IS_ASYNC_RESULT (result));
@@ -231,7 +231,7 @@ test_search_paths_nulls (Test *test,
 	g_strfreev (paths);
 	g_clear_object (&result);
 
-	secret_service_search_for_paths (test->service, attributes, NULL,
+	secret_service_search_for_paths (test->service, &MOCK_SCHEMA, attributes, NULL,
 	                                  on_complete_get_result, &result);
 	egg_test_wait ();
 	g_assert (G_IS_ASYNC_RESULT (result));
@@ -244,7 +244,7 @@ test_search_paths_nulls (Test *test,
 	g_strfreev (paths);
 	g_clear_object (&result);
 
-	secret_service_search_for_paths (test->service, attributes, NULL,
+	secret_service_search_for_paths (test->service, &MOCK_SCHEMA, attributes, NULL,
 	                                  on_complete_get_result, &result);
 	egg_test_wait ();
 	g_assert (G_IS_ASYNC_RESULT (result));

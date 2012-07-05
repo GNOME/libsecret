@@ -151,6 +151,7 @@ gboolean             secret_service_ensure_collections_sync       (SecretService
                                                                    GError **error);
 
 void                 secret_service_search                        (SecretService *self,
+                                                                   const SecretSchema *schema,
                                                                    GHashTable *attributes,
                                                                    SecretSearchFlags flags,
                                                                    GCancellable *cancellable,
@@ -162,6 +163,7 @@ GList *              secret_service_search_finish                 (SecretService
                                                                    GError **error);
 
 GList *              secret_service_search_sync                   (SecretService *self,
+                                                                   const SecretSchema *schema,
                                                                    GHashTable *attributes,
                                                                    SecretSearchFlags flags,
                                                                    GCancellable *cancellable,
