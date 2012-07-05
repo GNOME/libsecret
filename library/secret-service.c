@@ -205,6 +205,7 @@ secret_service_finalize (GObject *obj)
 	if (self->pv->collections)
 		g_hash_table_destroy (self->pv->collections);
 	g_clear_object (&self->pv->cancellable);
+	g_mutex_clear (&self->pv->mutex);
 
 	G_OBJECT_CLASS (secret_service_parent_class)->finalize (obj);
 }
