@@ -139,6 +139,12 @@ SecretItem *         _secret_service_find_item_instance       (SecretService *se
 SecretCollection *   _secret_service_find_collection_instance (SecretService *self,
                                                                const gchar *collection_path);
 
+SecretValue *        _secret_service_decode_get_secrets_first (SecretService *self,
+                                                               GVariant *out);
+
+GHashTable *         _secret_service_decode_get_secrets_all   (SecretService *self,
+                                                               GVariant *out);
+
 SecretItem *         _secret_collection_find_item_instance    (SecretCollection *self,
                                                                const gchar *item_path);
 

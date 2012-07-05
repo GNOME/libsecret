@@ -36,6 +36,7 @@ C_TESTS = \
 	test-prompt \
 	test-service \
 	test-session \
+	test-paths \
 	test-methods \
 	test-password \
 	test-item \

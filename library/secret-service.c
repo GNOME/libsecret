@@ -19,6 +19,7 @@
 #include "secret-dbus-generated.h"
 #include "secret-enum-types.h"
 #include "secret-item.h"
+#include "secret-paths.h"
 #include "secret-private.h"
 #include "secret-service.h"
 #include "secret-types.h"
@@ -1647,90 +1648,4 @@ secret_service_prompt_finish (SecretService *self,
 	g_return_val_if_fail (klass->prompt_finish != NULL, NULL);
 
 	return (klass->prompt_finish) (self, result, return_type, error);
-}
-
-GVariant *
-secret_service_prompt_path_sync (SecretService *self,
-                                 const gchar *prompt_path,
-                                 GCancellable *cancellable,
-                                 const GVariantType *return_type,
-                                 GError **error)
-{
-	SecretPrompt *prompt;
-	GVariant *retval;
-
-	g_return_val_if_fail (SECRET_IS_SERVICE (self), NULL);
-	g_return_val_if_fail (prompt_path != NULL, NULL);
-	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
-	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
-
-	prompt = _secret_prompt_instance (self, prompt_path);
-	retval = secret_service_prompt_sync (self, prompt, cancellable, return_type, error);
-	g_object_unref (prompt);
-
-	return retval;
-}
-
-/**
- * secret_service_prompt_path:
- * @self: the secret service
- * @prompt_path: the D-Bus object path of the prompt
- * @cancellable: optional cancellation object
- * @callback: called when the operation completes
- * @user_data: data to be passed to the callback
- *
- * Perform prompting for a #SecretPrompt.
- *
- * This function is called by other parts of this library to handle prompts
- * for the various actions that can require prompting.
- *
- * Override the #SecretServiceClass <literal>prompt_async</literal> virtual method
- * to change the behavior of the propmting. The default behavior is to simply
- * run secret_prompt_perform() on the prompt.
- */
-void
-secret_service_prompt_path (SecretService *self,
-                            const gchar *prompt_path,
-                            GCancellable *cancellable,
-                            GAsyncReadyCallback callback,
-                            gpointer user_data)
-{
-	SecretPrompt *prompt;
-
-	g_return_if_fail (SECRET_IS_SERVICE (self));
-	g_return_if_fail (prompt_path != NULL);
-	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
-
-	prompt = _secret_prompt_instance (self, prompt_path);
-	secret_service_prompt (self, prompt, cancellable, callback, user_data);
-	g_object_unref (prompt);
-}
-
-/**
- * secret_service_prompt_path_finish:
- * @self: the secret service
- * @result: the asynchronous result passed to the callback
- * @return_type: the variant type of the prompt result
- * @error: location to place an error on failure
- *
- * Complete asynchronous operation to perform prompting for a #SecretPrompt.
- *
- * Returns a variant result if the prompt was completed and not dismissed. The
- * type of result depends on the action the prompt is completing, and is defined
- * in the Secret Service DBus API specification.
- *
- * Returns: (transfer full): %NULL if the prompt was dismissed or an error occurred,
- *          a variant result if the prompt was successful
- */
-GVariant *
-secret_service_prompt_path_finish (SecretService *self,
-                                   GAsyncResult *result,
-                                   const GVariantType *return_type,
-                                   GError **error)
-{
-	g_return_val_if_fail (SECRET_IS_SERVICE (self), NULL);
-	g_return_val_if_fail (G_IS_ASYNC_RESULT (result), NULL);
-	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
-
-	return secret_service_prompt_finish (self, result, return_type, error);
 }
