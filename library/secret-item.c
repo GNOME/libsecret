@@ -1357,6 +1357,237 @@ secret_item_load_secret_sync (SecretItem *self,
 }
 
 typedef struct {
+	SecretService *service;
+	GCancellable *cancellable;
+	GVariant *in;
+	GHashTable *items;
+} LoadsClosure;
+
+static void
+loads_closure_free (gpointer data)
+{
+	LoadsClosure *loads = data;
+	if (loads->in)
+		g_variant_unref (loads->in);
+	if (loads->service)
+		g_object_unref (loads->service);
+	g_clear_object (&loads->cancellable);
+	g_slice_free (LoadsClosure, loads);
+}
+
+static void
+on_get_secrets_complete (GObject *source,
+                         GAsyncResult *result,
+                         gpointer user_data)
+{
+	GSimpleAsyncResult *async = G_SIMPLE_ASYNC_RESULT (user_data);
+	LoadsClosure *loads = g_simple_async_result_get_op_res_gpointer (async);
+	GHashTable *with_paths;
+	GError *error = NULL;
+	GHashTableIter iter;
+	const gchar *path;
+	SecretValue *value;
+	SecretItem *item;
+	GVariant *retval;
+
+	retval = g_dbus_proxy_call_finish (G_DBUS_PROXY (source), result, &error);
+	if (retval != NULL) {
+		with_paths = _secret_service_decode_get_secrets_all (loads->service, retval);
+		g_return_if_fail (with_paths != NULL);
+
+		g_hash_table_iter_init (&iter, with_paths);
+		while (g_hash_table_iter_next (&iter, (gpointer *)&path, (gpointer *)&value)) {
+			item = g_hash_table_lookup (loads->items, path);
+			if (item != NULL)
+				_secret_item_set_cached_secret (item, value);
+		}
+
+		g_hash_table_unref (with_paths);
+		g_variant_unref (retval);
+	}
+
+	if (error != NULL)
+		g_simple_async_result_take_error (async, error);
+
+	g_simple_async_result_complete (async);
+	g_object_unref (async);
+}
+
+static void
+on_loads_secrets_session (GObject *source,
+                          GAsyncResult *result,
+                          gpointer user_data)
+{
+	GSimpleAsyncResult *async = G_SIMPLE_ASYNC_RESULT (user_data);
+	LoadsClosure *loads = g_simple_async_result_get_op_res_gpointer (async);
+	GError *error = NULL;
+	const gchar *session;
+
+	session = secret_service_ensure_session_finish (SECRET_SERVICE (source),
+	                                                result, &error);
+	if (error != NULL) {
+		g_simple_async_result_take_error (async, error);
+		g_simple_async_result_complete (async);
+
+	} else {
+		g_dbus_proxy_call (G_DBUS_PROXY (source), "GetSecrets",
+		                   g_variant_new ("(@aoo)", loads->in, session),
+		                   G_DBUS_CALL_FLAGS_NO_AUTO_START, -1,
+		                   loads->cancellable, on_get_secrets_complete,
+		                   g_object_ref (async));
+	}
+
+	g_object_unref (async);
+}
+
+/**
+ * secret_item_load_secrets:
+ * @items: (element-type Secret.Item): the items to retrieve secrets for
+ * @cancellable: optional cancellation object
+ * @callback: called when the operation completes
+ * @user_data: data to pass to the callback
+ *
+ * Load the secret values for an secret items stored in the service.
+ *
+ * The @items must all have the same SecretItem::service property.
+ *
+ * This function returns immediately and completes asynchronously.
+ */
+void
+secret_item_load_secrets (GList *items,
+                          GCancellable *cancellable,
+                          GAsyncReadyCallback callback,
+                          gpointer user_data)
+{
+	GSimpleAsyncResult *async;
+	LoadsClosure *loads;
+	GPtrArray *paths;
+	const gchar *path;
+	GList *l;
+
+	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+	for (l = items; l != NULL; l = g_list_next (l))
+		g_return_if_fail (SECRET_IS_ITEM (l->data));
+
+	async = g_simple_async_result_new (NULL, callback, user_data,
+	                                   secret_item_load_secrets);
+	loads = g_slice_new0 (LoadsClosure);
+	loads->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
+	loads->items = g_hash_table_new_full (g_str_hash, g_str_equal,
+	                                      g_free, g_object_unref);
+
+	paths = g_ptr_array_new ();
+	for (l = items; l != NULL; l = g_list_next (l)) {
+		if (secret_item_get_locked (l->data))
+			continue;
+
+		if (loads->service == NULL) {
+			loads->service = secret_item_get_service (l->data);
+			if (loads->service)
+				g_object_ref (loads->service);
+		}
+
+		path = g_dbus_proxy_get_object_path (l->data);
+		g_hash_table_insert (loads->items, g_strdup (path), g_object_ref (l->data));
+		g_ptr_array_add (paths, (gpointer)path);
+	}
+
+	loads->in = g_variant_new_objv ((const gchar * const *)paths->pdata, paths->len);
+	g_variant_ref_sink (loads->in);
+
+	g_ptr_array_free (paths, TRUE);
+	g_simple_async_result_set_op_res_gpointer (async, loads, loads_closure_free);
+
+	if (loads->service) {
+		secret_service_ensure_session (loads->service, cancellable,
+		                               on_loads_secrets_session,
+		                               g_object_ref (async));
+	} else {
+		g_simple_async_result_complete_in_idle (async);
+	}
+
+	g_object_unref (async);
+}
+
+/**
+ * secret_item_load_secrets_finish:
+ * @result: asynchronous result passed to callback
+ * @error: location to place an error on failure
+ *
+ * Complete asynchronous operation to load the secret values for
+ * secret items stored in the service.
+ *
+ * Items that are locked will not have their secrets loaded.
+ *
+ * Returns: whether the operation succeded or not
+ */
+gboolean
+secret_item_load_secrets_finish (GAsyncResult *result,
+                                 GError **error)
+{
+	GSimpleAsyncResult *async;
+
+	g_return_val_if_fail (g_simple_async_result_is_valid (result, NULL,
+	                      secret_item_load_secrets), FALSE);
+	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+
+	async = G_SIMPLE_ASYNC_RESULT (result);
+	if (g_simple_async_result_propagate_error (async, error))
+		return FALSE;
+
+	return TRUE;
+}
+
+/**
+ * secret_item_load_secrets_sync:
+ * @items: (element-type Secret.Item): the items to retrieve secrets for
+ * @cancellable: optional cancellation object
+ * @error: location to place an error on failure
+ *
+ * Load the secret values for an secret items stored in the service.
+ *
+ * The @items must all have the same SecretItem::service property.
+ *
+ * This method may block indefinitely and should not be used in user interface
+ * threads.
+ *
+ * Items that are locked will not have their secrets loaded.
+ *
+ * Returns: whether the operation succeded or not
+ */
+gboolean
+secret_item_load_secrets_sync (GList *items,
+                               GCancellable *cancellable,
+                               GError **error)
+{
+	SecretSync *sync;
+	gboolean ret;
+	GList *l;
+
+	for (l = items; l != NULL; l = g_list_next (l))
+		g_return_val_if_fail (SECRET_IS_ITEM (l->data), FALSE);
+
+	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), FALSE);
+	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+
+	sync = _secret_sync_new ();
+	g_main_context_push_thread_default (sync->context);
+
+	secret_item_load_secrets (items, cancellable,
+	                          _secret_sync_on_result, sync);
+
+	g_main_loop_run (sync->loop);
+
+	ret = secret_item_load_secrets_finish (sync->result, error);
+
+	g_main_context_pop_thread_default (sync->context);
+	_secret_sync_free (sync);
+
+	return ret;
+}
+
+typedef struct {
 	GCancellable *cancellable;
 	SecretValue *value;
 } SetClosure;

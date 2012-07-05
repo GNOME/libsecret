@@ -625,6 +625,119 @@ test_set_secret_sync (Test *test,
 }
 
 static void
+test_secrets_sync (Test *test,
+                   gconstpointer used)
+{
+	const gchar *path_item_one = "/org/freedesktop/secrets/collection/english/1";
+	const gchar *path_item_two = "/org/freedesktop/secrets/collection/english/2";
+	const gchar *path_item_three = "/org/freedesktop/secrets/collection/spanish/10";
+
+	SecretValue *value;
+	GError *error = NULL;
+	const gchar *password;
+	SecretItem *item_one, *item_two, *item_three;
+	GList *items = NULL;
+	gboolean ret;
+	gsize length;
+
+	item_one = secret_item_new_sync (test->service, path_item_one, SECRET_ITEM_NONE, NULL, &error);
+	item_two = secret_item_new_sync (test->service, path_item_two, SECRET_ITEM_NONE, NULL, &error);
+	item_three = secret_item_new_sync (test->service, path_item_three, SECRET_ITEM_NONE, NULL, &error);
+
+	items = g_list_append (items, item_one);
+	items = g_list_append (items, item_two);
+	items = g_list_append (items, item_three);
+
+	ret = secret_item_load_secrets_sync (items, NULL, &error);
+	g_assert_no_error (error);
+	g_assert (ret == TRUE);
+
+	value = secret_item_get_secret (item_one);
+	g_assert (value != NULL);
+	password = secret_value_get (value, &length);
+	g_assert_cmpuint (length, ==, 3);
+	g_assert_cmpstr (password, ==, "111");
+	secret_value_unref (value);
+
+	value = secret_item_get_secret (item_two);
+	g_assert (value != NULL);
+	password = secret_value_get (value, &length);
+	g_assert_cmpuint (length, ==, 3);
+	g_assert_cmpstr (password, ==, "222");
+	secret_value_unref (value);
+
+	value = secret_item_get_secret (item_three);
+	g_assert (value == NULL);
+
+	g_list_free_full (items, g_object_unref);
+}
+
+static void
+test_secrets_async (Test *test,
+                              gconstpointer used)
+{
+	const gchar *path_item_one = "/org/freedesktop/secrets/collection/english/1";
+	const gchar *path_item_two = "/org/freedesktop/secrets/collection/english/2";
+	const gchar *path_item_three = "/org/freedesktop/secrets/collection/spanish/10";
+
+	SecretValue *value;
+	GError *error = NULL;
+	const gchar *password;
+	GAsyncResult *result = NULL;
+	SecretItem *item_one, *item_two, *item_three;
+	GList *items = NULL;
+	gsize length;
+	gboolean ret;
+
+	item_one = secret_item_new_sync (test->service, path_item_one, SECRET_ITEM_NONE, NULL, &error);
+	g_assert_no_error (error);
+
+	item_two = secret_item_new_sync (test->service, path_item_two, SECRET_ITEM_NONE, NULL, &error);
+	g_assert_no_error (error);
+
+	item_three = secret_item_new_sync (test->service, path_item_three, SECRET_ITEM_NONE, NULL, &error);
+	g_assert_no_error (error);
+
+
+	items = g_list_append (items, item_one);
+	items = g_list_append (items, item_two);
+	items = g_list_append (items, item_three);
+
+	secret_item_load_secrets (items, NULL,
+	                          on_async_result, &result);
+	g_assert (result == NULL);
+
+	egg_test_wait ();
+
+	ret = secret_item_load_secrets_finish (result, &error);
+	g_assert_no_error (error);
+	g_object_unref (result);
+	g_assert (ret == TRUE);
+
+	value = secret_item_get_secret (item_one);
+	g_assert (value != NULL);
+	password = secret_value_get (value, &length);
+	g_assert_cmpuint (length, ==, 3);
+	g_assert_cmpstr (password, ==, "111");
+	secret_value_unref (value);
+
+	value = secret_item_get_secret (item_two);
+	g_assert (value != NULL);
+	password = secret_value_get (value, &length);
+	g_assert_cmpuint (length, ==, 3);
+	g_assert_cmpstr (password, ==, "222");
+	secret_value_unref (value);
+
+	value = secret_item_get_secret (item_three);
+	g_assert (value == NULL);
+
+	g_object_unref (item_one);
+	g_object_unref (item_two);
+	g_object_unref (item_three);
+	g_list_free (items);
+}
+
+static void
 test_delete_sync (Test *test,
                   gconstpointer unused)
 {
@@ -699,6 +812,8 @@ main (int argc, char **argv)
 	g_test_add ("/item/load-secret-sync", Test, "mock-service-normal.py", setup, test_load_secret_sync, teardown);
 	g_test_add ("/item/load-secret-async", Test, "mock-service-normal.py", setup, test_load_secret_async, teardown);
 	g_test_add ("/item/set-secret-sync", Test, "mock-service-normal.py", setup, test_set_secret_sync, teardown);
+	g_test_add ("/item/secrets-sync", Test, "mock-service-normal.py", setup, test_secrets_sync, teardown);
+	g_test_add ("/item/secrets-async", Test, "mock-service-normal.py", setup, test_secrets_async, teardown);
 	g_test_add ("/item/delete-sync", Test, "mock-service-normal.py", setup, test_delete_sync, teardown);
 	g_test_add ("/item/delete-async", Test, "mock-service-normal.py", setup, test_delete_async, teardown);
 

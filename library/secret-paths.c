@@ -445,7 +445,7 @@ secret_service_get_secret_for_path_sync (SecretService *self,
  * Get the secret values for an secret items stored in the service.
  *
  * The items are represented by their D-Bus object paths. If you already have
- * #SecretItem proxy objects, use use secret_service_get_secrets() to more simply
+ * #SecretItem proxy objects, use use secret_item_load_secrets() to more simply
  * get their secret values.
  *
  * This function returns immediately and completes asynchronously.
@@ -524,7 +524,7 @@ secret_service_get_secrets_for_paths_finish (SecretService *self,
  * Get the secret values for an secret items stored in the service.
  *
  * The items are represented by their D-Bus object paths. If you already have
- * #SecretItem proxy objects, use use secret_service_get_secrets_sync() to more
+ * #SecretItem proxy objects, use use secret_item_load_secrets_sync() to more
  * simply get their secret values.
  *
  * This method may block indefinitely and should not be used in user interface

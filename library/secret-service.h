@@ -162,21 +162,6 @@ gboolean             secret_service_search_sync                   (SecretService
                                                                    GList **locked,
                                                                    GError **error);
 
-void                 secret_service_get_secrets                   (SecretService *self,
-                                                                   GList *items,
-                                                                   GCancellable *cancellable,
-                                                                   GAsyncReadyCallback callback,
-                                                                   gpointer user_data);
-
-GHashTable *         secret_service_get_secrets_finish            (SecretService *self,
-                                                                   GAsyncResult *result,
-                                                                   GError **error);
-
-GHashTable *         secret_service_get_secrets_sync              (SecretService *self,
-                                                                   GList *items,
-                                                                   GCancellable *cancellable,
-                                                                   GError **error);
-
 void                 secret_service_lock                          (SecretService *self,
                                                                    GList *objects,
                                                                    GCancellable *cancellable,

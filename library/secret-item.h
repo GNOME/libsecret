@@ -128,6 +128,18 @@ gboolean            secret_item_load_secret_sync           (SecretItem *self,
                                                             GCancellable *cancellable,
                                                             GError **error);
 
+void                secret_item_load_secrets               (GList *items,
+                                                            GCancellable *cancellable,
+                                                            GAsyncReadyCallback callback,
+                                                            gpointer user_data);
+
+gboolean            secret_item_load_secrets_finish        (GAsyncResult *result,
+                                                            GError **error);
+
+gboolean            secret_item_load_secrets_sync          (GList *items,
+                                                            GCancellable *cancellable,
+                                                            GError **error);
+
 void                secret_item_set_secret                 (SecretItem *self,
                                                             SecretValue *value,
                                                             GCancellable *cancellable,
