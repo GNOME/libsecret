@@ -145,6 +145,18 @@ SecretValue *        _secret_service_decode_get_secrets_first (SecretService *se
 GHashTable *         _secret_service_decode_get_secrets_all   (SecretService *self,
                                                                GVariant *out);
 
+void                 _secret_service_xlock_paths_async        (SecretService *self,
+                                                               const gchar *method,
+                                                               const gchar **paths,
+                                                               GCancellable *cancellable,
+                                                               GAsyncReadyCallback callback,
+                                                               gpointer user_data);
+
+gint                 _secret_service_xlock_paths_finish       (SecretService *self,
+                                                               GAsyncResult *result,
+                                                               gchar ***xlocked,
+                                                               GError **error);
+
 SecretItem *         _secret_collection_find_item_instance    (SecretCollection *self,
                                                                const gchar *item_path);
 

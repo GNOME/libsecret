@@ -367,179 +367,96 @@ _secret_service_decode_get_secrets_all (SecretService *self,
 }
 
 typedef struct {
-	GCancellable *cancellable;
-	SecretPrompt *prompt;
 	GHashTable *objects;
-	GPtrArray *xlocked;
+	gchar **xlocked;
+	guint count;
+	gboolean locking;
 } XlockClosure;
 
 static void
 xlock_closure_free (gpointer data)
 {
 	XlockClosure *closure = data;
-	g_clear_object (&closure->cancellable);
-	g_clear_object (&closure->prompt);
-	if (closure->xlocked)
-		g_ptr_array_unref (closure->xlocked);
-	if (closure->objects)
-		g_hash_table_unref (closure->objects);
+	g_strfreev (closure->xlocked);
+	g_hash_table_unref (closure->objects);
 	g_slice_free (XlockClosure, closure);
 }
 
 static void
-on_xlock_prompted (GObject *source,
-                   GAsyncResult *result,
-                   gpointer user_data)
+on_xlock_paths (GObject *source,
+                GAsyncResult *result,
+                gpointer user_data)
 {
-	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
-	XlockClosure *closure = g_simple_async_result_get_op_res_gpointer (res);
-	SecretService *self = SECRET_SERVICE (source);
+	GSimpleAsyncResult *async = G_SIMPLE_ASYNC_RESULT (user_data);
+	XlockClosure *xlock = g_simple_async_result_get_op_res_gpointer (async);
+	GVariant *lockval;
+	GDBusProxy *object;
 	GError *error = NULL;
-	GVariantIter iter;
-	GVariant *retval;
-	gchar *path;
+	gint i;
 
-	retval = secret_service_prompt_finish (self, result, G_VARIANT_TYPE ("ao"), &error);
-	if (error != NULL)
-		g_simple_async_result_take_error (res, error);
+	xlock->count = _secret_service_xlock_paths_finish (SECRET_SERVICE (source), result,
+	                                                   &xlock->xlocked, &error);
 
-	if (retval != NULL) {
-		g_variant_iter_init (&iter, retval);
-		while (g_variant_iter_loop (&iter, "o", &path))
-			g_ptr_array_add (closure->xlocked, g_strdup (path));
-		g_variant_unref (retval);
-	}
+	if (error == NULL) {
+		/*
+		 * After a lock or unlock we want the Locked property to immediately
+		 * reflect the new state, and not have to wait for a PropertiesChanged
+		 * signal to be processed later.
+		 */
 
-	g_simple_async_result_complete (res);
-	g_object_unref (res);
-}
-
-static void
-on_xlock_called (GObject *source,
-                 GAsyncResult *result,
-                 gpointer user_data)
-{
-	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
-	XlockClosure *closure = g_simple_async_result_get_op_res_gpointer (res);
-	SecretService *self = SECRET_SERVICE (g_async_result_get_source_object (user_data));
-	const gchar *prompt = NULL;
-	gchar **xlocked = NULL;
-	GError *error = NULL;
-	GVariant *retval;
-	guint i;
-
-	retval = g_dbus_proxy_call_finish (G_DBUS_PROXY (source), result, &error);
-	if (error != NULL) {
-		g_simple_async_result_take_error (res, error);
-		g_simple_async_result_complete (res);
+		lockval = g_variant_ref_sink (g_variant_new_boolean (xlock->locking));
+		for (i = 0; xlock->xlocked[i] != NULL; i++) {
+			object =  g_hash_table_lookup (xlock->objects, xlock->xlocked[i]);
+			if (object != NULL)
+				g_dbus_proxy_set_cached_property (object, "Locked", lockval);
+		}
+		g_variant_unref (lockval);
 
 	} else {
-		g_variant_get (retval, "(^ao&o)", &xlocked, &prompt);
-
-		if (_secret_util_empty_path (prompt)) {
-			for (i = 0; xlocked[i]; i++)
-				g_ptr_array_add (closure->xlocked, g_strdup (xlocked[i]));
-			g_simple_async_result_complete (res);
-
-		} else {
-			closure->prompt = _secret_prompt_instance (self, prompt);
-			secret_service_prompt (self, closure->prompt, closure->cancellable,
-			                        on_xlock_prompted, g_object_ref (res));
-		}
-
-		g_strfreev (xlocked);
-		g_variant_unref (retval);
+		g_simple_async_result_take_error (async, error);
 	}
 
-	g_object_unref (self);
-	g_object_unref (res);
-}
-
-static GSimpleAsyncResult *
-service_xlock_paths_async (SecretService *self,
-                           const gchar *method,
-                           const gchar **paths,
-                           GCancellable *cancellable,
-                           GAsyncReadyCallback callback,
-                           gpointer user_data)
-{
-	GSimpleAsyncResult *res;
-	XlockClosure *closure;
-
-	res = g_simple_async_result_new (G_OBJECT (self), callback, user_data,
-	                                 service_xlock_paths_async);
-	closure = g_slice_new0 (XlockClosure);
-	closure->cancellable = cancellable ? g_object_ref (cancellable) : cancellable;
-	closure->xlocked = g_ptr_array_new_with_free_func (g_free);
-	g_simple_async_result_set_op_res_gpointer (res, closure, xlock_closure_free);
-
-	g_dbus_proxy_call (G_DBUS_PROXY (self), method,
-	                   g_variant_new ("(@ao)", g_variant_new_objv (paths, -1)),
-	                   G_DBUS_CALL_FLAGS_NO_AUTO_START, -1,
-	                   cancellable, on_xlock_called, g_object_ref (res));
-
-	return res;
-}
-
-static gint
-service_xlock_paths_finish (SecretService *self,
-                            GAsyncResult *result,
-                            gchar ***xlocked,
-                            GError **error)
-{
-	GSimpleAsyncResult *res;
-	XlockClosure *closure;
-	gint count;
-
-	res = G_SIMPLE_ASYNC_RESULT (result);
-	if (g_simple_async_result_propagate_error (res, error))
-		return -1;
-
-	closure = g_simple_async_result_get_op_res_gpointer (res);
-	count = closure->xlocked->len;
-
-	if (xlocked != NULL) {
-		g_ptr_array_add (closure->xlocked, NULL);
-		*xlocked = (gchar **)g_ptr_array_free (closure->xlocked, FALSE);
-		closure->xlocked = NULL;
-	}
-
-	return count;
+	g_simple_async_result_complete (async);
+	g_object_unref (async);
 }
 
 static void
 service_xlock_async (SecretService *self,
-                     const gchar *method,
+                     gboolean locking,
                      GList *objects,
                      GCancellable *cancellable,
                      GAsyncReadyCallback callback,
                      gpointer user_data)
 {
-	GSimpleAsyncResult *res;
-	XlockClosure *closure;
-	GHashTable *table;
+	GSimpleAsyncResult *async;
+	XlockClosure *xlock;
 	GPtrArray *paths;
 	const gchar *path;
 	GList *l;
 
-	table = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_object_unref);
-	paths = g_ptr_array_new ();
+	async = g_simple_async_result_new (G_OBJECT (self), callback, user_data,
+	                                   service_xlock_async);
+	xlock = g_slice_new0 (XlockClosure);
+	xlock->objects = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_object_unref);
+	xlock->locking = locking;
 
+	paths = g_ptr_array_new ();
 	for (l = objects; l != NULL; l = g_list_next (l)) {
 		path = g_dbus_proxy_get_object_path (l->data);
 		g_ptr_array_add (paths, (gpointer)path);
-		g_hash_table_insert (table, g_strdup (path), g_object_ref (l->data));
+		g_hash_table_insert (xlock->objects, g_strdup (path), g_object_ref (l->data));
 	}
 	g_ptr_array_add (paths, NULL);
 
-	res = service_xlock_paths_async (self, method, (const gchar **)paths->pdata,
-	                                 cancellable, callback, user_data);
+	g_simple_async_result_set_op_res_gpointer (async, xlock, xlock_closure_free);
 
-	closure = g_simple_async_result_get_op_res_gpointer (res);
-	closure->objects = table;
+	_secret_service_xlock_paths_async (self, locking ? "Lock" : "Unlock",
+	                                   (const gchar **)paths->pdata,
+	                                   cancellable, on_xlock_paths,
+	                                   g_object_ref (async));
 
 	g_ptr_array_free (paths, TRUE);
-	g_object_unref (res);
+	g_object_unref (async);
 }
 
 static gint
@@ -548,31 +465,28 @@ service_xlock_finish (SecretService *self,
                       GList **xlocked,
                       GError **error)
 {
-	XlockClosure *closure;
-	gchar **paths = NULL;
-	GObject *object;
-	gint count;
-	guint i;
+	GSimpleAsyncResult *async;
+	XlockClosure *xlock;
+	GDBusProxy *object;
+	gint i;
 
-	count = service_xlock_paths_finish (self, result,
-	                                    xlocked ? &paths : NULL,
-	                                    error);
+	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (self), service_xlock_async), -1);
 
-	if (count > 0 && xlocked) {
-		closure = g_simple_async_result_get_op_res_gpointer (G_SIMPLE_ASYNC_RESULT (result));
+	async = G_SIMPLE_ASYNC_RESULT (result);
+	if (g_simple_async_result_propagate_error (async, error))
+		return -1;
+
+	xlock = g_simple_async_result_get_op_res_gpointer (async);
+	if (xlocked) {
 		*xlocked = NULL;
-
-		for (i = 0; paths[i] != NULL; i++) {
-			object = g_hash_table_lookup (closure->objects, paths[i]);
+		for (i = 0; xlock->xlocked[i] != NULL; i++) {
+			object = g_hash_table_lookup (xlock->objects, xlock->xlocked[i]);
 			if (object != NULL)
 				*xlocked = g_list_prepend (*xlocked, g_object_ref (object));
 		}
-
-		*xlocked = g_list_reverse (*xlocked);
 	}
 
-	return count;
-
+	return xlock->count;
 }
 
 /**
@@ -606,7 +520,7 @@ secret_service_lock (SecretService *self,
 	g_return_if_fail (SECRET_IS_SERVICE (self));
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
-	service_xlock_async (self, "Lock", objects, cancellable, callback, user_data);
+	service_xlock_async (self, TRUE, objects, cancellable, callback, user_data);
 }
 
 /**
@@ -631,8 +545,8 @@ secret_service_lock_finish (SecretService *self,
                             GList **locked,
                             GError **error)
 {
-	g_return_val_if_fail (SECRET_IS_SERVICE (self), FALSE);
-	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+	g_return_val_if_fail (SECRET_IS_SERVICE (self), -1);
+	g_return_val_if_fail (error == NULL || *error == NULL, -1);
 
 	return service_xlock_finish (self, result, locked, error);
 }
@@ -722,7 +636,7 @@ secret_service_unlock (SecretService *self,
 	g_return_if_fail (SECRET_IS_SERVICE (self));
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
-	service_xlock_async (self, "Unlock", objects, cancellable, callback, user_data);
+	service_xlock_async (self, FALSE, objects, cancellable, callback, user_data);
 }
 
 /**
@@ -749,8 +663,6 @@ secret_service_unlock_finish (SecretService *self,
 {
 	g_return_val_if_fail (SECRET_IS_SERVICE (self), -1);
 	g_return_val_if_fail (error == NULL || *error == NULL, -1);
-	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (self),
-	                      service_xlock_paths_async), -1);
 
 	return service_xlock_finish (self, result, unlocked, error);
 }

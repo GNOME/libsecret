@@ -569,7 +569,6 @@ secret_service_get_secrets_for_paths_sync (SecretService *self,
 typedef struct {
 	GCancellable *cancellable;
 	SecretPrompt *prompt;
-	GHashTable *objects;
 	GPtrArray *xlocked;
 } XlockClosure;
 
@@ -581,8 +580,6 @@ xlock_closure_free (gpointer data)
 	g_clear_object (&closure->prompt);
 	if (closure->xlocked)
 		g_ptr_array_unref (closure->xlocked);
-	if (closure->objects)
-		g_hash_table_unref (closure->objects);
 	g_slice_free (XlockClosure, closure);
 }
 
@@ -655,19 +652,19 @@ on_xlock_called (GObject *source,
 	g_object_unref (res);
 }
 
-static GSimpleAsyncResult *
-service_xlock_paths_async (SecretService *self,
-                           const gchar *method,
-                           const gchar **paths,
-                           GCancellable *cancellable,
-                           GAsyncReadyCallback callback,
-                           gpointer user_data)
+void
+_secret_service_xlock_paths_async (SecretService *self,
+                                   const gchar *method,
+                                   const gchar **paths,
+                                   GCancellable *cancellable,
+                                   GAsyncReadyCallback callback,
+                                   gpointer user_data)
 {
 	GSimpleAsyncResult *res;
 	XlockClosure *closure;
 
 	res = g_simple_async_result_new (G_OBJECT (self), callback, user_data,
-	                                 service_xlock_paths_async);
+	                                 _secret_service_xlock_paths_async);
 	closure = g_slice_new0 (XlockClosure);
 	closure->cancellable = cancellable ? g_object_ref (cancellable) : cancellable;
 	closure->xlocked = g_ptr_array_new_with_free_func (g_free);
@@ -678,14 +675,14 @@ service_xlock_paths_async (SecretService *self,
 	                   G_DBUS_CALL_FLAGS_NO_AUTO_START, -1,
 	                   cancellable, on_xlock_called, g_object_ref (res));
 
-	return res;
+	g_object_unref (res);
 }
 
-static gint
-service_xlock_paths_finish (SecretService *self,
-                            GAsyncResult *result,
-                            gchar ***xlocked,
-                            GError **error)
+gint
+_secret_service_xlock_paths_finish (SecretService *self,
+                                    GAsyncResult *result,
+                                    gchar ***xlocked,
+                                    GError **error)
 {
 	GSimpleAsyncResult *res;
 	XlockClosure *closure;
@@ -792,16 +789,12 @@ secret_service_lock_paths (SecretService *self,
                            GAsyncReadyCallback callback,
                            gpointer user_data)
 {
-	GSimpleAsyncResult *res;
-
 	g_return_if_fail (SECRET_IS_SERVICE (self));
 	g_return_if_fail (paths != NULL);
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
-	res = service_xlock_paths_async (self, "Lock", paths, cancellable,
-	                                 callback, user_data);
-
-	g_object_unref (res);
+	_secret_service_xlock_paths_async (self, "Lock", paths, cancellable,
+	                                   callback, user_data);
 }
 
 /**
@@ -831,7 +824,7 @@ secret_service_lock_paths_finish (SecretService *self,
 	g_return_val_if_fail (locked != NULL, -1);
 	g_return_val_if_fail (error == NULL || *error == NULL, -1);
 
-	return service_xlock_paths_finish (self, result, locked, error);
+	return _secret_service_xlock_paths_finish (self, result, locked, error);
 }
 
 /**
@@ -920,17 +913,13 @@ secret_service_unlock_paths (SecretService *self,
                              GAsyncReadyCallback callback,
                              gpointer user_data)
 {
-	GSimpleAsyncResult *res;
-
 	g_return_if_fail (SECRET_IS_SERVICE (self));
 	g_return_if_fail (paths != NULL);
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
-	res = service_xlock_paths_async (self, "Unlock",
-	                                 paths, cancellable,
-	                                 callback, user_data);
-
-	g_object_unref (res);
+	_secret_service_xlock_paths_async (self, "Unlock",
+	                                   paths, cancellable,
+	                                   callback, user_data);
 }
 
 /**
@@ -959,8 +948,8 @@ secret_service_unlock_paths_finish (SecretService *self,
 	g_return_val_if_fail (SECRET_IS_SERVICE (self), -1);
 	g_return_val_if_fail (error == NULL || *error == NULL, -1);
 
-	return service_xlock_paths_finish (self, result,
-	                                   unlocked, error);
+	return _secret_service_xlock_paths_finish (self, result,
+	                                           unlocked, error);
 }
 
 typedef struct {
