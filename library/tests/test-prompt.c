@@ -52,6 +52,7 @@ teardown (Test *test,
           gconstpointer unused)
 {
 	g_object_unref (test->service);
+	secret_service_disconnect ();
 	egg_assert_not_object (test->service);
 
 	mock_service_stop ();

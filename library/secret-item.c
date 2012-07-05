@@ -152,6 +152,24 @@ on_set_label (GObject *source,
 	g_object_unref (self);
 }
 
+
+static void
+item_take_service (SecretItem *self,
+                   SecretService *service)
+{
+	if (service == NULL)
+		return;
+
+	g_return_if_fail (self->pv->service == NULL);
+
+	self->pv->service = service;
+	g_object_add_weak_pointer (G_OBJECT (self->pv->service),
+	                           (gpointer *)&self->pv->service);
+
+	/* Yes, we expect that the service will stay around */
+	g_object_unref (service);
+}
+
 static void
 secret_item_set_property (GObject *obj,
                           guint prop_id,
@@ -162,11 +180,7 @@ secret_item_set_property (GObject *obj,
 
 	switch (prop_id) {
 	case PROP_SERVICE:
-		g_return_if_fail (self->pv->service == NULL);
-		self->pv->service = g_value_get_object (value);
-		if (self->pv->service)
-			g_object_add_weak_pointer (G_OBJECT (self->pv->service),
-			                           (gpointer *)&self->pv->service);
+		item_take_service (self, g_value_dup_object (value));
 		break;
 	case PROP_FLAGS:
 		self->pv->init_flags = g_value_get_flags (value);
@@ -444,6 +458,7 @@ secret_item_initable_init (GInitable *initable,
                            GError **error)
 {
 	SecretItem *self;
+	SecretService *service;
 	GDBusProxy *proxy;
 
 	if (!secret_item_initable_parent_iface->init (initable, cancellable, error))
@@ -459,6 +474,14 @@ secret_item_initable_init (GInitable *initable,
 	}
 
 	self = SECRET_ITEM (initable);
+	if (!self->pv->service) {
+		service = secret_service_get_sync (SECRET_SERVICE_NONE, cancellable, error);
+		if (service == NULL)
+			return FALSE;
+		else
+			item_take_service (self, service);
+	}
+
 	return item_ensure_for_flags_sync (self, self->pv->init_flags, cancellable, error);
 }
 
@@ -471,11 +494,36 @@ secret_item_initable_iface (GInitableIface *iface)
 }
 
 static void
+on_init_service (GObject *source,
+                 GAsyncResult *result,
+                 gpointer user_data)
+{
+	GSimpleAsyncResult *async = G_SIMPLE_ASYNC_RESULT (user_data);
+	SecretItem *self = SECRET_ITEM (g_async_result_get_source_object (user_data));
+	SecretService *service;
+	GError *error = NULL;
+
+	service = secret_service_get_finish (result, &error);
+	if (error == NULL) {
+		item_take_service (self, service);
+		item_ensure_for_flags_async (self, self->pv->init_flags, async);
+
+	} else {
+		g_simple_async_result_take_error (async, error);
+		g_simple_async_result_complete (async);
+	}
+
+	g_object_unref (self);
+	g_object_unref (async);
+}
+
+static void
 on_init_base (GObject *source,
               GAsyncResult *result,
               gpointer user_data)
 {
 	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
+	InitClosure *init = g_simple_async_result_get_op_res_gpointer (res);
 	SecretItem *self = SECRET_ITEM (source);
 	GDBusProxy *proxy = G_DBUS_PROXY (self);
 	GError *error = NULL;
@@ -490,6 +538,10 @@ on_init_base (GObject *source,
 		                                 "No such secret item at path: %s",
 		                                 g_dbus_proxy_get_object_path (proxy));
 		g_simple_async_result_complete (res);
+
+	} else if (self->pv->service == NULL) {
+		secret_service_get (SECRET_SERVICE_NONE, init->cancellable,
+		                    on_init_service, g_object_ref (res));
 
 	} else {
 		item_ensure_for_flags_async (self, self->pv->init_flags, res);
@@ -547,7 +599,7 @@ secret_item_async_initable_iface (GAsyncInitableIface *iface)
 
 /**
  * secret_item_new:
- * @service: a secret service object
+ * @service: (allow-none): a secret service object
  * @item_path: the D-Bus path of the collection
  * @flags: initialization flags for the new item
  * @cancellable: optional cancellation object
@@ -555,6 +607,9 @@ secret_item_async_initable_iface (GAsyncInitableIface *iface)
  * @user_data: data to be passed to the callback
  *
  * Get a new item proxy for a secret item in the secret service.
+ *
+ * If @service is NULL, then secret_service_get() will be called to get
+ * the default #SecretService proxy.
  *
  * This method will return immediately and complete asynchronously.
  */
@@ -568,7 +623,7 @@ secret_item_new (SecretService *service,
 {
 	GDBusProxy *proxy;
 
-	g_return_if_fail (SECRET_IS_SERVICE (service));
+	g_return_if_fail (service == NULL || SECRET_IS_SERVICE (service));
 	g_return_if_fail (item_path != NULL);
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
@@ -618,13 +673,16 @@ secret_item_new_finish (GAsyncResult *result,
 
 /**
  * secret_item_new_sync:
- * @service: a secret service object
+ * @service: (allow-none): a secret service object
  * @item_path: the D-Bus path of the item
  * @flags: initialization flags for the new item
  * @cancellable: optional cancellation object
  * @error: location to place an error on failure
  *
  * Get a new item proxy for a secret item in the secret service.
+ *
+ * If @service is NULL, then secret_service_get_sync() will be called to get
+ * the default #SecretService proxy.
  *
  * This method may block indefinitely and should not be used in user interface
  * threads.
@@ -641,7 +699,7 @@ secret_item_new_sync (SecretService *service,
 {
 	GDBusProxy *proxy;
 
-	g_return_val_if_fail (SECRET_IS_SERVICE (service), NULL);
+	g_return_val_if_fail (service == NULL || SECRET_IS_SERVICE (service), NULL);
 	g_return_val_if_fail (item_path != NULL, NULL);
 	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
 	g_return_val_if_fail (error == NULL || *error == NULL, NULL);

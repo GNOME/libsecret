@@ -84,14 +84,16 @@ test_get_sync (void)
 	g_assert (G_IS_OBJECT (service1));
 
 	g_object_unref (service2);
+	secret_service_disconnect ();
 	egg_assert_not_object (service2);
 
-	/* Services were unreffed, so this should create a new one */
+	/* Services were disconnected, so this should create a new one */
 	service3 = secret_service_get_sync (SECRET_SERVICE_NONE, NULL, &error);
 	g_assert (SECRET_IS_SERVICE (service3));
 	g_assert_no_error (error);
 
 	g_object_unref (service3);
+	secret_service_disconnect ();
 	egg_assert_not_object (service3);
 }
 
@@ -127,6 +129,7 @@ test_get_async (void)
 	g_assert (G_IS_OBJECT (service1));
 
 	g_object_unref (service2);
+	secret_service_disconnect ();
 	egg_assert_not_object (service2);
 
 	/* Services were unreffed, so this should create a new one */
@@ -138,6 +141,7 @@ test_get_async (void)
 	g_clear_object (&result);
 
 	g_object_unref (service3);
+	secret_service_disconnect ();
 	egg_assert_not_object (service3);
 }
 
@@ -179,6 +183,7 @@ test_get_more_sync (Test *test,
 	g_object_unref (service2);
 
 	g_object_unref (service);
+	secret_service_disconnect ();
 	egg_assert_not_object (service);
 }
 
@@ -211,6 +216,7 @@ test_get_more_async (Test *test,
 	g_list_free_full (collections, g_object_unref);
 
 	g_object_unref (service);
+	secret_service_disconnect ();
 	egg_assert_not_object (service);
 
 	/* Now get a session with just collections */
@@ -233,6 +239,7 @@ test_get_more_async (Test *test,
 	g_list_free_full (collections, g_object_unref);
 
 	g_object_unref (service);
+	secret_service_disconnect ();
 	egg_assert_not_object (service);
 }
 
@@ -430,6 +437,7 @@ test_connect_async (Test *test,
 	g_assert (path == NULL);
 
 	g_object_unref (service);
+	secret_service_disconnect ();
 	egg_assert_not_object (service);
 }
 
@@ -457,6 +465,7 @@ test_connect_ensure_async (Test *test,
 	g_assert (path != NULL);
 
 	g_object_unref (service);
+	secret_service_disconnect ();
 	egg_assert_not_object (service);
 }
 

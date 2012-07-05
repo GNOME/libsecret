@@ -653,18 +653,6 @@ _secret_service_set_default_bus_name (const gchar *bus_name)
 	default_bus_name = bus_name;
 }
 
-static void
-on_service_instance_gone (gpointer user_data,
-                          GObject *where_the_object_was)
-{
-	G_LOCK (service_instance);
-
-		g_assert (service_instance == where_the_object_was);
-		service_instance = NULL;
-
-	G_UNLOCK (service_instance);
-}
-
 /**
  * secret_service_get:
  * @flags: flags for which service functionality to ensure is initialized
@@ -758,10 +746,8 @@ secret_service_get_finish (GAsyncResult *result,
 
 		if (service) {
 			G_LOCK (service_instance);
-			if (service_instance == NULL) {
-				service_instance = service;
-				g_object_weak_ref (G_OBJECT (service), on_service_instance_gone, NULL);
-			}
+			if (service_instance == NULL)
+				service_instance = g_object_ref (service);
 			G_UNLOCK (service_instance);
 		}
 	}
@@ -818,10 +804,8 @@ secret_service_get_sync (SecretServiceFlags flags,
 
 		if (service != NULL) {
 			G_LOCK (service_instance);
-			if (service_instance == NULL) {
-				service_instance = service;
-				g_object_weak_ref (G_OBJECT (service), on_service_instance_gone, NULL);
-			}
+			if (service_instance == NULL)
+				service_instance = g_object_ref (service);
 			G_UNLOCK (service_instance);
 		}
 
@@ -833,6 +817,33 @@ secret_service_get_sync (SecretServiceFlags flags,
 	}
 
 	return service;
+}
+
+/**
+ * secret_service_disconnect:
+ *
+ * Disconnect the default #SecretService proxy returned by secret_service_get()
+ * and secret_service_get_sync().
+ *
+ * It is not necessary to call this function, but you may choose to do so at
+ * program exit. It is useful for testing that memory is not leaked.
+ *
+ * This function is safe to call at any time. But if other objects in this
+ * library are still referenced, then this will not result in all memory
+ * being freed.
+ */
+void
+secret_service_disconnect (void)
+{
+	SecretService *instance;
+
+	G_LOCK (service_instance);
+	instance = service_instance;
+	service_instance = NULL;
+	G_UNLOCK (service_instance);
+
+	if (instance != NULL)
+		g_object_unref (instance);
 }
 
 /**

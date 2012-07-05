@@ -139,6 +139,23 @@ on_set_label (GObject *source,
 }
 
 static void
+collection_take_service (SecretCollection *self,
+                         SecretService *service)
+{
+	if (service == NULL)
+		return;
+
+	g_return_if_fail (self->pv->service == NULL);
+
+	self->pv->service = service;
+	g_object_add_weak_pointer (G_OBJECT (self->pv->service),
+	                           (gpointer *)&self->pv->service);
+
+	/* Yes, we expect that the service will stay around */
+	g_object_unref (service);
+}
+
+static void
 secret_collection_set_property (GObject *obj,
                                 guint prop_id,
                                 const GValue *value,
@@ -148,11 +165,7 @@ secret_collection_set_property (GObject *obj,
 
 	switch (prop_id) {
 	case PROP_SERVICE:
-		g_return_if_fail (self->pv->service == NULL);
-		self->pv->service = g_value_get_object (value);
-		if (self->pv->service)
-			g_object_add_weak_pointer (G_OBJECT (self->pv->service),
-			                           (gpointer *)&self->pv->service);
+		collection_take_service (self, g_value_dup_object (value));
 		break;
 	case PROP_FLAGS:
 		self->pv->init_flags = g_value_get_flags (value);
@@ -494,6 +507,7 @@ secret_collection_initable_init (GInitable *initable,
                                  GError **error)
 {
 	SecretCollection *self;
+	SecretService *service;
 	GDBusProxy *proxy;
 
 	if (!secret_collection_initable_parent_iface->init (initable, cancellable, error))
@@ -509,6 +523,14 @@ secret_collection_initable_init (GInitable *initable,
 	}
 
 	self = SECRET_COLLECTION (initable);
+
+	if (self->pv->service == NULL) {
+		service = secret_service_get_sync (SECRET_SERVICE_NONE, cancellable, error);
+		if (service == NULL)
+			return FALSE;
+		else
+			collection_take_service (self, service);
+	}
 
 	if (self->pv->init_flags & SECRET_COLLECTION_LOAD_ITEMS) {
 		if (!secret_collection_load_items_sync (self, cancellable, error))
@@ -556,13 +578,52 @@ on_init_items (GObject *source,
 }
 
 static void
+collection_ensure_for_flags_async (SecretCollection *self,
+                                   SecretCollectionFlags flags,
+                                   GSimpleAsyncResult *async)
+{
+	InitClosure *init = g_simple_async_result_get_op_res_gpointer (async);
+
+	if (flags & SECRET_COLLECTION_LOAD_ITEMS)
+		secret_collection_load_items (self, init->cancellable,
+		                              on_init_items, g_object_ref (async));
+
+	else
+		g_simple_async_result_complete (async);
+}
+
+static void
+on_init_service (GObject *source,
+                 GAsyncResult *result,
+                 gpointer user_data)
+{
+	GSimpleAsyncResult *async = G_SIMPLE_ASYNC_RESULT (user_data);
+	SecretCollection *self = SECRET_COLLECTION (g_async_result_get_source_object (user_data));
+	SecretService *service;
+	GError *error = NULL;
+
+	service = secret_service_get_finish (result, &error);
+	if (error == NULL) {
+		collection_take_service (self, service);
+		collection_ensure_for_flags_async (self, self->pv->init_flags, async);
+
+	} else {
+		g_simple_async_result_take_error (async, error);
+		g_simple_async_result_complete (async);
+	}
+
+	g_object_unref (self);
+	g_object_unref (async);
+}
+
+static void
 on_init_base (GObject *source,
               GAsyncResult *result,
               gpointer user_data)
 {
 	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
 	SecretCollection *self = SECRET_COLLECTION (source);
-	InitClosure *closure = g_simple_async_result_get_op_res_gpointer (res);
+	InitClosure *init = g_simple_async_result_get_op_res_gpointer (res);
 	GDBusProxy *proxy = G_DBUS_PROXY (self);
 	GError *error = NULL;
 
@@ -577,12 +638,12 @@ on_init_base (GObject *source,
 		                                 g_dbus_proxy_get_object_path (proxy));
 		g_simple_async_result_complete (res);
 
-	} else if (self->pv->init_flags & SECRET_COLLECTION_LOAD_ITEMS) {
-		secret_collection_load_items (self, closure->cancellable,
-		                              on_init_items, g_object_ref (res));
+	} else if (self->pv->service == NULL) {
+		secret_service_get (SECRET_SERVICE_NONE, init->cancellable,
+		                    on_init_service, g_object_ref (res));
 
 	} else {
-		g_simple_async_result_complete (res);
+		collection_ensure_for_flags_async (self, self->pv->init_flags, res);
 	}
 
 	g_object_unref (res);
@@ -640,7 +701,7 @@ secret_collection_async_initable_iface (GAsyncInitableIface *iface)
 
 /**
  * secret_collection_new:
- * @service: a secret service object
+ * @service: (allow-none): a secret service object
  * @collection_path: the D-Bus path of the collection
  * @flags: options for the collection initialization
  * @cancellable: optional cancellation object
@@ -648,6 +709,9 @@ secret_collection_async_initable_iface (GAsyncInitableIface *iface)
  * @user_data: data to be passed to the callback
  *
  * Get a new collection proxy for a collection in the secret service.
+ *
+ * If @service is NULL, then secret_service_get() will be called to get
+ * the default #SecretService proxy.
  *
  * This method will return immediately and complete asynchronously.
  */
@@ -661,7 +725,7 @@ secret_collection_new (SecretService *service,
 {
 	GDBusProxy *proxy;
 
-	g_return_if_fail (SECRET_IS_SERVICE (service));
+	g_return_if_fail (service == NULL || SECRET_IS_SERVICE (service));
 	g_return_if_fail (collection_path != NULL);
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
@@ -714,13 +778,16 @@ secret_collection_new_finish (GAsyncResult *result,
 
 /**
  * secret_collection_new_sync:
- * @service: a secret service object
+ * @service: (allow-none): a secret service object
  * @collection_path: the D-Bus path of the collection
  * @flags: options for the collection initialization
  * @cancellable: optional cancellation object
  * @error: location to place an error on failure
  *
  * Get a new collection proxy for a collection in the secret service.
+ *
+ * If @service is NULL, then secret_service_get_sync() will be called to get
+ * the default #SecretService proxy.
  *
  * This method may block indefinitely and should not be used in user interface
  * threads.
@@ -737,7 +804,7 @@ secret_collection_new_sync (SecretService *service,
 {
 	GDBusProxy *proxy;
 
-	g_return_val_if_fail (SECRET_IS_SERVICE (service), NULL);
+	g_return_val_if_fail (service == NULL || SECRET_IS_SERVICE (service), NULL);
 	g_return_val_if_fail (collection_path != NULL, NULL);
 	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
 	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
@@ -988,6 +1055,8 @@ secret_collection_refresh (SecretCollection *self)
 typedef struct {
 	GCancellable *cancellable;
 	SecretCollection *collection;
+	GHashTable *properties;
+	gchar *alias;
 } CreateClosure;
 
 static void
@@ -996,6 +1065,8 @@ create_closure_free (gpointer data)
 	CreateClosure *closure = data;
 	g_clear_object (&closure->cancellable);
 	g_clear_object (&closure->collection);
+	g_hash_table_unref (closure->properties);
+	g_free (closure->alias);
 	g_slice_free (CreateClosure, closure);
 }
 
@@ -1040,6 +1111,31 @@ on_create_path (GObject *source,
 	g_object_unref (res);
 }
 
+static void
+on_create_service (GObject *source,
+                   GAsyncResult *result,
+                   gpointer user_data)
+{
+	GSimpleAsyncResult *async = G_SIMPLE_ASYNC_RESULT (user_data);
+	CreateClosure *create = g_simple_async_result_get_op_res_gpointer (async);
+	GError *error = NULL;
+	SecretService *service;
+
+	service = secret_service_get_finish (result, &error);
+	if (error == NULL) {
+		secret_service_create_collection_path (service, create->properties,
+		                                       create->alias, create->cancellable,
+		                                       on_create_path, g_object_ref (async));
+		g_object_unref (service);
+
+	} else {
+		g_simple_async_result_take_error (async, error);
+		g_simple_async_result_complete (async);
+	}
+
+	g_object_unref (async);
+}
+
 static GHashTable *
 collection_properties_new (const gchar *label)
 {
@@ -1058,7 +1154,7 @@ collection_properties_new (const gchar *label)
 
 /**
  * secret_collection_create:
- * @service: a secret service object
+ * @service: (allow-none): a secret service object
  * @label: label for the new collection
  * @alias: (allow-none): alias to assign to the collection
  * @cancellable: optional cancellation object
@@ -1076,6 +1172,10 @@ collection_properties_new (const gchar *label)
  * easily identify and share a collection. If you specify an @alias, and a
  * collection with that alias already exists, then a new collection will not
  * be created. The previous one will be returned instead.
+ *
+ * If @service is NULL, then secret_service_get() will be called to get
+ * the default #SecretService proxy.
+ *
  */
 void
 secret_collection_create (SecretService *service,
@@ -1087,9 +1187,8 @@ secret_collection_create (SecretService *service,
 {
 	GSimpleAsyncResult *res;
 	CreateClosure *closure;
-	GHashTable *properties;
 
-	g_return_if_fail (SECRET_IS_SERVICE (service));
+	g_return_if_fail (service == NULL || SECRET_IS_SERVICE (service));
 	g_return_if_fail (label != NULL);
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
@@ -1097,14 +1196,20 @@ secret_collection_create (SecretService *service,
 	                                 secret_collection_create);
 	closure = g_slice_new0 (CreateClosure);
 	closure->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
+	closure->properties = collection_properties_new (label);
+	closure->alias = g_strdup (alias);
 	g_simple_async_result_set_op_res_gpointer (res, closure, create_closure_free);
 
-	properties = collection_properties_new (label);
+	if (service == NULL) {
+		secret_service_get (SECRET_SERVICE_NONE, cancellable,
+		                    on_create_service, g_object_ref (res));
 
-	secret_service_create_collection_path (service, properties, alias, cancellable,
-	                                       on_create_path, g_object_ref (res));
+	} else {
+		secret_service_create_collection_path (service, closure->properties,
+		                                       closure->alias, closure->cancellable,
+		                                       on_create_path, g_object_ref (res));
+	}
 
-	g_hash_table_unref (properties);
 	g_object_unref (res);
 }
 
@@ -1143,7 +1248,7 @@ secret_collection_create_finish (GAsyncResult *result,
 
 /**
  * secret_collection_create_sync:
- * @service: a secret service object
+ * @service: (allow-none): a secret service object
  * @label: label for the new collection
  * @alias: (allow-none): alias to assign to the collection
  * @cancellable: optional cancellation object
@@ -1161,6 +1266,9 @@ secret_collection_create_finish (GAsyncResult *result,
  * collection with that alias already exists, then a new collection will not
  * be created. The previous one will be returned instead.
  *
+ * If @service is NULL, then secret_service_get_sync() will be called to get
+ * the default #SecretService proxy.
+ *
  * Returns: (transfer full): the new collection, which should be unreferenced
  *          with g_object_unref()
  */
@@ -1175,10 +1283,18 @@ secret_collection_create_sync (SecretService *service,
 	GHashTable *properties;
 	gchar *path;
 
-	g_return_val_if_fail (SECRET_IS_SERVICE (service), NULL);
+	g_return_val_if_fail (service == NULL || SECRET_IS_SERVICE (service), NULL);
 	g_return_val_if_fail (label != NULL, NULL);
 	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
 	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
+
+	if (service == NULL) {
+		service = secret_service_get_sync (SECRET_SERVICE_NONE, cancellable, error);
+		if (service == NULL)
+			return NULL;
+	} else {
+		g_object_ref (service);
+	}
 
 	properties = collection_properties_new (label);
 
@@ -1187,12 +1303,16 @@ secret_collection_create_sync (SecretService *service,
 
 	g_hash_table_unref (properties);
 
-	if (path == NULL)
+	if (path == NULL) {
+		g_object_unref (service);
 		return NULL;
+	}
 
 	collection = secret_collection_new_sync (service, path,
 	                                         SECRET_COLLECTION_LOAD_ITEMS,
 	                                         cancellable, error);
+
+	g_object_unref (service);
 	g_free (path);
 
 	return collection;

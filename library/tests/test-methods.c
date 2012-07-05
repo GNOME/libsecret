@@ -99,6 +99,7 @@ teardown (Test *test,
 	egg_test_wait_idle ();
 
 	g_object_unref (test->service);
+	secret_service_disconnect ();
 	egg_assert_not_object (test->service);
 
 	teardown_mock (test, unused);
