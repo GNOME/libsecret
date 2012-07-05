@@ -436,14 +436,18 @@ test_set_label_prop (Test *test,
                      gconstpointer unused)
 {
 	const gchar *collection_path = "/org/freedesktop/secrets/collection/english";
+	GAsyncResult *result = NULL;
 	GError *error = NULL;
 	SecretCollection *collection;
 	guint sigs = 2;
 	gchar *label;
 
-	collection = secret_collection_new_sync (test->service, collection_path,
-	                                         SECRET_COLLECTION_NONE, NULL, &error);
+	secret_collection_new (test->service, collection_path, SECRET_COLLECTION_NONE, NULL, on_async_result, &result);
+	g_assert (result == NULL);
+	egg_test_wait ();
+	collection = secret_collection_new_finish (result, &error);
 	g_assert_no_error (error);
+	g_object_unref (result);
 
 	label = secret_collection_get_label (collection);
 	g_assert_cmpstr (label, ==, "Collection One");

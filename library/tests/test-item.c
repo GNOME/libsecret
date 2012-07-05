@@ -367,13 +367,18 @@ test_set_label_prop (Test *test,
                      gconstpointer unused)
 {
 	const gchar *item_path = "/org/freedesktop/secrets/collection/english/1";
+	GAsyncResult *result = NULL;
 	GError *error = NULL;
 	SecretItem *item;
 	guint sigs = 2;
 	gchar *label;
 
-	item = secret_item_new_sync (test->service, item_path, SECRET_ITEM_NONE, NULL, &error);
+	secret_item_new (test->service, item_path, SECRET_ITEM_NONE, NULL, on_async_result, &result);
+	g_assert (result == NULL);
+	egg_test_wait ();
+	item = secret_item_new_finish (result, &error);
 	g_assert_no_error (error);
+	g_object_unref (result);
 
 	label = secret_item_get_label (item);
 	g_assert_cmpstr (label, ==, "Item One");
@@ -477,13 +482,18 @@ test_set_attributes_prop (Test *test,
                           gconstpointer unused)
 {
 	const gchar *item_path = "/org/freedesktop/secrets/collection/english/1";
+	GAsyncResult *result = NULL;
 	GError *error = NULL;
 	SecretItem *item;
 	GHashTable *attributes;
 	guint sigs = 2;
 
-	item = secret_item_new_sync (test->service, item_path, SECRET_ITEM_NONE, NULL, &error);
+	secret_item_new (test->service, item_path, SECRET_ITEM_NONE, NULL, on_async_result, &result);
+	g_assert (result == NULL);
+	egg_test_wait ();
+	item = secret_item_new_finish (result, &error);
 	g_assert_no_error (error);
+	g_object_unref (result);
 
 	attributes = secret_item_get_attributes (item);
 	g_assert_cmpstr (g_hash_table_lookup (attributes, "string"), ==, "one");
