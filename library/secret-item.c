@@ -68,11 +68,10 @@
 
 /**
  * SecretItemFlags:
- * @SECRET_ITEM_NONE: no flags for initializing the #SecretItem
- * @SECRET_ITEM_LOAD_SECRET: load the secret when initializing the #SecretItem
+ * @SECRET_ITEM_NONE: no flags
+ * @SECRET_ITEM_LOAD_SECRET: a secret has been (or should be) loaded for #SecretItem
  *
- * Flags which determine which parts of the #SecretItem proxy are initialized
- * during a secret_item_new() operation.
+ * Flags which determine which parts of the #SecretItem proxy are initialized.
  */
 
 enum {
@@ -1072,8 +1071,7 @@ secret_item_get_service (SecretItem *self)
  * Get the secret value of this item. If this item is locked or the secret
  * has not yet been loaded then this will return %NULL.
  *
- * To load the secret call the secret_item_load_secret() method. You can also
- * pass the %SECRET_ITEM_LOAD_SECRET flag to secret_item_new().
+ * To load the secret call the secret_item_load_secret() method.
  *
  * Returns: (transfer full) (allow-none): the secret value which should be
  *          released with secret_value_unref(), or %NULL
@@ -1185,9 +1183,7 @@ on_load_ensure_session (GObject *source,
  * Load the secret value of this item.
  *
  * Each item has a single secret which might be a password or some
- * other secret binary value. You can load the secret value on creation of
- * a secret item proxy by passing the %SECRET_ITEM_LOAD_SECRET flag to the
- * secret_item_new() method.
+ * other secret binary value.
  *
  * This function will fail if the secret item is locked.
  *
@@ -1257,9 +1253,7 @@ secret_item_load_secret_finish (SecretItem *self,
  * Load the secret value of this item.
  *
  * Each item has a single secret which might be a password or some
- * other secret binary value. You can load the secret value on creation of
- * a secret item proxy by passing the %SECRET_ITEM_LOAD_SECRET flag to the
- * secret_item_new_sync() method.
+ * other secret binary value.
  *
  * This function may block indefinetely. Use the asynchronous version
  * in user interface threads.

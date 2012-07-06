@@ -58,12 +58,10 @@
 
 /**
  * SecretCollectionFlags:
- * @SECRET_COLLECTION_NONE: no flags for initializing the #SecretCollection
- * @SECRET_COLLECTION_LOAD_ITEMS: load items while initializing the
- *                                #SecretCollection
+ * @SECRET_COLLECTION_NONE: no flags
+ * @SECRET_COLLECTION_LOAD_ITEMS: items have or should be loaded
  *
- * Flags which determine which parts of the #SecretCollection proxy are initialized
- * during a secret_collection_new() or secret_collection_new_sync() operation.
+ * Flags which determine which parts of the #SecretCollection proxy are initialized.
  */
 
 /**
@@ -773,9 +771,8 @@ on_load_item (GObject *source,
  * in the Secret Service. This affects the result of
  * secret_collection_get_items().
  *
- * You can also pass the %SECRET_COLLECTION_LOAD_ITEMS to
- * secret_collection_new() in order to ensure that the collections have been
- * loaded by the time you get the #SecretCollection proxy.
+ * For collections returned from secret_service_get_collections() the items
+ * will have already been loaded.
  *
  * This method will return immediately and complete asynchronously.
  */
@@ -866,9 +863,8 @@ secret_collection_load_items_finish (SecretCollection *self,
  * in the Secret Service. This affects the result of
  * secret_collection_get_items().
  *
- * You can also pass the %SECRET_COLLECTION_LOAD_ITEMS to
- * secret_collection_new_sync() in order to ensure that the items have been
- * loaded by the time you get the #SecretCollection proxy.
+ * For collections returned from secret_service_get_collections() the items
+ * will have already been loaded.
  *
  * This method may block indefinitely and should not be used in user interface
  * threads.

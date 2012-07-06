@@ -662,7 +662,7 @@ secret_service_get_secret_for_dbus_path_finish (SecretService *self,
  * Get the secret value for an secret item stored in the service.
  *
  * The item is represented by its D-Bus object path. If you already have a
- * #SecretItem proxy object, use use secret_item_get_secret_sync() to more simply
+ * #SecretItem proxy object, use use secret_item_load_secret_sync() to more simply
  * get its secret value.
  *
  * This method may block indefinitely and should not be used in user interface

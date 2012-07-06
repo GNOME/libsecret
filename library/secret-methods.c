@@ -24,6 +24,16 @@
 #include "secret-types.h"
 #include "secret-value.h"
 
+/**
+ * SecretSearchFlags:
+ * @SECRET_SEARCH_NONE: no flags
+ * @SECRET_SEARCH_ALL: all the items matching the search will be returned, instead of just the first one
+ * @SECRET_SEARCH_UNLOCK: unlock locked items while searching
+ * @SECRET_SEARCH_LOAD_SECRETS: while searching load secrets for items that are not locked
+ *
+ * Various flags to be used with secret_service_search() and secret_service_search_sync().
+ */
+
 typedef struct {
 	SecretService *service;
 	GCancellable *cancellable;
