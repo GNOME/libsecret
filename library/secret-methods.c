@@ -1971,6 +1971,66 @@ secret_service_read_alias_sync (SecretService *service,
 	return collection;
 }
 
+typedef struct {
+	GCancellable *cancellable;
+	gchar *alias;
+	gchar *collection_path;
+} SetClosure;
+
+static void
+set_closure_free (gpointer data)
+{
+	SetClosure *set = data;
+	if (set->cancellable)
+		g_object_unref (set->cancellable);
+	g_free (set->alias);
+	g_free (set->collection_path);
+	g_slice_free (SetClosure, set);
+}
+
+static void
+on_set_alias_done (GObject *source,
+                   GAsyncResult *result,
+                   gpointer user_data)
+{
+	GSimpleAsyncResult *async = G_SIMPLE_ASYNC_RESULT (user_data);
+	GError *error = NULL;
+
+	secret_service_set_alias_to_dbus_path_finish (SECRET_SERVICE (source), result, &error);
+	if (error != NULL)
+		g_simple_async_result_take_error (async, error);
+
+	g_simple_async_result_complete (async);
+	g_object_unref (async);
+}
+
+static void
+on_set_alias_service (GObject *source,
+                      GAsyncResult *result,
+                      gpointer user_data)
+{
+	GSimpleAsyncResult *async = G_SIMPLE_ASYNC_RESULT (user_data);
+	SetClosure *set = g_simple_async_result_get_op_res_gpointer (async);
+	SecretService *service;
+	GError *error = NULL;
+
+	service = secret_service_get_finish (result, &error);
+	if (error == NULL) {
+		secret_service_set_alias_to_dbus_path (service, set->alias,
+		                                       set->collection_path,
+		                                       set->cancellable,
+		                                       on_set_alias_done,
+		                                       g_object_ref (async));
+		g_object_unref (service);
+
+	} else {
+		g_simple_async_result_take_error (async, error);
+		g_simple_async_result_complete (async);
+	}
+
+	g_object_unref (async);
+}
+
 /**
  * secret_service_set_alias:
  * @service: (allow-none): a secret service object
@@ -1983,8 +2043,8 @@ secret_service_read_alias_sync (SecretService *service,
  * Assign a collection to this alias. Aliases help determine
  * well known collections, such as 'default'.
  *
- * If @service is NULL, then secret_collection_get_service() will be called to get
- * a #SecretService proxy.
+ * If @service is NULL, then secret_service_get() will be called to get
+ * the default #SecretService proxy.
  *
  * This method will return immediately and complete asynchronously.
  */
@@ -1996,31 +2056,43 @@ secret_service_set_alias (SecretService *service,
                           GAsyncReadyCallback callback,
                           gpointer user_data)
 {
-	const gchar *collection_path;
+	GSimpleAsyncResult *async;
+	SetClosure *set;
+	const gchar *path;
 
 	g_return_if_fail (service == NULL || SECRET_IS_SERVICE (service));
 	g_return_if_fail (alias != NULL);
 	g_return_if_fail (collection == NULL || SECRET_IS_COLLECTION (collection));
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
+	async = g_simple_async_result_new (G_OBJECT (service), callback, user_data,
+	                                   secret_service_set_alias);
+	set = g_slice_new0 (SetClosure);
+	set->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
+	set->alias = g_strdup (alias);
+
 	if (collection) {
-		collection_path = g_dbus_proxy_get_object_path (G_DBUS_PROXY (collection));
-		g_return_if_fail (collection != NULL);
+		path = g_dbus_proxy_get_object_path (G_DBUS_PROXY (collection));
+		g_return_if_fail (path != NULL);
 	} else {
-		collection_path = NULL;
+		path = NULL;
 	}
+
+	set->collection_path = g_strdup (path);
+	g_simple_async_result_set_op_res_gpointer (async, set, set_closure_free);
 
 	if (service == NULL) {
-		service = secret_collection_get_service (collection);
-		g_return_if_fail (service != NULL);
+		secret_service_get (SECRET_SERVICE_NONE, cancellable,
+		                    on_set_alias_service, g_object_ref (async));
 	} else {
-		g_object_ref (service);
+		secret_service_set_alias_to_dbus_path (service, set->alias,
+		                                       set->collection_path,
+		                                       set->cancellable,
+		                                       on_set_alias_done,
+		                                       g_object_ref (async));
 	}
 
-	secret_service_set_alias_to_dbus_path (service, alias, collection_path, cancellable,
-	                                       callback, user_data);
-
-	g_object_unref (service);
+	g_object_unref (async);
 }
 
 /**
@@ -2038,21 +2110,15 @@ secret_service_set_alias_finish (SecretService *service,
                                  GAsyncResult *result,
                                  GError **error)
 {
-	gboolean ret;
-
 	g_return_val_if_fail (service == NULL || SECRET_IS_SERVICE (service), FALSE);
+	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (service),
+	                                                      secret_service_set_alias), FALSE);
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
-	if (service == NULL)
-		service = SECRET_SERVICE (g_async_result_get_source_object (result));
-	else
-		g_object_ref (service);
+	if (g_simple_async_result_propagate_error (G_SIMPLE_ASYNC_RESULT (result), error))
+		return FALSE;
 
-	ret = secret_service_set_alias_to_dbus_path_finish (service, result, error);
-
-	g_object_unref (service);
-
-	return ret;
+	return TRUE;
 }
 
 /**
