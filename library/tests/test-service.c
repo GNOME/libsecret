@@ -16,6 +16,7 @@
 #include "secret-collection.h"
 #include "secret-item.h"
 #include "secret-service.h"
+#include "secret-paths.h"
 #include "secret-private.h"
 
 #include "mock-service.h"
@@ -177,7 +178,7 @@ test_get_more_sync (Test *test,
 	g_assert_no_error (error);
 
 	g_assert_cmpuint (secret_service_get_flags (service), ==, SECRET_SERVICE_OPEN_SESSION | SECRET_SERVICE_LOAD_COLLECTIONS);
-	path = secret_service_get_session_path (service);
+	path = secret_service_get_session_dbus_path (service);
 	g_assert (path != NULL);
 
 	g_object_unref (service2);
@@ -208,7 +209,7 @@ test_get_more_async (Test *test,
 	result = NULL;
 
 	g_assert_cmpuint (secret_service_get_flags (service), ==, SECRET_SERVICE_OPEN_SESSION | SECRET_SERVICE_LOAD_COLLECTIONS);
-	path = secret_service_get_session_path (service);
+	path = secret_service_get_session_dbus_path (service);
 	g_assert (path != NULL);
 
 	collections = secret_service_get_collections (service);
@@ -231,7 +232,7 @@ test_get_more_async (Test *test,
 	g_object_unref (result);
 
 	g_assert_cmpuint (secret_service_get_flags (service), ==, SECRET_SERVICE_LOAD_COLLECTIONS);
-	path = secret_service_get_session_path (service);
+	path = secret_service_get_session_dbus_path (service);
 	g_assert (path == NULL);
 
 	collections = secret_service_get_collections (service);
@@ -324,7 +325,7 @@ test_new_more_sync (Test *test,
 
 	g_assert_cmpuint (secret_service_get_flags (service), ==, SECRET_SERVICE_NONE);
 	g_assert (secret_service_get_collections (service) == NULL);
-	g_assert (secret_service_get_session_path (service) == NULL);
+	g_assert (secret_service_get_session_dbus_path (service) == NULL);
 
 	g_object_unref (service);
 	egg_assert_not_object (service);
@@ -338,7 +339,7 @@ test_new_more_sync (Test *test,
 	collections = secret_service_get_collections (service);
 	g_assert (collections != NULL);
 	g_list_free_full (collections, g_object_unref);
-	g_assert (secret_service_get_session_path (service) == NULL);
+	g_assert (secret_service_get_session_dbus_path (service) == NULL);
 
 	g_object_unref (service);
 	egg_assert_not_object (service);
@@ -350,7 +351,7 @@ test_new_more_sync (Test *test,
 
 	g_assert_cmpuint (secret_service_get_flags (service), ==, SECRET_SERVICE_OPEN_SESSION);
 	g_assert (secret_service_get_collections (service) == NULL);
-	path = secret_service_get_session_path (service);
+	path = secret_service_get_session_dbus_path (service);
 	g_assert (path != NULL);
 
 	g_object_unref (service);
@@ -379,7 +380,7 @@ test_new_more_async (Test *test,
 	result = NULL;
 
 	g_assert_cmpuint (secret_service_get_flags (service), ==, SECRET_SERVICE_OPEN_SESSION | SECRET_SERVICE_LOAD_COLLECTIONS);
-	path = secret_service_get_session_path (service);
+	path = secret_service_get_session_dbus_path (service);
 	g_assert (path != NULL);
 
 	collections = secret_service_get_collections (service);
@@ -402,7 +403,7 @@ test_new_more_async (Test *test,
 	g_object_unref (result);
 
 	g_assert_cmpuint (secret_service_get_flags (service), ==, SECRET_SERVICE_LOAD_COLLECTIONS);
-	path = secret_service_get_session_path (service);
+	path = secret_service_get_session_dbus_path (service);
 	g_assert (path == NULL);
 
 	collections = secret_service_get_collections (service);
@@ -433,7 +434,7 @@ test_connect_async (Test *test,
 	g_assert_no_error (error);
 	g_object_unref (result);
 
-	path = secret_service_get_session_path (service);
+	path = secret_service_get_session_dbus_path (service);
 	g_assert (path == NULL);
 
 	g_object_unref (service);
@@ -461,7 +462,7 @@ test_connect_ensure_async (Test *test,
 	g_assert (SECRET_IS_SERVICE (service));
 	g_object_unref (result);
 
-	path = secret_service_get_session_path (service);
+	path = secret_service_get_session_dbus_path (service);
 	g_assert (path != NULL);
 
 	g_object_unref (service);
@@ -476,7 +477,6 @@ test_ensure_sync (Test *test,
 	GError *error = NULL;
 	SecretService *service;
 	SecretServiceFlags flags;
-	const gchar *path;
 	gboolean ret;
 
 	/* Passing true, ensures session is established */
@@ -495,9 +495,9 @@ test_ensure_sync (Test *test,
 	g_object_get (service, "flags", &flags, NULL);
 	g_assert_cmpuint (flags, ==, SECRET_SERVICE_LOAD_COLLECTIONS);
 
-	path = secret_service_ensure_session_sync (service, NULL, &error);
+	ret = secret_service_ensure_session_sync (service, NULL, &error);
 	g_assert_no_error (error);
-	g_assert (path != NULL);
+	g_assert (ret == TRUE);
 
 	flags = secret_service_get_flags (service);
 	g_assert_cmpuint (flags, ==, SECRET_SERVICE_OPEN_SESSION | SECRET_SERVICE_LOAD_COLLECTIONS);
@@ -514,7 +514,6 @@ test_ensure_async (Test *test,
 	SecretServiceFlags flags;
 	SecretService *service;
 	GError *error = NULL;
-	const gchar *path;
 	gboolean ret;
 
 	/* Passing true, ensures session is established */
@@ -545,9 +544,9 @@ test_ensure_async (Test *test,
 
 	egg_test_wait ();
 
-	path = secret_service_ensure_session_finish (service, result, &error);
+	ret = secret_service_ensure_session_finish (service, result, &error);
 	g_assert_no_error (error);
-	g_assert (path != NULL);
+	g_assert (ret == TRUE);
 	g_object_unref (result);
 	result = NULL;
 

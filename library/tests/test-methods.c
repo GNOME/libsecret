@@ -398,8 +398,8 @@ test_lock_sync (Test *test,
 	GList *objects;
 	gboolean ret;
 
-	collection = secret_collection_new_sync (test->service, collection_path,
-	                                         SECRET_COLLECTION_NONE, NULL, &error);
+	collection = secret_collection_new_for_dbus_path_sync (test->service, collection_path,
+	                                                       SECRET_COLLECTION_NONE, NULL, &error);
 	g_assert_no_error (error);
 
 	objects = g_list_append (NULL, collection);
@@ -428,8 +428,8 @@ test_unlock_sync (Test *test,
 	GList *objects;
 	gboolean ret;
 
-	collection = secret_collection_new_sync (test->service, collection_path,
-	                                         SECRET_COLLECTION_NONE, NULL, &error);
+	collection = secret_collection_new_for_dbus_path_sync (test->service, collection_path,
+	                                                       SECRET_COLLECTION_NONE, NULL, &error);
 	g_assert_no_error (error);
 
 	objects = g_list_append (NULL, collection);
@@ -736,8 +736,8 @@ test_store_sync (Test *test,
 	g_hash_table_insert (attributes, "string", "seventeen");
 	g_hash_table_insert (attributes, "number", "17");
 
-	ret = secret_service_search_for_paths_sync (test->service, &MOCK_SCHEMA, attributes,
-	                                            NULL, &paths, NULL, &error);
+	ret = secret_service_search_for_dbus_paths_sync (test->service, &MOCK_SCHEMA, attributes,
+	                                                 NULL, &paths, NULL, &error);
 	g_hash_table_unref (attributes);
 	g_assert (ret == TRUE);
 
@@ -745,8 +745,8 @@ test_store_sync (Test *test,
 	g_assert (paths[0] != NULL);
 	g_assert (paths[1] == NULL);
 
-	value = secret_service_get_secret_for_path_sync (test->service, paths[0],
-	                                                  NULL, &error);
+	value = secret_service_get_secret_for_dbus_path_sync (test->service, paths[0],
+	                                                      NULL, &error);
 	g_assert_no_error (error);
 
 	g_assert (value != NULL);
@@ -789,8 +789,8 @@ test_store_replace (Test *test,
 	g_hash_table_insert (attributes, "string", "seventeen");
 	g_hash_table_insert (attributes, "number", "17");
 
-	ret = secret_service_search_for_paths_sync (test->service, &MOCK_SCHEMA, attributes,
-	                                            NULL, &paths, NULL, &error);
+	ret = secret_service_search_for_dbus_paths_sync (test->service, &MOCK_SCHEMA, attributes,
+	                                                 NULL, &paths, NULL, &error);
 	g_hash_table_unref (attributes);
 	g_assert (ret == TRUE);
 
@@ -837,8 +837,8 @@ test_store_async (Test *test,
 	g_hash_table_insert (attributes, "string", "seventeen");
 	g_hash_table_insert (attributes, "number", "17");
 
-	ret = secret_service_search_for_paths_sync (test->service, &MOCK_SCHEMA, attributes,
-	                                            NULL, &paths, NULL, &error);
+	ret = secret_service_search_for_dbus_paths_sync (test->service, &MOCK_SCHEMA, attributes,
+	                                                 NULL, &paths, NULL, &error);
 	g_hash_table_unref (attributes);
 	g_assert (ret == TRUE);
 
@@ -846,8 +846,8 @@ test_store_async (Test *test,
 	g_assert (paths[0] != NULL);
 	g_assert (paths[1] == NULL);
 
-	value = secret_service_get_secret_for_path_sync (test->service, paths[0],
-	                                                  NULL, &error);
+	value = secret_service_get_secret_for_dbus_path_sync (test->service, paths[0],
+	                                                      NULL, &error);
 	g_assert_no_error (error);
 
 	g_assert (value != NULL);
@@ -925,8 +925,9 @@ test_set_alias_sync (Test *test,
 	g_assert_no_error (error);
 	g_assert (blah == NULL);
 
-	collection = secret_collection_new_sync (test->service, "/org/freedesktop/secrets/collection/english",
-	                                         SECRET_COLLECTION_NONE, NULL, &error);
+	collection = secret_collection_new_for_dbus_path_sync (test->service,
+	                                                       "/org/freedesktop/secrets/collection/english",
+	                                                       SECRET_COLLECTION_NONE, NULL, &error);
 	g_assert_no_error (error);
 	g_assert (SECRET_IS_COLLECTION (collection));
 

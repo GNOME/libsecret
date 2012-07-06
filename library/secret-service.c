@@ -1145,7 +1145,7 @@ secret_service_get_session_algorithms (SecretService *self)
 }
 
 /**
- * secret_service_get_session_path:
+ * secret_service_get_session_dbus_path:
  * @self: the secret service proxy
  *
  * Get the D-Bus object path of the session object being used to transfer
@@ -1158,7 +1158,7 @@ secret_service_get_session_algorithms (SecretService *self)
  *          session
  */
 const gchar *
-secret_service_get_session_path (SecretService *self)
+secret_service_get_session_dbus_path (SecretService *self)
 {
 	SecretSession *session;
 	const gchar *path;
@@ -1227,24 +1227,24 @@ secret_service_ensure_session (SecretService *self,
  * Finish an asynchronous operation to ensure that the #SecretService proxy
  * has established a session with the Secret Service.
  *
- * Returns: the path of the established session
+ * Returns: whether a session is established or not
  */
-const gchar *
+gboolean
 secret_service_ensure_session_finish (SecretService *self,
                                       GAsyncResult *result,
                                       GError **error)
 {
-	g_return_val_if_fail (SECRET_IS_SERVICE (self), NULL);
-	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
+	g_return_val_if_fail (SECRET_IS_SERVICE (self), FALSE);
+	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
 	if (!g_simple_async_result_is_valid (result, G_OBJECT (self),
 	                                     secret_service_ensure_session)) {
 		if (!_secret_session_open_finish (result, error))
-			return NULL;
+			return FALSE;
 	}
 
-	g_return_val_if_fail (self->pv->session != NULL, NULL);
-	return secret_service_get_session_path (self);
+	g_return_val_if_fail (self->pv->session != NULL, FALSE);
+	return TRUE;
 }
 
 /**
@@ -1264,19 +1264,19 @@ secret_service_ensure_session_finish (SecretService *self,
  * This method may block indefinitely and should not be used in user interface
  * threads.
  *
- * Returns: the path of the established session
+ * Returns: whether a session is established or not
  */
-const gchar *
+gboolean
 secret_service_ensure_session_sync (SecretService *self,
                                     GCancellable *cancellable,
                                     GError **error)
 {
 	SecretSync *sync;
-	const gchar *path;
+	gboolean ret;
 
-	g_return_val_if_fail (SECRET_IS_SERVICE (self), NULL);
-	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
-	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
+	g_return_val_if_fail (SECRET_IS_SERVICE (self), FALSE);
+	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), FALSE);
+	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
 	sync = _secret_sync_new ();
 	g_main_context_push_thread_default (sync->context);
@@ -1286,12 +1286,12 @@ secret_service_ensure_session_sync (SecretService *self,
 
 	g_main_loop_run (sync->loop);
 
-	path = secret_service_ensure_session_finish (self, sync->result, error);
+	ret = secret_service_ensure_session_finish (self, sync->result, error);
 
 	g_main_context_pop_thread_default (sync->context);
 	_secret_sync_free (sync);
 
-	return path;
+	return ret;
 }
 
 static SecretCollection *
@@ -1370,7 +1370,7 @@ on_ensure_collection (GObject *source,
 
 	closure->collections_loading--;
 
-	collection = secret_collection_new_finish (result, &error);
+	collection = secret_collection_new_for_dbus_path_finish (result, &error);
 
 	if (error != NULL)
 		g_simple_async_result_take_error (res, error);
@@ -1438,8 +1438,8 @@ secret_service_load_collections (SecretService *self,
 
 		/* No such collection yet create a new one */
 		if (collection == NULL) {
-			secret_collection_new (self, path, SECRET_COLLECTION_LOAD_ITEMS, cancellable,
-			                       on_ensure_collection, g_object_ref (res));
+			secret_collection_new_for_dbus_path (self, path, SECRET_COLLECTION_LOAD_ITEMS,
+			                                     cancellable, on_ensure_collection, g_object_ref (res));
 			closure->collections_loading++;
 		} else {
 			g_hash_table_insert (closure->collections, g_strdup (path), collection);
@@ -1528,9 +1528,9 @@ secret_service_load_collections_sync (SecretService *self,
 
 		/* No such collection yet create a new one */
 		if (collection == NULL) {
-			collection = secret_collection_new_sync (self, path,
-			                                         SECRET_COLLECTION_LOAD_ITEMS,
-			                                         cancellable, error);
+			collection = secret_collection_new_for_dbus_path_sync (self, path,
+			                                                       SECRET_COLLECTION_LOAD_ITEMS,
+			                                                       cancellable, error);
 			if (collection == NULL) {
 				ret = FALSE;
 				break;

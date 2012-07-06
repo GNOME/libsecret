@@ -15,6 +15,7 @@
 
 #include "secret-item.h"
 #include "secret-service.h"
+#include "secret-paths.h"
 #include "secret-private.h"
 
 #include "mock-service.h"
@@ -60,15 +61,15 @@ test_ensure (Test *test,
              gconstpointer unused)
 {
 	GError *error = NULL;
-	const gchar *path;
+	gboolean ret;
 
-	g_assert_cmpstr (secret_service_get_session_path (test->service), ==, NULL);
+	g_assert_cmpstr (secret_service_get_session_dbus_path (test->service), ==, NULL);
 	g_assert_cmpstr (secret_service_get_session_algorithms (test->service), ==, NULL);
 
-	path = secret_service_ensure_session_sync (test->service, NULL, &error);
+	ret = secret_service_ensure_session_sync (test->service, NULL, &error);
 	g_assert_no_error (error);
-	g_assert (path != NULL);
-	g_assert_cmpstr (secret_service_get_session_path (test->service), ==, path);
+	g_assert (ret == TRUE);
+	g_assert_cmpstr (secret_service_get_session_dbus_path (test->service), !=, NULL);
 	g_assert_cmpstr (secret_service_get_session_algorithms (test->service), ==, "dh-ietf1024-sha256-aes128-cbc-pkcs7");
 }
 
@@ -77,22 +78,26 @@ test_ensure_twice (Test *test,
                    gconstpointer unused)
 {
 	GError *error = NULL;
-	const gchar *path;
+	gchar *path;
+	gboolean ret;
 
-	g_assert_cmpstr (secret_service_get_session_path (test->service), ==, NULL);
+	g_assert_cmpstr (secret_service_get_session_dbus_path (test->service), ==, NULL);
 	g_assert_cmpstr (secret_service_get_session_algorithms (test->service), ==, NULL);
 
-	path = secret_service_ensure_session_sync (test->service, NULL, &error);
+	ret = secret_service_ensure_session_sync (test->service, NULL, &error);
 	g_assert_no_error (error);
-	g_assert (path != NULL);
-	g_assert_cmpstr (secret_service_get_session_path (test->service), ==, path);
+	g_assert (ret == TRUE);
+	g_assert_cmpstr (secret_service_get_session_dbus_path (test->service), !=, NULL);
 	g_assert_cmpstr (secret_service_get_session_algorithms (test->service), ==, "dh-ietf1024-sha256-aes128-cbc-pkcs7");
 
-	path = secret_service_ensure_session_sync (test->service, NULL, &error);
+	path = g_strdup (secret_service_get_session_dbus_path (test->service));
+	ret = secret_service_ensure_session_sync (test->service, NULL, &error);
 	g_assert_no_error (error);
-	g_assert (path != NULL);
-	g_assert_cmpstr (secret_service_get_session_path (test->service), ==, path);
+	g_assert (ret == TRUE);
+	g_assert_cmpstr (secret_service_get_session_dbus_path (test->service), ==, path);
 	g_assert_cmpstr (secret_service_get_session_algorithms (test->service), ==, "dh-ietf1024-sha256-aes128-cbc-pkcs7");
+
+	g_free (path);
 }
 
 static void
@@ -100,16 +105,16 @@ test_ensure_plain (Test *test,
                    gconstpointer unused)
 {
 	GError *error = NULL;
-	const gchar *path;
+	gboolean ret;
 
-	g_assert_cmpstr (secret_service_get_session_path (test->service), ==, NULL);
+	g_assert_cmpstr (secret_service_get_session_dbus_path (test->service), ==, NULL);
 	g_assert_cmpstr (secret_service_get_session_algorithms (test->service), ==, NULL);
 
-	path = secret_service_ensure_session_sync (test->service, NULL, &error);
+	ret = secret_service_ensure_session_sync (test->service, NULL, &error);
 	g_assert_no_error (error);
 
-	g_assert (path != NULL);
-	g_assert_cmpstr (secret_service_get_session_path (test->service), ==, path);
+	g_assert (ret == TRUE);
+	g_assert_cmpstr (secret_service_get_session_dbus_path (test->service), !=, NULL);
 	g_assert_cmpstr (secret_service_get_session_algorithms (test->service), ==, "plain");
 }
 
@@ -131,17 +136,17 @@ test_ensure_async_plain (Test *test,
 {
 	GAsyncResult *result = NULL;
 	GError *error = NULL;
-	const gchar *path;
+	gboolean ret;
 
 	secret_service_ensure_session (test->service, NULL, on_complete_get_result, &result);
 	egg_test_wait ();
 
 	g_assert (G_IS_ASYNC_RESULT (result));
-	path = secret_service_ensure_session_finish (test->service, result, &error);
+	ret = secret_service_ensure_session_finish (test->service, result, &error);
 	g_assert_no_error (error);
 
-	g_assert (path != NULL);
-	g_assert_cmpstr (secret_service_get_session_path (test->service), ==, path);
+	g_assert (ret == TRUE);
+	g_assert_cmpstr (secret_service_get_session_dbus_path (test->service), !=, NULL);
 	g_assert_cmpstr (secret_service_get_session_algorithms (test->service), ==, "plain");
 
 	g_object_unref (result);
@@ -153,17 +158,17 @@ test_ensure_async_aes (Test *test,
 {
 	GAsyncResult *result = NULL;
 	GError *error = NULL;
-	const gchar *path;
+	gboolean ret;
 
 	secret_service_ensure_session (test->service, NULL, on_complete_get_result, &result);
 	egg_test_wait_until (500);
 
 	g_assert (G_IS_ASYNC_RESULT (result));
-	path = secret_service_ensure_session_finish (test->service, result, &error);
+	ret = secret_service_ensure_session_finish (test->service, result, &error);
 	g_assert_no_error (error);
 
-	g_assert (path != NULL);
-	g_assert_cmpstr (secret_service_get_session_path (test->service), ==, path);
+	g_assert (ret == TRUE);
+	g_assert_cmpstr (secret_service_get_session_dbus_path (test->service), !=, NULL);
 	g_assert_cmpstr (secret_service_get_session_algorithms (test->service), ==, "dh-ietf1024-sha256-aes128-cbc-pkcs7");
 
 	g_object_unref (result);
@@ -175,34 +180,37 @@ test_ensure_async_twice (Test *test,
 {
 	GAsyncResult *result = NULL;
 	GError *error = NULL;
-	const gchar *path;
+	gboolean ret;
+	gchar *path;
 
 	secret_service_ensure_session (test->service, NULL, on_complete_get_result, &result);
 	egg_test_wait_until (500);
 
 	g_assert (G_IS_ASYNC_RESULT (result));
-	path = secret_service_ensure_session_finish (test->service, result, &error);
+	ret = secret_service_ensure_session_finish (test->service, result, &error);
 	g_assert_no_error (error);
 
-	g_assert (path != NULL);
-	g_assert_cmpstr (secret_service_get_session_path (test->service), ==, path);
+	g_assert (ret == TRUE);
+	g_assert_cmpstr (secret_service_get_session_dbus_path (test->service), !=, NULL);
 	g_assert_cmpstr (secret_service_get_session_algorithms (test->service), ==, "plain");
 
 	g_object_unref (result);
 	result = NULL;
 
+	path = g_strdup (secret_service_get_session_dbus_path (test->service));
 	secret_service_ensure_session (test->service, NULL, on_complete_get_result, &result);
 	egg_test_wait_until (500);
 
 	g_assert (G_IS_ASYNC_RESULT (result));
-	path = secret_service_ensure_session_finish (test->service, result, &error);
+	ret = secret_service_ensure_session_finish (test->service, result, &error);
 	g_assert_no_error (error);
 
-	g_assert (path != NULL);
-	g_assert_cmpstr (secret_service_get_session_path (test->service), ==, path);
+	g_assert (ret == TRUE);
+	g_assert_cmpstr (secret_service_get_session_dbus_path (test->service), ==, path);
 	g_assert_cmpstr (secret_service_get_session_algorithms (test->service), ==, "plain");
 
 	g_object_unref (result);
+	g_free (path);
 }
 
 int

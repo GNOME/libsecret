@@ -58,22 +58,6 @@ struct _SecretItemClass {
 
 GType               secret_item_get_type                   (void) G_GNUC_CONST;
 
-void                secret_item_new                        (SecretService *service,
-                                                            const gchar *item_path,
-                                                            SecretItemFlags flags,
-                                                            GCancellable *cancellable,
-                                                            GAsyncReadyCallback callback,
-                                                            gpointer user_data);
-
-SecretItem *        secret_item_new_finish                 (GAsyncResult *result,
-                                                            GError **error);
-
-SecretItem *        secret_item_new_sync                   (SecretService *service,
-                                                            const gchar *item_path,
-                                                            SecretItemFlags flags,
-                                                            GCancellable *cancellable,
-                                                            GError **error);
-
 void                secret_item_refresh                    (SecretItem *self);
 
 void                secret_item_create                     (SecretCollection *collection,

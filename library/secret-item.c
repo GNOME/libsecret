@@ -598,128 +598,6 @@ secret_item_async_initable_iface (GAsyncInitableIface *iface)
 }
 
 /**
- * secret_item_new:
- * @service: (allow-none): a secret service object
- * @item_path: the D-Bus path of the collection
- * @flags: initialization flags for the new item
- * @cancellable: optional cancellation object
- * @callback: called when the operation completes
- * @user_data: data to be passed to the callback
- *
- * Get a new item proxy for a secret item in the secret service.
- *
- * If @service is NULL, then secret_service_get() will be called to get
- * the default #SecretService proxy.
- *
- * This method will return immediately and complete asynchronously.
- */
-void
-secret_item_new (SecretService *service,
-                 const gchar *item_path,
-                 SecretItemFlags flags,
-                 GCancellable *cancellable,
-                 GAsyncReadyCallback callback,
-                 gpointer user_data)
-{
-	GDBusProxy *proxy;
-
-	g_return_if_fail (service == NULL || SECRET_IS_SERVICE (service));
-	g_return_if_fail (item_path != NULL);
-	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
-
-	proxy = G_DBUS_PROXY (service);
-
-	g_async_initable_new_async (SECRET_SERVICE_GET_CLASS (service)->item_gtype,
-	                            G_PRIORITY_DEFAULT, cancellable, callback, user_data,
-	                            "g-flags", G_DBUS_CALL_FLAGS_NONE,
-	                            "g-interface-info", _secret_gen_item_interface_info (),
-	                            "g-name", g_dbus_proxy_get_name (proxy),
-	                            "g-connection", g_dbus_proxy_get_connection (proxy),
-	                            "g-object-path", item_path,
-	                            "g-interface-name", SECRET_ITEM_INTERFACE,
-	                            "service", service,
-	                            "flags", flags,
-	                            NULL);
-}
-
-/**
- * secret_item_new_finish:
- * @result: the asynchronous result passed to the callback
- * @error: location to place an error on failure
- *
- * Finish asynchronous operation to get a new item proxy for an secret
- * item in the secret service.
- *
- * Returns: (transfer full): the new item, which should be unreferenced
- *          with g_object_unref()
- */
-SecretItem *
-secret_item_new_finish (GAsyncResult *result,
-                        GError **error)
-{
-	GObject *object;
-	GObject *source_object;
-
-	source_object = g_async_result_get_source_object (result);
-	object = g_async_initable_new_finish (G_ASYNC_INITABLE (source_object),
-	                                      result, error);
-	g_object_unref (source_object);
-
-	if (object == NULL)
-		return NULL;
-
-	return SECRET_ITEM (object);
-}
-
-/**
- * secret_item_new_sync:
- * @service: (allow-none): a secret service object
- * @item_path: the D-Bus path of the item
- * @flags: initialization flags for the new item
- * @cancellable: optional cancellation object
- * @error: location to place an error on failure
- *
- * Get a new item proxy for a secret item in the secret service.
- *
- * If @service is NULL, then secret_service_get_sync() will be called to get
- * the default #SecretService proxy.
- *
- * This method may block indefinitely and should not be used in user interface
- * threads.
- *
- * Returns: (transfer full): the new item, which should be unreferenced
- *          with g_object_unref()
- */
-SecretItem *
-secret_item_new_sync (SecretService *service,
-                      const gchar *item_path,
-                      SecretItemFlags flags,
-                      GCancellable *cancellable,
-                      GError **error)
-{
-	GDBusProxy *proxy;
-
-	g_return_val_if_fail (service == NULL || SECRET_IS_SERVICE (service), NULL);
-	g_return_val_if_fail (item_path != NULL, NULL);
-	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
-	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
-
-	proxy = G_DBUS_PROXY (service);
-
-	return g_initable_new (SECRET_SERVICE_GET_CLASS (service)->item_gtype,
-	                       cancellable, error,
-	                       "g-flags", G_DBUS_CALL_FLAGS_NONE,
-	                       "g-interface-info", _secret_gen_item_interface_info (),
-	                       "g-name", g_dbus_proxy_get_name (proxy),
-	                       "g-connection", g_dbus_proxy_get_connection (proxy),
-	                       "g-object-path", item_path,
-	                       "g-interface-name", SECRET_ITEM_INTERFACE,
-	                       "service", service,
-	                       "flags", flags,
-	                       NULL);
-}
-
-/**
  * secret_item_refresh:
  * @self: the collection
  *
@@ -795,7 +673,7 @@ on_create_item (GObject *source,
 	CreateClosure *closure = g_simple_async_result_get_op_res_gpointer (res);
 	GError *error = NULL;
 
-	closure->item = secret_item_new_finish (result, &error);
+	closure->item = secret_item_new_for_dbus_path_finish (result, &error);
 	if (error != NULL)
 		g_simple_async_result_take_error (res, error);
 
@@ -817,11 +695,11 @@ on_create_path (GObject *source,
 	GError *error = NULL;
 	gchar *path;
 
-	path = secret_service_create_item_path_finish (service, result, &error);
+	path = secret_service_create_item_dbus_path_finish (service, result, &error);
 	if (error == NULL) {
-		secret_item_new (service, path, SECRET_ITEM_NONE,
-		                 closure->cancellable, on_create_item,
-		                 g_object_ref (res));
+		secret_item_new_for_dbus_path (service, path, SECRET_ITEM_NONE,
+		                               closure->cancellable, on_create_item,
+		                               g_object_ref (res));
 	} else {
 		g_simple_async_result_take_error (res, error);
 		g_simple_async_result_complete (res);
@@ -908,9 +786,9 @@ secret_item_create (SecretCollection *collection,
 
 	collection_path = g_dbus_proxy_get_object_path (G_DBUS_PROXY (collection));
 
-	secret_service_create_item_path (service, collection_path, properties,
-	                                 value, replace, cancellable,
-	                                 on_create_path, g_object_ref (res));
+	secret_service_create_item_dbus_path (service, collection_path, properties,
+	                                      value, replace, cancellable,
+	                                      on_create_path, g_object_ref (res));
 
 	g_hash_table_unref (properties);
 	g_object_unref (service);
@@ -1000,12 +878,12 @@ secret_item_create_sync (SecretCollection *collection,
 
 	collection_path = g_dbus_proxy_get_object_path (G_DBUS_PROXY (collection));
 
-	path = secret_service_create_item_path_sync (service, collection_path, properties,
-	                                             value, replace, cancellable, error);
+	path = secret_service_create_item_dbus_path_sync (service, collection_path, properties,
+	                                                  value, replace, cancellable, error);
 
 	if (path != NULL) {
-		item = secret_item_new_sync (service, path, SECRET_ITEM_NONE,
-		                             cancellable, error);
+		item = secret_item_new_for_dbus_path_sync (service, path, SECRET_ITEM_NONE,
+		                                           cancellable, error);
 		g_free (path);
 	}
 
@@ -1024,7 +902,7 @@ on_item_deleted (GObject *source,
 	SecretItem *self = SECRET_ITEM (g_async_result_get_source_object (user_data));
 	GError *error = NULL;
 
-	if (secret_service_delete_path_finish (SECRET_SERVICE (source), result, &error))
+	if (_secret_service_delete_path_finish (SECRET_SERVICE (source), result, &error))
 		g_simple_async_result_set_op_res_gboolean (res, TRUE);
 
 	if (error != NULL)
@@ -1279,12 +1157,13 @@ on_load_ensure_session (GObject *source,
 	const gchar *session_path;
 	GError *error = NULL;
 
-	session_path = secret_service_ensure_session_finish (self->pv->service, result, &error);
+	secret_service_ensure_session_finish (self->pv->service, result, &error);
 	if (error != NULL) {
 		g_simple_async_result_take_error (res, error);
 		g_simple_async_result_complete (res);
 
 	} else {
+		session_path = secret_service_get_session_dbus_path (self->pv->service);
 		g_assert (session_path != NULL && session_path[0] != '\0');
 		g_dbus_proxy_call (G_DBUS_PROXY (self), "GetSecret",
 		                   g_variant_new ("(o)", session_path),
@@ -1481,13 +1360,13 @@ on_loads_secrets_session (GObject *source,
 	GError *error = NULL;
 	const gchar *session;
 
-	session = secret_service_ensure_session_finish (SECRET_SERVICE (source),
-	                                                result, &error);
+	secret_service_ensure_session_finish (SECRET_SERVICE (source), result, &error);
 	if (error != NULL) {
 		g_simple_async_result_take_error (async, error);
 		g_simple_async_result_complete (async);
 
 	} else {
+		session = secret_service_get_session_dbus_path (SECRET_SERVICE (source));
 		g_dbus_proxy_call (G_DBUS_PROXY (source), "GetSecrets",
 		                   g_variant_new ("(@aoo)", loads->in, session),
 		                   G_DBUS_CALL_FLAGS_NO_AUTO_START, -1,

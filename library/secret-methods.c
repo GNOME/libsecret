@@ -127,7 +127,7 @@ on_search_loaded (GObject *source,
 
 	closure->loading--;
 
-	item = secret_item_new_finish (result, &error);
+	item = secret_item_new_for_dbus_path_finish (result, &error);
 	if (error != NULL)
 		g_simple_async_result_take_error (res, error);
 
@@ -170,8 +170,8 @@ search_load_item_async (SecretService *self,
 
 	item = _secret_service_find_item_instance (self, path);
 	if (item == NULL) {
-		secret_item_new (self, path, SECRET_ITEM_NONE, closure->cancellable,
-		                  on_search_loaded, g_object_ref (res));
+		secret_item_new_for_dbus_path (self, path, SECRET_ITEM_NONE, closure->cancellable,
+		                               on_search_loaded, g_object_ref (res));
 		closure->loading++;
 	} else {
 		search_closure_take_item (closure, item);
@@ -190,8 +190,8 @@ on_search_paths (GObject *source,
 	gint want = 1;
 	guint i;
 
-	secret_service_search_for_paths_finish (self, result, &closure->unlocked,
-	                                        &closure->locked, &error);
+	secret_service_search_for_dbus_paths_finish (self, result, &closure->unlocked,
+	                                             &closure->locked, &error);
 	if (error == NULL) {
 		want = 1;
 		if (closure->flags & SECRET_SEARCH_ALL)
@@ -367,8 +367,8 @@ service_load_items_sync (SecretService *service,
 	for (i = 0; *have < want && paths[i] != NULL; i++) {
 		item = _secret_service_find_item_instance (service, paths[i]);
 		if (item == NULL)
-			item = secret_item_new_sync (service, paths[i], SECRET_ITEM_NONE,
-			                             cancellable, error);
+			item = secret_item_new_for_dbus_path_sync (service, paths[i], SECRET_ITEM_NONE,
+			                                           cancellable, error);
 		if (item == NULL) {
 			return FALSE;
 
@@ -448,8 +448,8 @@ secret_service_search_sync (SecretService *service,
 		g_object_ref (service);
 	}
 
-	if (!secret_service_search_for_paths_sync (service, schema, attributes, cancellable,
-	                                           &unlocked_paths, &locked_paths, error)) {
+	if (!secret_service_search_for_dbus_paths_sync (service, schema, attributes, cancellable,
+	                                                &unlocked_paths, &locked_paths, error)) {
 		g_object_unref (service);
 		return NULL;
 	}
@@ -714,10 +714,6 @@ service_xlock_finish (SecretService *service,
  *
  * Lock items or collections in the secret service.
  *
- * This method takes a list of #SecretItem or #SecretCollection proxy objects.
- * If you only have the D-Bus object paths of the items or collections, use
- * secret_service_lock_paths() instead.
- *
  * The secret service may not be able to lock items individually, and may
  * lock an entire collection instead.
  *
@@ -780,10 +776,6 @@ secret_service_lock_finish (SecretService *service,
  *
  * Lock items or collections in the secret service.
  *
- * This method takes a list of #SecretItem or #SecretCollection proxy objects.
- * If you only have the D-Bus object paths of the items or collections, use
- * secret_service_lock_paths_sync() instead.
- *
  * The secret service may not be able to lock items individually, and may
  * lock an entire collection instead.
  *
@@ -835,10 +827,6 @@ secret_service_lock_sync (SecretService *service,
  * @user_data: data to pass to the callback
  *
  * Unlock items or collections in the secret service.
- *
- * This method takes a list of #SecretItem or #SecretCollection proxy objects.
- * If you only have the D-Bus object paths of the items or collections, use
- * secret_service_unlock_paths() instead.
  *
  * The secret service may not be able to unlock items individually, and may
  * unlock an entire collection instead.
@@ -901,10 +889,6 @@ secret_service_unlock_finish (SecretService *service,
  * @error: location to place an error on failure
  *
  * Unlock items or collections in the secret service.
- *
- * This method takes a list of #SecretItem or #SecretCollection proxy objects.
- * If you only have the D-Bus object paths of the items or collections, use
- * secret_service_unlock_paths_sync() instead.
  *
  * The secret service may not be able to unlock items individually, and may
  * unlock an entire collection instead.
@@ -976,7 +960,7 @@ on_store_create (GObject *source,
 	GError *error = NULL;
 	gchar *path;
 
-	path = secret_service_create_item_path_finish (SECRET_SERVICE (source), result, &error);
+	path = secret_service_create_item_dbus_path_finish (SECRET_SERVICE (source), result, &error);
 	if (error != NULL)
 		g_simple_async_result_take_error (async, error);
 	g_free (path);
@@ -997,10 +981,10 @@ on_store_service (GObject *source,
 
 	service = secret_service_get_finish (result, &error);
 	if (error == NULL) {
-		secret_service_create_item_path (service, store->collection_path,
-		                                 store->properties, store->value,
-		                                 TRUE, store->cancellable,
-		                                 on_store_create, g_object_ref (async));
+		secret_service_create_item_dbus_path (service, store->collection_path,
+		                                      store->properties, store->value,
+		                                      TRUE, store->cancellable,
+		                                      on_store_create, g_object_ref (async));
 		g_object_unref (service);
 
 	} else {
@@ -1093,10 +1077,10 @@ secret_service_store (SecretService *service,
 		                    on_store_service, g_object_ref (async));
 
 	} else {
-		secret_service_create_item_path (service, store->collection_path,
-		                                 store->properties, store->value,
-		                                 TRUE, store->cancellable,
-		                                 on_store_create, g_object_ref (async));
+		secret_service_create_item_dbus_path (service, store->collection_path,
+		                                      store->properties, store->value,
+		                                      TRUE, store->cancellable,
+		                                      on_store_create, g_object_ref (async));
 	}
 
 	g_object_unref (async);
@@ -1225,7 +1209,7 @@ on_lookup_get_secret (GObject *source,
 	SecretService *self = SECRET_SERVICE (source);
 	GError *error = NULL;
 
-	closure->value = secret_service_get_secret_for_path_finish (self, result, &error);
+	closure->value = secret_service_get_secret_for_dbus_path_finish (self, result, &error);
 	if (error != NULL)
 		g_simple_async_result_take_error (res, error);
 
@@ -1244,17 +1228,17 @@ on_lookup_unlocked (GObject *source,
 	GError *error = NULL;
 	gchar **unlocked = NULL;
 
-	secret_service_unlock_paths_finish (SECRET_SERVICE (source),
-	                                     result, &unlocked, &error);
+	secret_service_unlock_dbus_paths_finish (SECRET_SERVICE (source),
+	                                         result, &unlocked, &error);
 	if (error != NULL) {
 		g_simple_async_result_take_error (res, error);
 		g_simple_async_result_complete (res);
 
 	} else if (unlocked && unlocked[0]) {
-		secret_service_get_secret_for_path (self, unlocked[0],
-		                                    closure->cancellable,
-		                                    on_lookup_get_secret,
-		                                    g_object_ref (res));
+		secret_service_get_secret_for_dbus_path (self, unlocked[0],
+		                                         closure->cancellable,
+		                                         on_lookup_get_secret,
+		                                         g_object_ref (res));
 
 	} else {
 		g_simple_async_result_complete (res);
@@ -1276,23 +1260,23 @@ on_lookup_searched (GObject *source,
 	gchar **unlocked = NULL;
 	gchar **locked = NULL;
 
-	secret_service_search_for_paths_finish (self, result, &unlocked, &locked, &error);
+	secret_service_search_for_dbus_paths_finish (self, result, &unlocked, &locked, &error);
 	if (error != NULL) {
 		g_simple_async_result_take_error (res, error);
 		g_simple_async_result_complete (res);
 
 	} else if (unlocked && unlocked[0]) {
-		secret_service_get_secret_for_path (self, unlocked[0],
-		                                    closure->cancellable,
-		                                    on_lookup_get_secret,
-		                                    g_object_ref (res));
+		secret_service_get_secret_for_dbus_path (self, unlocked[0],
+		                                         closure->cancellable,
+		                                         on_lookup_get_secret,
+		                                         g_object_ref (res));
 
 	} else if (locked && locked[0]) {
 		const gchar *paths[] = { locked[0], NULL };
-		secret_service_unlock_paths (self, paths,
-		                             closure->cancellable,
-		                             on_lookup_unlocked,
-		                             g_object_ref (res));
+		secret_service_unlock_dbus_paths (self, paths,
+		                                  closure->cancellable,
+		                                  on_lookup_unlocked,
+		                                  g_object_ref (res));
 
 	} else {
 		g_simple_async_result_complete (res);
@@ -1510,7 +1494,7 @@ on_delete_password_complete (GObject *source,
 	DeleteClosure *closure = g_simple_async_result_get_op_res_gpointer (res);
 	GError *error = NULL;
 
-	closure->deleted = secret_service_delete_path_finish (SECRET_SERVICE (source), result, &error);
+	closure->deleted = _secret_service_delete_path_finish (SECRET_SERVICE (source), result, &error);
 	if (error != NULL)
 		g_simple_async_result_take_error (res, error);
 
@@ -1531,7 +1515,7 @@ on_delete_searched (GObject *source,
 	gchar **locked;
 	gchar **unlocked;
 
-	secret_service_search_for_paths_finish (SECRET_SERVICE (source), result, &unlocked, &locked, &error);
+	secret_service_search_for_dbus_paths_finish (SECRET_SERVICE (source), result, &unlocked, &locked, &error);
 	if (error != NULL) {
 		g_simple_async_result_take_error (res, error);
 		g_simple_async_result_complete (res);
@@ -1765,7 +1749,7 @@ on_read_alias_collection (GObject *source,
 	ReadClosure *read = g_simple_async_result_get_op_res_gpointer (async);
 	GError *error = NULL;
 
-	read->collection = secret_collection_new_finish (result, &error);
+	read->collection = secret_collection_new_for_dbus_path_finish (result, &error);
 	if (error != NULL)
 		g_simple_async_result_take_error (async, error);
 
@@ -1784,7 +1768,7 @@ on_read_alias_path (GObject *source,
 	GError *error = NULL;
 	gchar *collection_path;
 
-	collection_path = secret_service_read_alias_path_finish (self, result, &error);
+	collection_path = secret_service_read_alias_dbus_path_finish (self, result, &error);
 	if (error == NULL) {
 
 		/* No collection for this alias */
@@ -1799,9 +1783,11 @@ on_read_alias_path (GObject *source,
 
 			/* No collection loaded, but valid path, load */
 			} else {
-				secret_collection_new (self, collection_path, SECRET_COLLECTION_NONE,
-				                       read->cancellable,
-				                       on_read_alias_collection, g_object_ref (async));
+				secret_collection_new_for_dbus_path (self, collection_path,
+				                                     SECRET_COLLECTION_NONE,
+				                                     read->cancellable,
+				                                     on_read_alias_collection,
+				                                     g_object_ref (async));
 			}
 		}
 
@@ -1826,8 +1812,8 @@ on_read_alias_service (GObject *source,
 
 	service = secret_service_get_finish (result, &error);
 	if (error == NULL) {
-		secret_service_read_alias_path (service, read->alias, read->cancellable,
-		                                on_read_alias_path, g_object_ref (async));
+		secret_service_read_alias_dbus_path (service, read->alias, read->cancellable,
+		                                     on_read_alias_path, g_object_ref (async));
 		g_object_unref (service);
 
 	} else {
@@ -1879,8 +1865,8 @@ secret_service_read_alias (SecretService *service,
 		secret_service_get (SECRET_SERVICE_NONE, cancellable,
 		                    on_read_alias_service, g_object_ref (async));
 	} else {
-		secret_service_read_alias_path (service, read->alias, read->cancellable,
-		                                on_read_alias_path, g_object_ref (async));
+		secret_service_read_alias_dbus_path (service, read->alias, read->cancellable,
+		                                     on_read_alias_path, g_object_ref (async));
 	}
 
 	g_object_unref (async);
@@ -1950,8 +1936,8 @@ secret_service_read_alias_sync (SecretService *service,
 	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
 	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 
-	collection_path = secret_service_read_alias_path_sync (service, alias,
-	                                                       cancellable, error);
+	collection_path = secret_service_read_alias_dbus_path_sync (service, alias,
+	                                                            cancellable, error);
 	if (collection_path == NULL)
 		return NULL;
 
@@ -1965,9 +1951,9 @@ secret_service_read_alias_sync (SecretService *service,
 
 		/* No collection loaded, but valid path, load */
 		if (collection == NULL) {
-			collection = secret_collection_new_sync (service, collection_path,
-			                                         SECRET_COLLECTION_LOAD_ITEMS,
-			                                         cancellable, error);
+			collection = secret_collection_new_for_dbus_path_sync (service, collection_path,
+			                                                       SECRET_COLLECTION_LOAD_ITEMS,
+			                                                       cancellable, error);
 		}
 	}
 
@@ -2021,8 +2007,8 @@ secret_service_set_alias (SecretService *service,
 		g_object_ref (service);
 	}
 
-	secret_service_set_alias_path (service, alias, collection_path, cancellable,
-	                               callback, user_data);
+	secret_service_set_alias_to_dbus_path (service, alias, collection_path, cancellable,
+	                                       callback, user_data);
 
 	g_object_unref (service);
 }
@@ -2052,7 +2038,7 @@ secret_service_set_alias_finish (SecretService *service,
 	else
 		g_object_ref (service);
 
-	ret = secret_service_set_alias_path_finish (service, result, error);
+	ret = secret_service_set_alias_to_dbus_path_finish (service, result, error);
 
 	g_object_unref (service);
 

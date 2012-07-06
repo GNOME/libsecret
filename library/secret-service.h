@@ -122,8 +122,6 @@ SecretServiceFlags   secret_service_get_flags                     (SecretService
 
 const gchar *        secret_service_get_session_algorithms        (SecretService *self);
 
-const gchar *        secret_service_get_session_path              (SecretService *self);
-
 GList *              secret_service_get_collections               (SecretService *self);
 
 void                 secret_service_ensure_session                (SecretService *self,
@@ -131,11 +129,11 @@ void                 secret_service_ensure_session                (SecretService
                                                                    GAsyncReadyCallback callback,
                                                                    gpointer user_data);
 
-const gchar *        secret_service_ensure_session_finish         (SecretService *self,
+gboolean             secret_service_ensure_session_finish         (SecretService *self,
                                                                    GAsyncResult *result,
                                                                    GError **error);
 
-const gchar *        secret_service_ensure_session_sync           (SecretService *self,
+gboolean             secret_service_ensure_session_sync           (SecretService *self,
                                                                    GCancellable *cancellable,
                                                                    GError **error);
 

@@ -127,6 +127,10 @@ void                 _secret_service_delete_path              (SecretService *se
                                                                GAsyncReadyCallback callback,
                                                                gpointer user_data);
 
+gboolean             _secret_service_delete_path_finish       (SecretService *self,
+                                                               GAsyncResult *result,
+                                                               GError **error);
+
 void                 _secret_service_search_for_paths_variant (SecretService *self,
                                                                GVariant *attributes,
                                                                GCancellable *cancellable,

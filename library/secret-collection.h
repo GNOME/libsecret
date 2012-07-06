@@ -56,22 +56,6 @@ struct _SecretCollectionClass {
 
 GType               secret_collection_get_type                 (void) G_GNUC_CONST;
 
-void                secret_collection_new                      (SecretService *service,
-                                                                const gchar *collection_path,
-                                                                SecretCollectionFlags flags,
-                                                                GCancellable *cancellable,
-                                                                GAsyncReadyCallback callback,
-                                                                gpointer user_data);
-
-SecretCollection *  secret_collection_new_finish               (GAsyncResult *result,
-                                                                GError **error);
-
-SecretCollection *  secret_collection_new_sync                 (SecretService *service,
-                                                                const gchar *collection_path,
-                                                                SecretCollectionFlags flags,
-                                                                GCancellable *cancellable,
-                                                                GError **error);
-
 void                secret_collection_load_items               (SecretCollection *self,
                                                                 GCancellable *cancellable,
                                                                 GAsyncReadyCallback callback,

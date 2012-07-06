@@ -39,6 +39,254 @@
  * Stability: Unstable
  */
 
+/**
+ * secret_collection_new_for_dbus_path:
+ * @service: (allow-none): a secret service object
+ * @collection_path: the D-Bus path of the collection
+ * @flags: options for the collection initialization
+ * @cancellable: optional cancellation object
+ * @callback: called when the operation completes
+ * @user_data: data to be passed to the callback
+ *
+ * Get a new collection proxy for a collection in the secret service.
+ *
+ * If @service is NULL, then secret_service_get() will be called to get
+ * the default #SecretService proxy.
+ *
+ * This method will return immediately and complete asynchronously.
+ */
+void
+secret_collection_new_for_dbus_path (SecretService *service,
+                                     const gchar *collection_path,
+                                     SecretCollectionFlags flags,
+                                     GCancellable *cancellable,
+                                     GAsyncReadyCallback callback,
+                                     gpointer user_data)
+{
+	GDBusProxy *proxy;
+
+	g_return_if_fail (service == NULL || SECRET_IS_SERVICE (service));
+	g_return_if_fail (collection_path != NULL);
+	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+	proxy = G_DBUS_PROXY (service);
+
+	g_async_initable_new_async (SECRET_SERVICE_GET_CLASS (service)->collection_gtype,
+	                            G_PRIORITY_DEFAULT, cancellable, callback, user_data,
+	                            "g-flags", G_DBUS_CALL_FLAGS_NONE,
+	                            "g-interface-info", _secret_gen_collection_interface_info (),
+	                            "g-name", g_dbus_proxy_get_name (proxy),
+	                            "g-connection", g_dbus_proxy_get_connection (proxy),
+	                            "g-object-path", collection_path,
+	                            "g-interface-name", SECRET_COLLECTION_INTERFACE,
+	                            "service", service,
+	                            "flags", flags,
+	                            NULL);
+}
+
+/**
+ * secret_collection_new_for_dbus_path_finish:
+ * @result: the asynchronous result passed to the callback
+ * @error: location to place an error on failure
+ *
+ * Finish asynchronous operation to get a new collection proxy for a
+ * collection in the secret service.
+ *
+ * Returns: (transfer full): the new collection, which should be unreferenced
+ *          with g_object_unref()
+ */
+SecretCollection *
+secret_collection_new_for_dbus_path_finish (GAsyncResult *result,
+                                            GError **error)
+{
+	GObject *source_object;
+	GObject *object;
+
+	g_return_val_if_fail (G_IS_ASYNC_RESULT (result), NULL);
+	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
+
+	source_object = g_async_result_get_source_object (result);
+	object = g_async_initable_new_finish (G_ASYNC_INITABLE (source_object),
+	                                      result, error);
+	g_object_unref (source_object);
+
+	if (object == NULL)
+		return NULL;
+
+	return SECRET_COLLECTION (object);
+}
+
+/**
+ * secret_collection_new_for_dbus_path_sync:
+ * @service: (allow-none): a secret service object
+ * @collection_path: the D-Bus path of the collection
+ * @flags: options for the collection initialization
+ * @cancellable: optional cancellation object
+ * @error: location to place an error on failure
+ *
+ * Get a new collection proxy for a collection in the secret service.
+ *
+ * If @service is NULL, then secret_service_get_sync() will be called to get
+ * the default #SecretService proxy.
+ *
+ * This method may block indefinitely and should not be used in user interface
+ * threads.
+ *
+ * Returns: (transfer full): the new collection, which should be unreferenced
+ *          with g_object_unref()
+ */
+SecretCollection *
+secret_collection_new_for_dbus_path_sync (SecretService *service,
+                                          const gchar *collection_path,
+                                          SecretCollectionFlags flags,
+                                          GCancellable *cancellable,
+                                          GError **error)
+{
+	GDBusProxy *proxy;
+
+	g_return_val_if_fail (service == NULL || SECRET_IS_SERVICE (service), NULL);
+	g_return_val_if_fail (collection_path != NULL, NULL);
+	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
+	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
+
+	proxy = G_DBUS_PROXY (service);
+
+	return g_initable_new (SECRET_SERVICE_GET_CLASS (service)->collection_gtype,
+	                       cancellable, error,
+	                       "g-flags", G_DBUS_CALL_FLAGS_NONE,
+	                       "g-interface-info", _secret_gen_collection_interface_info (),
+	                       "g-name", g_dbus_proxy_get_name (proxy),
+	                       "g-connection", g_dbus_proxy_get_connection (proxy),
+	                       "g-object-path", collection_path,
+	                       "g-interface-name", SECRET_COLLECTION_INTERFACE,
+	                       "service", service,
+	                       "flags", flags,
+	                       NULL);
+}
+
+/**
+ * secret_item_new_for_dbus_path:
+ * @service: (allow-none): a secret service object
+ * @item_path: the D-Bus path of the collection
+ * @flags: initialization flags for the new item
+ * @cancellable: optional cancellation object
+ * @callback: called when the operation completes
+ * @user_data: data to be passed to the callback
+ *
+ * Get a new item proxy for a secret item in the secret service.
+ *
+ * If @service is NULL, then secret_service_get() will be called to get
+ * the default #SecretService proxy.
+ *
+ * This method will return immediately and complete asynchronously.
+ */
+void
+secret_item_new_for_dbus_path (SecretService *service,
+                               const gchar *item_path,
+                               SecretItemFlags flags,
+                               GCancellable *cancellable,
+                               GAsyncReadyCallback callback,
+                               gpointer user_data)
+{
+	GDBusProxy *proxy;
+
+	g_return_if_fail (service == NULL || SECRET_IS_SERVICE (service));
+	g_return_if_fail (item_path != NULL);
+	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+	proxy = G_DBUS_PROXY (service);
+
+	g_async_initable_new_async (SECRET_SERVICE_GET_CLASS (service)->item_gtype,
+	                            G_PRIORITY_DEFAULT, cancellable, callback, user_data,
+	                            "g-flags", G_DBUS_CALL_FLAGS_NONE,
+	                            "g-interface-info", _secret_gen_item_interface_info (),
+	                            "g-name", g_dbus_proxy_get_name (proxy),
+	                            "g-connection", g_dbus_proxy_get_connection (proxy),
+	                            "g-object-path", item_path,
+	                            "g-interface-name", SECRET_ITEM_INTERFACE,
+	                            "service", service,
+	                            "flags", flags,
+	                            NULL);
+}
+
+/**
+ * secret_item_new_for_dbus_path_finish:
+ * @result: the asynchronous result passed to the callback
+ * @error: location to place an error on failure
+ *
+ * Finish asynchronous operation to get a new item proxy for an secret
+ * item in the secret service.
+ *
+ * Returns: (transfer full): the new item, which should be unreferenced
+ *          with g_object_unref()
+ */
+SecretItem *
+secret_item_new_for_dbus_path_finish (GAsyncResult *result,
+                                      GError **error)
+{
+	GObject *object;
+	GObject *source_object;
+
+	source_object = g_async_result_get_source_object (result);
+	object = g_async_initable_new_finish (G_ASYNC_INITABLE (source_object),
+	                                      result, error);
+	g_object_unref (source_object);
+
+	if (object == NULL)
+		return NULL;
+
+	return SECRET_ITEM (object);
+}
+
+/**
+ * secret_item_new_dbus_path_sync:
+ * @service: (allow-none): a secret service object
+ * @item_path: the D-Bus path of the item
+ * @flags: initialization flags for the new item
+ * @cancellable: optional cancellation object
+ * @error: location to place an error on failure
+ *
+ * Get a new item proxy for a secret item in the secret service.
+ *
+ * If @service is NULL, then secret_service_get_sync() will be called to get
+ * the default #SecretService proxy.
+ *
+ * This method may block indefinitely and should not be used in user interface
+ * threads.
+ *
+ * Returns: (transfer full): the new item, which should be unreferenced
+ *          with g_object_unref()
+ */
+SecretItem *
+secret_item_new_for_dbus_path_sync (SecretService *service,
+                                    const gchar *item_path,
+                                    SecretItemFlags flags,
+                                    GCancellable *cancellable,
+                                    GError **error)
+{
+	GDBusProxy *proxy;
+
+	g_return_val_if_fail (service == NULL || SECRET_IS_SERVICE (service), NULL);
+	g_return_val_if_fail (item_path != NULL, NULL);
+	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
+	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
+
+	proxy = G_DBUS_PROXY (service);
+
+	return g_initable_new (SECRET_SERVICE_GET_CLASS (service)->item_gtype,
+	                       cancellable, error,
+	                       "g-flags", G_DBUS_CALL_FLAGS_NONE,
+	                       "g-interface-info", _secret_gen_item_interface_info (),
+	                       "g-name", g_dbus_proxy_get_name (proxy),
+	                       "g-connection", g_dbus_proxy_get_connection (proxy),
+	                       "g-object-path", item_path,
+	                       "g-interface-name", SECRET_ITEM_INTERFACE,
+	                       "service", service,
+	                       "flags", flags,
+	                       NULL);
+}
+
+
 static void
 on_search_items_complete (GObject *source,
                           GAsyncResult *result,
@@ -60,7 +308,7 @@ on_search_items_complete (GObject *source,
 }
 
 /**
- * secret_service_search_for_paths:
+ * secret_service_search_for_dbus_paths:
  * @self: the secret service
  * @schema: (allow-none): the schema for the attributes
  * @attributes: (element-type utf8 utf8): search for items matching these attributes
@@ -74,18 +322,18 @@ on_search_items_complete (GObject *source,
  *
  * This function returns immediately and completes asynchronously.
  *
- * When your callback is called use secret_service_search_for_paths_finish()
+ * When your callback is called use secret_service_search_for_dbus_paths_finish()
  * to get the results of this function. Only the D-Bus object paths of the
  * items will be returned. If you would like #SecretItem objects to be returned
  * instead, then use the secret_service_search() function.
  */
 void
-secret_service_search_for_paths (SecretService *self,
-                                 const SecretSchema *schema,
-                                 GHashTable *attributes,
-                                 GCancellable *cancellable,
-                                 GAsyncReadyCallback callback,
-                                 gpointer user_data)
+secret_service_search_for_dbus_paths (SecretService *self,
+                                      const SecretSchema *schema,
+                                      GHashTable *attributes,
+                                      GCancellable *cancellable,
+                                      GAsyncReadyCallback callback,
+                                      gpointer user_data)
 {
 	const gchar *schema_name = NULL;
 
@@ -118,7 +366,7 @@ _secret_service_search_for_paths_variant (SecretService *self,
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
 	res = g_simple_async_result_new (G_OBJECT (self), callback, user_data,
-	                                 secret_service_search_for_paths);
+	                                 secret_service_search_for_dbus_paths);
 
 	g_dbus_proxy_call (G_DBUS_PROXY (self), "SearchItems",
 	                   g_variant_new ("(@a{ss})", attributes),
@@ -129,7 +377,7 @@ _secret_service_search_for_paths_variant (SecretService *self,
 }
 
 /**
- * secret_service_search_for_paths_finish:
+ * secret_service_search_for_dbus_paths_finish:
  * @self: the secret service
  * @result: asynchronous result passed to callback
  * @unlocked: (out) (transfer full) (array zero-terminated=1) (allow-none):
@@ -154,18 +402,18 @@ _secret_service_search_for_paths_variant (SecretService *self,
  * Returns: whether the search was successful or not
  */
 gboolean
-secret_service_search_for_paths_finish (SecretService *self,
-                                        GAsyncResult *result,
-                                        gchar ***unlocked,
-                                        gchar ***locked,
-                                        GError **error)
+secret_service_search_for_dbus_paths_finish (SecretService *self,
+                                             GAsyncResult *result,
+                                             gchar ***unlocked,
+                                             gchar ***locked,
+                                             GError **error)
 {
 	GVariant *response;
 	GSimpleAsyncResult *res;
 	gchar **dummy = NULL;
 
 	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (self),
-	                      secret_service_search_for_paths), FALSE);
+	                      secret_service_search_for_dbus_paths), FALSE);
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
 	res = G_SIMPLE_ASYNC_RESULT (result);
@@ -186,7 +434,7 @@ secret_service_search_for_paths_finish (SecretService *self,
 }
 
 /**
- * secret_service_search_for_paths_sync:
+ * secret_service_search_for_dbus_paths_sync:
  * @self: the secret service
  * @schema: (allow-none): the schema for the attributes
  * @attributes: (element-type utf8 utf8): search for items matching these attributes
@@ -216,13 +464,13 @@ secret_service_search_for_paths_finish (SecretService *self,
  * Returns: whether the search was successful or not
  */
 gboolean
-secret_service_search_for_paths_sync (SecretService *self,
-                                      const SecretSchema *schema,
-                                      GHashTable *attributes,
-                                      GCancellable *cancellable,
-                                      gchar ***unlocked,
-                                      gchar ***locked,
-                                      GError **error)
+secret_service_search_for_dbus_paths_sync (SecretService *self,
+                                           const SecretSchema *schema,
+                                           GHashTable *attributes,
+                                           GCancellable *cancellable,
+                                           gchar ***unlocked,
+                                           gchar ***locked,
+                                           GError **error)
 {
 	const gchar *schema_name = NULL;
 	gchar **dummy = NULL;
@@ -308,12 +556,12 @@ on_get_secrets_session (GObject *source,
 	GError *error = NULL;
 	const gchar *session;
 
-	session = secret_service_ensure_session_finish (SECRET_SERVICE (source),
-	                                                result, &error);
+	secret_service_ensure_session_finish (SECRET_SERVICE (source), result, &error);
 	if (error != NULL) {
 		g_simple_async_result_take_error (res, error);
 		g_simple_async_result_complete (res);
 	} else {
+		session = secret_service_get_session_dbus_path (SECRET_SERVICE (source));
 		g_dbus_proxy_call (G_DBUS_PROXY (source), "GetSecrets",
 		                   g_variant_new ("(@aoo)", closure->in, session),
 		                   G_DBUS_CALL_FLAGS_NO_AUTO_START, -1,
@@ -325,7 +573,7 @@ on_get_secrets_session (GObject *source,
 }
 
 /**
- * secret_service_get_secret_for_path:
+ * secret_service_get_secret_for_dbus_path:
  * @self: the secret service
  * @item_path: the D-Bus path to item to retrieve secret for
  * @cancellable: optional cancellation object
@@ -341,11 +589,11 @@ on_get_secrets_session (GObject *source,
  * This function returns immediately and completes asynchronously.
  */
 void
-secret_service_get_secret_for_path (SecretService *self,
-                                    const gchar *item_path,
-                                    GCancellable *cancellable,
-                                    GAsyncReadyCallback callback,
-                                    gpointer user_data)
+secret_service_get_secret_for_dbus_path (SecretService *self,
+                                         const gchar *item_path,
+                                         GCancellable *cancellable,
+                                         GAsyncReadyCallback callback,
+                                         gpointer user_data)
 {
 	GSimpleAsyncResult *res;
 	GetClosure *closure;
@@ -355,7 +603,7 @@ secret_service_get_secret_for_path (SecretService *self,
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
 	res = g_simple_async_result_new (G_OBJECT (self), callback, user_data,
-	                                 secret_service_get_secret_for_path);
+	                                 secret_service_get_secret_for_dbus_path);
 
 	closure = g_slice_new0 (GetClosure);
 	closure->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
@@ -370,7 +618,7 @@ secret_service_get_secret_for_path (SecretService *self,
 }
 
 /**
- * secret_service_get_secret_for_path_finish:
+ * secret_service_get_secret_for_dbus_path_finish:
  * @self: the secret service
  * @result: asynchronous result passed to callback
  * @error: location to place an error on failure
@@ -384,16 +632,16 @@ secret_service_get_secret_for_path (SecretService *self,
  *          for the item, which should be released with secret_value_unref()
  */
 SecretValue *
-secret_service_get_secret_for_path_finish (SecretService *self,
-                                           GAsyncResult *result,
-                                           GError **error)
+secret_service_get_secret_for_dbus_path_finish (SecretService *self,
+                                                GAsyncResult *result,
+                                                GError **error)
 {
 	GSimpleAsyncResult *res;
 	GetClosure *closure;
 
 	g_return_val_if_fail (SECRET_IS_SERVICE (self), NULL);
 	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (self),
-	                      secret_service_get_secret_for_path), NULL);
+	                      secret_service_get_secret_for_dbus_path), NULL);
 	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 
 	res = G_SIMPLE_ASYNC_RESULT (result);
@@ -405,7 +653,7 @@ secret_service_get_secret_for_path_finish (SecretService *self,
 }
 
 /**
- * secret_service_get_secret_for_path_sync:
+ * secret_service_get_secret_for_dbus_path_sync:
  * @self: the secret service
  * @item_path: the D-Bus path to item to retrieve secret for
  * @cancellable: optional cancellation object
@@ -426,10 +674,10 @@ secret_service_get_secret_for_path_finish (SecretService *self,
  *          for the item, which should be released with secret_value_unref()
  */
 SecretValue *
-secret_service_get_secret_for_path_sync (SecretService *self,
-                                         const gchar *item_path,
-                                         GCancellable *cancellable,
-                                         GError **error)
+secret_service_get_secret_for_dbus_path_sync (SecretService *self,
+                                              const gchar *item_path,
+                                              GCancellable *cancellable,
+                                              GError **error)
 {
 	SecretSync *sync;
 	SecretValue *value;
@@ -442,12 +690,12 @@ secret_service_get_secret_for_path_sync (SecretService *self,
 	sync = _secret_sync_new ();
 	g_main_context_push_thread_default (sync->context);
 
-	secret_service_get_secret_for_path (self, item_path, cancellable,
-	                                    _secret_sync_on_result, sync);
+	secret_service_get_secret_for_dbus_path (self, item_path, cancellable,
+	                                         _secret_sync_on_result, sync);
 
 	g_main_loop_run (sync->loop);
 
-	value = secret_service_get_secret_for_path_finish (self, sync->result, error);
+	value = secret_service_get_secret_for_dbus_path_finish (self, sync->result, error);
 
 	g_main_context_pop_thread_default (sync->context);
 	_secret_sync_free (sync);
@@ -456,7 +704,7 @@ secret_service_get_secret_for_path_sync (SecretService *self,
 }
 
 /**
- * secret_service_get_secrets_for_paths:
+ * secret_service_get_secrets_for_dbus_paths:
  * @self: the secret service
  * @item_paths: the D-Bus paths to items to retrieve secrets for
  * @cancellable: optional cancellation object
@@ -472,11 +720,11 @@ secret_service_get_secret_for_path_sync (SecretService *self,
  * This function returns immediately and completes asynchronously.
  */
 void
-secret_service_get_secrets_for_paths (SecretService *self,
-                                      const gchar **item_paths,
-                                      GCancellable *cancellable,
-                                      GAsyncReadyCallback callback,
-                                      gpointer user_data)
+secret_service_get_secrets_for_dbus_paths (SecretService *self,
+                                           const gchar **item_paths,
+                                           GCancellable *cancellable,
+                                           GAsyncReadyCallback callback,
+                                           gpointer user_data)
 {
 	GSimpleAsyncResult *res;
 	GetClosure *closure;
@@ -486,7 +734,7 @@ secret_service_get_secrets_for_paths (SecretService *self,
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
 	res = g_simple_async_result_new (G_OBJECT (self), callback, user_data,
-	                                 secret_service_get_secret_for_path);
+	                                 secret_service_get_secret_for_dbus_path);
 
 	closure = g_slice_new0 (GetClosure);
 	closure->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
@@ -501,7 +749,7 @@ secret_service_get_secrets_for_paths (SecretService *self,
 }
 
 /**
- * secret_service_get_secrets_for_paths_finish:
+ * secret_service_get_secrets_for_dbus_paths_finish:
  * @self: the secret service
  * @result: asynchronous result passed to callback
  * @error: location to place an error on failure
@@ -515,16 +763,16 @@ secret_service_get_secrets_for_paths (SecretService *self,
  *          #SecretValue values.
  */
 GHashTable *
-secret_service_get_secrets_for_paths_finish (SecretService *self,
-                                             GAsyncResult *result,
-                                             GError **error)
+secret_service_get_secrets_for_dbus_paths_finish (SecretService *self,
+                                                  GAsyncResult *result,
+                                                  GError **error)
 {
 	GSimpleAsyncResult *res;
 	GetClosure *closure;
 
 	g_return_val_if_fail (SECRET_IS_SERVICE (self), NULL);
 	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (self),
-	                      secret_service_get_secret_for_path), NULL);
+	                      secret_service_get_secret_for_dbus_path), NULL);
 	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 
 	res = G_SIMPLE_ASYNC_RESULT (result);
@@ -536,7 +784,7 @@ secret_service_get_secrets_for_paths_finish (SecretService *self,
 }
 
 /**
- * secret_service_get_secrets_for_paths_sync:
+ * secret_service_get_secrets_for_dbus_paths_sync:
  * @self: the secret service
  * @item_paths: the D-Bus paths to items to retrieve secrets for
  * @cancellable: optional cancellation object
@@ -557,10 +805,10 @@ secret_service_get_secrets_for_paths_finish (SecretService *self,
  *          #SecretValue values.
  */
 GHashTable *
-secret_service_get_secrets_for_paths_sync (SecretService *self,
-                                           const gchar **item_paths,
-                                           GCancellable *cancellable,
-                                           GError **error)
+secret_service_get_secrets_for_dbus_paths_sync (SecretService *self,
+                                                const gchar **item_paths,
+                                                GCancellable *cancellable,
+                                                GError **error)
 {
 	SecretSync *sync;
 	GHashTable *secrets;
@@ -573,12 +821,12 @@ secret_service_get_secrets_for_paths_sync (SecretService *self,
 	sync = _secret_sync_new ();
 	g_main_context_push_thread_default (sync->context);
 
-	secret_service_get_secrets_for_paths (self, item_paths, cancellable,
-	                                      _secret_sync_on_result, sync);
+	secret_service_get_secrets_for_dbus_paths (self, item_paths, cancellable,
+	                                           _secret_sync_on_result, sync);
 
 	g_main_loop_run (sync->loop);
 
-	secrets = secret_service_get_secrets_for_paths_finish (self, sync->result, error);
+	secrets = secret_service_get_secrets_for_dbus_paths_finish (self, sync->result, error);
 
 	g_main_context_pop_thread_default (sync->context);
 	_secret_sync_free (sync);
@@ -726,7 +974,7 @@ _secret_service_xlock_paths_finish (SecretService *self,
 }
 
 /**
- * secret_service_lock_paths_sync:
+ * secret_service_lock_dbus_paths_sync:
  * @self: the secret service
  * @paths: the D-Bus object paths of the items or collections to lock
  * @cancellable: optional cancellation object
@@ -751,11 +999,11 @@ _secret_service_xlock_paths_finish (SecretService *self,
  * Returns: the number of items or collections that were locked
  */
 gint
-secret_service_lock_paths_sync (SecretService *self,
-                                const gchar **paths,
-                                GCancellable *cancellable,
-                                gchar ***locked,
-                                GError **error)
+secret_service_lock_dbus_paths_sync (SecretService *self,
+                                     const gchar **paths,
+                                     GCancellable *cancellable,
+                                     gchar ***locked,
+                                     GError **error)
 {
 	SecretSync *sync;
 	gint count;
@@ -768,13 +1016,13 @@ secret_service_lock_paths_sync (SecretService *self,
 	sync = _secret_sync_new ();
 	g_main_context_push_thread_default (sync->context);
 
-	secret_service_lock_paths (self, paths, cancellable,
-	                            _secret_sync_on_result, sync);
+	secret_service_lock_dbus_paths (self, paths, cancellable,
+	                                _secret_sync_on_result, sync);
 
 	g_main_loop_run (sync->loop);
 
-	count = secret_service_lock_paths_finish (self, sync->result,
-	                                           locked, error);
+	count = secret_service_lock_dbus_paths_finish (self, sync->result,
+	                                               locked, error);
 
 	g_main_context_pop_thread_default (sync->context);
 	_secret_sync_free (sync);
@@ -783,7 +1031,7 @@ secret_service_lock_paths_sync (SecretService *self,
 }
 
 /**
- * secret_service_lock_paths:
+ * secret_service_lock_dbus_paths:
  * @self: the secret service
  * @paths: the D-Bus paths for items or collections to lock
  * @cancellable: optional cancellation object
@@ -804,11 +1052,11 @@ secret_service_lock_paths_sync (SecretService *self,
  * any prompts that show up.
  */
 void
-secret_service_lock_paths (SecretService *self,
-                           const gchar **paths,
-                           GCancellable *cancellable,
-                           GAsyncReadyCallback callback,
-                           gpointer user_data)
+secret_service_lock_dbus_paths (SecretService *self,
+                                const gchar **paths,
+                                GCancellable *cancellable,
+                                GAsyncReadyCallback callback,
+                                gpointer user_data)
 {
 	g_return_if_fail (SECRET_IS_SERVICE (self));
 	g_return_if_fail (paths != NULL);
@@ -819,7 +1067,7 @@ secret_service_lock_paths (SecretService *self,
 }
 
 /**
- * secret_service_lock_paths_finish:
+ * secret_service_lock_dbus_paths_finish:
  * @self: the secret service
  * @result: asynchronous result passed to the callback
  * @locked: (out) (array zero-terminated=1) (transfer full) (allow-none):
@@ -836,10 +1084,10 @@ secret_service_lock_paths (SecretService *self,
  * Returns: the number of items or collections that were locked
  */
 gint
-secret_service_lock_paths_finish (SecretService *self,
-                                  GAsyncResult *result,
-                                  gchar ***locked,
-                                  GError **error)
+secret_service_lock_dbus_paths_finish (SecretService *self,
+                                       GAsyncResult *result,
+                                       gchar ***locked,
+                                       GError **error)
 {
 	g_return_val_if_fail (SECRET_IS_SERVICE (self), -1);
 	g_return_val_if_fail (locked != NULL, -1);
@@ -849,7 +1097,7 @@ secret_service_lock_paths_finish (SecretService *self,
 }
 
 /**
- * secret_service_unlock_paths_sync:
+ * secret_service_unlock_dbus_paths_sync:
  * @self: the secret service
  * @paths: the D-Bus object paths of the items or collections to unlock
  * @cancellable: optional cancellation object
@@ -874,11 +1122,11 @@ secret_service_lock_paths_finish (SecretService *self,
  * Returns: the number of items or collections that were unlocked
  */
 gint
-secret_service_unlock_paths_sync (SecretService *self,
-                                  const gchar **paths,
-                                  GCancellable *cancellable,
-                                  gchar ***unlocked,
-                                  GError **error)
+secret_service_unlock_dbus_paths_sync (SecretService *self,
+                                       const gchar **paths,
+                                       GCancellable *cancellable,
+                                       gchar ***unlocked,
+                                       GError **error)
 {
 	SecretSync *sync;
 	gint count;
@@ -892,13 +1140,13 @@ secret_service_unlock_paths_sync (SecretService *self,
 	sync = _secret_sync_new ();
 	g_main_context_push_thread_default (sync->context);
 
-	secret_service_unlock_paths (self, paths, cancellable,
-	                              _secret_sync_on_result, sync);
+	secret_service_unlock_dbus_paths (self, paths, cancellable,
+	                                  _secret_sync_on_result, sync);
 
 	g_main_loop_run (sync->loop);
 
-	count = secret_service_unlock_paths_finish (self, sync->result,
-	                                             unlocked, error);
+	count = secret_service_unlock_dbus_paths_finish (self, sync->result,
+	                                                 unlocked, error);
 
 	g_main_context_pop_thread_default (sync->context);
 	_secret_sync_free (sync);
@@ -907,7 +1155,7 @@ secret_service_unlock_paths_sync (SecretService *self,
 }
 
 /**
- * secret_service_unlock_paths:
+ * secret_service_unlock_dbus_paths:
  * @self: the secret service
  * @paths: the D-Bus paths for items or collections to unlock
  * @cancellable: optional cancellation object
@@ -928,11 +1176,11 @@ secret_service_unlock_paths_sync (SecretService *self,
  * any prompts that show up.
  */
 void
-secret_service_unlock_paths (SecretService *self,
-                             const gchar **paths,
-                             GCancellable *cancellable,
-                             GAsyncReadyCallback callback,
-                             gpointer user_data)
+secret_service_unlock_dbus_paths (SecretService *self,
+                                  const gchar **paths,
+                                  GCancellable *cancellable,
+                                  GAsyncReadyCallback callback,
+                                  gpointer user_data)
 {
 	g_return_if_fail (SECRET_IS_SERVICE (self));
 	g_return_if_fail (paths != NULL);
@@ -944,7 +1192,7 @@ secret_service_unlock_paths (SecretService *self,
 }
 
 /**
- * secret_service_unlock_paths_finish:
+ * secret_service_unlock_dbus_paths_finish:
  * @self: the secret service
  * @result: asynchronous result passed to the callback
  * @unlocked: (out) (array zero-terminated=1) (transfer full) (allow-none):
@@ -961,10 +1209,10 @@ secret_service_unlock_paths (SecretService *self,
  * Returns: the number of items or collections that were unlocked
  */
 gint
-secret_service_unlock_paths_finish (SecretService *self,
-                                    GAsyncResult *result,
-                                    gchar ***unlocked,
-                                    GError **error)
+secret_service_unlock_dbus_paths_finish (SecretService *self,
+                                         GAsyncResult *result,
+                                         gchar ***unlocked,
+                                         GError **error)
 {
 	g_return_val_if_fail (SECRET_IS_SERVICE (self), -1);
 	g_return_val_if_fail (error == NULL || *error == NULL, -1);
@@ -1082,50 +1330,10 @@ _secret_service_delete_path (SecretService *self,
 	g_object_unref (res);
 }
 
-/**
- * secret_service_delete_path:
- * @self: the secret service
- * @item_path: the D-Bus path of item to delete
- * @cancellable: optional cancellation object
- * @callback: called when the operation completes
- * @user_data: data to be passed to the callback
- *
- * Delete a secret item from the secret service.
- *
- * The item is represented by its D-Bus object path. If you already have a
- * #SecretItem proxy objects, use use secret_item_delete() instead.
- *
- * This method will return immediately and complete asynchronously.
- */
-void
-secret_service_delete_path (SecretService *self,
-                            const gchar *item_path,
-                            GCancellable *cancellable,
-                            GAsyncReadyCallback callback,
-                            gpointer user_data)
-{
-	g_return_if_fail (SECRET_IS_SERVICE (self));
-	g_return_if_fail (item_path != NULL);
-	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
-
-	_secret_service_delete_path (self, item_path, TRUE, cancellable, callback, user_data);
-}
-
-/**
- * secret_service_delete_path_finish:
- * @self: the secret service
- * @result: the asynchronous result passed to the callback
- * @error: location to place an error on failure
- *
- * Complete an asynchronous operation to delete a secret item from the secret
- * service.
- *
- * Returns: whether the deletion was successful or not
- */
 gboolean
-secret_service_delete_path_finish (SecretService *self,
-                                   GAsyncResult *result,
-                                   GError **error)
+_secret_service_delete_path_finish (SecretService *self,
+                                    GAsyncResult *result,
+                                    GError **error)
 {
 	GSimpleAsyncResult *res;
 	DeleteClosure *closure;
@@ -1144,7 +1352,60 @@ secret_service_delete_path_finish (SecretService *self,
 }
 
 /**
- * secret_service_delete_path_sync:
+ * secret_service_delete_item_dbus_path:
+ * @self: the secret service
+ * @item_path: the D-Bus path of item to delete
+ * @cancellable: optional cancellation object
+ * @callback: called when the operation completes
+ * @user_data: data to be passed to the callback
+ *
+ * Delete a secret item from the secret service.
+ *
+ * The item is represented by its D-Bus object path. If you already have a
+ * #SecretItem proxy objects, use use secret_item_delete() instead.
+ *
+ * This method will return immediately and complete asynchronously.
+ */
+void
+secret_service_delete_item_dbus_path (SecretService *self,
+                                      const gchar *item_path,
+                                      GCancellable *cancellable,
+                                      GAsyncReadyCallback callback,
+                                      gpointer user_data)
+{
+	g_return_if_fail (SECRET_IS_SERVICE (self));
+	g_return_if_fail (item_path != NULL);
+	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+	_secret_service_delete_path (self, item_path, TRUE, cancellable, callback, user_data);
+}
+
+/**
+ * secret_service_delete_item_dbus_path_finish:
+ * @self: the secret service
+ * @result: the asynchronous result passed to the callback
+ * @error: location to place an error on failure
+ *
+ * Complete an asynchronous operation to delete a secret item from the secret
+ * service.
+ *
+ * Returns: whether the deletion was successful or not
+ */
+gboolean
+secret_service_delete_item_dbus_path_finish (SecretService *self,
+                                             GAsyncResult *result,
+                                             GError **error)
+{
+	g_return_val_if_fail (SECRET_IS_SERVICE (self), FALSE);
+	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (self),
+	                      _secret_service_delete_path), FALSE);
+
+	return _secret_service_delete_path_finish (self, result, error);
+}
+
+/**
+ * secret_service_delete_item_dbus_path_sync:
  * @self: the secret service
  * @item_path: the D-Bus path of item to delete
  * @cancellable: optional cancellation object
@@ -1161,10 +1422,10 @@ secret_service_delete_path_finish (SecretService *self,
  * Returns: whether the deletion was successful or not
  */
 gboolean
-secret_service_delete_path_sync (SecretService *self,
-                                 const gchar *item_path,
-                                 GCancellable *cancellable,
-                                 GError **error)
+secret_service_delete_item_dbus_path_sync (SecretService *self,
+                                           const gchar *item_path,
+                                           GCancellable *cancellable,
+                                           GError **error)
 {
 	SecretSync *sync;
 	gboolean result;
@@ -1177,12 +1438,12 @@ secret_service_delete_path_sync (SecretService *self,
 	sync = _secret_sync_new ();
 	g_main_context_push_thread_default (sync->context);
 
-	secret_service_delete_path (self, item_path, cancellable,
-	                            _secret_sync_on_result, sync);
+	secret_service_delete_item_dbus_path (self, item_path, cancellable,
+	                                      _secret_sync_on_result, sync);
 
 	g_main_loop_run (sync->loop);
 
-	result = secret_service_delete_path_finish (self, sync->result, error);
+	result = secret_service_delete_item_dbus_path_finish (self, sync->result, error);
 
 	g_main_context_pop_thread_default (sync->context);
 	_secret_sync_free (sync);
@@ -1267,7 +1528,7 @@ on_create_collection_called (GObject *source,
 }
 
 /**
- * secret_service_create_collection_path:
+ * secret_service_create_collection_dbus_path:
  * @self: a secret service object
  * @properties: (element-type utf8 GLib.Variant): hash table of properties for
  *              the new collection
@@ -1302,12 +1563,12 @@ on_create_collection_called (GObject *source,
  * any prompts that are required.
  */
 void
-secret_service_create_collection_path (SecretService *self,
-                                       GHashTable *properties,
-                                       const gchar *alias,
-                                       GCancellable *cancellable,
-                                       GAsyncReadyCallback callback,
-                                       gpointer user_data)
+secret_service_create_collection_dbus_path (SecretService *self,
+                                            GHashTable *properties,
+                                            const gchar *alias,
+                                            GCancellable *cancellable,
+                                            GAsyncReadyCallback callback,
+                                            gpointer user_data)
 {
 	GSimpleAsyncResult *res;
 	CollectionClosure *closure;
@@ -1323,7 +1584,7 @@ secret_service_create_collection_path (SecretService *self,
 		alias = "";
 
 	res = g_simple_async_result_new (G_OBJECT (self), callback, user_data,
-	                                 secret_service_create_collection_path);
+	                                 secret_service_create_collection_dbus_path);
 	closure = g_slice_new0 (CollectionClosure);
 	closure->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
 	g_simple_async_result_set_op_res_gpointer (res, closure, collection_closure_free);
@@ -1347,7 +1608,7 @@ secret_service_create_collection_path (SecretService *self,
 }
 
 /**
- * secret_service_create_collection_path_finish:
+ * secret_service_create_collection_dbus_path_finish:
  * @self: a secret service object
  * @result: the asynchronous result passed to the callback
  * @error: location to place an error on failure
@@ -1359,16 +1620,16 @@ secret_service_create_collection_path (SecretService *self,
  *          of the collection
  */
 gchar *
-secret_service_create_collection_path_finish (SecretService *self,
-                                              GAsyncResult *result,
-                                              GError **error)
+secret_service_create_collection_dbus_path_finish (SecretService *self,
+                                                   GAsyncResult *result,
+                                                   GError **error)
 {
 	GSimpleAsyncResult *res;
 	CollectionClosure *closure;
 	gchar *path;
 
 	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (self),
-	                      secret_service_create_collection_path), NULL);
+	                      secret_service_create_collection_dbus_path), NULL);
 	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 
 	res = G_SIMPLE_ASYNC_RESULT (result);
@@ -1383,7 +1644,7 @@ secret_service_create_collection_path_finish (SecretService *self,
 }
 
 /**
- * secret_service_create_collection_path_sync:
+ * secret_service_create_collection_dbus_path_sync:
  * @self: a secret service object
  * @properties: (element-type utf8 GLib.Variant): hash table of D-Bus properties
  *              for the new collection
@@ -1418,11 +1679,11 @@ secret_service_create_collection_path_finish (SecretService *self,
  *          of the collection
  */
 gchar *
-secret_service_create_collection_path_sync (SecretService *self,
-                                            GHashTable *properties,
-                                            const gchar *alias,
-                                            GCancellable *cancellable,
-                                            GError **error)
+secret_service_create_collection_dbus_path_sync (SecretService *self,
+                                                 GHashTable *properties,
+                                                 const gchar *alias,
+                                                 GCancellable *cancellable,
+                                                 GError **error)
 {
 	SecretSync *sync;
 	gchar *path;
@@ -1435,12 +1696,12 @@ secret_service_create_collection_path_sync (SecretService *self,
 	sync = _secret_sync_new ();
 	g_main_context_push_thread_default (sync->context);
 
-	secret_service_create_collection_path (self, properties, alias, cancellable,
-	                                       _secret_sync_on_result, sync);
+	secret_service_create_collection_dbus_path (self, properties, alias, cancellable,
+	                                            _secret_sync_on_result, sync);
 
 	g_main_loop_run (sync->loop);
 
-	path = secret_service_create_collection_path_finish (self, sync->result, error);
+	path = secret_service_create_collection_dbus_path_finish (self, sync->result, error);
 
 	g_main_context_pop_thread_default (sync->context);
 	_secret_sync_free (sync);
@@ -1571,7 +1832,7 @@ on_create_item_session (GObject *source,
 }
 
 /**
- * secret_service_create_item_path:
+ * secret_service_create_item_dbus_path:
  * @self: a secret service object
  * @collection_path: (allow-none): the D-Bus object path of the collection in which to create item
  * @properties: (element-type utf8 GLib.Variant): hash table of D-Bus properties
@@ -1607,14 +1868,14 @@ on_create_item_session (GObject *source,
  * any prompts that are required.
  */
 void
-secret_service_create_item_path (SecretService *self,
-                                 const gchar *collection_path,
-                                 GHashTable *properties,
-                                 SecretValue *value,
-                                 gboolean replace,
-                                 GCancellable *cancellable,
-                                 GAsyncReadyCallback callback,
-                                 gpointer user_data)
+secret_service_create_item_dbus_path (SecretService *self,
+                                      const gchar *collection_path,
+                                      GHashTable *properties,
+                                      SecretValue *value,
+                                      gboolean replace,
+                                      GCancellable *cancellable,
+                                      GAsyncReadyCallback callback,
+                                      gpointer user_data)
 {
 	GSimpleAsyncResult *res;
 	ItemClosure *closure;
@@ -1628,7 +1889,7 @@ secret_service_create_item_path (SecretService *self,
 		collection_path = SECRET_COLLECTION_DEFAULT;
 
 	res = g_simple_async_result_new (G_OBJECT (self), callback, user_data,
-	                                 secret_service_create_item_path);
+	                                 secret_service_create_item_dbus_path);
 	closure = g_slice_new0 (ItemClosure);
 	closure->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
 	closure->properties = _secret_util_variant_for_properties (properties);
@@ -1646,7 +1907,7 @@ secret_service_create_item_path (SecretService *self,
 }
 
 /**
- * secret_service_create_item_path_finish:
+ * secret_service_create_item_dbus_path_finish:
  * @self: a secret service object
  * @result: the asynchronous result passed to the callback
  * @error: location to place an error on failure
@@ -1658,16 +1919,16 @@ secret_service_create_item_path (SecretService *self,
  *          of the item
  */
 gchar *
-secret_service_create_item_path_finish (SecretService *self,
-                                        GAsyncResult *result,
-                                        GError **error)
+secret_service_create_item_dbus_path_finish (SecretService *self,
+                                             GAsyncResult *result,
+                                             GError **error)
 {
 	GSimpleAsyncResult *res;
 	ItemClosure *closure;
 	gchar *path;
 
 	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (self),
-	                      secret_service_create_item_path), NULL);
+	                      secret_service_create_item_dbus_path), NULL);
 	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 
 	res = G_SIMPLE_ASYNC_RESULT (result);
@@ -1682,7 +1943,7 @@ secret_service_create_item_path_finish (SecretService *self,
 }
 
 /**
- * secret_service_create_item_path_sync:
+ * secret_service_create_item_dbus_path_sync:
  * @self: a secret service object
  * @collection_path: (allow-none): the D-Bus path of the collection in which to create item
  * @properties: (element-type utf8 GLib.Variant): hash table of D-Bus properties
@@ -1716,13 +1977,13 @@ secret_service_create_item_path_finish (SecretService *self,
  *          of the item
  */
 gchar *
-secret_service_create_item_path_sync (SecretService *self,
-                                      const gchar *collection_path,
-                                      GHashTable *properties,
-                                      SecretValue *value,
-                                      gboolean replace,
-                                      GCancellable *cancellable,
-                                      GError **error)
+secret_service_create_item_dbus_path_sync (SecretService *self,
+                                           const gchar *collection_path,
+                                           GHashTable *properties,
+                                           SecretValue *value,
+                                           gboolean replace,
+                                           GCancellable *cancellable,
+                                           GError **error)
 {
 	SecretSync *sync;
 	gchar *path;
@@ -1735,12 +1996,12 @@ secret_service_create_item_path_sync (SecretService *self,
 	sync = _secret_sync_new ();
 	g_main_context_push_thread_default (sync->context);
 
-	secret_service_create_item_path (self, collection_path, properties, value, replace,
-	                                 cancellable, _secret_sync_on_result, sync);
+	secret_service_create_item_dbus_path (self, collection_path, properties, value, replace,
+	                                      cancellable, _secret_sync_on_result, sync);
 
 	g_main_loop_run (sync->loop);
 
-	path = secret_service_create_item_path_finish (self, sync->result, error);
+	path = secret_service_create_item_dbus_path_finish (self, sync->result, error);
 
 	g_main_context_pop_thread_default (sync->context);
 	_secret_sync_free (sync);
@@ -1749,7 +2010,7 @@ secret_service_create_item_path_sync (SecretService *self,
 }
 
 /**
- * secret_service_read_alias_path:
+ * secret_service_read_alias_dbus_path:
  * @self: a secret service object
  * @alias: the alias to lookup
  * @cancellable: (allow-none): optional cancellation object
@@ -1763,11 +2024,11 @@ secret_service_create_item_path_sync (SecretService *self,
  * This method will return immediately and complete asynchronously.
  */
 void
-secret_service_read_alias_path (SecretService *self,
-                                const gchar *alias,
-                                GCancellable *cancellable,
-                                GAsyncReadyCallback callback,
-                                gpointer user_data)
+secret_service_read_alias_dbus_path (SecretService *self,
+                                     const gchar *alias,
+                                     GCancellable *cancellable,
+                                     GAsyncReadyCallback callback,
+                                     gpointer user_data)
 {
 	g_return_if_fail (SECRET_IS_SERVICE (self));
 	g_return_if_fail (alias != NULL);
@@ -1780,7 +2041,7 @@ secret_service_read_alias_path (SecretService *self,
 }
 
 /**
- * secret_service_read_alias_path_finish:
+ * secret_service_read_alias_dbus_path_finish:
  * @self: a secret service object
  * @result: asynchronous result passed to callback
  * @error: location to place error on failure
@@ -1792,9 +2053,9 @@ secret_service_read_alias_path (SecretService *self,
  *          none assigned to the alias
  */
 gchar *
-secret_service_read_alias_path_finish (SecretService *self,
-                                       GAsyncResult *result,
-                                       GError **error)
+secret_service_read_alias_dbus_path_finish (SecretService *self,
+                                            GAsyncResult *result,
+                                            GError **error)
 {
 	gchar *collection_path;
 	GVariant *retval;
@@ -1815,7 +2076,7 @@ secret_service_read_alias_path_finish (SecretService *self,
 }
 
 /**
- * secret_service_read_alias_path_sync:
+ * secret_service_read_alias_dbus_path_sync:
  * @self: a secret service object
  * @alias: the alias to lookup
  * @cancellable: (allow-none): optional cancellation object
@@ -1831,10 +2092,10 @@ secret_service_read_alias_path_finish (SecretService *self,
  *          none assigned to the alias
  */
 gchar *
-secret_service_read_alias_path_sync (SecretService *self,
-                                     const gchar *alias,
-                                     GCancellable *cancellable,
-                                     GError **error)
+secret_service_read_alias_dbus_path_sync (SecretService *self,
+                                          const gchar *alias,
+                                          GCancellable *cancellable,
+                                          GError **error)
 {
 	SecretSync *sync;
 	gchar *collection_path;
@@ -1847,11 +2108,11 @@ secret_service_read_alias_path_sync (SecretService *self,
 	sync = _secret_sync_new ();
 	g_main_context_push_thread_default (sync->context);
 
-	secret_service_read_alias_path (self, alias, cancellable, _secret_sync_on_result, sync);
+	secret_service_read_alias_dbus_path (self, alias, cancellable, _secret_sync_on_result, sync);
 
 	g_main_loop_run (sync->loop);
 
-	collection_path = secret_service_read_alias_path_finish (self, sync->result, error);
+	collection_path = secret_service_read_alias_dbus_path_finish (self, sync->result, error);
 
 	g_main_context_pop_thread_default (sync->context);
 	_secret_sync_free (sync);
@@ -1860,7 +2121,7 @@ secret_service_read_alias_path_sync (SecretService *self,
 }
 
 /**
- * secret_service_set_alias_path:
+ * secret_service_set_alias_to_dbus_path:
  * @self: a secret service object
  * @alias: the alias to assign the collection to
  * @collection_path: (allow-none): the dbus object path of the collection to assign to the alias
@@ -1875,12 +2136,12 @@ secret_service_read_alias_path_sync (SecretService *self,
  * This method will return immediately and complete asynchronously.
  */
 void
-secret_service_set_alias_path (SecretService *self,
-                               const gchar *alias,
-                               const gchar *collection_path,
-                               GCancellable *cancellable,
-                               GAsyncReadyCallback callback,
-                               gpointer user_data)
+secret_service_set_alias_to_dbus_path (SecretService *self,
+                                       const gchar *alias,
+                                       const gchar *collection_path,
+                                       GCancellable *cancellable,
+                                       GAsyncReadyCallback callback,
+                                       gpointer user_data)
 {
 	g_return_if_fail (SECRET_IS_SERVICE (self));
 	g_return_if_fail (alias != NULL);
@@ -1898,7 +2159,7 @@ secret_service_set_alias_path (SecretService *self,
 }
 
 /**
- * secret_service_set_alias_path_finish:
+ * secret_service_set_alias_to_dbus_path_finish:
  * @self: a secret service object
  * @result: asynchronous result passed to callback
  * @error: location to place error on failure
@@ -1908,9 +2169,9 @@ secret_service_set_alias_path (SecretService *self,
  * Returns: %TRUE if successful
  */
 gboolean
-secret_service_set_alias_path_finish (SecretService *self,
-                                      GAsyncResult *result,
-                                      GError **error)
+secret_service_set_alias_to_dbus_path_finish (SecretService *self,
+                                              GAsyncResult *result,
+                                              GError **error)
 {
 	GVariant *retval;
 
@@ -1926,7 +2187,7 @@ secret_service_set_alias_path_finish (SecretService *self,
 }
 
 /**
- * secret_service_set_alias_path_sync:
+ * secret_service_set_alias_to_dbus_path_sync:
  * @self: a secret service object
  * @alias: the alias to assign the collection to
  * @collection_path: (allow-none): the dbus object path of the collection to assign to the alias
@@ -1942,11 +2203,11 @@ secret_service_set_alias_path_finish (SecretService *self,
  * Returns: %TRUE if successful
  */
 gboolean
-secret_service_set_alias_path_sync (SecretService *self,
-                                    const gchar *alias,
-                                    const gchar *collection_path,
-                                    GCancellable *cancellable,
-                                    GError **error)
+secret_service_set_alias_to_dbus_path_sync (SecretService *self,
+                                            const gchar *alias,
+                                            const gchar *collection_path,
+                                            GCancellable *cancellable,
+                                            GError **error)
 {
 	SecretSync *sync;
 	gboolean ret;
@@ -1964,12 +2225,12 @@ secret_service_set_alias_path_sync (SecretService *self,
 	sync = _secret_sync_new ();
 	g_main_context_push_thread_default (sync->context);
 
-	secret_service_set_alias_path (self, alias, collection_path,
-	                               cancellable, _secret_sync_on_result, sync);
+	secret_service_set_alias_to_dbus_path (self, alias, collection_path,
+	                                       cancellable, _secret_sync_on_result, sync);
 
 	g_main_loop_run (sync->loop);
 
-	ret = secret_service_set_alias_path_finish (self, sync->result, error);
+	ret = secret_service_set_alias_to_dbus_path_finish (self, sync->result, error);
 
 	g_main_context_pop_thread_default (sync->context);
 	_secret_sync_free (sync);
@@ -1978,11 +2239,11 @@ secret_service_set_alias_path_sync (SecretService *self,
 }
 
 GVariant *
-secret_service_prompt_path_sync (SecretService *self,
-                                 const gchar *prompt_path,
-                                 GCancellable *cancellable,
-                                 const GVariantType *return_type,
-                                 GError **error)
+secret_service_prompt_at_dbus_path_sync (SecretService *self,
+                                         const gchar *prompt_path,
+                                         GCancellable *cancellable,
+                                         const GVariantType *return_type,
+                                         GError **error)
 {
 	SecretPrompt *prompt;
 	GVariant *retval;
@@ -2000,7 +2261,7 @@ secret_service_prompt_path_sync (SecretService *self,
 }
 
 /**
- * secret_service_prompt_path:
+ * secret_service_prompt_at_dbus_path:
  * @self: the secret service
  * @prompt_path: the D-Bus object path of the prompt
  * @cancellable: optional cancellation object
@@ -2017,11 +2278,11 @@ secret_service_prompt_path_sync (SecretService *self,
  * run secret_prompt_perform() on the prompt.
  */
 void
-secret_service_prompt_path (SecretService *self,
-                            const gchar *prompt_path,
-                            GCancellable *cancellable,
-                            GAsyncReadyCallback callback,
-                            gpointer user_data)
+secret_service_prompt_at_dbus_path (SecretService *self,
+                                    const gchar *prompt_path,
+                                    GCancellable *cancellable,
+                                    GAsyncReadyCallback callback,
+                                    gpointer user_data)
 {
 	SecretPrompt *prompt;
 
@@ -2035,7 +2296,7 @@ secret_service_prompt_path (SecretService *self,
 }
 
 /**
- * secret_service_prompt_path_finish:
+ * secret_service_prompt_at_dbus_path_finish:
  * @self: the secret service
  * @result: the asynchronous result passed to the callback
  * @return_type: the variant type of the prompt result
@@ -2051,10 +2312,10 @@ secret_service_prompt_path (SecretService *self,
  *          a variant result if the prompt was successful
  */
 GVariant *
-secret_service_prompt_path_finish (SecretService *self,
-                                   GAsyncResult *result,
-                                   const GVariantType *return_type,
-                                   GError **error)
+secret_service_prompt_at_dbus_path_finish (SecretService *self,
+                                           GAsyncResult *result,
+                                           const GVariantType *return_type,
+                                           GError **error)
 {
 	g_return_val_if_fail (SECRET_IS_SERVICE (self), NULL);
 	g_return_val_if_fail (G_IS_ASYNC_RESULT (result), NULL);

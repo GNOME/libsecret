@@ -699,131 +699,6 @@ secret_collection_async_initable_iface (GAsyncInitableIface *iface)
 	iface->init_finish = secret_collection_async_initable_init_finish;
 }
 
-/**
- * secret_collection_new:
- * @service: (allow-none): a secret service object
- * @collection_path: the D-Bus path of the collection
- * @flags: options for the collection initialization
- * @cancellable: optional cancellation object
- * @callback: called when the operation completes
- * @user_data: data to be passed to the callback
- *
- * Get a new collection proxy for a collection in the secret service.
- *
- * If @service is NULL, then secret_service_get() will be called to get
- * the default #SecretService proxy.
- *
- * This method will return immediately and complete asynchronously.
- */
-void
-secret_collection_new (SecretService *service,
-                       const gchar *collection_path,
-                       SecretCollectionFlags flags,
-                       GCancellable *cancellable,
-                       GAsyncReadyCallback callback,
-                       gpointer user_data)
-{
-	GDBusProxy *proxy;
-
-	g_return_if_fail (service == NULL || SECRET_IS_SERVICE (service));
-	g_return_if_fail (collection_path != NULL);
-	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
-
-	proxy = G_DBUS_PROXY (service);
-
-	g_async_initable_new_async (SECRET_SERVICE_GET_CLASS (service)->collection_gtype,
-	                            G_PRIORITY_DEFAULT, cancellable, callback, user_data,
-	                            "g-flags", G_DBUS_CALL_FLAGS_NONE,
-	                            "g-interface-info", _secret_gen_collection_interface_info (),
-	                            "g-name", g_dbus_proxy_get_name (proxy),
-	                            "g-connection", g_dbus_proxy_get_connection (proxy),
-	                            "g-object-path", collection_path,
-	                            "g-interface-name", SECRET_COLLECTION_INTERFACE,
-	                            "service", service,
-	                            "flags", flags,
-	                            NULL);
-}
-
-/**
- * secret_collection_new_finish:
- * @result: the asynchronous result passed to the callback
- * @error: location to place an error on failure
- *
- * Finish asynchronous operation to get a new collection proxy for a
- * collection in the secret service.
- *
- * Returns: (transfer full): the new collection, which should be unreferenced
- *          with g_object_unref()
- */
-SecretCollection *
-secret_collection_new_finish (GAsyncResult *result,
-                              GError **error)
-{
-	GObject *source_object;
-	GObject *object;
-
-	g_return_val_if_fail (G_IS_ASYNC_RESULT (result), NULL);
-	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
-
-	source_object = g_async_result_get_source_object (result);
-	object = g_async_initable_new_finish (G_ASYNC_INITABLE (source_object),
-	                                      result, error);
-	g_object_unref (source_object);
-
-	if (object == NULL)
-		return NULL;
-
-	return SECRET_COLLECTION (object);
-}
-
-/**
- * secret_collection_new_sync:
- * @service: (allow-none): a secret service object
- * @collection_path: the D-Bus path of the collection
- * @flags: options for the collection initialization
- * @cancellable: optional cancellation object
- * @error: location to place an error on failure
- *
- * Get a new collection proxy for a collection in the secret service.
- *
- * If @service is NULL, then secret_service_get_sync() will be called to get
- * the default #SecretService proxy.
- *
- * This method may block indefinitely and should not be used in user interface
- * threads.
- *
- * Returns: (transfer full): the new collection, which should be unreferenced
- *          with g_object_unref()
- */
-SecretCollection *
-secret_collection_new_sync (SecretService *service,
-                            const gchar *collection_path,
-                            SecretCollectionFlags flags,
-                            GCancellable *cancellable,
-                            GError **error)
-{
-	GDBusProxy *proxy;
-
-	g_return_val_if_fail (service == NULL || SECRET_IS_SERVICE (service), NULL);
-	g_return_val_if_fail (collection_path != NULL, NULL);
-	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
-	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
-
-	proxy = G_DBUS_PROXY (service);
-
-	return g_initable_new (SECRET_SERVICE_GET_CLASS (service)->collection_gtype,
-	                       cancellable, error,
-	                       "g-flags", G_DBUS_CALL_FLAGS_NONE,
-	                       "g-interface-info", _secret_gen_collection_interface_info (),
-	                       "g-name", g_dbus_proxy_get_name (proxy),
-	                       "g-connection", g_dbus_proxy_get_connection (proxy),
-	                       "g-object-path", collection_path,
-	                       "g-interface-name", SECRET_COLLECTION_INTERFACE,
-	                       "service", service,
-	                       "flags", flags,
-	                       NULL);
-}
-
 typedef struct {
 	GCancellable *cancellable;
 	GHashTable *items;
@@ -853,7 +728,7 @@ on_load_item (GObject *source,
 
 	closure->items_loading--;
 
-	item = secret_item_new_finish (result, &error);
+	item = secret_item_new_for_dbus_path_finish (result, &error);
 
 	if (error != NULL)
 		g_simple_async_result_take_error (res, error);
@@ -921,8 +796,8 @@ secret_collection_load_items (SecretCollection *self,
 
 		/* No such collection yet create a new one */
 		if (item == NULL) {
-			secret_item_new (self->pv->service, path, SECRET_ITEM_NONE,
-			                 cancellable, on_load_item, g_object_ref (res));
+			secret_item_new_for_dbus_path (self->pv->service, path, SECRET_ITEM_NONE,
+			                               cancellable, on_load_item, g_object_ref (res));
 			closure->items_loading++;
 
 		} else {
@@ -1012,9 +887,9 @@ secret_collection_load_items_sync (SecretCollection *self,
 
 		/* No such collection yet create a new one */
 		if (item == NULL) {
-			item = secret_item_new_sync (self->pv->service, path,
-			                             SECRET_ITEM_NONE,
-			                             cancellable, error);
+			item = secret_item_new_for_dbus_path_sync (self->pv->service, path,
+			                                           SECRET_ITEM_NONE,
+			                                           cancellable, error);
 			if (item == NULL) {
 				ret = FALSE;
 				break;
@@ -1079,7 +954,7 @@ on_create_collection (GObject *source,
 	CreateClosure *closure = g_simple_async_result_get_op_res_gpointer (res);
 	GError *error = NULL;
 
-	closure->collection = secret_collection_new_finish (result, &error);
+	closure->collection = secret_collection_new_for_dbus_path_finish (result, &error);
 	if (error != NULL)
 		g_simple_async_result_take_error (res, error);
 
@@ -1098,11 +973,11 @@ on_create_path (GObject *source,
 	GError *error = NULL;
 	gchar *path;
 
-	path = secret_service_create_collection_path_finish (service, result, &error);
+	path = secret_service_create_collection_dbus_path_finish (service, result, &error);
 	if (error == NULL) {
-		secret_collection_new (service, path, SECRET_COLLECTION_LOAD_ITEMS,
-		                       closure->cancellable,
-		                       on_create_collection, g_object_ref (res));
+		secret_collection_new_for_dbus_path (service, path, SECRET_COLLECTION_LOAD_ITEMS,
+		                                     closure->cancellable,
+		                                     on_create_collection, g_object_ref (res));
 	} else {
 		g_simple_async_result_take_error (res, error);
 		g_simple_async_result_complete (res);
@@ -1123,9 +998,9 @@ on_create_service (GObject *source,
 
 	service = secret_service_get_finish (result, &error);
 	if (error == NULL) {
-		secret_service_create_collection_path (service, create->properties,
-		                                       create->alias, create->cancellable,
-		                                       on_create_path, g_object_ref (async));
+		secret_service_create_collection_dbus_path (service, create->properties,
+		                                            create->alias, create->cancellable,
+		                                            on_create_path, g_object_ref (async));
 		g_object_unref (service);
 
 	} else {
@@ -1205,9 +1080,9 @@ secret_collection_create (SecretService *service,
 		                    on_create_service, g_object_ref (res));
 
 	} else {
-		secret_service_create_collection_path (service, closure->properties,
-		                                       closure->alias, closure->cancellable,
-		                                       on_create_path, g_object_ref (res));
+		secret_service_create_collection_dbus_path (service, closure->properties,
+		                                            closure->alias, closure->cancellable,
+		                                            on_create_path, g_object_ref (res));
 	}
 
 	g_object_unref (res);
@@ -1298,8 +1173,8 @@ secret_collection_create_sync (SecretService *service,
 
 	properties = collection_properties_new (label);
 
-	path = secret_service_create_collection_path_sync (service, properties, alias,
-	                                                   cancellable, error);
+	path = secret_service_create_collection_dbus_path_sync (service, properties, alias,
+	                                                        cancellable, error);
 
 	g_hash_table_unref (properties);
 
@@ -1308,9 +1183,9 @@ secret_collection_create_sync (SecretService *service,
 		return NULL;
 	}
 
-	collection = secret_collection_new_sync (service, path,
-	                                         SECRET_COLLECTION_LOAD_ITEMS,
-	                                         cancellable, error);
+	collection = secret_collection_new_for_dbus_path_sync (service, path,
+	                                                       SECRET_COLLECTION_LOAD_ITEMS,
+	                                                       cancellable, error);
 
 	g_object_unref (service);
 	g_free (path);
@@ -1326,7 +1201,7 @@ on_service_delete_path (GObject *source,
 	GSimpleAsyncResult *async = G_SIMPLE_ASYNC_RESULT (user_data);
 	GError *error = NULL;
 
-	secret_service_delete_path_finish (SECRET_SERVICE (source), result, &error);
+	_secret_service_delete_path_finish (SECRET_SERVICE (source), result, &error);
 	if (error != NULL)
 		g_simple_async_result_take_error (async, error);
 	g_simple_async_result_complete (async);
