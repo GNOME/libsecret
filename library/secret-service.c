@@ -124,6 +124,7 @@ struct _SecretServicePrivate {
 
 G_LOCK_DEFINE (service_instance);
 static gpointer service_instance = NULL;
+static guint service_watch = 0;
 
 static GInitableIface *secret_service_initable_parent_iface = NULL;
 
@@ -137,6 +138,84 @@ G_DEFINE_TYPE_WITH_CODE (SecretService, secret_service, G_TYPE_DBUS_PROXY,
                          G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE, secret_service_initable_iface);
                          G_IMPLEMENT_INTERFACE (G_TYPE_ASYNC_INITABLE, secret_service_async_initable_iface);
 );
+
+static SecretService *
+service_get_instance (void)
+{
+	SecretService *instance = NULL;
+
+	G_LOCK (service_instance);
+	if (service_instance != NULL)
+		instance = g_object_ref (service_instance);
+	G_UNLOCK (service_instance);
+
+	return instance;
+}
+
+static gboolean
+service_uncache_instance (SecretService *which)
+{
+	SecretService *instance = NULL;
+	guint watch = 0;
+	gboolean matched = FALSE;
+
+	G_LOCK (service_instance);
+	if (which == NULL || service_instance == which) {
+		instance = service_instance;
+		service_instance = NULL;
+		watch = service_watch;
+		service_watch = 0;
+		matched = TRUE;
+	}
+	G_UNLOCK (service_instance);
+
+	if (instance != NULL)
+		g_object_unref (instance);
+	if (watch != 0)
+		g_bus_unwatch_name (watch);
+
+	return matched;
+}
+
+static void
+on_service_instance_vanished (GDBusConnection *connection,
+                              const gchar *name,
+                              gpointer user_data)
+{
+	if (!service_uncache_instance (user_data)) {
+		g_warning ("Global default SecretService instance out of sync "
+		           "with the watch for its DBus name");
+	}
+}
+
+static void
+service_cache_instance (SecretService *instance)
+{
+	GDBusProxy *proxy;
+	guint watch;
+
+	g_object_ref (instance);
+	proxy = G_DBUS_PROXY (instance);
+	watch = g_bus_watch_name_on_connection (g_dbus_proxy_get_connection (proxy),
+	                                        g_dbus_proxy_get_name (proxy),
+	                                        G_BUS_NAME_WATCHER_FLAGS_AUTO_START,
+	                                        NULL, on_service_instance_vanished,
+	                                        instance, NULL);
+
+	G_LOCK (service_instance);
+	if (service_instance == NULL) {
+		service_instance = instance;
+		instance = NULL;
+		service_watch = watch;
+		watch = 0;
+	}
+	G_UNLOCK (service_instance);
+
+	if (instance != NULL)
+		g_object_unref (instance);
+	if (watch != 0)
+		g_bus_unwatch_name (watch);
+}
 
 static void
 secret_service_init (SecretService *self)
@@ -678,10 +757,7 @@ secret_service_get (SecretServiceFlags flags,
 	GSimpleAsyncResult *res;
 	InitClosure *closure;
 
-	G_LOCK (service_instance);
-	if (service_instance != NULL)
-		service = g_object_ref (service_instance);
-	G_UNLOCK (service_instance);
+	service = service_get_instance ();
 
 	/* Create a whole new service */
 	if (service == NULL) {
@@ -743,13 +819,8 @@ secret_service_get_finish (GAsyncResult *result,
 	/* Creating a whole new service */
 	} else {
 		service = g_async_initable_new_finish (G_ASYNC_INITABLE (source_object), result, error);
-
-		if (service) {
-			G_LOCK (service_instance);
-			if (service_instance == NULL)
-				service_instance = g_object_ref (service);
-			G_UNLOCK (service_instance);
-		}
+		if (service)
+			service_cache_instance (SECRET_SERVICE (service));
 	}
 
 	if (source_object)
@@ -786,10 +857,7 @@ secret_service_get_sync (SecretServiceFlags flags,
 {
 	SecretService *service = NULL;
 
-	G_LOCK (service_instance);
-	if (service_instance != NULL)
-		service = g_object_ref (service_instance);
-	G_UNLOCK (service_instance);
+	service = service_get_instance ();
 
 	if (service == NULL) {
 		service = g_initable_new (SECRET_TYPE_SERVICE, cancellable, error,
@@ -802,12 +870,8 @@ secret_service_get_sync (SecretServiceFlags flags,
 		                          "flags", flags,
 		                          NULL);
 
-		if (service != NULL) {
-			G_LOCK (service_instance);
-			if (service_instance == NULL)
-				service_instance = g_object_ref (service);
-			G_UNLOCK (service_instance);
-		}
+		if (service != NULL)
+			service_cache_instance (service);
 
 	} else {
 		if (!service_ensure_for_flags_sync (service, flags, cancellable, error)) {
@@ -835,15 +899,7 @@ secret_service_get_sync (SecretServiceFlags flags,
 void
 secret_service_disconnect (void)
 {
-	SecretService *instance;
-
-	G_LOCK (service_instance);
-	instance = service_instance;
-	service_instance = NULL;
-	G_UNLOCK (service_instance);
-
-	if (instance != NULL)
-		g_object_unref (instance);
+	service_uncache_instance (NULL);
 }
 
 /**

@@ -74,7 +74,6 @@ static void
 teardown (Test *test,
           gconstpointer unused)
 {
-	secret_service_disconnect ();
 	mock_service_stop ();
 }
 

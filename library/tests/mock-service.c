@@ -88,5 +88,6 @@ mock_service_stop (void)
 	}
 
 	g_spawn_close_pid (pid);
+	secret_service_disconnect ();
 	pid = 0;
 }
