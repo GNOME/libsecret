@@ -37,9 +37,9 @@ typedef struct _SecretPrompt      SecretPrompt;
 typedef struct _SecretService     SecretService;
 typedef struct _SecretValue       SecretValue;
 
-#define SECRET_COLLECTION_DEFAULT "/org/freedesktop/secrets/aliases/default"
+#define SECRET_COLLECTION_DEFAULT "default"
 
-#define SECRET_COLLECTION_SESSION "/org/freedesktop/secrets/aliases/session"
+#define SECRET_COLLECTION_SESSION "session"
 
 G_END_DECLS
 

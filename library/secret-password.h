@@ -27,7 +27,7 @@ G_BEGIN_DECLS
 #include "secret-types.h"
 
 void        secret_password_store                      (const SecretSchema *schema,
-                                                        const gchar *collection_path,
+                                                        const gchar *collection,
                                                         const gchar *label,
                                                         const gchar *password,
                                                         GCancellable *cancellable,
@@ -37,7 +37,7 @@ void        secret_password_store                      (const SecretSchema *sche
 
 void        secret_password_storev                     (const SecretSchema *schema,
                                                         GHashTable *attributes,
-                                                        const gchar *collection_path,
+                                                        const gchar *collection,
                                                         const gchar *label,
                                                         const gchar *password,
                                                         GCancellable *cancellable,
@@ -48,7 +48,7 @@ gboolean    secret_password_store_finish               (GAsyncResult *result,
                                                         GError **error);
 
 gboolean    secret_password_store_sync                 (const SecretSchema *schema,
-                                                        const gchar *collection_path,
+                                                        const gchar *collection,
                                                         const gchar *label,
                                                         const gchar *password,
                                                         GCancellable *cancellable,
@@ -57,7 +57,7 @@ gboolean    secret_password_store_sync                 (const SecretSchema *sche
 
 gboolean    secret_password_storev_sync                (const SecretSchema *schema,
                                                         GHashTable *attributes,
-                                                        const gchar *collection_path,
+                                                        const gchar *collection,
                                                         const gchar *label,
                                                         const gchar *password,
                                                         GCancellable *cancellable,

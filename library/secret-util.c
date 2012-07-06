@@ -109,6 +109,16 @@ _secret_util_empty_path (const gchar *path)
 	return (g_str_equal (path, "") || g_str_equal (path, "/"));
 }
 
+gchar *
+_secret_util_collection_to_path (const gchar *collection)
+{
+	if (collection == NULL)
+		collection = SECRET_COLLECTION_DEFAULT;
+	if (strchr (collection, '/') == NULL)
+		return g_strdup_printf ("/org/freedesktop/secrets/aliases/%s", collection);
+	return g_strdup (collection);
+}
+
 GVariant *
 _secret_util_variant_for_properties (GHashTable *properties)
 {

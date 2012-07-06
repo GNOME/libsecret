@@ -1834,7 +1834,7 @@ on_create_item_session (GObject *source,
 /**
  * secret_service_create_item_dbus_path:
  * @self: a secret service object
- * @collection_path: (allow-none): the D-Bus object path of the collection in which to create item
+ * @collection_path: the D-Bus object path of the collection in which to create item
  * @properties: (element-type utf8 GLib.Variant): hash table of D-Bus properties
  *              for the new collection
  * @value: the secret value to store in the item
@@ -1859,10 +1859,6 @@ on_create_item_session (GObject *source,
  * <literal>org.freedesktop.Secret.Item.Label</literal>. The values
  * in the hash table should be #GVariant values of the properties.
  *
- * If @collection_path is %NULL, then the default collection will be
- * used. Use #SECRET_COLLECTION_SESSION to store the password in the session
- * collection, which doesn't get stored across login sessions.
- *
  * This method will return immediately and complete asynchronously. The secret
  * service may prompt the user. secret_service_prompt() will be used to handle
  * any prompts that are required.
@@ -1881,12 +1877,10 @@ secret_service_create_item_dbus_path (SecretService *self,
 	ItemClosure *closure;
 
 	g_return_if_fail (SECRET_IS_SERVICE (self));
+	g_return_if_fail (collection_path != NULL && g_variant_is_object_path (collection_path));
 	g_return_if_fail (properties != NULL);
 	g_return_if_fail (value != NULL);
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
-
-	if (collection_path == NULL)
-		collection_path = SECRET_COLLECTION_DEFAULT;
 
 	res = g_simple_async_result_new (G_OBJECT (self), callback, user_data,
 	                                 secret_service_create_item_dbus_path);
@@ -1945,7 +1939,7 @@ secret_service_create_item_dbus_path_finish (SecretService *self,
 /**
  * secret_service_create_item_dbus_path_sync:
  * @self: a secret service object
- * @collection_path: (allow-none): the D-Bus path of the collection in which to create item
+ * @collection_path: the D-Bus path of the collection in which to create item
  * @properties: (element-type utf8 GLib.Variant): hash table of D-Bus properties
  *              for the new collection
  * @value: the secret value to store in the item
@@ -1989,6 +1983,7 @@ secret_service_create_item_dbus_path_sync (SecretService *self,
 	gchar *path;
 
 	g_return_val_if_fail (SECRET_IS_SERVICE (self), NULL);
+	g_return_val_if_fail (collection_path != NULL && g_variant_is_object_path (collection_path), NULL);
 	g_return_val_if_fail (properties != NULL, NULL);
 	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
 	g_return_val_if_fail (error == NULL || *error == NULL, NULL);

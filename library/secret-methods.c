@@ -1000,7 +1000,7 @@ on_store_service (GObject *source,
  * @service: (allow-none): the secret service
  * @schema: (allow-none): the schema to use to check attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
- * @collection_path: (allow-none): the D-Bus path to the collection where to store the secret
+ * @collection: (allow-none): a collection alias, or D-Bus object path of the collection where to store the secret
  * @label: label for the secret
  * @value: the secret value
  * @cancellable: optional cancellation object
@@ -1017,7 +1017,7 @@ on_store_service (GObject *source,
  * If @service is NULL, then secret_service_get() will be called to get
  * the default #SecretService proxy.
  *
- * If @collection_path is not specified, then the default collection will be
+ * If @collection is not specified, then the default collection will be
  * used. Use #SECRET_COLLECTION_SESSION to store the password in the session
  * collection, which doesn't get stored across login sessions.
  *
@@ -1027,7 +1027,7 @@ void
 secret_service_store (SecretService *service,
                       const SecretSchema *schema,
                       GHashTable *attributes,
-                      const gchar *collection_path,
+                      const gchar *collection,
                       const gchar *label,
                       SecretValue *value,
                       GCancellable *cancellable,
@@ -1052,7 +1052,7 @@ secret_service_store (SecretService *service,
 	async = g_simple_async_result_new  (G_OBJECT (service), callback, user_data,
 	                                    secret_service_store);
 	store = g_slice_new0 (StoreClosure);
-	store->collection_path = g_strdup (collection_path);
+	store->collection_path = _secret_util_collection_to_path (collection);
 	store->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
 	store->value = secret_value_ref (value);
 	store->properties = g_hash_table_new_full (g_str_hash, g_str_equal, NULL,
@@ -1117,7 +1117,7 @@ secret_service_store_finish (SecretService *service,
  * @service: (allow-none): the secret service
  * @schema: (allow-none): the schema for the attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
- * @collection_path: (allow-none): the D-Bus path to the collection where to store the secret
+ * @collection: (allow-none): a collection alias, or D-Bus object path of the collection where to store the secret
  * @label: label for the secret
  * @value: the secret value
  * @cancellable: optional cancellation object
@@ -1130,7 +1130,7 @@ secret_service_store_finish (SecretService *service,
  * If the attributes match a secret item already stored in the collection, then
  * the item will be updated with these new values.
  *
- * If @collection_path is %NULL, then the default collection will be
+ * If @collection is %NULL, then the default collection will be
  * used. Use #SECRET_COLLECTION_SESSION to store the password in the session
  * collection, which doesn't get stored across login sessions.
  *
@@ -1146,7 +1146,7 @@ gboolean
 secret_service_store_sync (SecretService *service,
                            const SecretSchema *schema,
                            GHashTable *attributes,
-                           const gchar *collection_path,
+                           const gchar *collection,
                            const gchar *label,
                            SecretValue *value,
                            GCancellable *cancellable,
@@ -1169,7 +1169,7 @@ secret_service_store_sync (SecretService *service,
 	sync = _secret_sync_new ();
 	g_main_context_push_thread_default (sync->context);
 
-	secret_service_store (service, schema, attributes, collection_path,
+	secret_service_store (service, schema, attributes, collection,
 	                      label, value, cancellable, _secret_sync_on_result, sync);
 
 	g_main_loop_run (sync->loop);

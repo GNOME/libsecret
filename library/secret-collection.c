@@ -66,6 +66,21 @@
  * during a secret_collection_new() or secret_collection_new_sync() operation.
  */
 
+/**
+ * SECRET_COLLECTION_DEFAULT:
+ *
+ * An alias to the default collection. This can be passed to secret_password_store()
+ * secret_service_read_alias().
+ */
+
+/**
+ * SECRET_COLLECTION_SESSION:
+ *
+ * An alias to the session collection, which will be cleared when the user ends
+ * the session. This can be passed to secret_password_store(),
+ * secret_service_read_alias() or similar functions.
+ */
+
 enum {
 	PROP_0,
 	PROP_SERVICE,

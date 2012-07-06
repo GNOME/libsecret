@@ -64,6 +64,8 @@ gchar *              _secret_util_parent_path                 (const gchar *path
 
 gboolean             _secret_util_empty_path                  (const gchar *path);
 
+gchar *              _secret_util_collection_to_path          (const gchar *collection);
+
 gint                 _secret_util_array_index_of              (GVariant *array,
                                                                GVariant *value);
 
