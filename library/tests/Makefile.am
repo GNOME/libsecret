@@ -75,9 +75,15 @@ VALA_V = $(VALA_V_$(V))
 VALA_V_ = $(VALA_V_$(AM_DEFAULT_VERBOSITY))
 VALA_V_0 = @echo "  VALAC " $^;
 
+if HAVE_INTROSPECTION
+if ENABLE_VAPIGEN
+
 VALA_TESTS = \
 	test-vala-lang \
 	$(NULL)
+
+endif
+endif
 
 test-vala-lang.c: test-vala-lang.vala libsecret-@SECRET_MAJOR@.vapi mock-service-0.vapi
 	$(VALA_V)$(VALAC) -C --pkg gio-2.0 $^
