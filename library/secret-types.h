@@ -44,6 +44,13 @@ typedef struct _SecretValue       SecretValue;
 
 #define SECRET_COLLECTION_SESSION "session"
 
+typedef enum {
+	SECRET_SEARCH_NONE = 0,
+	SECRET_SEARCH_ALL = 1 << 1,
+	SECRET_SEARCH_UNLOCK = 1 << 2,
+	SECRET_SEARCH_LOAD_SECRETS = 1 << 3,
+} SecretSearchFlags;
+
 G_END_DECLS
 
 #endif /* __G_SERVICE_H___ */

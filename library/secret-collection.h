@@ -21,6 +21,7 @@
 
 #include <gio/gio.h>
 
+#include "secret-schema.h"
 #include "secret-types.h"
 
 G_BEGIN_DECLS
@@ -84,6 +85,25 @@ SecretCollection *  secret_collection_create_finish            (GAsyncResult *re
 SecretCollection *  secret_collection_create_sync              (SecretService *service,
                                                                 const gchar *label,
                                                                 const gchar *alias,
+                                                                GCancellable *cancellable,
+                                                                GError **error);
+
+void                secret_collection_search                   (SecretCollection *self,
+                                                                const SecretSchema *schema,
+                                                                GHashTable *attributes,
+                                                                SecretSearchFlags flags,
+                                                                GCancellable *cancellable,
+                                                                GAsyncReadyCallback callback,
+                                                                gpointer user_data);
+
+GList *             secret_collection_search_finish            (SecretCollection *self,
+                                                                GAsyncResult *result,
+                                                                GError **error);
+
+GList *             secret_collection_search_sync              (SecretCollection *self,
+                                                                const SecretSchema *schema,
+                                                                GHashTable *attributes,
+                                                                SecretSearchFlags flags,
                                                                 GCancellable *cancellable,
                                                                 GError **error);
 

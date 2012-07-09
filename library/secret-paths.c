@@ -286,7 +286,6 @@ secret_item_new_for_dbus_path_sync (SecretService *service,
 	                       NULL);
 }
 
-
 static void
 on_search_items_complete (GObject *source,
                           GAsyncResult *result,
@@ -297,14 +296,159 @@ on_search_items_complete (GObject *source,
 	GVariant *response;
 
 	response = g_dbus_proxy_call_finish (G_DBUS_PROXY (source), result, &error);
-	if (error != NULL)
+	if (error != NULL) {
+		_secret_util_strip_remote_error (&error);
 		g_simple_async_result_take_error (res, error);
-	else
+	} else {
 		g_simple_async_result_set_op_res_gpointer (res, response,
 		                                           (GDestroyNotify)g_variant_unref);
+	}
 
 	g_simple_async_result_complete (res);
 	g_object_unref (res);
+}
+
+/**
+ * secret_collection_search_for_dbus_paths:
+ * @collection: the secret collection
+ * @schema: (allow-none): the schema for the attributes
+ * @attributes: (element-type utf8 utf8): search for items matching these attributes
+ * @cancellable: optional cancellation object
+ * @callback: called when the operation completes
+ * @user_data: data to pass to the callback
+ *
+ * Search for items in @collection matching the @attributes, and return their
+ * DBus object paths. Only the specified collection is searched. The @attributes
+ * should be a table of string keys and string values.
+ *
+ * This function returns immediately and completes asynchronously.
+ *
+ * When your callback is called use secret_collection_search_for_dbus_paths_finish()
+ * to get the results of this function. Only the DBus object paths of the
+ * items will be returned. If you would like #SecretItem objects to be returned
+ * instead, then use the secret_collection_search() function.
+ */
+void
+secret_collection_search_for_dbus_paths (SecretCollection *collection,
+                                         const SecretSchema *schema,
+                                         GHashTable *attributes,
+                                         GCancellable *cancellable,
+                                         GAsyncReadyCallback callback,
+                                         gpointer user_data)
+{
+	GSimpleAsyncResult *async;
+	const gchar *schema_name = NULL;
+
+	g_return_if_fail (SECRET_IS_COLLECTION (collection));
+	g_return_if_fail (attributes != NULL);
+	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+	/* Warnings raised already */
+	if (schema != NULL && !_secret_attributes_validate (schema, attributes))
+		return;
+
+	if (schema != NULL && !(schema->flags & SECRET_SCHEMA_DONT_MATCH_NAME))
+		schema_name = schema->name;
+
+	async = g_simple_async_result_new (G_OBJECT (collection), callback, user_data,
+	                                   secret_collection_search_for_dbus_paths);
+
+	g_dbus_proxy_call (G_DBUS_PROXY (collection), "SearchItems",
+	                   g_variant_new ("(@a{ss})", _secret_attributes_to_variant (attributes, schema_name)),
+	                   G_DBUS_CALL_FLAGS_NONE, -1, cancellable,
+	                   on_search_items_complete, g_object_ref (async));
+
+	g_object_unref (async);
+}
+
+/**
+ * secret_collection_search_for_dbus_paths_finish:
+ * @collection: the secret collection
+ * @result: asynchronous result passed to callback
+ * @error: location to place error on failure
+ *
+ * Complete asynchronous operation to search for items in a collection.
+ *
+ * DBus object paths of the items will be returned. If you would to have
+ * #SecretItem objects to be returned instead, then use the
+ * secret_collection_search() and secret_collection_search_finish() functions.
+ *
+ * Returns: (transfer full) (array zero-terminated=1): an array of DBus object
+ *          paths for matching items.
+ */
+gchar **
+secret_collection_search_for_dbus_paths_finish (SecretCollection *collection,
+                                                GAsyncResult *result,
+                                                GError **error)
+{
+	GVariant *retval;
+	GSimpleAsyncResult *async;
+	gchar **paths = NULL;
+
+	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (collection),
+	                      secret_collection_search_for_dbus_paths), FALSE);
+	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+
+	async = G_SIMPLE_ASYNC_RESULT (result);
+	if (g_simple_async_result_propagate_error (async, error))
+		return FALSE;
+
+	retval= g_simple_async_result_get_op_res_gpointer (async);
+	g_variant_get (retval, "(^ao)", &paths);
+	return paths;
+}
+
+/**
+ * secret_collection_search_for_dbus_paths_sync:
+ * @collection: the secret collection
+ * @schema: (allow-none): the schema for the attributes
+ * @attributes: (element-type utf8 utf8): search for items matching these attributes
+ * @cancellable: optional cancellation object
+ * @error: location to place error on failure
+ *
+ * Search for items matching the @attributes in @collection, and return their
+ * DBus object paths. The @attributes should be a table of string keys and
+ * string values.
+ *
+ * This function may block indefinetely. Use the asynchronous version
+ * in user interface threads.
+ *
+ * DBus object paths of the items will be returned. If you would to have
+ * #SecretItem objects to be returned instead, then use the
+ * secret_collection_search_sync() function.
+ *
+ * Returns: (transfer full) (array zero-terminated=1): an array of DBus object
+ *          paths for matching items.
+ */
+gchar **
+secret_collection_search_for_dbus_paths_sync (SecretCollection *collection,
+                                              const SecretSchema *schema,
+                                              GHashTable *attributes,
+                                              GCancellable *cancellable,
+                                              GError **error)
+{
+	SecretSync *sync;
+	gchar **paths;
+
+	g_return_val_if_fail (SECRET_IS_COLLECTION (collection), NULL);
+	g_return_val_if_fail (attributes != NULL, NULL);
+	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
+	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
+
+	sync = _secret_sync_new ();
+	g_main_context_push_thread_default (sync->context);
+
+	secret_collection_search_for_dbus_paths (collection, schema, attributes, cancellable,
+	                                         _secret_sync_on_result, sync);
+
+	g_main_loop_run (sync->loop);
+
+	paths = secret_collection_search_for_dbus_paths_finish (collection, sync->result, error);
+
+	g_main_context_pop_thread_default (sync->context);
+	_secret_sync_free (sync);
+
+	return paths;
 }
 
 /**

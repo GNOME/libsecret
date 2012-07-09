@@ -125,6 +125,32 @@ on_search_unlocked (GObject *source,
 }
 
 static void
+secret_search_unlock_load_or_complete (GSimpleAsyncResult *async,
+                                       SearchClosure *search)
+{
+	GList *items;
+
+	/* If unlocking then unlock all the locked items */
+	if (search->flags & SECRET_SEARCH_UNLOCK) {
+		items = search_closure_build_items (search, search->locked);
+		secret_service_unlock (search->service, items, search->cancellable,
+		                       on_search_unlocked, g_object_ref (async));
+		g_list_free_full (items, g_object_unref);
+
+	/* If loading secrets ... locked items automatically ignored */
+	} else if (search->flags & SECRET_SEARCH_LOAD_SECRETS) {
+		items = g_hash_table_get_values (search->items);
+		secret_item_load_secrets (items, search->cancellable,
+		                          on_search_secrets, g_object_ref (async));
+		g_list_free (items);
+
+	/* No additional options, just complete */
+	} else {
+		g_simple_async_result_complete (async);
+	}
+}
+
+static void
 on_search_loaded (GObject *source,
                   GAsyncResult *result,
                   gpointer user_data)
@@ -133,7 +159,6 @@ on_search_loaded (GObject *source,
 	SearchClosure *closure = g_simple_async_result_get_op_res_gpointer (res);
 	GError *error = NULL;
 	SecretItem *item;
-	GList *items;
 
 	closure->loading--;
 
@@ -145,27 +170,8 @@ on_search_loaded (GObject *source,
 		search_closure_take_item (closure, item);
 
 	/* We're done loading, lets go to the next step */
-	if (closure->loading == 0) {
-
-		/* If unlocking then unlock all the locked items */
-		if (closure->flags & SECRET_SEARCH_UNLOCK) {
-			items = search_closure_build_items (closure, closure->locked);
-			secret_service_unlock (closure->service, items, closure->cancellable,
-			                       on_search_unlocked, g_object_ref (res));
-			g_list_free_full (items, g_object_unref);
-
-		/* If loading secrets ... locked items automatically ignored */
-		} else if (closure->flags & SECRET_SEARCH_LOAD_SECRETS) {
-			items = g_hash_table_get_values (closure->items);
-			secret_item_load_secrets (items, closure->cancellable,
-			                          on_search_secrets, g_object_ref (res));
-			g_list_free (items);
-
-		/* No additional options, just complete */
-		} else {
-			g_simple_async_result_complete (res);
-		}
-	}
+	if (closure->loading == 0)
+		secret_search_unlock_load_or_complete (res, closure);
 
 	g_object_unref (res);
 }
@@ -198,7 +204,8 @@ on_search_paths (GObject *source,
 	SecretService *self = closure->service;
 	GError *error = NULL;
 	gint want = 1;
-	guint i;
+	gint count;
+	gint i;
 
 	secret_service_search_for_dbus_paths_finish (self, result, &closure->unlocked,
 	                                             &closure->locked, &error);
@@ -206,15 +213,16 @@ on_search_paths (GObject *source,
 		want = 1;
 		if (closure->flags & SECRET_SEARCH_ALL)
 			want = G_MAXINT;
+		count = 0;
 
-		for (i = 0; closure->loading < want && closure->unlocked[i] != NULL; i++)
+		for (i = 0; count < want && closure->unlocked[i] != NULL; i++, count++)
 			search_load_item_async (self, res, closure, closure->unlocked[i]);
-		for (i = 0; closure->loading < want && closure->locked[i] != NULL; i++)
+		for (i = 0; count < want && closure->locked[i] != NULL; i++, count++)
 			search_load_item_async (self, res, closure, closure->locked[i]);
 
 		/* No items loading, complete operation now */
 		if (closure->loading == 0)
-			g_simple_async_result_complete (res);
+			secret_search_unlock_load_or_complete (res, closure);
 
 	} else {
 		g_simple_async_result_take_error (res, error);

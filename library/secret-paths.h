@@ -48,6 +48,22 @@ SecretCollection *  secret_collection_new_for_dbus_path_sync           (SecretSe
                                                                         GCancellable *cancellable,
                                                                         GError **error);
 
+void                secret_collection_search_for_dbus_paths            (SecretCollection *collection,
+                                                                        const SecretSchema *schema,
+                                                                        GHashTable *attributes,
+                                                                        GCancellable *cancellable,
+                                                                        GAsyncReadyCallback callback,
+                                                                        gpointer user_data);
+
+gchar **            secret_collection_search_for_dbus_paths_finish     (SecretCollection *collection,
+                                                                        GAsyncResult *result,
+                                                                        GError **error);
+
+gchar **            secret_collection_search_for_dbus_paths_sync       (SecretCollection *collection,
+                                                                        const SecretSchema *schema,
+                                                                        GHashTable *attributes,
+                                                                        GCancellable *cancellable,
+                                                                        GError **error);
 
 void                secret_item_new_for_dbus_path                      (SecretService *service,
                                                                         const gchar *item_path,

@@ -416,6 +416,11 @@ class SecretCollection(dbus.service.Object):
 			item.content_type = content_type
 		return (dbus.ObjectPath(item.path), dbus.ObjectPath("/"))
 
+	@dbus.service.method('org.freedesktop.Secret.Collection')
+	def SearchItems(self, attributes):
+		items = self.search_items(attributes)
+		return (dbus.Array([item.path for item in items], "o"))
+
 	@dbus.service.method('org.freedesktop.Secret.Collection', sender_keyword='sender')
 	def Delete(self, sender=None):
 		collection = self

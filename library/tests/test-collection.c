@@ -33,6 +33,16 @@ typedef struct {
 	SecretService *service;
 } Test;
 
+static const SecretSchema MOCK_SCHEMA = {
+	"org.mock.Schema",
+	SECRET_SCHEMA_NONE,
+	{
+		{ "number", SECRET_SCHEMA_ATTRIBUTE_INTEGER },
+		{ "string", SECRET_SCHEMA_ATTRIBUTE_STRING },
+		{ "even", SECRET_SCHEMA_ATTRIBUTE_BOOLEAN },
+	}
+};
+
 static void
 setup (Test *test,
        gconstpointer data)
@@ -525,6 +535,335 @@ test_delete_async (Test *test,
 	g_assert (collection == NULL);
 }
 
+static void
+test_search_sync (Test *test,
+                  gconstpointer used)
+{
+	const gchar *collection_path = "/org/freedesktop/secrets/collection/english";
+	SecretCollection *collection;
+	GHashTable *attributes;
+	GError *error = NULL;
+	GList *items;
+
+	collection = secret_collection_new_for_dbus_path_sync (test->service, collection_path,
+	                                                       SECRET_COLLECTION_NONE, NULL, &error);
+	g_assert_no_error (error);
+
+	attributes = g_hash_table_new (g_str_hash, g_str_equal);
+	g_hash_table_insert (attributes, "number", "1");
+
+	items = secret_collection_search_sync (collection, &MOCK_SCHEMA, attributes,
+	                                       SECRET_SEARCH_NONE, NULL, &error);
+	g_assert_no_error (error);
+	g_hash_table_unref (attributes);
+
+	g_assert (items != NULL);
+	g_assert_cmpstr (g_dbus_proxy_get_object_path (items->data), ==, "/org/freedesktop/secrets/collection/english/1");
+
+	g_assert (items->next == NULL);
+	g_list_free_full (items, g_object_unref);
+
+	g_object_unref (collection);
+}
+
+static void
+test_search_async (Test *test,
+                   gconstpointer used)
+{
+	const gchar *collection_path = "/org/freedesktop/secrets/collection/english";
+	SecretCollection *collection;
+	GAsyncResult *result = NULL;
+	GHashTable *attributes;
+	GError *error = NULL;
+	GList *items;
+
+	collection = secret_collection_new_for_dbus_path_sync (test->service, collection_path,
+	                                                       SECRET_COLLECTION_NONE, NULL, &error);
+	g_assert_no_error (error);
+
+	attributes = g_hash_table_new (g_str_hash, g_str_equal);
+	g_hash_table_insert (attributes, "number", "1");
+
+	secret_collection_search (collection, &MOCK_SCHEMA, attributes,
+	                          SECRET_SEARCH_NONE, NULL,
+	                          on_async_result, &result);
+	g_hash_table_unref (attributes);
+	g_assert (result == NULL);
+
+	egg_test_wait ();
+
+	g_assert (G_IS_ASYNC_RESULT (result));
+	items = secret_collection_search_finish (collection, result, &error);
+	g_assert_no_error (error);
+	g_object_unref (result);
+
+	g_assert (items != NULL);
+	g_assert_cmpstr (g_dbus_proxy_get_object_path (items->data), ==, "/org/freedesktop/secrets/collection/english/1");
+
+	g_assert (items->next == NULL);
+	g_list_free_full (items, g_object_unref);
+
+	g_object_unref (collection);
+}
+
+static gint
+sort_by_object_path (gconstpointer a,
+                     gconstpointer b)
+{
+	const gchar *pa = g_dbus_proxy_get_object_path ((GDBusProxy *)a);
+	const gchar *pb = g_dbus_proxy_get_object_path ((GDBusProxy *)b);
+
+	return g_strcmp0 (pa, pb);
+}
+
+static void
+test_search_all_sync (Test *test,
+                  gconstpointer used)
+{
+	const gchar *collection_path = "/org/freedesktop/secrets/collection/english";
+	SecretCollection *collection;
+	GHashTable *attributes;
+	GError *error = NULL;
+	GList *items;
+
+	collection = secret_collection_new_for_dbus_path_sync (test->service, collection_path,
+	                                                       SECRET_COLLECTION_NONE, NULL, &error);
+	g_assert_no_error (error);
+
+	attributes = g_hash_table_new (g_str_hash, g_str_equal);
+
+	items = secret_collection_search_sync (collection, &MOCK_SCHEMA, attributes,
+	                                       SECRET_SEARCH_ALL, NULL, &error);
+	g_assert_no_error (error);
+	g_hash_table_unref (attributes);
+
+	items = g_list_sort (items, sort_by_object_path);
+
+	g_assert (items != NULL);
+	g_assert_cmpstr (g_dbus_proxy_get_object_path (items->data), ==, "/org/freedesktop/secrets/collection/english/1");
+	g_assert (secret_item_get_secret (items->data) == NULL);
+
+	g_assert (items->next != NULL);
+	g_assert_cmpstr (g_dbus_proxy_get_object_path (items->next->data), ==, "/org/freedesktop/secrets/collection/english/2");
+	g_assert (secret_item_get_secret (items->next->data) == NULL);
+
+	g_assert (items->next->next != NULL);
+	g_assert_cmpstr (g_dbus_proxy_get_object_path (items->next->next->data), ==, "/org/freedesktop/secrets/collection/english/3");
+	g_assert (secret_item_get_secret (items->next->next->data) == NULL);
+
+	g_assert (items->next->next->next == NULL);
+	g_list_free_full (items, g_object_unref);
+
+	g_object_unref (collection);
+}
+
+static void
+test_search_all_async (Test *test,
+                   gconstpointer used)
+{
+	const gchar *collection_path = "/org/freedesktop/secrets/collection/english";
+	SecretCollection *collection;
+	GAsyncResult *result = NULL;
+	GHashTable *attributes;
+	GError *error = NULL;
+	GList *items;
+
+	collection = secret_collection_new_for_dbus_path_sync (test->service, collection_path,
+	                                                       SECRET_COLLECTION_NONE, NULL, &error);
+	g_assert_no_error (error);
+
+	attributes = g_hash_table_new (g_str_hash, g_str_equal);
+
+	secret_collection_search (collection, &MOCK_SCHEMA, attributes,
+	                          SECRET_SEARCH_ALL, NULL,
+	                          on_async_result, &result);
+	g_hash_table_unref (attributes);
+	g_assert (result == NULL);
+
+	egg_test_wait ();
+
+	g_assert (G_IS_ASYNC_RESULT (result));
+	items = secret_collection_search_finish (collection, result, &error);
+	g_assert_no_error (error);
+	g_object_unref (result);
+
+	items = g_list_sort (items, sort_by_object_path);
+
+	g_assert (items != NULL);
+	g_assert_cmpstr (g_dbus_proxy_get_object_path (items->data), ==, "/org/freedesktop/secrets/collection/english/1");
+	g_assert (secret_item_get_secret (items->data) == NULL);
+
+	g_assert (items->next != NULL);
+	g_assert_cmpstr (g_dbus_proxy_get_object_path (items->next->data), ==, "/org/freedesktop/secrets/collection/english/2");
+	g_assert (secret_item_get_secret (items->next->data) == NULL);
+
+	g_assert (items->next->next != NULL);
+	g_assert_cmpstr (g_dbus_proxy_get_object_path (items->next->next->data), ==, "/org/freedesktop/secrets/collection/english/3");
+	g_assert (secret_item_get_secret (items->next->next->data) == NULL);
+
+	g_assert (items->next->next->next == NULL);
+	g_list_free_full (items, g_object_unref);
+
+	g_object_unref (collection);
+}
+
+static void
+test_search_unlock_sync (Test *test,
+                         gconstpointer used)
+{
+	const gchar *collection_path = "/org/freedesktop/secrets/collection/spanish";
+	SecretCollection *collection;
+	GHashTable *attributes;
+	GError *error = NULL;
+	GList *items;
+
+	collection = secret_collection_new_for_dbus_path_sync (test->service, collection_path,
+	                                                       SECRET_COLLECTION_NONE, NULL, &error);
+	g_assert_no_error (error);
+
+	attributes = g_hash_table_new (g_str_hash, g_str_equal);
+	g_hash_table_insert (attributes, "number", "1");
+
+	items = secret_collection_search_sync (collection, &MOCK_SCHEMA, attributes,
+	                                       SECRET_SEARCH_UNLOCK, NULL, &error);
+	g_assert_no_error (error);
+	g_hash_table_unref (attributes);
+
+	g_assert (items != NULL);
+	g_assert_cmpstr (g_dbus_proxy_get_object_path (items->data), ==, "/org/freedesktop/secrets/collection/spanish/10");
+	g_assert (secret_item_get_locked (items->data) == FALSE);
+	g_assert (secret_item_get_secret (items->data) == NULL);
+
+	g_assert (items->next == NULL);
+	g_list_free_full (items, g_object_unref);
+
+	g_object_unref (collection);
+}
+
+static void
+test_search_unlock_async (Test *test,
+                          gconstpointer used)
+{
+	const gchar *collection_path = "/org/freedesktop/secrets/collection/spanish";
+	SecretCollection *collection;
+	GAsyncResult *result = NULL;
+	GHashTable *attributes;
+	GError *error = NULL;
+	GList *items;
+
+	collection = secret_collection_new_for_dbus_path_sync (test->service, collection_path,
+	                                                       SECRET_COLLECTION_NONE, NULL, &error);
+	g_assert_no_error (error);
+
+	attributes = g_hash_table_new (g_str_hash, g_str_equal);
+	g_hash_table_insert (attributes, "number", "1");
+
+	secret_collection_search (collection, &MOCK_SCHEMA, attributes,
+	                          SECRET_SEARCH_UNLOCK, NULL,
+	                          on_async_result, &result);
+	g_hash_table_unref (attributes);
+	g_assert (result == NULL);
+
+	egg_test_wait ();
+
+	g_assert (G_IS_ASYNC_RESULT (result));
+	items = secret_collection_search_finish (collection, result, &error);
+	g_assert_no_error (error);
+	g_object_unref (result);
+
+	g_assert (items != NULL);
+	g_assert_cmpstr (g_dbus_proxy_get_object_path (items->data), ==, "/org/freedesktop/secrets/collection/spanish/10");
+	g_assert (secret_item_get_locked (items->data) == FALSE);
+	g_assert (secret_item_get_secret (items->data) == NULL);
+
+	g_assert (items->next == NULL);
+	g_list_free_full (items, g_object_unref);
+
+	g_object_unref (collection);
+}
+
+static void
+test_search_secrets_sync (Test *test,
+                          gconstpointer used)
+{
+	const gchar *collection_path = "/org/freedesktop/secrets/collection/english";
+	SecretCollection *collection;
+	GHashTable *attributes;
+	GError *error = NULL;
+	SecretValue *value;
+	GList *items;
+
+	collection = secret_collection_new_for_dbus_path_sync (test->service, collection_path,
+	                                                       SECRET_COLLECTION_NONE, NULL, &error);
+	g_assert_no_error (error);
+
+	attributes = g_hash_table_new (g_str_hash, g_str_equal);
+	g_hash_table_insert (attributes, "number", "1");
+
+	items = secret_collection_search_sync (collection, &MOCK_SCHEMA, attributes,
+	                                       SECRET_SEARCH_LOAD_SECRETS,
+	                                       NULL, &error);
+	g_assert_no_error (error);
+	g_hash_table_unref (attributes);
+
+	g_assert (items != NULL);
+	g_assert_cmpstr (g_dbus_proxy_get_object_path (items->data), ==, "/org/freedesktop/secrets/collection/english/1");
+	g_assert (secret_item_get_locked (items->data) == FALSE);
+	value = secret_item_get_secret (items->data);
+	g_assert (value != NULL);
+	secret_value_unref (value);
+
+	g_assert (items->next == NULL);
+	g_list_free_full (items, g_object_unref);
+
+	g_object_unref (collection);
+}
+
+static void
+test_search_secrets_async (Test *test,
+                           gconstpointer used)
+{
+	const gchar *collection_path = "/org/freedesktop/secrets/collection/english";
+	SecretCollection *collection;
+	GAsyncResult *result = NULL;
+	GHashTable *attributes;
+	GError *error = NULL;
+	SecretValue *value;
+	GList *items;
+
+	collection = secret_collection_new_for_dbus_path_sync (test->service, collection_path,
+	                                                       SECRET_COLLECTION_NONE, NULL, &error);
+	g_assert_no_error (error);
+
+	attributes = g_hash_table_new (g_str_hash, g_str_equal);
+	g_hash_table_insert (attributes, "number", "1");
+
+	secret_collection_search (collection, &MOCK_SCHEMA, attributes,
+	                          SECRET_SEARCH_LOAD_SECRETS, NULL,
+	                          on_async_result, &result);
+	g_hash_table_unref (attributes);
+	g_assert (result == NULL);
+
+	egg_test_wait ();
+
+	g_assert (G_IS_ASYNC_RESULT (result));
+	items = secret_collection_search_finish (collection, result, &error);
+	g_assert_no_error (error);
+	g_object_unref (result);
+
+	g_assert (items != NULL);
+	g_assert_cmpstr (g_dbus_proxy_get_object_path (items->data), ==, "/org/freedesktop/secrets/collection/english/1");
+	g_assert (secret_item_get_locked (items->data) == FALSE);
+	value = secret_item_get_secret (items->data);
+	g_assert (value != NULL);
+	secret_value_unref (value);
+
+	g_assert (items->next == NULL);
+	g_list_free_full (items, g_object_unref);
+
+	g_object_unref (collection);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -547,6 +886,15 @@ main (int argc, char **argv)
 	g_test_add ("/collection/set-label-prop", Test, "mock-service-normal.py", setup, test_set_label_prop, teardown);
 	g_test_add ("/collection/delete-sync", Test, "mock-service-normal.py", setup, test_delete_sync, teardown);
 	g_test_add ("/collection/delete-async", Test, "mock-service-normal.py", setup, test_delete_async, teardown);
+
+	g_test_add ("/collection/search-sync", Test, "mock-service-normal.py", setup, test_search_sync, teardown);
+	g_test_add ("/collection/search-async", Test, "mock-service-normal.py", setup, test_search_async, teardown);
+	g_test_add ("/collection/search-all-sync", Test, "mock-service-normal.py", setup, test_search_all_sync, teardown);
+	g_test_add ("/collection/search-all-async", Test, "mock-service-normal.py", setup, test_search_all_async, teardown);
+	g_test_add ("/collection/search-unlock-sync", Test, "mock-service-normal.py", setup, test_search_unlock_sync, teardown);
+	g_test_add ("/collection/search-unlock-async", Test, "mock-service-normal.py", setup, test_search_unlock_async, teardown);
+	g_test_add ("/collection/search-secrets-sync", Test, "mock-service-normal.py", setup, test_search_secrets_sync, teardown);
+	g_test_add ("/collection/search-secrets-async", Test, "mock-service-normal.py", setup, test_search_secrets_async, teardown);
 
 	return egg_tests_run_with_loop ();
 }
