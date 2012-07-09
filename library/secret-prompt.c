@@ -331,6 +331,7 @@ on_prompt_prompted (GObject *source,
 		g_clear_error (&error);
 
 	if (error != NULL) {
+		_secret_util_strip_remote_error (&error);
 		g_simple_async_result_take_error (res, error);
 		perform_prompt_complete (res, TRUE);
 
@@ -377,6 +378,7 @@ on_prompt_dismissed (GObject *source,
 		g_clear_error (&error);
 
 	if (error != NULL) {
+		_secret_util_strip_remote_error (&error);
 		g_simple_async_result_take_error (res, error);
 		perform_prompt_complete (res, TRUE);
 	}

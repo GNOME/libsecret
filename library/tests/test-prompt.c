@@ -378,12 +378,23 @@ test_service_path (Test *test,
 	egg_test_wait_idle ();
 }
 
+static void
+null_log_handler (const gchar *log_domain, GLogLevelFlags log_level,
+                  const gchar *message, gpointer user_data)
+{
+
+}
+
 int
 main (int argc, char **argv)
 {
 	g_test_init (&argc, &argv, NULL);
 	g_set_prgname ("test-prompt");
 	g_type_init ();
+
+	/* Suppress these messages in tests */
+	g_log_set_handler (G_LOG_DOMAIN, G_LOG_LEVEL_MESSAGE | G_LOG_LEVEL_INFO | G_LOG_LEVEL_DEBUG,
+	                   null_log_handler, NULL);
 
 	g_test_add ("/prompt/run", Test, "mock-service-prompt.py", setup, test_perform_run, teardown);
 	g_test_add ("/prompt/perform-sync", Test, "mock-service-prompt.py", setup, test_perform_sync, teardown);

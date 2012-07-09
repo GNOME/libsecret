@@ -29,6 +29,9 @@ GQuark          secret_error_get_quark      (void) G_GNUC_CONST;
 
 typedef enum {
 	SECRET_ERROR_PROTOCOL = 1,
+	SECRET_ERROR_IS_LOCKED = 2,
+	SECRET_ERROR_NO_SUCH_OBJECT = 3,
+	SECRET_ERROR_ALREADY_EXISTS = 4,
 } SecretError;
 
 typedef struct _SecretCollection  SecretCollection;

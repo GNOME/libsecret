@@ -103,6 +103,7 @@
 
 EGG_SECURE_GLIB_DEFINITIONS ();
 
+GQuark _secret_error_quark = 0;
 static const gchar *default_bus_name = SECRET_SERVICE_BUS_NAME;
 
 enum {
@@ -542,6 +543,9 @@ secret_service_class_init (SecretServiceClass *klass)
 	                                 _secret_list_get_type (), G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 
 	g_type_class_add_private (klass, sizeof (SecretServicePrivate));
+
+	/* Initialize this error domain, registers dbus errors */
+	_secret_error_quark = secret_error_get_quark ();
 }
 
 typedef struct {

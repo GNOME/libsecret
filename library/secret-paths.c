@@ -539,8 +539,10 @@ on_get_secrets_complete (GObject *source,
 	GError *error = NULL;
 
 	closure->out = g_dbus_proxy_call_finish (G_DBUS_PROXY (source), result, &error);
-	if (error != NULL)
+	if (error != NULL) {
+		_secret_util_strip_remote_error (&error);
 		g_simple_async_result_take_error (res, error);
+	}
 	g_simple_async_result_complete (res);
 
 	g_object_unref (res);
@@ -896,6 +898,7 @@ on_xlock_called (GObject *source,
 
 	retval = g_dbus_proxy_call_finish (G_DBUS_PROXY (source), result, &error);
 	if (error != NULL) {
+		_secret_util_strip_remote_error (&error);
 		g_simple_async_result_take_error (res, error);
 		g_simple_async_result_complete (res);
 
@@ -1291,6 +1294,7 @@ on_delete_complete (GObject *source,
 		g_variant_unref (retval);
 
 	} else {
+		_secret_util_strip_remote_error (&error);
 		g_simple_async_result_take_error (res, error);
 		g_simple_async_result_complete (res);
 	}
@@ -1519,6 +1523,7 @@ on_create_collection_called (GObject *source,
 		g_variant_unref (retval);
 
 	} else {
+		_secret_util_strip_remote_error (&error);
 		g_simple_async_result_take_error (res, error);
 		g_simple_async_result_complete (res);
 	}
@@ -1784,6 +1789,7 @@ on_create_item_called (GObject *source,
 		g_variant_unref (retval);
 
 	} else {
+		_secret_util_strip_remote_error (&error);
 		g_simple_async_result_take_error (res, error);
 		g_simple_async_result_complete (res);
 	}
@@ -2056,6 +2062,8 @@ secret_service_read_alias_dbus_path_finish (SecretService *self,
 	GVariant *retval;
 
 	retval = g_dbus_proxy_call_finish (G_DBUS_PROXY (self), result, error);
+
+	_secret_util_strip_remote_error (error);
 	if (retval == NULL)
 		return NULL;
 
@@ -2174,6 +2182,8 @@ secret_service_set_alias_to_dbus_path_finish (SecretService *self,
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
 	retval = g_dbus_proxy_call_finish (G_DBUS_PROXY (self), result, error);
+
+	_secret_util_strip_remote_error (error);
 	if (retval == NULL)
 		return FALSE;
 

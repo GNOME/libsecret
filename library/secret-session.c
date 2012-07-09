@@ -248,6 +248,7 @@ on_service_open_session_plain (GObject *source,
 		g_variant_unref (response);
 
 	} else {
+		_secret_util_strip_remote_error (&error);
 		g_simple_async_result_take_error (res, error);
 		g_simple_async_result_complete (res);
 	}
@@ -296,6 +297,7 @@ on_service_open_session_aes (GObject *source,
 
 		/* Other errors result in a failure */
 		} else {
+			_secret_util_strip_remote_error (&error);
 			g_simple_async_result_take_error (res, error);
 			g_simple_async_result_complete (res);
 		}

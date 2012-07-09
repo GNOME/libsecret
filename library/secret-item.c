@@ -1137,8 +1137,10 @@ on_item_load_secret (GObject *source,
 		}
 	}
 
-	if (error != NULL)
+	if (error != NULL) {
+		_secret_util_strip_remote_error (&error);
 		g_simple_async_result_take_error (res, error);
+	}
 
 	g_simple_async_result_complete (res);
 	g_object_unref (res);
@@ -1337,8 +1339,10 @@ on_get_secrets_complete (GObject *source,
 		g_variant_unref (retval);
 	}
 
-	if (error != NULL)
+	if (error != NULL) {
+		_secret_util_strip_remote_error (&error);
 		g_simple_async_result_take_error (async, error);
+	}
 
 	g_simple_async_result_complete (async);
 	g_object_unref (async);
@@ -1545,10 +1549,12 @@ on_item_set_secret (GObject *source,
 
 	retval = g_dbus_proxy_call_finish (G_DBUS_PROXY (source), result, &error);
 
-	if (error == NULL)
+	if (error == NULL) {
 		_secret_item_set_cached_secret (self, set->value);
-	else
+	} else {
+		_secret_util_strip_remote_error (&error);
 		g_simple_async_result_take_error (res, error);
+	}
 	if (retval != NULL)
 		g_variant_unref (retval);
 

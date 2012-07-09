@@ -60,6 +60,8 @@ void                 _secret_sync_on_result                   (GObject *source,
 SecretPrompt *       _secret_prompt_instance                  (SecretService *service,
                                                                const gchar *prompt_path);
 
+void                 _secret_util_strip_remote_error          (GError **error);
+
 gchar *              _secret_util_parent_path                 (const gchar *path);
 
 gboolean             _secret_util_empty_path                  (const gchar *path);

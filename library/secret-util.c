@@ -35,6 +35,11 @@
  * SecretError:
  * @SECRET_ERROR_PROTOCOL: received an invalid data or message from the Secret
  *                         Service
+ * @SECRET_ERROR_IS_LOCKED: the item or collection is locked and the operation
+ *                          cannot be performed
+ * @SECRET_ERROR_NO_SUCH_OBJECT: no such item or collection found in the
+ *                               Secret Service
+ * @SECRET_ERROR_ALREADY_EXISTS: a relevant item or collection already exists
  *
  * Errors returned by the Secret Service. None of the errors are appropriate
  * for display to the user.
@@ -77,15 +82,36 @@ _secret_list_get_type (void)
 GQuark
 secret_error_get_quark (void)
 {
-	static volatile gsize initialized = 0;
-	static GQuark quark = 0;
+	static volatile gsize quark = 0;
 
-	if (g_once_init_enter (&initialized)) {
-		quark = g_quark_from_static_string ("secret-error");
-		g_once_init_leave (&initialized, 1);
-	}
+	static const GDBusErrorEntry entries[] = {
+		{ SECRET_ERROR_IS_LOCKED, "org.freedesktop.Secret.Error.IsLocked", },
+		{ SECRET_ERROR_NO_SUCH_OBJECT, "org.freedesktop.Secret.Error.NoSuchObject", },
+		{ SECRET_ERROR_ALREADY_EXISTS, "org.freedesktop.Secret.Error.AlreadyExists" },
+	};
+
+	g_dbus_error_register_error_domain ("secret-error", &quark,
+	                                    entries, G_N_ELEMENTS (entries));
 
 	return quark;
+}
+
+void
+_secret_util_strip_remote_error (GError **error)
+{
+	gchar *remote;
+
+	if (error == NULL || *error == NULL)
+		return;
+
+	remote = g_dbus_error_get_remote_error (*error);
+	if (remote) {
+		if (g_dbus_error_strip_remote_error (*error)) {
+			g_message ("Remote error from secret service: %s: %s",
+			           remote, (*error)->message);
+		}
+		g_free (remote);
+	}
 }
 
 gchar *
@@ -177,10 +203,12 @@ on_get_properties (GObject *source,
 
 	retval = g_dbus_connection_call_finish (G_DBUS_CONNECTION (source), result, &error);
 
-	if (error == NULL)
+	if (error == NULL) {
 		process_get_all_reply (proxy, retval);
-	else
+	} else {
+		_secret_util_strip_remote_error (&error);
 		g_simple_async_result_take_error (res, error);
+	}
 	if (retval != NULL)
 		g_variant_unref (retval);
 
@@ -262,8 +290,10 @@ on_set_property (GObject *source,
 
 	retval = g_dbus_connection_call_finish (G_DBUS_CONNECTION (source),
 	                                        result, &error);
-	if (error != NULL)
+	if (error != NULL) {
+		_secret_util_strip_remote_error (&error);
 		g_simple_async_result_take_error (res, error);
+	}
 	if (retval != NULL)
 		g_variant_unref (retval);
 
