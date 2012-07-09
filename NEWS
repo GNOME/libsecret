@@ -1,3 +1,23 @@
+0.4
+ * Implement per collection search
+ * Register secret service errors as GDBus errors
+ * Cache default SecretService object, and provide a way to
+   'disconnect' it. Also 'disconnect' if service goes away.
+ * Better use of aliases when storing passwords
+ * Rename functions that operate on a dbus object path
+ * Accept NULL as a SecretService parameter for many methods
+ * Make loading items for a collection optional
+ * More consistent use of schemas
+ * Able to unlock and load secrets while searching for items
+ * Cache the secret value on SecretItem
+ * Add vala bindings and tests
+ * Remove most varargs other than the simple password functions
+ * Add SECRET_SCHEMA_NOTE schema
+ * Lots of bug fixes
+ * Documentation fixes
+ * Testing fixes
+ * Build fixes
+
 0.3
  * Add methods to get services from collections, items
  * Add methods to read and set aliases
