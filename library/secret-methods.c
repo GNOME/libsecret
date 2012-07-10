@@ -1487,8 +1487,8 @@ typedef struct {
 	GCancellable *cancellable;
 	SecretService *service;
 	GVariant *attributes;
-	SecretPrompt *prompt;
-	gboolean deleted;
+	gint deleted;
+	gint deleting;
 } DeleteClosure;
 
 static void
@@ -1498,7 +1498,6 @@ delete_closure_free (gpointer data)
 	if (closure->service)
 		g_object_unref (closure->service);
 	g_variant_unref (closure->attributes);
-	g_clear_object (&closure->prompt);
 	g_clear_object (&closure->cancellable);
 	g_slice_free (DeleteClosure, closure);
 }
@@ -1511,12 +1510,18 @@ on_delete_password_complete (GObject *source,
 	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
 	DeleteClosure *closure = g_simple_async_result_get_op_res_gpointer (res);
 	GError *error = NULL;
+	gboolean deleted;
 
-	closure->deleted = _secret_service_delete_path_finish (SECRET_SERVICE (source), result, &error);
+	closure->deleting--;
+
+	deleted = _secret_service_delete_path_finish (SECRET_SERVICE (source), result, &error);
 	if (error != NULL)
 		g_simple_async_result_take_error (res, error);
+	if (deleted)
+		closure->deleted++;
 
-	g_simple_async_result_complete (res);
+	if (closure->deleting <= 0)
+		g_simple_async_result_complete (res);
 
 	g_object_unref (res);
 }
@@ -1528,39 +1533,27 @@ on_delete_searched (GObject *source,
 {
 	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
 	DeleteClosure *closure = g_simple_async_result_get_op_res_gpointer (res);
-	const gchar *path = NULL;
 	GError *error = NULL;
-	gchar **locked;
-	gchar **unlocked;
+	gchar **unlocked = NULL;
+	gint i;
 
-	secret_service_search_for_dbus_paths_finish (SECRET_SERVICE (source), result, &unlocked, &locked, &error);
-	if (error != NULL) {
-		g_simple_async_result_take_error (res, error);
-		g_simple_async_result_complete (res);
-
-	} else {
-		/* Choose the first path */
-		if (unlocked && unlocked[0])
-			path = unlocked[0];
-		else if (locked && locked[0])
-			path = locked[0];
-
-		/* Nothing to delete? */
-		if (path == NULL) {
-			closure->deleted = FALSE;
-			g_simple_async_result_complete (res);
-
-		/* Delete the first path */
-		} else {
-			closure->deleted = TRUE;
-			_secret_service_delete_path (closure->service, path, TRUE,
+	secret_service_search_for_dbus_paths_finish (SECRET_SERVICE (source), result, &unlocked, NULL, &error);
+	if (error == NULL) {
+		for (i = 0; unlocked[i] != NULL; i++) {
+			_secret_service_delete_path (closure->service, unlocked[i], TRUE,
 			                             closure->cancellable,
 			                             on_delete_password_complete,
 			                             g_object_ref (res));
+			closure->deleting++;
 		}
+
+		if (closure->deleting == 0)
+			g_simple_async_result_complete (res);
+	} else {
+		g_simple_async_result_take_error (res, error);
+		g_simple_async_result_complete (res);
 	}
 
-	g_strfreev (locked);
 	g_strfreev (unlocked);
 	g_object_unref (res);
 }
@@ -1639,6 +1632,9 @@ secret_service_remove (SecretService *service,
 	g_variant_ref_sink (closure->attributes);
 	g_simple_async_result_set_op_res_gpointer (res, closure, delete_closure_free);
 
+	/* A double check to make sure we don't delete everything, should have been checked earlier */
+	g_assert (g_variant_n_children (closure->attributes) > 0);
+
 	if (service == NULL) {
 		secret_service_get (SECRET_SERVICE_NONE, cancellable,
 		                    on_delete_service, g_object_ref (res));
@@ -1681,7 +1677,7 @@ secret_service_remove_finish (SecretService *service,
 		return FALSE;
 
 	closure = g_simple_async_result_get_op_res_gpointer (res);
-	return closure->deleted;
+	return closure->deleted > 0;
 }
 
 /**

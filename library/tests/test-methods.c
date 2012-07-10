@@ -513,11 +513,12 @@ test_remove_locked (Test *test,
 	                                      "number", 3,
 	                                      NULL);
 
+	/* Locked items can't be removed via this API */
 	ret = secret_service_remove_sync (test->service, &MOCK_SCHEMA, attributes, NULL, &error);
 
 	g_hash_table_unref (attributes);
 	g_assert_no_error (error);
-	g_assert (ret == TRUE);
+	g_assert (ret == FALSE);
 }
 
 static void
@@ -545,6 +546,7 @@ static void
 test_remove_no_name (Test *test,
                      gconstpointer used)
 {
+	const gchar *paths[] = { "/org/freedesktop/secrets/collection/german", NULL };
 	GError *error = NULL;
 	GHashTable *attributes;
 	gboolean ret;
@@ -557,6 +559,10 @@ test_remove_no_name (Test *test,
 	ret = secret_service_remove_sync (test->service, &MOCK_SCHEMA, attributes, NULL, &error);
 	g_assert_no_error (error);
 	g_assert (ret == FALSE);
+
+	/* We need this collection unlocked for the next test */
+	secret_service_unlock_dbus_paths_sync (test->service, paths, NULL, NULL, &error);
+	g_assert_no_error (error);
 
 	/* We have an item with 5 in prime schema, but should match anyway becase of flags */
 	ret = secret_service_remove_sync (test->service, &NO_NAME_SCHEMA, attributes, NULL, &error);

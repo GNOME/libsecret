@@ -684,7 +684,7 @@ secret_password_remove (const SecretSchema *schema,
  *
  * The @attributes should be a set of key and value string pairs.
  *
- * If multiple items match the attributes, then only one will be deleted.
+ * All unlocked items that match the attributes will be deleted.
  *
  * This method will return immediately and complete asynchronously.
  *
@@ -714,10 +714,10 @@ secret_password_removev (const SecretSchema *schema,
  * @result: the asynchronous result passed to the callback
  * @error: location to place an error on failure
  *
- * Finish an asynchronous operation to remove a password from the secret
+ * Finish an asynchronous operation to remove passwords from the secret
  * service.
  *
- * Returns: whether the removal was successful or not
+ * Returns: whether any passwords were removed
  */
 gboolean
 secret_password_remove_finish (GAsyncResult *result,
@@ -734,19 +734,19 @@ secret_password_remove_finish (GAsyncResult *result,
  * @error: location to place an error on failure
  * @...: the attribute keys and values, terminated with %NULL
  *
- * Remove a password from the secret service.
+ * Remove passwords from the secret service.
  *
  * The variable argument list should contain pairs of a) The attribute name as
  * a null-terminated string, followed by b) attribute value, either a character
  * string, an int number, or a gboolean value, as defined in the password
  * @schema. The list of attribtues should be terminated with a %NULL.
  *
- * If multiple items match the attributes, then only one will be deleted.
+ * All unlocked items that match the attributes will be deleted.
  *
  * This method may block indefinitely and should not be used in user interface
  * threads.
  *
- * Returns: whether the removal was successful or not
+ * Returns: whether the any passwords were removed
  */
 gboolean
 secret_password_remove_sync (const SecretSchema* schema,
@@ -785,12 +785,12 @@ secret_password_remove_sync (const SecretSchema* schema,
  *
  * The @attributes should be a set of key and value string pairs.
  *
- * If multiple items match the attributes, then only one will be deleted.
+ * All unlocked items that match the attributes will be deleted.
  *
  * This method may block indefinitely and should not be used in user interface
  * threads.
  *
- * Returns: whether the removal was successful or not
+ * Returns: whether any passwords were removed
  *
  * Rename to: secret_password_remove_sync
  */

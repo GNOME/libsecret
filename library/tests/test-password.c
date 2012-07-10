@@ -15,6 +15,7 @@
 #include "config.h"
 
 #include "secret-password.h"
+#include "secret-paths.h"
 #include "secret-private.h"
 
 #include "mock-service.h"
@@ -269,6 +270,8 @@ static void
 test_remove_no_name (Test *test,
                      gconstpointer used)
 {
+	const gchar *paths[] = { "/org/freedesktop/secrets/collection/german", NULL };
+	SecretService *service;
 	GError *error = NULL;
 	gboolean ret;
 
@@ -278,6 +281,13 @@ test_remove_no_name (Test *test,
 	                                   NULL);
 	g_assert_no_error (error);
 	g_assert (ret == FALSE);
+
+	/* We need this collection unlocked for the next test */
+	service = secret_service_get_sync (SECRET_SERVICE_NONE, NULL, &error);
+	g_assert_no_error (error);
+	secret_service_unlock_dbus_paths_sync (service, paths, NULL, NULL, &error);
+	g_assert_no_error (error);
+	g_object_unref (service);
 
 	/* We have an item with 5 in prime schema, but should match anyway becase of flags */
 	ret = secret_password_remove_sync (&NO_NAME_SCHEMA, NULL, &error,
