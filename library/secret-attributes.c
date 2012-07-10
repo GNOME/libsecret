@@ -190,10 +190,13 @@ secret_attributes_buildv (const SecretSchema *schema,
 
 gboolean
 _secret_attributes_validate (const SecretSchema *schema,
-                             GHashTable *attributes)
+                             GHashTable *attributes,
+                             const char *pretty_function,
+                             gboolean matching)
 {
 	const SecretSchemaAttribute *attribute;
 	GHashTableIter iter;
+	gboolean any;
 	gchar *key;
 	gchar *value;
 	gchar *end;
@@ -203,6 +206,7 @@ _secret_attributes_validate (const SecretSchema *schema,
 
 	g_hash_table_iter_init (&iter, attributes);
 	while (g_hash_table_iter_next (&iter, (gpointer *)&key, (gpointer *)&value)) {
+		any = TRUE;
 
 		/* Find the attribute */
 		attribute = NULL;
@@ -216,16 +220,16 @@ _secret_attributes_validate (const SecretSchema *schema,
 		}
 
 		if (attribute == NULL) {
-			g_warning ("invalid %s attribute in for %s schema",
-			           key, schema->name);
+			g_critical ("%s: invalid %s attribute in for %s schema",
+			            pretty_function, key, schema->name);
 			return FALSE;
 		}
 
 		switch (attribute->type) {
 		case SECRET_SCHEMA_ATTRIBUTE_BOOLEAN:
 			if (!g_str_equal (value, "true") && !g_str_equal (value, "false")) {
-				g_warning ("invalid %s boolean value for %s schema: %s",
-				           key, schema->name, value);
+				g_critical ("%s: invalid %s boolean value for %s schema: %s",
+				            pretty_function, key, schema->name, value);
 				return FALSE;
 			}
 			break;
@@ -233,23 +237,30 @@ _secret_attributes_validate (const SecretSchema *schema,
 			end = NULL;
 			g_ascii_strtoll (value, &end, 10);
 			if (!end || end[0] != '\0') {
-				g_warning ("invalid %s integer value for %s schema: %s",
-				           key, schema->name, value);
+				g_warning ("%s: invalid %s integer value for %s schema: %s",
+				           pretty_function, key, schema->name, value);
 				return FALSE;
 			}
 			break;
 		case SECRET_SCHEMA_ATTRIBUTE_STRING:
 			if (!g_utf8_validate (value, -1, NULL)) {
-				g_warning ("invalid %s string value for %s schema: %s",
-				           key, schema->name, value);
+				g_warning ("%s: invalid %s string value for %s schema: %s",
+				           pretty_function, key, schema->name, value);
 				return FALSE;
 			}
 			break;
 		default:
-			g_warning ("invalid %s value type in %s schema",
-			           key, schema->name);
+			g_warning ("%s: invalid %s value type in %s schema",
+			           pretty_function, key, schema->name);
 			return FALSE;
 		}
+	}
+
+	/* Nothing to match on, resulting search would match everything :S */
+	if (matching && !any && schema->flags & SECRET_SCHEMA_DONT_MATCH_NAME) {
+		g_warning ("%s: must specify at least one attribute to match",
+		           pretty_function);
+		return FALSE;
 	}
 
 	return TRUE;

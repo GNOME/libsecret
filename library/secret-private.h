@@ -81,7 +81,9 @@ GHashTable *         _secret_attributes_for_variant           (GVariant *variant
 GHashTable *         _secret_attributes_copy                  (GHashTable *attributes);
 
 gboolean             _secret_attributes_validate              (const SecretSchema *schema,
-                                                               GHashTable *attributes);
+                                                               GHashTable *attributes,
+                                                               const gchar *pretty_function,
+                                                               gboolean matching);
 
 GVariant *           _secret_util_variant_for_properties      (GHashTable *properties);
 

@@ -1414,7 +1414,7 @@ secret_collection_search (SecretCollection *self,
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
 	/* Warnings raised already */
-	if (schema != NULL && !_secret_attributes_validate (schema, attributes))
+	if (schema != NULL && !_secret_attributes_validate (schema, attributes, G_STRFUNC, TRUE))
 		return;
 
 	async = g_simple_async_result_new (G_OBJECT (self), callback, user_data,
@@ -1552,7 +1552,7 @@ secret_collection_search_sync (SecretCollection *self,
 	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 
 	/* Warnings raised already */
-	if (schema != NULL && !_secret_attributes_validate (schema, attributes))
+	if (schema != NULL && !_secret_attributes_validate (schema, attributes, G_STRFUNC, TRUE))
 		return NULL;
 
 	paths = secret_collection_search_for_dbus_paths_sync (self, schema, attributes,

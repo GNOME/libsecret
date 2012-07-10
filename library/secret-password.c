@@ -142,7 +142,7 @@ secret_password_storev (const SecretSchema *schema,
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
 	/* Warnings raised already */
-	if (!_secret_attributes_validate (schema, attributes))
+	if (!_secret_attributes_validate (schema, attributes, G_STRFUNC, FALSE))
 		return;
 
 	value = secret_value_new (password, -1, "text/plain");
@@ -277,7 +277,7 @@ secret_password_storev_sync (const SecretSchema *schema,
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
 	/* Warnings raised already */
-	if (!_secret_attributes_validate (schema, attributes))
+	if (!_secret_attributes_validate (schema, attributes, G_STRFUNC, FALSE))
 		return FALSE;
 
 	sync = _secret_sync_new ();
@@ -368,7 +368,7 @@ secret_password_lookupv (const SecretSchema *schema,
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
 	/* Warnings raised already */
-	if (!_secret_attributes_validate (schema, attributes))
+	if (!_secret_attributes_validate (schema, attributes, G_STRFUNC, TRUE))
 		return;
 
 	secret_service_lookup (NULL, schema, attributes,
@@ -555,7 +555,7 @@ secret_password_lookupv_nonpageable_sync (const SecretSchema *schema,
 	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 
 	/* Warnings raised already */
-	if (!_secret_attributes_validate (schema, attributes))
+	if (!_secret_attributes_validate (schema, attributes, G_STRFUNC, TRUE))
 		return FALSE;
 
 	sync = _secret_sync_new ();
@@ -610,7 +610,7 @@ secret_password_lookupv_sync (const SecretSchema *schema,
 	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 
 	/* Warnings raised already */
-	if (!_secret_attributes_validate (schema, attributes))
+	if (!_secret_attributes_validate (schema, attributes, G_STRFUNC, TRUE))
 		return FALSE;
 
 	sync = _secret_sync_new ();
@@ -680,7 +680,7 @@ secret_password_remove (const SecretSchema *schema,
  * @callback: called when the operation completes
  * @user_data: data to be passed to the callback
  *
- * Remove a password from the secret service.
+ * Remove passwords from the secret service.
  *
  * The @attributes should be a set of key and value string pairs.
  *
@@ -702,7 +702,7 @@ secret_password_removev (const SecretSchema *schema,
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
 	/* Warnings raised already */
-	if (!_secret_attributes_validate (schema, attributes))
+	if (!_secret_attributes_validate (schema, attributes, G_STRFUNC, TRUE))
 		return;
 
 	secret_service_remove (NULL, schema, attributes,
@@ -809,7 +809,7 @@ secret_password_removev_sync (const SecretSchema *schema,
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
 	/* Warnings raised already */
-	if (!_secret_attributes_validate (schema, attributes))
+	if (!_secret_attributes_validate (schema, attributes, G_STRFUNC, TRUE))
 		return FALSE;
 
 	sync = _secret_sync_new ();

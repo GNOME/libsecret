@@ -344,7 +344,7 @@ secret_collection_search_for_dbus_paths (SecretCollection *collection,
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
 	/* Warnings raised already */
-	if (schema != NULL && !_secret_attributes_validate (schema, attributes))
+	if (schema != NULL && !_secret_attributes_validate (schema, attributes, G_STRFUNC, TRUE))
 		return;
 
 	if (schema != NULL && !(schema->flags & SECRET_SCHEMA_DONT_MATCH_NAME))
@@ -486,7 +486,7 @@ secret_service_search_for_dbus_paths (SecretService *self,
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
 	/* Warnings raised already */
-	if (schema != NULL && !_secret_attributes_validate (schema, attributes))
+	if (schema != NULL && !_secret_attributes_validate (schema, attributes, G_STRFUNC, TRUE))
 		return;
 
 	if (schema != NULL && !(schema->flags & SECRET_SCHEMA_DONT_MATCH_NAME))
@@ -626,7 +626,7 @@ secret_service_search_for_dbus_paths_sync (SecretService *self,
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
 	/* Warnings raised already */
-	if (schema != NULL && !_secret_attributes_validate (schema, attributes))
+	if (schema != NULL && !_secret_attributes_validate (schema, attributes, G_STRFUNC, TRUE))
 		return FALSE;
 
 	if (schema != NULL && !(schema->flags & SECRET_SCHEMA_DONT_MATCH_NAME))

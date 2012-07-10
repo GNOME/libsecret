@@ -302,7 +302,7 @@ secret_service_search (SecretService *service,
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
 	/* Warnings raised already */
-	if (schema != NULL && !_secret_attributes_validate (schema, attributes))
+	if (schema != NULL && !_secret_attributes_validate (schema, attributes, G_STRFUNC, TRUE))
 		return;
 
 	if (schema != NULL && !(schema->flags & SECRET_SCHEMA_DONT_MATCH_NAME))
@@ -455,7 +455,7 @@ secret_service_search_sync (SecretService *service,
 	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 
 	/* Warnings raised already */
-	if (schema != NULL && !_secret_attributes_validate (schema, attributes))
+	if (schema != NULL && !_secret_attributes_validate (schema, attributes, G_STRFUNC, TRUE))
 		return NULL;
 
 	if (service == NULL) {
@@ -1064,7 +1064,7 @@ secret_service_store (SecretService *service,
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
 	/* Warnings raised already */
-	if (schema != NULL && !_secret_attributes_validate (schema, attributes))
+	if (schema != NULL && !_secret_attributes_validate (schema, attributes, G_STRFUNC, FALSE))
 		return;
 
 	async = g_simple_async_result_new  (G_OBJECT (service), callback, user_data,
@@ -1181,7 +1181,7 @@ secret_service_store_sync (SecretService *service,
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
 	/* Warnings raised already */
-	if (schema != NULL && !_secret_attributes_validate (schema, attributes))
+	if (schema != NULL && !_secret_attributes_validate (schema, attributes, G_STRFUNC, FALSE))
 		return FALSE;
 
 	sync = _secret_sync_new ();
@@ -1365,7 +1365,7 @@ secret_service_lookup (SecretService *service,
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
 	/* Warnings raised already */
-	if (schema != NULL && !_secret_attributes_validate (schema, attributes))
+	if (schema != NULL && !_secret_attributes_validate (schema, attributes, G_STRFUNC, TRUE))
 		return;
 
 	if (schema != NULL && !(schema->flags & SECRET_SCHEMA_DONT_MATCH_NAME))
@@ -1464,7 +1464,7 @@ secret_service_lookup_sync (SecretService *service,
 	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
 
 	/* Warnings raised already */
-	if (schema != NULL && !_secret_attributes_validate (schema, attributes))
+	if (schema != NULL && !_secret_attributes_validate (schema, attributes, G_STRFUNC, TRUE))
 		return NULL;
 
 	sync = _secret_sync_new ();
@@ -1625,7 +1625,7 @@ secret_service_remove (SecretService *service,
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
 	/* Warnings raised already */
-	if (schema != NULL && !_secret_attributes_validate (schema, attributes))
+	if (schema != NULL && !_secret_attributes_validate (schema, attributes, G_STRFUNC, TRUE))
 		return;
 
 	if (schema != NULL && !(schema->flags & SECRET_SCHEMA_DONT_MATCH_NAME))
@@ -1721,7 +1721,7 @@ secret_service_remove_sync (SecretService *service,
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
 	/* Warnings raised already */
-	if (schema != NULL && !_secret_attributes_validate (schema, attributes))
+	if (schema != NULL && !_secret_attributes_validate (schema, attributes, G_STRFUNC, TRUE))
 		return FALSE;
 
 	sync = _secret_sync_new ();
