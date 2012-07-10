@@ -1281,7 +1281,6 @@ secret_service_unlock_dbus_paths_sync (SecretService *self,
 	g_return_val_if_fail (SECRET_IS_SERVICE (self), -1);
 	g_return_val_if_fail (paths != NULL, -1);
 	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), -1);
-	g_return_val_if_fail (unlocked != NULL, -1);
 	g_return_val_if_fail (error == NULL || *error == NULL, -1);
 
 	sync = _secret_sync_new ();
