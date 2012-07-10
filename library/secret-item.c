@@ -339,6 +339,9 @@ secret_item_class_init (SecretItemClass *klass)
 	 *
 	 * The attributes set on this item. Attributes are used to locate an
 	 * item. They are not guaranteed to be stored or transferred securely.
+	 *
+	 * Type: GLib.HashTable(utf8,utf8)
+	 * Transfer: full
 	 */
 	g_object_class_install_property (gobject_class, PROP_ATTRIBUTES,
 	             g_param_spec_boxed ("attributes", "Attributes", "Item attributes",
@@ -1721,8 +1724,9 @@ secret_item_set_secret_sync (SecretItem *self,
  * Do not modify the attributes returned by this method. Use
  * secret_item_set_attributes() instead.
  *
- * Returns: (transfer full): a new reference to the attributes, which should
- *          not be modified, and released with g_hash_table_unref()
+ * Returns: (transfer full) (element-type utf8 utf8): a new reference
+ *          to the attributes, which should not be modified, and
+ *          released with g_hash_table_unref()
  */
 GHashTable *
 secret_item_get_attributes (SecretItem *self)

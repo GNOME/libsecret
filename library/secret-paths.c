@@ -905,8 +905,9 @@ secret_service_get_secrets_for_dbus_paths (SecretService *self,
  *
  * Items that are locked will not be included the results.
  *
- * Returns: (transfer full): a newly allocated hash table of item_path keys to
- *          #SecretValue values.
+ * Returns: (transfer full) (element-type utf8 Secret.Value): a newly
+ *          allocated hash table of item_path keys to #SecretValue
+ *          values.
  */
 GHashTable *
 secret_service_get_secrets_for_dbus_paths_finish (SecretService *self,
@@ -947,8 +948,9 @@ secret_service_get_secrets_for_dbus_paths_finish (SecretService *self,
  *
  * Items that are locked will not be included the results.
  *
- * Returns: (transfer full): a newly allocated hash table of item_path keys to
- *          #SecretValue values.
+ * Returns: (transfer full) (element-type utf8 Secret.Value): a newly
+ *          allocated hash table of item_path keys to #SecretValue
+ *          values.
  */
 GHashTable *
 secret_service_get_secrets_for_dbus_paths_sync (SecretService *self,

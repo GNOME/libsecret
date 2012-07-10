@@ -86,8 +86,8 @@ _secret_attributes_for_variant (GVariant *variant)
  * string, an int number, or a gboolean value, as defined in the password
  * @schema. The list of attribtues should be terminated with a %NULL.
  *
- * Returns: (transfer full): a new table of attributes, to be released with
- *          g_hash_table_unref()
+ * Returns: (transfer full) (element-type utf8 utf8): a new table of
+ *          attributes, to be released with g_hash_table_unref()
  */
 GHashTable *
 secret_attributes_build (const SecretSchema *schema,
@@ -115,8 +115,8 @@ secret_attributes_build (const SecretSchema *schema,
  * string, an int number, or a gboolean value, as defined in the password
  * @schema. The list of attribtues should be terminated with a %NULL.
  *
- * Returns: (transfer full): a new table of attributes, to be released with
- *          g_hash_table_unref()
+ * Returns: (transfer full) (element-type utf8 utf8): a new table of
+ *          attributes, to be released with g_hash_table_unref()
  */
 GHashTable *
 secret_attributes_buildv (const SecretSchema *schema,
