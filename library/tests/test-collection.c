@@ -172,6 +172,61 @@ test_new_async_noexist (Test *test,
 
 
 static void
+test_for_alias_sync (Test *test,
+                     gconstpointer used)
+{
+	const gchar *collection_path;
+	SecretCollection *collection;
+	GError *error = NULL;
+
+	collection = secret_collection_for_alias_sync (test->service, "default", NULL, &error);
+	g_assert_no_error (error);
+
+	collection_path = g_dbus_proxy_get_object_path (G_DBUS_PROXY (collection));
+	g_assert_cmpstr (collection_path, ==, "/org/freedesktop/secrets/collection/english");
+	g_object_unref (collection);
+
+	collection = secret_collection_for_alias_sync (test->service, "unknown", NULL, &error);
+	g_assert_no_error (error);
+	g_assert (collection == NULL);
+}
+
+static void
+test_for_alias_async (Test *test,
+                      gconstpointer used)
+{
+	const gchar *collection_path;
+	SecretCollection *collection;
+	GAsyncResult *result = NULL;
+	GError *error = NULL;
+
+	secret_collection_for_alias (test->service, "default", NULL,
+	                             on_async_result, &result);
+	g_assert (result == NULL);
+	egg_test_wait ();
+
+	collection = secret_collection_for_alias_finish (result, &error);
+	g_assert_no_error (error);
+	g_object_unref (result);
+
+	collection_path = g_dbus_proxy_get_object_path (G_DBUS_PROXY (collection));
+	g_assert_cmpstr (collection_path, ==, "/org/freedesktop/secrets/collection/english");
+	g_object_unref (collection);
+	result = NULL;
+
+	secret_collection_for_alias (test->service, "unknown", NULL,
+	                             on_async_result, &result);
+	g_assert (result == NULL);
+	egg_test_wait ();
+
+	collection = secret_collection_for_alias_finish (result, &error);
+	g_assert_no_error (error);
+	g_assert (collection == NULL);
+	g_object_unref (result);
+}
+
+
+static void
 test_create_sync (Test *test,
                   gconstpointer unused)
 {
@@ -875,6 +930,8 @@ main (int argc, char **argv)
 	g_test_add ("/collection/new-async", Test, "mock-service-normal.py", setup, test_new_async, teardown);
 	g_test_add ("/collection/new-sync-noexist", Test, "mock-service-normal.py", setup, test_new_sync_noexist, teardown);
 	g_test_add ("/collection/new-async-noexist", Test, "mock-service-normal.py", setup, test_new_async_noexist, teardown);
+	g_test_add ("/collection/for-alias-sync", Test, "mock-service-normal.py", setup, test_for_alias_sync, teardown);
+	g_test_add ("/collection/for-alias-async", Test, "mock-service-normal.py", setup, test_for_alias_async, teardown);
 	g_test_add ("/collection/create-sync", Test, "mock-service-normal.py", setup, test_create_sync, teardown);
 	g_test_add ("/collection/create-async", Test, "mock-service-normal.py", setup, test_create_async, teardown);
 	g_test_add ("/collection/properties", Test, "mock-service-normal.py", setup, test_properties, teardown);

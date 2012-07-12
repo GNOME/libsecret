@@ -270,21 +270,6 @@ gboolean             secret_service_remove_sync                   (SecretService
                                                                    GCancellable *cancellable,
                                                                    GError **error);
 
-void                 secret_service_read_alias                    (SecretService *service,
-                                                                   const gchar *alias,
-                                                                   GCancellable *cancellable,
-                                                                   GAsyncReadyCallback callback,
-                                                                   gpointer user_data);
-
-SecretCollection *   secret_service_read_alias_finish             (SecretService *service,
-                                                                   GAsyncResult *result,
-                                                                   GError **error);
-
-SecretCollection *   secret_service_read_alias_sync               (SecretService *service,
-                                                                   const gchar *alias,
-                                                                   GCancellable *cancellable,
-                                                                   GError **error);
-
 void                 secret_service_set_alias                     (SecretService *service,
                                                                    const gchar *alias,
                                                                    SecretCollection *collection,
