@@ -78,6 +78,11 @@
  *
  * Attributes are stored as strings in the Secret Service, and the attribute
  * types simply define standard ways to store integer and boolean values as strings.
+ * Attributes are represented in libsecret via a #GHashTable with string keys and
+ * values. Even for values that defined as an integer or boolean in the schema,
+ * the attribute values in the #GHashTable are strings. Boolean values are stored
+ * as the strings 'true' and 'false'. Integer values are stored in decimal, with
+ * a preceeding negative sign for negative integers.
  *
  * Schemas are handled entirely on the client side by this library. The name of the
  * schema is automatically stored as an attribute on the item.

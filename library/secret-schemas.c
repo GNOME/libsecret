@@ -16,6 +16,14 @@
 
 #include "secret-schema.h"
 
+/**
+ * SECRET_SCHEMA_NOTE:
+ *
+ * A predefined schema for personal passwords stored by the user in the
+ * password manager. This schema has no attributes, and the items are not
+ * meant to be used automatically by applications.
+ */
+
 static const SecretSchema note_schema = {
 	"org.gnome.keyring.Note",
 	SECRET_SCHEMA_DONT_MATCH_NAME,
@@ -26,6 +34,32 @@ static const SecretSchema note_schema = {
 
 const SecretSchema *  SECRET_SCHEMA_NOTE = &note_schema;
 
+/**
+ * SECRET_SCHEMA_COMPAT_NETWORK:
+ *
+ * A predefined schema that is compatible with items stored via the
+ * libgnome-keyring 'network password' functions. This is meant to be used by
+ * applications migrating from libgnome-keyring which stored their secrets as
+ * 'network passwords'. It is not recommended that new code use this schema.
+ *
+ * The following attributes exist in the schema:
+ * <variablelist><title>Attributes:</title>
+ *     <varlistentry><term><literal>user</literal>:</term>
+ *         <listitem><para>The user name (string).</para></listitem></varlistentry>
+ *     <varlistentry><term><literal>domain</literal>:</term>
+ *         <listitem><para>The login domain or realm (string).</para></listitem></varlistentry>
+ *     <varlistentry><term><literal>object</literal>:</term>
+ *         <listitem><para>The object or path (string).</para></listitem></varlistentry>
+ *     <varlistentry><term><literal>protocol</literal>:</term>
+ *         <listitem><para>The protocol (a string like 'http').</para></listitem></varlistentry>
+ *     <varlistentry><term><literal>port</literal>:</term>
+ *         <listitem><para>The network port (integer).</para></listitem></varlistentry>
+ *     <varlistentry><term><literal>server</literal>:</term>
+ *         <listitem><para>The hostname or server (string).</para></listitem></varlistentry>
+ *     <varlistentry><term><literal>authtype</literal>:</term>
+ *         <listitem><para>The authentication type (string).</para></listitem></varlistentry>
+ * </variablelist>
+ */
 
 static const SecretSchema network_schema = {
 	"org.gnome.keyring.NetworkPassword",
