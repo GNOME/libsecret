@@ -32,6 +32,11 @@ typedef enum {
 	SECRET_ITEM_LOAD_SECRET = 1 << 1
 } SecretItemFlags;
 
+typedef enum {
+	SECRET_ITEM_CREATE_NONE = 0,
+	SECRET_ITEM_CREATE_REPLACE = 1 << 1
+} SecretItemCreateFlags;
+
 #define SECRET_TYPE_ITEM            (secret_item_get_type ())
 #define SECRET_ITEM(inst)           (G_TYPE_CHECK_INSTANCE_CAST ((inst), SECRET_TYPE_ITEM, SecretItem))
 #define SECRET_ITEM_CLASS(class)    (G_TYPE_CHECK_CLASS_CAST ((class), SECRET_TYPE_ITEM, SecretItemClass))
@@ -65,7 +70,7 @@ void                secret_item_create                     (SecretCollection *co
                                                             GHashTable *attributes,
                                                             const gchar *label,
                                                             SecretValue *value,
-                                                            gboolean replace,
+                                                            SecretItemCreateFlags flags,
                                                             GCancellable *cancellable,
                                                             GAsyncReadyCallback callback,
                                                             gpointer user_data);
@@ -78,7 +83,7 @@ SecretItem *        secret_item_create_sync                (SecretCollection *co
                                                             GHashTable *attributes,
                                                             const gchar *label,
                                                             SecretValue *value,
-                                                            gboolean replace,
+                                                            SecretItemCreateFlags flags,
                                                             GCancellable *cancellable,
                                                             GError **error);
 

@@ -1001,7 +1001,7 @@ on_store_service (GObject *source,
 	if (error == NULL) {
 		secret_service_create_item_dbus_path (service, store->collection_path,
 		                                      store->properties, store->value,
-		                                      TRUE, store->cancellable,
+		                                      SECRET_ITEM_CREATE_REPLACE, store->cancellable,
 		                                      on_store_create, g_object_ref (async));
 		g_object_unref (service);
 
@@ -1097,7 +1097,7 @@ secret_service_store (SecretService *service,
 	} else {
 		secret_service_create_item_dbus_path (service, store->collection_path,
 		                                      store->properties, store->value,
-		                                      TRUE, store->cancellable,
+		                                      SECRET_ITEM_CREATE_REPLACE, store->cancellable,
 		                                      on_store_create, g_object_ref (async));
 	}
 

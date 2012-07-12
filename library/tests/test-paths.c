@@ -544,7 +544,8 @@ test_collection_sync (Test *test,
 	                     g_variant_ref_sink (g_variant_new_string ("Wheeee")));
 
 	path = secret_service_create_collection_dbus_path_sync (test->service, properties,
-	                                                        NULL, NULL, &error);
+	                                                        NULL, SECRET_COLLECTION_CREATE_NONE,
+	                                                        NULL, &error);
 
 	g_hash_table_unref (properties);
 
@@ -570,7 +571,8 @@ test_collection_async (Test *test,
 	                     g_variant_ref_sink (g_variant_new_string ("Wheeee")));
 
 	secret_service_create_collection_dbus_path (test->service, properties,
-	                                            NULL, NULL, on_complete_get_result, &result);
+	                                            NULL, SECRET_COLLECTION_CREATE_NONE,
+	                                            NULL, on_complete_get_result, &result);
 
 	g_hash_table_unref (properties);
 	g_assert (result == NULL);
@@ -615,7 +617,7 @@ test_item_sync (Test *test,
 	value = secret_value_new ("andmoreandmore", -1, "text/plain");
 
 	path = secret_service_create_item_dbus_path_sync (test->service, collection_path,
-	                                                  properties, value, FALSE,
+	                                                  properties, value, SECRET_ITEM_CREATE_NONE,
 	                                                  NULL, &error);
 
 	secret_value_unref (value);
@@ -657,7 +659,7 @@ test_item_async (Test *test,
 	value = secret_value_new ("andmoreandmore", -1, "text/plain");
 
 	secret_service_create_item_dbus_path (test->service, collection_path,
-	                                      properties, value, FALSE,
+	                                      properties, value, SECRET_ITEM_CREATE_NONE,
 	                                      NULL, on_complete_get_result, &result);
 
 	g_assert (result == NULL);

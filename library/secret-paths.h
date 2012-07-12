@@ -203,6 +203,7 @@ gboolean            secret_service_delete_item_dbus_path_sync          (SecretSe
 void                secret_service_create_collection_dbus_path         (SecretService *self,
                                                                         GHashTable *properties,
                                                                         const gchar *alias,
+                                                                        SecretCollectionCreateFlags flags,
                                                                         GCancellable *cancellable,
                                                                         GAsyncReadyCallback callback,
                                                                         gpointer user_data);
@@ -214,6 +215,7 @@ gchar *             secret_service_create_collection_dbus_path_finish  (SecretSe
 gchar *             secret_service_create_collection_dbus_path_sync    (SecretService *self,
                                                                         GHashTable *properties,
                                                                         const gchar *alias,
+                                                                        SecretCollectionCreateFlags flags,
                                                                         GCancellable *cancellable,
                                                                         GError **error);
 
@@ -221,7 +223,7 @@ void                secret_service_create_item_dbus_path               (SecretSe
                                                                         const gchar *collection_path,
                                                                         GHashTable *properties,
                                                                         SecretValue *value,
-                                                                        gboolean replace,
+                                                                        SecretItemCreateFlags flags,
                                                                         GCancellable *cancellable,
                                                                         GAsyncReadyCallback callback,
                                                                         gpointer user_data);
@@ -234,7 +236,7 @@ gchar *             secret_service_create_item_dbus_path_sync          (SecretSe
                                                                         const gchar *collection_path,
                                                                         GHashTable *properties,
                                                                         SecretValue *value,
-                                                                        gboolean replace,
+                                                                        SecretItemCreateFlags flags,
                                                                         GCancellable *cancellable,
                                                                         GError **error);
 

@@ -65,6 +65,13 @@
  */
 
 /**
+ * SecretCollectionCreateFlags:
+ * @SECRET_COLLECTION_CREATE_NONE: no flags
+ *
+ * Flags for secret_collection_create().
+ */
+
+/**
  * SECRET_COLLECTION_DEFAULT:
  *
  * An alias to the default collection. This can be passed to secret_password_store()
@@ -943,6 +950,7 @@ typedef struct {
 	SecretCollection *collection;
 	GHashTable *properties;
 	gchar *alias;
+	SecretCollectionCreateFlags flags;
 } CreateClosure;
 
 static void
@@ -1010,7 +1018,8 @@ on_create_service (GObject *source,
 	service = secret_service_get_finish (result, &error);
 	if (error == NULL) {
 		secret_service_create_collection_dbus_path (service, create->properties,
-		                                            create->alias, create->cancellable,
+		                                            create->alias, create->flags,
+		                                            create->cancellable,
 		                                            on_create_path, g_object_ref (async));
 		g_object_unref (service);
 
@@ -1043,6 +1052,7 @@ collection_properties_new (const gchar *label)
  * @service: (allow-none): a secret service object
  * @label: label for the new collection
  * @alias: (allow-none): alias to assign to the collection
+ * @flags: currently unused
  * @cancellable: optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to pass to the callback
@@ -1067,6 +1077,7 @@ void
 secret_collection_create (SecretService *service,
                           const gchar *label,
                           const gchar *alias,
+                          SecretCollectionCreateFlags flags,
                           GCancellable *cancellable,
                           GAsyncReadyCallback callback,
                           gpointer user_data)
@@ -1084,6 +1095,7 @@ secret_collection_create (SecretService *service,
 	closure->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
 	closure->properties = collection_properties_new (label);
 	closure->alias = g_strdup (alias);
+	closure->flags = flags;
 	g_simple_async_result_set_op_res_gpointer (res, closure, create_closure_free);
 
 	if (service == NULL) {
@@ -1092,7 +1104,8 @@ secret_collection_create (SecretService *service,
 
 	} else {
 		secret_service_create_collection_dbus_path (service, closure->properties,
-		                                            closure->alias, closure->cancellable,
+		                                            closure->alias, closure->flags,
+		                                            closure->cancellable,
 		                                            on_create_path, g_object_ref (res));
 	}
 
@@ -1137,6 +1150,7 @@ secret_collection_create_finish (GAsyncResult *result,
  * @service: (allow-none): a secret service object
  * @label: label for the new collection
  * @alias: (allow-none): alias to assign to the collection
+ * @flags: currently unused
  * @cancellable: optional cancellation object
  * @error: location to place an error on failure
  *
@@ -1162,6 +1176,7 @@ SecretCollection *
 secret_collection_create_sync (SecretService *service,
                                const gchar *label,
                                const gchar *alias,
+                               SecretCollectionCreateFlags flags,
                                GCancellable *cancellable,
                                GError **error)
 {
@@ -1185,7 +1200,7 @@ secret_collection_create_sync (SecretService *service,
 	properties = collection_properties_new (label);
 
 	path = secret_service_create_collection_dbus_path_sync (service, properties, alias,
-	                                                        cancellable, error);
+	                                                        flags, cancellable, error);
 
 	g_hash_table_unref (properties);
 

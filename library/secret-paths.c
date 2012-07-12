@@ -1684,6 +1684,7 @@ on_create_collection_called (GObject *source,
  *              the new collection
  * @alias: (allow-none): an alias to check for before creating the new
  *         collection, or to assign to the new collection
+ * @flags: not currently used
  * @cancellable: optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to be passed to the callback
@@ -1716,6 +1717,7 @@ void
 secret_service_create_collection_dbus_path (SecretService *self,
                                             GHashTable *properties,
                                             const gchar *alias,
+                                            SecretCollectionCreateFlags flags,
                                             GCancellable *cancellable,
                                             GAsyncReadyCallback callback,
                                             gpointer user_data)
@@ -1800,6 +1802,7 @@ secret_service_create_collection_dbus_path_finish (SecretService *self,
  *              for the new collection
  * @alias: (allow-none): an alias to check for before creating the new
  *         collection, or to assign to the new collection
+ * @flags: not currently used
  * @cancellable: optional cancellation object
  * @error: location to place an error on failure
  *
@@ -1832,6 +1835,7 @@ gchar *
 secret_service_create_collection_dbus_path_sync (SecretService *self,
                                                  GHashTable *properties,
                                                  const gchar *alias,
+                                                 SecretCollectionCreateFlags flags,
                                                  GCancellable *cancellable,
                                                  GError **error)
 {
@@ -1846,7 +1850,7 @@ secret_service_create_collection_dbus_path_sync (SecretService *self,
 	sync = _secret_sync_new ();
 	g_main_context_push_thread_default (sync->context);
 
-	secret_service_create_collection_dbus_path (self, properties, alias, cancellable,
+	secret_service_create_collection_dbus_path (self, properties, alias, flags, cancellable,
 	                                            _secret_sync_on_result, sync);
 
 	g_main_loop_run (sync->loop);
@@ -1989,7 +1993,7 @@ on_create_item_session (GObject *source,
  * @properties: (element-type utf8 GLib.Variant): hash table of D-Bus properties
  *              for the new collection
  * @value: the secret value to store in the item
- * @replace: whether to replace an item with the matching attributes
+ * @flags: flags for the creation of the new item
  * @cancellable: optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to be passed to the callback
@@ -2001,9 +2005,9 @@ on_create_item_session (GObject *source,
  * rather than using this function. Using this method requires that you setup
  * a correct hash table of D-Bus @properties for the new collection.
  *
- * If @replace is set to %TRUE, and an item already in the collection matches
- * the attributes (specified in @properties) then the item will be updated
- * instead of creating a new item.
+ * If the @flags contains %SECRET_ITEM_CREATE_REPLACE, then the secret
+ * service will search for an item matching the @attributes, and update that item
+ * instead of creating a new one.
  *
  * @properties is a set of properties for the new collection. The keys in the
  * hash table should be interface.property strings like
@@ -2019,7 +2023,7 @@ secret_service_create_item_dbus_path (SecretService *self,
                                       const gchar *collection_path,
                                       GHashTable *properties,
                                       SecretValue *value,
-                                      gboolean replace,
+                                      SecretItemCreateFlags flags,
                                       GCancellable *cancellable,
                                       GAsyncReadyCallback callback,
                                       gpointer user_data)
@@ -2039,7 +2043,7 @@ secret_service_create_item_dbus_path (SecretService *self,
 	closure->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
 	closure->properties = _secret_util_variant_for_properties (properties);
 	g_variant_ref_sink (closure->properties);
-	closure->replace = replace;
+	closure->replace = flags & SECRET_ITEM_CREATE_REPLACE;
 	closure->value = secret_value_ref (value);
 	closure->collection_path = g_strdup (collection_path);
 	g_simple_async_result_set_op_res_gpointer (res, closure, item_closure_free);
@@ -2094,7 +2098,7 @@ secret_service_create_item_dbus_path_finish (SecretService *self,
  * @properties: (element-type utf8 GLib.Variant): hash table of D-Bus properties
  *              for the new collection
  * @value: the secret value to store in the item
- * @replace: whether to replace an item with the matching attributes
+ * @flags: flags for the creation of the new item
  * @cancellable: optional cancellation object
  * @error: location to place an error on failure
  *
@@ -2105,9 +2109,9 @@ secret_service_create_item_dbus_path_finish (SecretService *self,
  * rather than using this function. Using this method requires that you setup
  * a correct hash table of D-Bus @properties for the new collection.
  *
- * If @replace is set to %TRUE, and an item already in the collection matches
- * the attributes (specified in @properties) then the item will be updated
- * instead of creating a new item.
+ * If the @flags contains %SECRET_ITEM_CREATE_REPLACE, then the secret
+ * service will search for an item matching the @attributes, and update that item
+ * instead of creating a new one.
  *
  * @properties is a set of properties for the new collection. The keys in the
  * hash table should be interface.property strings like
@@ -2126,7 +2130,7 @@ secret_service_create_item_dbus_path_sync (SecretService *self,
                                            const gchar *collection_path,
                                            GHashTable *properties,
                                            SecretValue *value,
-                                           gboolean replace,
+                                           SecretItemCreateFlags flags,
                                            GCancellable *cancellable,
                                            GError **error)
 {
@@ -2142,7 +2146,7 @@ secret_service_create_item_dbus_path_sync (SecretService *self,
 	sync = _secret_sync_new ();
 	g_main_context_push_thread_default (sync->context);
 
-	secret_service_create_item_dbus_path (self, collection_path, properties, value, replace,
+	secret_service_create_item_dbus_path (self, collection_path, properties, value, flags,
 	                                      cancellable, _secret_sync_on_result, sync);
 
 	g_main_loop_run (sync->loop);

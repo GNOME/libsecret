@@ -190,7 +190,7 @@ test_create_sync (Test *test,
 	value = secret_value_new ("Hoohah", -1, "text/plain");
 
 	item = secret_item_create_sync (collection, &MOCK_SCHEMA, attributes, "Tunnel",
-	                                value, FALSE, NULL, &error);
+	                                value, SECRET_ITEM_CREATE_NONE, NULL, &error);
 	g_assert_no_error (error);
 
 	g_hash_table_unref (attributes);
@@ -229,7 +229,7 @@ test_create_async (Test *test,
 	value = secret_value_new ("Hoohah", -1, "text/plain");
 
 	secret_item_create (collection, &MOCK_SCHEMA, attributes, "Tunnel",
-	                    value, FALSE, NULL, on_async_result, &result);
+	                    value, SECRET_ITEM_CREATE_NONE, NULL, on_async_result, &result);
 	g_assert_no_error (error);
 
 	g_hash_table_unref (attributes);

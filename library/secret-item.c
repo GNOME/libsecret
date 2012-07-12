@@ -74,6 +74,14 @@
  * Flags which determine which parts of the #SecretItem proxy are initialized.
  */
 
+/**
+ * SecretItemCreateFlags:
+ * @SECRET_ITEM_CREATE_NONE: no flags
+ * @SECRET_ITEM_CREATE_REPLACE: replace an item with the same attributes.
+ *
+ * Flags for secret_item_create().
+ */
+
 enum {
 	PROP_0,
 	PROP_SERVICE,
@@ -745,16 +753,16 @@ item_properties_new (const gchar *label,
  * @attributes: (element-type utf8 utf8): attributes for the new item
  * @label: label for the new item
  * @value: secret value for the new item
- * @replace: whether to replace an existing item with the same attributes
+ * @flags: flags for the creation of the new item
  * @cancellable: optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to pass to the callback
  *
  * Create a new item in the secret service.
  *
- * If the @replace is set to %TRUE, then the secret service will search for
- * an item matching the @attributes, and update that item instead of creating
- * a new one.
+ * If the @flags contains %SECRET_ITEM_CREATE_REPLACE, then the secret
+ * service will search for an item matching the @attributes, and update that item
+ * instead of creating a new one.
  *
  * This method may block indefinitely and should not be used in user interface
  * threads. The secret service may prompt the user. secret_service_prompt()
@@ -766,7 +774,7 @@ secret_item_create (SecretCollection *collection,
                     GHashTable *attributes,
                     const gchar *label,
                     SecretValue *value,
-                    gboolean replace,
+                    SecretItemCreateFlags flags,
                     GCancellable *cancellable,
                     GAsyncReadyCallback callback,
                     gpointer user_data)
@@ -800,7 +808,7 @@ secret_item_create (SecretCollection *collection,
 	collection_path = g_dbus_proxy_get_object_path (G_DBUS_PROXY (collection));
 
 	secret_service_create_item_dbus_path (service, collection_path, properties,
-	                                      value, replace, cancellable,
+	                                      value, flags, cancellable,
 	                                      on_create_path, g_object_ref (res));
 
 	g_hash_table_unref (properties);
@@ -848,15 +856,15 @@ secret_item_create_finish (GAsyncResult *result,
  * @attributes: (element-type utf8 utf8): attributes for the new item
  * @label: label for the new item
  * @value: secret value for the new item
- * @replace: whether to replace an existing item with the same attributes
+ * @flags: flags for the creation of the new item
  * @cancellable: optional cancellation object
  * @error: location to place an error on failure
  *
  * Create a new item in the secret service.
  *
- * If the @replace is set to %TRUE, then the secret service will search for
- * an item matching the @attributes, and update that item instead of creating
- * a new one.
+ * If the @flags contains %SECRET_ITEM_CREATE_REPLACE, then the secret
+ * service will search for an item matching the @attributes, and update that item
+ * instead of creating a new one.
  *
  * This method may block indefinitely and should not be used in user interface
  * threads. The secret service may prompt the user. secret_service_prompt()
@@ -871,7 +879,7 @@ secret_item_create_sync (SecretCollection *collection,
                          GHashTable *attributes,
                          const gchar *label,
                          SecretValue *value,
-                         gboolean replace,
+                         SecretItemCreateFlags flags,
                          GCancellable *cancellable,
                          GError **error)
 {
@@ -898,7 +906,7 @@ secret_item_create_sync (SecretCollection *collection,
 	collection_path = g_dbus_proxy_get_object_path (G_DBUS_PROXY (collection));
 
 	path = secret_service_create_item_dbus_path_sync (service, collection_path, properties,
-	                                                  value, replace, cancellable, error);
+	                                                  value, flags, cancellable, error);
 
 	if (path != NULL) {
 		item = secret_item_new_for_dbus_path_sync (service, path, SECRET_ITEM_NONE,

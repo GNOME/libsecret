@@ -31,6 +31,10 @@ typedef enum {
 	SECRET_COLLECTION_LOAD_ITEMS = 1 << 1,
 } SecretCollectionFlags;
 
+typedef enum {
+	SECRET_COLLECTION_CREATE_NONE = 0,
+} SecretCollectionCreateFlags;
+
 #define SECRET_TYPE_COLLECTION            (secret_collection_get_type ())
 #define SECRET_COLLECTION(inst)           (G_TYPE_CHECK_INSTANCE_CAST ((inst), SECRET_TYPE_COLLECTION, SecretCollection))
 #define SECRET_COLLECTION_CLASS(class)    (G_TYPE_CHECK_CLASS_CAST ((class), SECRET_TYPE_COLLECTION, SecretCollectionClass))
@@ -89,6 +93,7 @@ void                secret_collection_refresh                  (SecretCollection
 void                secret_collection_create                   (SecretService *service,
                                                                 const gchar *label,
                                                                 const gchar *alias,
+                                                                SecretCollectionCreateFlags flags,
                                                                 GCancellable *cancellable,
                                                                 GAsyncReadyCallback callback,
                                                                 gpointer user_data);
@@ -99,6 +104,7 @@ SecretCollection *  secret_collection_create_finish            (GAsyncResult *re
 SecretCollection *  secret_collection_create_sync              (SecretService *service,
                                                                 const gchar *label,
                                                                 const gchar *alias,
+                                                                SecretCollectionCreateFlags flags,
                                                                 GCancellable *cancellable,
                                                                 GError **error);
 

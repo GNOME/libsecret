@@ -233,7 +233,8 @@ test_create_sync (Test *test,
 	GError *error = NULL;
 	SecretCollection *collection;
 
-	collection = secret_collection_create_sync (test->service, "Train", NULL, NULL, &error);
+	collection = secret_collection_create_sync (test->service, "Train", NULL,
+	                                            SECRET_COLLECTION_CREATE_NONE, NULL, &error);
 	g_assert_no_error (error);
 
 	g_assert (g_str_has_prefix (g_dbus_proxy_get_object_path (G_DBUS_PROXY (collection)), "/org/freedesktop/secrets/collection"));
@@ -252,7 +253,9 @@ test_create_async (Test *test,
 	SecretCollection *collection;
 	GAsyncResult *result = NULL;
 
-	secret_collection_create (test->service, "Train", NULL, NULL, on_async_result, &result);
+	secret_collection_create (test->service, "Train", NULL,
+	                          SECRET_COLLECTION_CREATE_NONE,
+	                          NULL, on_async_result, &result);
 	g_assert (result == NULL);
 
 	egg_test_wait ();
