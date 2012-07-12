@@ -30,6 +30,16 @@
 #include <errno.h>
 #include <stdlib.h>
 
+static const SecretSchema MOCK_SCHEMA = {
+	"org.mock.Schema.Item",
+	SECRET_SCHEMA_NONE,
+	{
+		{ "number", SECRET_SCHEMA_ATTRIBUTE_INTEGER },
+		{ "string", SECRET_SCHEMA_ATTRIBUTE_STRING },
+		{ "even", SECRET_SCHEMA_ATTRIBUTE_BOOLEAN },
+	}
+};
+
 typedef struct {
 	SecretService *service;
 } Test;
@@ -179,7 +189,7 @@ test_create_sync (Test *test,
 
 	value = secret_value_new ("Hoohah", -1, "text/plain");
 
-	item = secret_item_create_sync (collection, NULL, attributes, "Tunnel",
+	item = secret_item_create_sync (collection, &MOCK_SCHEMA, attributes, "Tunnel",
 	                                value, FALSE, NULL, &error);
 	g_assert_no_error (error);
 
@@ -218,7 +228,7 @@ test_create_async (Test *test,
 
 	value = secret_value_new ("Hoohah", -1, "text/plain");
 
-	secret_item_create (collection, NULL, attributes, "Tunnel",
+	secret_item_create (collection, &MOCK_SCHEMA, attributes, "Tunnel",
 	                    value, FALSE, NULL, on_async_result, &result);
 	g_assert_no_error (error);
 
@@ -407,6 +417,7 @@ test_set_attributes_sync (Test *test,
 	SecretItem *item;
 	gboolean ret;
 	GHashTable *attributes;
+	gchar *schema_name;
 
 	item = secret_item_new_for_dbus_path_sync (test->service, item_path, SECRET_ITEM_NONE, NULL, &error);
 	g_assert_no_error (error);
@@ -418,10 +429,15 @@ test_set_attributes_sync (Test *test,
 	g_assert_cmpuint (g_hash_table_size (attributes), ==, 4);
 	g_hash_table_unref (attributes);
 
+	/* Has some other schema */
+	schema_name = secret_item_get_schema_name (item);
+	g_assert_cmpstr (schema_name, !=, MOCK_SCHEMA.name);
+	g_free (schema_name);
+
 	attributes = g_hash_table_new (g_str_hash, g_str_equal);
 	g_hash_table_insert (attributes, "string", "five");
 	g_hash_table_insert (attributes, "number", "5");
-	ret = secret_item_set_attributes_sync (item, NULL, attributes, NULL, &error);
+	ret = secret_item_set_attributes_sync (item, &MOCK_SCHEMA, attributes, NULL, &error);
 	g_hash_table_unref (attributes);
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
@@ -429,8 +445,13 @@ test_set_attributes_sync (Test *test,
 	attributes = secret_item_get_attributes (item);
 	g_assert_cmpstr (g_hash_table_lookup (attributes, "string"), ==, "five");
 	g_assert_cmpstr (g_hash_table_lookup (attributes, "number"), ==, "5");
-	g_assert_cmpuint (g_hash_table_size (attributes), ==, 2);
+	g_assert_cmpuint (g_hash_table_size (attributes), ==, 3);
 	g_hash_table_unref (attributes);
+
+	/* Now has our schema */
+	schema_name = secret_item_get_schema_name (item);
+	g_assert_cmpstr (schema_name, ==, MOCK_SCHEMA.name);
+	g_free (schema_name);
 
 	g_object_unref (item);
 }
@@ -444,6 +465,7 @@ test_set_attributes_async (Test *test,
 	GError *error = NULL;
 	GAsyncResult *result = NULL;
 	SecretItem *item;
+	gchar *schema_name;
 	gboolean ret;
 
 	item = secret_item_new_for_dbus_path_sync (test->service, item_path, SECRET_ITEM_NONE, NULL, &error);
@@ -456,10 +478,15 @@ test_set_attributes_async (Test *test,
 	g_assert_cmpuint (g_hash_table_size (attributes), ==, 4);
 	g_hash_table_unref (attributes);
 
+	/* Has some other schema */
+	schema_name = secret_item_get_schema_name (item);
+	g_assert_cmpstr (schema_name, !=, MOCK_SCHEMA.name);
+	g_free (schema_name);
+
 	attributes = g_hash_table_new (g_str_hash, g_str_equal);
 	g_hash_table_insert (attributes, "string", "five");
 	g_hash_table_insert (attributes, "number", "5");
-	secret_item_set_attributes (item, NULL, attributes, NULL, on_async_result, &result);
+	secret_item_set_attributes (item, &MOCK_SCHEMA, attributes, NULL, on_async_result, &result);
 	g_assert (result == NULL);
 
 	egg_test_wait ();
@@ -472,8 +499,13 @@ test_set_attributes_async (Test *test,
 	attributes = secret_item_get_attributes (item);
 	g_assert_cmpstr (g_hash_table_lookup (attributes, "string"), ==, "five");
 	g_assert_cmpstr (g_hash_table_lookup (attributes, "number"), ==, "5");
-	g_assert_cmpuint (g_hash_table_size (attributes), ==, 2);
+	g_assert_cmpuint (g_hash_table_size (attributes), ==, 3);
 	g_hash_table_unref (attributes);
+
+	/* Now has our schema */
+	schema_name = secret_item_get_schema_name (item);
+	g_assert_cmpstr (schema_name, ==, MOCK_SCHEMA.name);
+	g_free (schema_name);
 
 	g_object_unref (item);
 }

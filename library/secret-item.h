@@ -141,6 +141,8 @@ gboolean            secret_item_set_secret_sync            (SecretItem *self,
                                                             GCancellable *cancellable,
                                                             GError **error);
 
+gchar *             secret_item_get_schema_name            (SecretItem *self);
+
 GHashTable*         secret_item_get_attributes             (SecretItem *self);
 
 void                secret_item_set_attributes             (SecretItem *self,

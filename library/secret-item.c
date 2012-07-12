@@ -1729,6 +1729,32 @@ secret_item_set_secret_sync (SecretItem *self,
 }
 
 /**
+ * secret_item_get_schema_name:
+ * @self: an item
+ *
+ * Gets the name of the schema that this item was stored with. This is also
+ * available at the <literal>xdg:schema</literal> attribute.
+ *
+ * Returns: (transfer full): the schema name
+ */
+gchar *
+secret_item_get_schema_name (SecretItem *self)
+{
+	gchar *schema_name;
+	GVariant *variant;
+
+	g_return_val_if_fail (SECRET_IS_ITEM (self), NULL);
+
+	variant = g_dbus_proxy_get_cached_property (G_DBUS_PROXY (self), "Attributes");
+	g_return_val_if_fail (variant != NULL, NULL);
+
+	g_variant_lookup (variant, "xdg:schema", "s", &schema_name);
+	g_variant_unref (variant);
+
+	return schema_name;
+}
+
+/**
  * secret_item_get_attributes:
  * @self: an item
  *
@@ -1787,15 +1813,19 @@ secret_item_set_attributes (SecretItem *self,
                             GAsyncReadyCallback callback,
                             gpointer user_data)
 {
+	const gchar *schema_name = NULL;
+
 	g_return_if_fail (SECRET_IS_ITEM (self));
 	g_return_if_fail (attributes != NULL);
 
-	/* Warnings raised already */
-	if (schema != NULL && !_secret_attributes_validate (schema, attributes, G_STRFUNC, FALSE))
-		return;
+	if (schema != NULL) {
+		if (!_secret_attributes_validate (schema, attributes, G_STRFUNC, FALSE))
+			return; /* Warnings raised already */
+		schema_name = schema->name;
+	}
 
 	_secret_util_set_property (G_DBUS_PROXY (self), "Attributes",
-	                           _secret_attributes_to_variant (attributes, NULL),
+	                           _secret_attributes_to_variant (attributes, schema_name),
 	                           secret_item_set_attributes, cancellable,
 	                           callback, user_data);
 }
@@ -1848,15 +1878,19 @@ secret_item_set_attributes_sync (SecretItem *self,
                                  GCancellable *cancellable,
                                  GError **error)
 {
+	const gchar *schema_name = NULL;
+
 	g_return_val_if_fail (SECRET_IS_ITEM (self), FALSE);
 	g_return_val_if_fail (attributes != NULL, FALSE);
 
-	/* Warnings raised already */
-	if (schema != NULL && !_secret_attributes_validate (schema, attributes, G_STRFUNC, FALSE))
-		return FALSE;
+	if (schema != NULL) {
+		if (!_secret_attributes_validate (schema, attributes, G_STRFUNC, FALSE))
+			return FALSE; /* Warnings raised already */
+		schema_name = schema->name;
+	}
 
 	return _secret_util_set_property_sync (G_DBUS_PROXY (self), "Attributes",
-	                                       _secret_attributes_to_variant (attributes, NULL),
+	                                       _secret_attributes_to_variant (attributes, schema_name),
 	                                       cancellable, error);
 }
 
