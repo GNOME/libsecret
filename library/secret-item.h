@@ -61,8 +61,9 @@ GType               secret_item_get_type                   (void) G_GNUC_CONST;
 void                secret_item_refresh                    (SecretItem *self);
 
 void                secret_item_create                     (SecretCollection *collection,
-                                                            const gchar *label,
+                                                            const SecretSchema *schema,
                                                             GHashTable *attributes,
+                                                            const gchar *label,
                                                             SecretValue *value,
                                                             gboolean replace,
                                                             GCancellable *cancellable,
@@ -73,8 +74,9 @@ SecretItem *        secret_item_create_finish              (GAsyncResult *result
                                                             GError **error);
 
 SecretItem *        secret_item_create_sync                (SecretCollection *collection,
-                                                            const gchar *label,
+                                                            const SecretSchema *schema,
                                                             GHashTable *attributes,
+                                                            const gchar *label,
                                                             SecretValue *value,
                                                             gboolean replace,
                                                             GCancellable *cancellable,
@@ -142,6 +144,7 @@ gboolean            secret_item_set_secret_sync            (SecretItem *self,
 GHashTable*         secret_item_get_attributes             (SecretItem *self);
 
 void                secret_item_set_attributes             (SecretItem *self,
+                                                            const SecretSchema *schema,
                                                             GHashTable *attributes,
                                                             GCancellable *cancellable,
                                                             GAsyncReadyCallback callback,
@@ -152,6 +155,7 @@ gboolean            secret_item_set_attributes_finish      (SecretItem *self,
                                                             GError **error);
 
 gboolean            secret_item_set_attributes_sync        (SecretItem *self,
+                                                            const SecretSchema *schema,
                                                             GHashTable *attributes,
                                                             GCancellable *cancellable,
                                                             GError **error);

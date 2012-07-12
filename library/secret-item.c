@@ -45,7 +45,7 @@
  * Each item has a set of attributes, which are used to locate the item later.
  * These are not stored or transferred in a secure manner. Each attribute has
  * a string name and a string value. Use secret_service_search() to search for
- * items based on their attributes, and secret_item_set_attributes to change
+ * items based on their attributes, and secret_item_set_attributes() to change
  * the attributes associated with an item.
  *
  * Items can be created with secret_item_create() or secret_service_store().
@@ -185,7 +185,7 @@ secret_item_set_property (GObject *obj,
 		self->pv->init_flags = g_value_get_flags (value);
 		break;
 	case PROP_ATTRIBUTES:
-		secret_item_set_attributes (self, g_value_get_boxed (value),
+		secret_item_set_attributes (self, NULL, g_value_get_boxed (value),
 		                            self->pv->cancellable, on_set_attributes,
 		                            g_object_ref (self));
 		break;
@@ -712,10 +712,15 @@ on_create_path (GObject *source,
 
 static GHashTable *
 item_properties_new (const gchar *label,
+                     const SecretSchema *schema,
                      GHashTable *attributes)
 {
+	const gchar *schema_name = NULL;
 	GHashTable *properties;
 	GVariant *value;
+
+	if (schema != NULL)
+		schema_name = schema->name;
 
 	properties = g_hash_table_new_full (g_str_hash, g_str_equal, NULL,
 	                                    (GDestroyNotify)g_variant_unref);
@@ -725,7 +730,7 @@ item_properties_new (const gchar *label,
 	                     SECRET_ITEM_INTERFACE ".Label",
 	                     g_variant_ref_sink (value));
 
-	value = _secret_attributes_to_variant (attributes, NULL);
+	value = _secret_attributes_to_variant (attributes, schema_name);
 	g_hash_table_insert (properties,
 	                     SECRET_ITEM_INTERFACE ".Attributes",
 	                     g_variant_ref_sink (value));
@@ -736,8 +741,9 @@ item_properties_new (const gchar *label,
 /**
  * secret_item_create:
  * @collection: a secret collection to create this item in
- * @label: label for the new item
+ * @schema: (allow-none): the schema for the attributes
  * @attributes: (element-type utf8 utf8): attributes for the new item
+ * @label: label for the new item
  * @value: secret value for the new item
  * @replace: whether to replace an existing item with the same attributes
  * @cancellable: optional cancellation object
@@ -756,8 +762,9 @@ item_properties_new (const gchar *label,
  */
 void
 secret_item_create (SecretCollection *collection,
-                    const gchar *label,
+                    const SecretSchema *schema,
                     GHashTable *attributes,
+                    const gchar *label,
                     SecretValue *value,
                     gboolean replace,
                     GCancellable *cancellable,
@@ -776,6 +783,10 @@ secret_item_create (SecretCollection *collection,
 	g_return_if_fail (value != NULL);
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
+	/* Warnings raised already */
+	if (schema != NULL && !_secret_attributes_validate (schema, attributes, G_STRFUNC, FALSE))
+		return;
+
 	res = g_simple_async_result_new (NULL, callback, user_data,
 	                                 secret_item_create);
 	closure = g_slice_new0 (CreateClosure);
@@ -783,7 +794,7 @@ secret_item_create (SecretCollection *collection,
 	closure->value = secret_value_ref (value);
 	g_simple_async_result_set_op_res_gpointer (res, closure, create_closure_free);
 
-	properties = item_properties_new (label, attributes);
+	properties = item_properties_new (label, schema, attributes);
 	g_object_get (collection, "service", &service, NULL);
 
 	collection_path = g_dbus_proxy_get_object_path (G_DBUS_PROXY (collection));
@@ -833,8 +844,9 @@ secret_item_create_finish (GAsyncResult *result,
 /**
  * secret_item_create_sync:
  * @collection: a secret collection to create this item in
- * @label: label for the new item
+ * @schema: (allow-none): the schema for the attributes
  * @attributes: (element-type utf8 utf8): attributes for the new item
+ * @label: label for the new item
  * @value: secret value for the new item
  * @replace: whether to replace an existing item with the same attributes
  * @cancellable: optional cancellation object
@@ -855,8 +867,9 @@ secret_item_create_finish (GAsyncResult *result,
  */
 SecretItem *
 secret_item_create_sync (SecretCollection *collection,
-                         const gchar *label,
+                         const SecretSchema *schema,
                          GHashTable *attributes,
+                         const gchar *label,
                          SecretValue *value,
                          gboolean replace,
                          GCancellable *cancellable,
@@ -875,7 +888,11 @@ secret_item_create_sync (SecretCollection *collection,
 	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
 	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 
-	properties = item_properties_new (label, attributes);
+	/* Warnings raised already */
+	if (schema != NULL && !_secret_attributes_validate (schema, attributes, G_STRFUNC, FALSE))
+		return NULL;
+
+	properties = item_properties_new (label, schema, attributes);
 	g_object_get (collection, "service", &service, NULL);
 
 	collection_path = g_dbus_proxy_get_object_path (G_DBUS_PROXY (collection));
@@ -1748,6 +1765,7 @@ secret_item_get_attributes (SecretItem *self)
 /**
  * secret_item_set_attributes:
  * @self: an item
+ * @schema: (allow-none): the schema for the attributes
  * @attributes: (element-type utf8 utf8): a new set of attributes
  * @cancellable: optional cancellation object
  * @callback: called when the asynchronous operation completes
@@ -1763,6 +1781,7 @@ secret_item_get_attributes (SecretItem *self)
  */
 void
 secret_item_set_attributes (SecretItem *self,
+                            const SecretSchema *schema,
                             GHashTable *attributes,
                             GCancellable *cancellable,
                             GAsyncReadyCallback callback,
@@ -1770,6 +1789,10 @@ secret_item_set_attributes (SecretItem *self,
 {
 	g_return_if_fail (SECRET_IS_ITEM (self));
 	g_return_if_fail (attributes != NULL);
+
+	/* Warnings raised already */
+	if (schema != NULL && !_secret_attributes_validate (schema, attributes, G_STRFUNC, FALSE))
+		return;
 
 	_secret_util_set_property (G_DBUS_PROXY (self), "Attributes",
 	                           _secret_attributes_to_variant (attributes, NULL),
@@ -1802,6 +1825,7 @@ secret_item_set_attributes_finish (SecretItem *self,
 /**
  * secret_item_set_attributes_sync:
  * @self: an item
+ * @schema: (allow-none): the schema for the attributes
  * @attributes: (element-type utf8 utf8): a new set of attributes
  * @cancellable: optional cancellation object
  * @error: location to place error on failure
@@ -1819,12 +1843,17 @@ secret_item_set_attributes_finish (SecretItem *self,
  */
 gboolean
 secret_item_set_attributes_sync (SecretItem *self,
+                                 const SecretSchema *schema,
                                  GHashTable *attributes,
                                  GCancellable *cancellable,
                                  GError **error)
 {
 	g_return_val_if_fail (SECRET_IS_ITEM (self), FALSE);
 	g_return_val_if_fail (attributes != NULL, FALSE);
+
+	/* Warnings raised already */
+	if (schema != NULL && !_secret_attributes_validate (schema, attributes, G_STRFUNC, FALSE))
+		return FALSE;
 
 	return _secret_util_set_property_sync (G_DBUS_PROXY (self), "Attributes",
 	                                       _secret_attributes_to_variant (attributes, NULL),

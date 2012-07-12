@@ -179,8 +179,8 @@ test_create_sync (Test *test,
 
 	value = secret_value_new ("Hoohah", -1, "text/plain");
 
-	item = secret_item_create_sync (collection, "Tunnel",
-	                                 attributes, value, FALSE, NULL, &error);
+	item = secret_item_create_sync (collection, NULL, attributes, "Tunnel",
+	                                value, FALSE, NULL, &error);
 	g_assert_no_error (error);
 
 	g_hash_table_unref (attributes);
@@ -218,8 +218,8 @@ test_create_async (Test *test,
 
 	value = secret_value_new ("Hoohah", -1, "text/plain");
 
-	secret_item_create (collection, "Tunnel",
-	                    attributes, value, FALSE, NULL, on_async_result, &result);
+	secret_item_create (collection, NULL, attributes, "Tunnel",
+	                    value, FALSE, NULL, on_async_result, &result);
 	g_assert_no_error (error);
 
 	g_hash_table_unref (attributes);
@@ -421,7 +421,7 @@ test_set_attributes_sync (Test *test,
 	attributes = g_hash_table_new (g_str_hash, g_str_equal);
 	g_hash_table_insert (attributes, "string", "five");
 	g_hash_table_insert (attributes, "number", "5");
-	ret = secret_item_set_attributes_sync (item, attributes, NULL, &error);
+	ret = secret_item_set_attributes_sync (item, NULL, attributes, NULL, &error);
 	g_hash_table_unref (attributes);
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
@@ -459,7 +459,7 @@ test_set_attributes_async (Test *test,
 	attributes = g_hash_table_new (g_str_hash, g_str_equal);
 	g_hash_table_insert (attributes, "string", "five");
 	g_hash_table_insert (attributes, "number", "5");
-	secret_item_set_attributes (item, attributes, NULL, on_async_result, &result);
+	secret_item_set_attributes (item, NULL, attributes, NULL, on_async_result, &result);
 	g_assert (result == NULL);
 
 	egg_test_wait ();
