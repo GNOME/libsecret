@@ -124,7 +124,7 @@ Secret_@SECRET_MAJOR@_gir_CFLAGS = -I$(top_srcdir) -I$(top_builddir) -DSECRET_CO
 Secret_@SECRET_MAJOR@_gir_FILES = $(STABLE_FILES)
 Secret_@SECRET_MAJOR@_gir_SCANNERFLAGS = --c-include "libsecret/secret.h"
 
-SecretUnstable-0.gir: libsecret-@SECRET_MAJOR@.la libsecret-@SECRET_MAJOR@.pc
+SecretUnstable-0.gir: Secret-@SECRET_MAJOR@.gir
 
 SecretUnstable_0_gir_NAMESPACE = SecretUnstable
 SecretUnstable_0_gir_EXPORT_PACKAGES = libsecret-unstable
