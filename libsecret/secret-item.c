@@ -50,6 +50,9 @@
  *
  * Items can be created with secret_item_create() or secret_service_store().
  *
+ * These functions have an unstable API and may change across versions. Use
+ * <literal>libsecret-unstable</literal> package to access them.
+ *
  * Stability: Unstable
  */
 

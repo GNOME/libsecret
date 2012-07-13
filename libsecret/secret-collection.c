@@ -40,6 +40,9 @@
  * lookup the items in the collection. There may not be any items exposed when
  * the collection is locked.
  *
+ * These functions have an unstable API and may change across versions. Use
+ * <literal>libsecret-unstable</literal> package to access them.
+ *
  * Stability: Unstable
  */
 

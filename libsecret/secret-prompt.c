@@ -38,6 +38,9 @@
  * SecretServiceClass::prompt_async and SecretServiceClass::prompt_finish
  * virtual methods of the #SecretService class.
  *
+ * These functions have an unstable API and may change across versions. Use
+ * <literal>libsecret-unstable</literal> package to access them.
+ *
  * Stability: Unstable
  */
 

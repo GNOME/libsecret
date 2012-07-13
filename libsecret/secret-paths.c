@@ -36,6 +36,9 @@
  * service using the DBus API directly, and only wish to use a few calls
  * in libsecret.
  *
+ * These functions have an unstable API and may change across versions. Use
+ * <literal>libsecret-unstable</literal> package to access them.
+ *
  * Stability: Unstable
  */
 

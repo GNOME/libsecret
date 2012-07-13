@@ -38,6 +38,9 @@
  * #SecretValue is reference counted and immutable. The secret data is only
  * freed when all references have been released via secret_value_unref().
  *
+ * These functions have an unstable API and may change across versions. Use
+ * <literal>libsecret-unstable</literal> package to access them.
+ *
  * Stability: Unstable
  */
 
