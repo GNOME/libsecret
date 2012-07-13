@@ -49,6 +49,7 @@ STABLE_FILES = \
 	secret-attributes.h secret-attributes.c \
 	secret-password.h secret-password.c \
 	secret-schema.h secret-schema.c \
+	secret-schemas.h secret-schemas.c \
 	secret-types.h \
 	$(NULL)
 
@@ -58,7 +59,6 @@ UNSTABLE_FILES = \
 	secret-methods.c \
 	secret-paths.h secret-paths.c \
 	secret-prompt.h secret-prompt.c \
-	secret-schemas.h secret-schemas.c \
 	secret-service.h secret-service.c \
 	secret-value.h secret-value.c \
 	$(NULL)
