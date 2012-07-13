@@ -89,7 +89,7 @@ VALA_FLAGS = \
 VALA_TESTS_VAPIS = \
 	$(builddir)/../libsecret-unstable.vapi \
 	$(builddir)/../libsecret-@SECRET_MAJOR@.vapi \
-	mock-service-0.vapi
+	$(builddir)/mock-service-0.vapi
 
 VALA_SRCS = $(VALA_TESTS:=.vala)
 
