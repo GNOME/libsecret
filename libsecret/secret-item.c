@@ -335,7 +335,7 @@ secret_item_class_init (SecretItemClass *klass)
 	                                 SECRET_TYPE_SERVICE, G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS));
 
 	/**
-	 * SecretService:flags:
+	 * SecretItem:flags:
 	 *
 	 * A set of flags describing which parts of the secret item have
 	 * been initialized.
