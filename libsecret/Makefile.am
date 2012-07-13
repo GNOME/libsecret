@@ -113,12 +113,10 @@ include $(INTROSPECTION_MAKEFILE)
 INTROSPECTION_GIRS = Secret-@SECRET_MAJOR@.gir SecretUnstable-0.gir
 INTROSPECTION_SCANNER_ARGS = $(INTROSPECTION_FLAGS) --warn-all --add-include-path=$(srcdir) --add-include-path=.
 INTROSPECTION_COMPILER_ARGS = --includedir=$(srcdir) --includedir=.
-INTROSPECTION_SCANNER_ENV = PKG_CONFIG_PATH=$(builddir)
 
 Secret-@SECRET_MAJOR@.gir: libsecret-@SECRET_MAJOR@.la
 
 Secret_@SECRET_MAJOR@_gir_NAMESPACE = Secret
-Secret_@SECRET_MAJOR@_gir_PACKAGES = gobject-2.0 gio-2.0
 Secret_@SECRET_MAJOR@_gir_EXPORT_PACKAGES = libsecret-@SECRET_MAJOR@
 Secret_@SECRET_MAJOR@_gir_INCLUDES = GObject-2.0 Gio-2.0
 Secret_@SECRET_MAJOR@_gir_LIBS = libsecret-@SECRET_MAJOR@.la
@@ -129,13 +127,12 @@ Secret_@SECRET_MAJOR@_gir_SCANNERFLAGS = --c-include "libsecret/secret.h"
 SecretUnstable-0.gir: libsecret-@SECRET_MAJOR@.la libsecret-@SECRET_MAJOR@.pc
 
 SecretUnstable_0_gir_NAMESPACE = SecretUnstable
-SecretUnstable_0_gir_PACKAGES = gobject-2.0 gio-2.0 libsecret-@SECRET_MAJOR@
 SecretUnstable_0_gir_EXPORT_PACKAGES = libsecret-unstable
-SecretUnstable_0_gir_INCLUDES = GObject-2.0 Gio-2.0 Secret-@SECRET_MAJOR@
+SecretUnstable_0_gir_INCLUDES = GObject-2.0 Gio-2.0
 SecretUnstable_0_gir_LIBS = libsecret-@SECRET_MAJOR@.la
 SecretUnstable_0_gir_CFLAGS = -I$(top_srcdir) -I$(top_builddir) -DSECRET_COMPILATION -DSECRET_API_SUBJECT_TO_CHANGE
 SecretUnstable_0_gir_FILES = $(UNSTABLE_FILES)
-SecretUnstable_0_gir_SCANNERFLAGS = --c-include "libsecret/secret.h" --identifier-prefix=Secret --symbol-prefix=secret
+SecretUnstable_0_gir_SCANNERFLAGS = --c-include "libsecret/secret.h" --identifier-prefix=Secret --symbol-prefix=secret --include-uninstalled=$(builddir)/Secret-@SECRET_MAJOR@.gir
 
 girdir = $(datadir)/gir-1.0
 gir_DATA = $(INTROSPECTION_GIRS)
