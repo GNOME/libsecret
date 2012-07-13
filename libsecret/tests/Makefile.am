@@ -1,5 +1,9 @@
 include $(top_srcdir)/Makefile.decl
 
+# test-vala-unstable depends on the mock vapi,
+# and I'm not sure how we can add that dependency.
+.NOTPARALLEL:
+
 INCLUDES = \
 	-I$(top_srcdir) \
 	-I$(top_srcdir)/libsecret \
