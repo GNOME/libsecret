@@ -165,7 +165,7 @@ VAPIGEN_VAPIS = mock-service-0.vapi
 
 mock_service_0_vapi_DEPS = gio-2.0 libsecret-@SECRET_MAJOR@
 mock_service_0_vapi_METADATADIRS = $(builddir)
-mock_service_0_vapi_VAPIDIRS = $(builddir)
+mock_service_0_vapi_VAPIDIRS = $(builddir) $(builddir)/..
 mock_service_0_vapi_FILES = MockService-0.gir
 
 vapidir = $(datadir)/vala/vapi

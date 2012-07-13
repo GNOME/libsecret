@@ -113,6 +113,7 @@ include $(INTROSPECTION_MAKEFILE)
 INTROSPECTION_GIRS = Secret-@SECRET_MAJOR@.gir SecretUnstable-0.gir
 INTROSPECTION_SCANNER_ARGS = $(INTROSPECTION_FLAGS) --warn-all --add-include-path=$(srcdir) --add-include-path=.
 INTROSPECTION_COMPILER_ARGS = --includedir=$(srcdir) --includedir=.
+INTROSPECTION_SCANNER_ENV = PKG_CONFIG_PATH=$(builddir)
 
 Secret-@SECRET_MAJOR@.gir: libsecret-@SECRET_MAJOR@.la
 
@@ -125,7 +126,7 @@ Secret_@SECRET_MAJOR@_gir_CFLAGS = -I$(top_srcdir) -I$(top_builddir) -DSECRET_CO
 Secret_@SECRET_MAJOR@_gir_FILES = $(STABLE_FILES)
 Secret_@SECRET_MAJOR@_gir_SCANNERFLAGS = --c-include "libsecret/secret.h"
 
-SecretUnstable-0.gir: libsecret-@SECRET_MAJOR@.la
+SecretUnstable-0.gir: libsecret-@SECRET_MAJOR@.la libsecret-@SECRET_MAJOR@.pc
 
 SecretUnstable_0_gir_NAMESPACE = SecretUnstable
 SecretUnstable_0_gir_PACKAGES = gobject-2.0 gio-2.0 libsecret-@SECRET_MAJOR@
@@ -145,9 +146,9 @@ typelibs_DATA = $(INTROSPECTION_GIRS:.gir=.typelib)
 if ENABLE_VAPIGEN
 include $(VAPIGEN_MAKEFILE)
 
-libsecret-@SECRET_MAJOR@.vapi: Secret-@SECRET_MAJOR@.gir Secret-@SECRET_MAJOR@.metadata
+libsecret-@SECRET_MAJOR@.vapi: Secret-@SECRET_MAJOR@.gir Secret-@SECRET_MAJOR@.metadata libsecret-@SECRET_MAJOR@.deps
 
-libsecret-unstable.vapi: SecretUnstable-0.gir SecretUnstable-0.metadata
+libsecret-unstable.vapi: SecretUnstable-0.gir SecretUnstable-0.metadata libsecret-unstable.deps
 
 VAPIGEN_VAPIS = \
 	libsecret-@SECRET_MAJOR@.vapi \
@@ -160,7 +161,10 @@ libsecret_@SECRET_MAJOR@_vapi_FILES = Secret-@SECRET_MAJOR@.gir
 libsecret_unstable_vapi_DEPS = gio-2.0 libsecret-@SECRET_MAJOR@
 libsecret_unstable_vapi_METADATADIRS = $(srcdir)
 libsecret_unstable_vapi_VAPIDIRS = $(builddir)
-libsecret_unstable_vapi_FILES = SecretUnstable-0.gir
+libsecret_unstable_vapi_GIRDIRS = $(builddir)
+# ... because _GIRDIRS above is broken, yes, this is ugly
+libsecret_unstable_vapi_FILES = --girdir=$(builddir)
+libsecret_unstable_vapi_FILES += SecretUnstable-0.gir
 
 VAPI_DEPS = $(VAPIGEN_VAPIS:.vapi=.deps)
 
