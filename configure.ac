@@ -249,6 +249,7 @@ AC_CONFIG_FILES([
 	po/Makefile
 	libsecret/Makefile
 	libsecret/libsecret.pc
+	libsecret/libsecret-unstable.pc
 	libsecret/tests/Makefile
 	tool/Makefile
 ])

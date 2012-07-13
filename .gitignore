@@ -1,5 +1,6 @@
 *~
 *.bak
+*.deps
 *.gcov
 *.gcno
 *.gcda
@@ -8,6 +9,7 @@
 *.la
 *.lo
 *.o
+*.patch
 *.pyc
 *.pc
 *.tar.gz
@@ -74,6 +76,6 @@ stamp*
 !/libsecret/tests/test-*.js
 !/libsecret/tests/test-*.py
 !/libsecret/tests/test-*.vala
-/libsecret/tests/test-vala-lang.c
+/libsecret/tests/test-vala-*.c
 
 /tool/secret-tool

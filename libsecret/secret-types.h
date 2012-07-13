@@ -13,7 +13,7 @@
  */
 
 #if !defined (__SECRET_INSIDE_HEADER__) && !defined (SECRET_COMPILATION)
-#error "Only <libsecret/secret.h> or <libsecret/secret-unstable.h> can be included directly."
+#error "Only <libsecret/secret.h> can be included directly."
 #endif
 
 #ifndef __SECRET_TYPES_H__
@@ -34,22 +34,9 @@ typedef enum {
 	SECRET_ERROR_ALREADY_EXISTS = 4,
 } SecretError;
 
-typedef struct _SecretCollection  SecretCollection;
-typedef struct _SecretItem        SecretItem;
-typedef struct _SecretPrompt      SecretPrompt;
-typedef struct _SecretService     SecretService;
-typedef struct _SecretValue       SecretValue;
-
 #define SECRET_COLLECTION_DEFAULT "default"
 
 #define SECRET_COLLECTION_SESSION "session"
-
-typedef enum {
-	SECRET_SEARCH_NONE = 0,
-	SECRET_SEARCH_ALL = 1 << 1,
-	SECRET_SEARCH_UNLOCK = 1 << 2,
-	SECRET_SEARCH_LOAD_SECRETS = 1 << 3,
-} SecretSearchFlags;
 
 G_END_DECLS
 

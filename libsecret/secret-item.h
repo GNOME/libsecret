@@ -13,7 +13,7 @@
  */
 
 #if !defined (__SECRET_INSIDE_HEADER__) && !defined (SECRET_COMPILATION)
-#error "Only <libsecret/secret.h> or <libsecret/secret-unstable.h> can be included directly."
+#error "Only <libsecret/secret.h> can be included directly."
 #endif
 
 #ifndef __SECRET_ITEM_H__
@@ -21,6 +21,7 @@
 
 #include <gio/gio.h>
 
+#include "secret-collection.h"
 #include "secret-item.h"
 #include "secret-service.h"
 #include "secret-value.h"

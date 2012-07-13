@@ -32,7 +32,6 @@ HEADER_FILES = \
 	secret-schemas.h \
 	secret-service.h \
 	secret-types.h \
-	secret-unstable.h \
 	secret-value.h \
 	$(NULL)
 
@@ -46,30 +45,34 @@ BUILT_SOURCES = \
 	secret-enum-types.c secret-enum-types.h \
 	$(NULL)
 
-PUBLIC_FILES = \
+STABLE_FILES = \
 	secret-attributes.h secret-attributes.c \
+	secret-password.h secret-password.c \
+	secret-schema.h secret-schema.c \
+	secret-types.h \
+	$(NULL)
+
+UNSTABLE_FILES = \
 	secret-collection.h secret-collection.c \
 	secret-item.h secret-item.c \
 	secret-methods.c \
-	secret-password.h secret-password.c \
 	secret-paths.h secret-paths.c \
 	secret-prompt.h secret-prompt.c \
-	secret-schema.h secret-schema.c \
 	secret-schemas.h secret-schemas.c \
 	secret-service.h secret-service.c \
-	secret-types.h \
 	secret-value.h secret-value.c \
 	$(NULL)
 
-INTERNAL_FILES = \
+PRIVATE_FILES = \
 	secret-private.h \
 	secret-session.c \
 	secret-util.c \
 	$(NULL)
 
 libsecret_@SECRET_MAJOR@_la_SOURCES = \
-	$(PUBLIC_FILES) \
-	$(INTERNAL_FILES) \
+	$(STABLE_FILES) \
+	$(UNSTABLE_FILES) \
+	$(PRIVATE_FILES) \
 	$(BUILT_SOURCES) \
 	$(NULL)
 
@@ -107,19 +110,31 @@ if HAVE_INTROSPECTION
 
 include $(INTROSPECTION_MAKEFILE)
 
-INTROSPECTION_GIRS = Secret-@SECRET_MAJOR@.gir
+INTROSPECTION_GIRS = Secret-@SECRET_MAJOR@.gir SecretUnstable-0.gir
 INTROSPECTION_SCANNER_ARGS = $(INTROSPECTION_FLAGS) --warn-all --add-include-path=$(srcdir) --add-include-path=.
 INTROSPECTION_COMPILER_ARGS = --includedir=$(srcdir) --includedir=.
 
 Secret-@SECRET_MAJOR@.gir: libsecret-@SECRET_MAJOR@.la
 
+Secret_@SECRET_MAJOR@_gir_NAMESPACE = Secret
 Secret_@SECRET_MAJOR@_gir_PACKAGES = gobject-2.0 gio-2.0
 Secret_@SECRET_MAJOR@_gir_EXPORT_PACKAGES = libsecret-@SECRET_MAJOR@
 Secret_@SECRET_MAJOR@_gir_INCLUDES = GObject-2.0 Gio-2.0
 Secret_@SECRET_MAJOR@_gir_LIBS = libsecret-@SECRET_MAJOR@.la
-Secret_@SECRET_MAJOR@_gir_CFLAGS = -I$(top_srcdir) -I$(top_builddir) -DSECRET_COMPILATION -DSECRET_API_SUBJECT_TO_CHANGE
-Secret_@SECRET_MAJOR@_gir_FILES = $(PUBLIC_FILES)
+Secret_@SECRET_MAJOR@_gir_CFLAGS = -I$(top_srcdir) -I$(top_builddir) -DSECRET_COMPILATION
+Secret_@SECRET_MAJOR@_gir_FILES = $(STABLE_FILES)
 Secret_@SECRET_MAJOR@_gir_SCANNERFLAGS = --c-include "libsecret/secret.h"
+
+SecretUnstable-0.gir: libsecret-@SECRET_MAJOR@.la
+
+SecretUnstable_0_gir_NAMESPACE = SecretUnstable
+SecretUnstable_0_gir_PACKAGES = gobject-2.0 gio-2.0 libsecret-@SECRET_MAJOR@
+SecretUnstable_0_gir_EXPORT_PACKAGES = libsecret-unstable
+SecretUnstable_0_gir_INCLUDES = GObject-2.0 Gio-2.0 Secret-@SECRET_MAJOR@
+SecretUnstable_0_gir_LIBS = libsecret-@SECRET_MAJOR@.la
+SecretUnstable_0_gir_CFLAGS = -I$(top_srcdir) -I$(top_builddir) -DSECRET_COMPILATION -DSECRET_API_SUBJECT_TO_CHANGE
+SecretUnstable_0_gir_FILES = $(UNSTABLE_FILES)
+SecretUnstable_0_gir_SCANNERFLAGS = --c-include "libsecret/secret.h" --identifier-prefix=Secret --symbol-prefix=secret
 
 girdir = $(datadir)/gir-1.0
 gir_DATA = $(INTROSPECTION_GIRS)
@@ -132,16 +147,36 @@ include $(VAPIGEN_MAKEFILE)
 
 libsecret-@SECRET_MAJOR@.vapi: Secret-@SECRET_MAJOR@.gir Secret-@SECRET_MAJOR@.metadata
 
-VAPIGEN_VAPIS = libsecret-@SECRET_MAJOR@.vapi
+libsecret-unstable.vapi: SecretUnstable-0.gir SecretUnstable-0.metadata
 
-libsecret_@SECRET_MAJOR@_vapi_DEPS = gio-2.0
+VAPIGEN_VAPIS = \
+	libsecret-@SECRET_MAJOR@.vapi \
+	libsecret-unstable.vapi
+
+libsecret_@SECRET_MAJOR@_vapi_DEPS = glib-2.0 gio-2.0
 libsecret_@SECRET_MAJOR@_vapi_METADATADIRS = $(srcdir)
 libsecret_@SECRET_MAJOR@_vapi_FILES = Secret-@SECRET_MAJOR@.gir
 
-vapidir = $(datadir)/vala/vapi
-vapi_DATA = $(VAPIGEN_VAPIS)
+libsecret_unstable_vapi_DEPS = gio-2.0 libsecret-@SECRET_MAJOR@
+libsecret_unstable_vapi_METADATADIRS = $(srcdir)
+libsecret_unstable_vapi_VAPIDIRS = $(builddir)
+libsecret_unstable_vapi_FILES = SecretUnstable-0.gir
 
-CLEANFILES += $(VAPIGEN_VAPIS)
+VAPI_DEPS = $(VAPIGEN_VAPIS:.vapi=.deps)
+
+libsecret-$(SECRET_MAJOR).deps: Makefile.am
+	$(AM_V_GEN) echo $(libsecret_@SECRET_MAJOR@_vapi_DEPS) | tr ' ' '\n' > $@
+libsecret-unstable.deps: Makefile.am
+	$(AM_V_GEN) echo $(libsecret_unstable_vapi_DEPS) | tr ' ' '\n' > $@
+
+vapidir = $(datadir)/vala/vapi
+vapi_DATA = \
+	$(VAPIGEN_VAPIS) \
+	$(VAPI_DEPS)
+
+CLEANFILES += \
+	$(VAPIGEN_VAPIS) \
+	$(VAPI_DEPS)
 
 endif # ENABLE_VAPIGEN
 endif # HAVE_INTROSPECTION
@@ -153,7 +188,9 @@ libsecret-$(SECRET_MAJOR).pc: libsecret.pc
 	cp libsecret.pc libsecret-$(SECRET_MAJOR).pc
 
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = libsecret-$(SECRET_MAJOR).pc
+pkgconfig_DATA = \
+	libsecret-$(SECRET_MAJOR).pc \
+	libsecret-unstable.pc
 
 # ------------------------------------------------------------------
 
@@ -163,6 +200,7 @@ EXTRA_DIST = \
 	secret-enum-types.c.template \
 	org.freedesktop.Secrets.xml \
 	Secret-@SECRET_MAJOR@.metadata \
+	SecretUnstable-0.metadata \
 	$(NULL)
 
 CLEANFILES += \

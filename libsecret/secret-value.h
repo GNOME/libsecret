@@ -13,7 +13,7 @@
  */
 
 #if !defined (__SECRET_INSIDE_HEADER__) && !defined (SECRET_COMPILATION)
-#error "Only <libsecret/secret.h> or <libsecret/secret-unstable.h> can be included directly."
+#error "Only <libsecret/secret.h> can be included directly."
 #endif
 
 #ifndef __SECRET_VALUE_H__
@@ -24,6 +24,8 @@
 #include "secret-types.h"
 
 G_BEGIN_DECLS
+
+typedef struct _SecretValue  SecretValue;
 
 #define             SECRET_TYPE_VALUE              (secret_value_get_type ())
 

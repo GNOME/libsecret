@@ -14,7 +14,7 @@
  */
 
 #if !defined (__SECRET_INSIDE_HEADER__) && !defined (SECRET_COMPILATION)
-#error "Only <libsecret/secret.h> or <libsecret/secret-unstable.h> can be included directly."
+#error "Only <libsecret/secret.h> can be included directly."
 #endif
 
 #ifndef __SECRET_SERVICE_H__
@@ -35,6 +35,13 @@ typedef enum {
 	SECRET_SERVICE_LOAD_COLLECTIONS = 1 << 2,
 } SecretServiceFlags;
 
+typedef enum {
+	SECRET_SEARCH_NONE = 0,
+	SECRET_SEARCH_ALL = 1 << 1,
+	SECRET_SEARCH_UNLOCK = 1 << 2,
+	SECRET_SEARCH_LOAD_SECRETS = 1 << 3,
+} SecretSearchFlags;
+
 #define SECRET_TYPE_SERVICE            (secret_service_get_type ())
 #define SECRET_SERVICE(inst)           (G_TYPE_CHECK_INSTANCE_CAST ((inst), SECRET_TYPE_SERVICE, SecretService))
 #define SECRET_SERVICE_CLASS(class)    (G_TYPE_CHECK_CLASS_CAST ((class), SECRET_TYPE_SERVICE, SecretServiceClass))
@@ -42,6 +49,8 @@ typedef enum {
 #define SECRET_IS_SERVICE_CLASS(class) (G_TYPE_CHECK_CLASS_TYPE ((class), SECRET_TYPE_SERVICE))
 #define SECRET_SERVICE_GET_CLASS(inst) (G_TYPE_INSTANCE_GET_CLASS ((inst), SECRET_TYPE_SERVICE, SecretServiceClass))
 
+typedef struct _SecretCollection     SecretCollection;
+typedef struct _SecretService        SecretService;
 typedef struct _SecretServiceClass   SecretServiceClass;
 typedef struct _SecretServicePrivate SecretServicePrivate;
 

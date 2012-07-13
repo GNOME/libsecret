@@ -13,7 +13,7 @@
  */
 
 #if !defined (__SECRET_INSIDE_HEADER__) && !defined (SECRET_COMPILATION)
-#error "Only <libsecret/secret.h> or <libsecret/secret-unstable.h> can be included directly."
+#error "Only <libsecret/secret.h> can be included directly."
 #endif
 
 #ifndef __SECRET_PROMPT_H__
@@ -32,6 +32,7 @@ G_BEGIN_DECLS
 #define SECRET_IS_PROMPT_CLASS(class) (G_TYPE_CHECK_CLASS_TYPE ((class), SECRET_TYPE_PROMPT))
 #define SECRET_PROMPT_GET_CLASS(inst) (G_TYPE_INSTANCE_GET_CLASS ((inst), SECRET_TYPE_PROMPT, SecretPromptClass))
 
+typedef struct _SecretPrompt        SecretPrompt;
 typedef struct _SecretPromptClass   SecretPromptClass;
 typedef struct _SecretPromptPrivate SecretPromptPrivate;
 

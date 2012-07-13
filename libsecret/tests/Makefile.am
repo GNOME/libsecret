@@ -56,7 +56,8 @@ noinst_PROGRAMS =  \
 JS_TESTS = \
 	test-lookup-password.js \
 	test-remove-password.js \
-	test-store-password.js
+	test-store-password.js \
+	test-unstable.js
 
 JS_ENV = \
 	LD_LIBRARY_PATH=$(builddir)/../.libs:$(builddir)/.libs \
@@ -65,7 +66,8 @@ JS_ENV = \
 PY_TESTS = \
 	test-lookup-password.py \
 	test-remove-password.py \
-	test-store-password.py
+	test-store-password.py \
+	test-unstable.py
 
 PY_ENV = $(JS_ENV)
 
@@ -75,24 +77,39 @@ VALA_V = $(VALA_V_$(V))
 VALA_V_ = $(VALA_V_$(AM_DEFAULT_VERBOSITY))
 VALA_V_0 = @echo "  VALAC " $^;
 
+VALA_TESTS = \
+	test-vala-lang \
+	test-vala-unstable \
+	$(NULL)
+
+VALA_FLAGS = \
+	--vapidir=$(builddir)/.. \
+	--pkg gio-2.0
+
+VALA_TESTS_VAPIS = \
+	$(builddir)/../libsecret-unstable.vapi \
+	$(builddir)/../libsecret-@SECRET_MAJOR@.vapi \
+	mock-service-0.vapi
+
+VALA_SRCS = $(VALA_TESTS:=.vala)
+
+.vala.c: $(VALA_TESTS_VAPIS)
+	$(VALA_V)$(VALAC) $(VALA_FLAGS) -C $<
+
 if HAVE_INTROSPECTION
 if ENABLE_VAPIGEN
 
-VALA_TESTS = \
-	test-vala-lang \
-	$(NULL)
-
-endif
-endif
-
-test-vala-lang.c: test-vala-lang.vala libsecret-@SECRET_MAJOR@.vapi mock-service-0.vapi
-	$(VALA_V)$(VALAC) -C --pkg gio-2.0 $^
-
 TEST_PROGS += $(VALA_TESTS)
 
-test_vala_lang_CFLAGS = -w
+endif
+endif
 
-DISTCLEANFILES = test-vala-lang.c
+test_vala_lang_CFLAGS = -w
+test_vala_unstable_CFLAGS = -DSECRET_WITH_UNSTABLE -w
+
+DISTCLEANFILES = \
+	test-vala-lang.c \
+	test-vala-unstable.c
 
 test-vala: $(VALA_TESTS)
 	@gtester --verbose -m $(TEST_MODE) --g-fatal-warnings $(VALA_TESTS)
@@ -142,7 +159,7 @@ noinst_DATA = \
 if ENABLE_VAPIGEN
 include $(VAPIGEN_MAKEFILE)
 
-mock-service-0.vapi: MockService-0.gir libsecret-@SECRET_MAJOR@.vapi
+mock-service-0.vapi: MockService-0.gir $(builddir)/../libsecret-@SECRET_MAJOR@.vapi
 
 VAPIGEN_VAPIS = mock-service-0.vapi
 
@@ -153,21 +170,6 @@ mock_service_0_vapi_FILES = MockService-0.gir
 
 vapidir = $(datadir)/vala/vapi
 vapi_DATA = mock-service-0.vapi
-
-# We have to make a version of the VAPI which references the
-# uninstalled C headers.
-
-VAPIGEN_VAPIS += libsecret-@SECRET_MAJOR@.vapi
-
-Secret-@SECRET_MAJOR@.metadata: $(top_srcdir)/libsecret/Secret-@SECRET_MAJOR@.metadata
-	$(AM_V_GEN) echo "* cheader_filename=\"secret-collection.h,secret-item.h,secret-password.h,secret-prompt.h,secret-schema.h,secret-schemas.h,secret-service.h,secret-types.h,secret-value.h\"" > $@ && \
-	cat < $^ >> $@
-
-libsecret-@SECRET_MAJOR@.vapi: Secret-@SECRET_MAJOR@.metadata $(top_builddir)/libsecret/Secret-@SECRET_MAJOR@.gir
-
-libsecret_@SECRET_MAJOR@_vapi_DEPS = gio-2.0
-libsecret_@SECRET_MAJOR@_vapi_METADATADIRS = $(srcdir)
-libsecret_@SECRET_MAJOR@_vapi_FILES = $(top_builddir)/libsecret/Secret-@SECRET_MAJOR@.gir
 
 noinst_DATA += $(VAPIGEN_VAPIS)
 
@@ -184,7 +186,7 @@ EXTRA_DIST = \
 	mock-service-only-plain.py \
 	mock-service-prompt.py \
 	Secret-@SECRET_MAJOR@.metadata \
-	test-vala-lang.vala \
+	$(VALA_SRCS) \
 	$(JS_TESTS) \
 	$(PY_TESTS) \
 	$(NULL)
