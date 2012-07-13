@@ -243,6 +243,7 @@ AC_CONFIG_FILES([
 	docs/reference/Makefile
 	docs/reference/libsecret/Makefile
 	docs/reference/libsecret/version.xml
+	docs/reference/libsecret/version-major.xml
 	egg/Makefile
 	egg/tests/Makefile
 	po/Makefile.in

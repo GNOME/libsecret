@@ -47,6 +47,7 @@ stamp*
 /build/valgrind-suppressions
 
 /docs/reference/libsecret/version.xml
+/docs/reference/libsecret/version-major.xml
 /docs/reference/libsecret/libsecret-decl-list.txt
 /docs/reference/libsecret/libsecret-decl.txt
 /docs/reference/libsecret/libsecret-scan.c

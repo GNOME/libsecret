@@ -71,6 +71,7 @@ HTML_IMAGES=
 # e.g. content_files=running.sgml building.sgml changes-2.0.sgml
 content_files = \
 	libsecret-examples.sgml \
+	libsecret-using.sgml \
 	migrating-libgnome-keyring.xml
 
 # SGML files where gtk-doc abbrevations (#GtkWidget) are expanded
@@ -95,7 +96,7 @@ include $(top_srcdir)/gtk-doc.make
 # e.g. EXTRA_DIST += version.xml.in
 EXTRA_DIST += \
 	version.xml.in \
-	migrating-libgnome-keyring.xml
+	version-major.in
 
 # Files not to distribute
 # for --rebuild-types in $(SCAN_OPTIONS), e.g. $(DOC_MODULE).types
