@@ -25,7 +25,7 @@
 #include "secret-types.h"
 
 /* This symbol is defined by the secret-unstable.pc pkg-config file */
-#ifdef SECRET_WITH_UNSTABLE
+#if defined(SECRET_WITH_UNSTABLE) || defined(SECRET_API_SUBJECT_TO_CHANGE)
 
 #ifndef SECRET_API_SUBJECT_TO_CHANGE
 #warning "This API has not yet reached stability. Define SECRET_API_SUBJECT_TO_CHANGE to acknowledge"
@@ -40,7 +40,7 @@
 #include "secret-service.h"
 #include "secret-value.h"
 
-#endif /* SECRET_WITH_UNSTABLE */
+#endif /* SECRET_WITH_UNSTABLE || SECRET_API_SUBJECT_TO_CHANGE */
 
 #undef __SECRET_INSIDE_HEADER__
 

@@ -1,11 +1,25 @@
+private void test_read_alias () {
+	try {
+		var service = Secret.Service.get_sync(Secret.ServiceFlags.NONE);
+		var path = service.read_alias_dbus_path_sync("default", null);
+		GLib.assert (path != null);
+	} catch ( GLib.Error e ) {
+		GLib.error (e.message);
+	}
+}
+
 private static int main (string[] args) {
-  GLib.Test.init (ref args);
+	GLib.Test.init (ref args);
 
-  var service = SecretUnstable.Service.get_sync(SecretUnstable.ServiceFlags.NONE);
-  var path = service.read_alias_dbus_path_sync("default", null);
+	try {
+		MockService.start ("mock-service-normal.py");
+	} catch ( GLib.Error e ) {
+		GLib.error ("Unable to start mock service: %s", e.message);
+	}
 
-  /* Just running is enough for us */
-  if (GLib.Test.verbose())
-    stderr.printf("Vala unstable got default path: %s\n", path);
-  return 0;
+	GLib.Test.add_data_func ("/vala/unstable/read-alias", test_read_alias);
+
+	var res = GLib.Test.run ();
+	MockService.stop ();
+	return res;
 }

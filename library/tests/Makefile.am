@@ -56,7 +56,8 @@ noinst_PROGRAMS =  \
 JS_TESTS = \
 	test-lookup-password.js \
 	test-remove-password.js \
-	test-store-password.js
+	test-store-password.js \
+	test-unstable.js
 
 JS_ENV = \
 	LD_LIBRARY_PATH=$(builddir)/../.libs:$(builddir)/.libs \
@@ -103,8 +104,11 @@ test-vala-unstable.c: test-vala-unstable.vala $(VALA_TESTS_VAPIS)
 TEST_PROGS += $(VALA_TESTS)
 
 test_vala_lang_CFLAGS = -w
+test_vala_unstable_CFLAGS = -DSECRET_WITH_UNSTABLE -w
 
-DISTCLEANFILES = test-vala-lang.c
+DISTCLEANFILES = \
+	test-vala-lang.c \
+	test-vala-unstable.c
 
 test-vala: $(VALA_TESTS)
 	@gtester --verbose -m $(TEST_MODE) --g-fatal-warnings $(VALA_TESTS)
@@ -154,7 +158,7 @@ noinst_DATA = \
 if ENABLE_VAPIGEN
 include $(VAPIGEN_MAKEFILE)
 
-mock-service-0.vapi: MockService-0.gir libsecret-@SECRET_MAJOR@.vapi
+mock-service-0.vapi: MockService-0.gir $(builddir)/../libsecret-@SECRET_MAJOR@.vapi
 
 VAPIGEN_VAPIS = mock-service-0.vapi
 
