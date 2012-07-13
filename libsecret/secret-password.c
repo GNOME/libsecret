@@ -640,7 +640,7 @@ secret_password_lookupv_sync (const SecretSchema *schema,
  * @user_data: data to be passed to the callback
  * @...: the attribute keys and values, terminated with %NULL
  *
- * Remove a password from the secret service.
+ * Remove passwords from the secret service.
  *
  * The variable argument list should contain pairs of a) The attribute name as
  * a null-terminated string, followed by b) attribute value, either a character
@@ -784,7 +784,7 @@ secret_password_remove_sync (const SecretSchema* schema,
  * @cancellable: optional cancellation object
  * @error: location to place an error on failure
  *
- * Remove a password from the secret service.
+ * Remove passwords from the secret service.
  *
  * The @attributes should be a set of key and value string pairs.
  *
