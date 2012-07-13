@@ -1,3 +1,3 @@
-library/secret-item.c
-library/secret-session.c
+libsecret/secret-item.c
+libsecret/secret-session.c
 tool/secret-tool.c

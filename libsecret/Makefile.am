@@ -18,7 +18,7 @@ INCLUDES = \
 lib_LTLIBRARIES = libsecret-@SECRET_MAJOR@.la
 
 
-incdir = $(includedir)/secret-@SECRET_MAJOR@/secret
+incdir = $(includedir)/secret-@SECRET_MAJOR@/libsecret
 
 HEADER_FILES = \
 	secret.h \
@@ -119,7 +119,7 @@ Secret_@SECRET_MAJOR@_gir_INCLUDES = GObject-2.0 Gio-2.0
 Secret_@SECRET_MAJOR@_gir_LIBS = libsecret-@SECRET_MAJOR@.la
 Secret_@SECRET_MAJOR@_gir_CFLAGS = -I$(top_srcdir) -I$(top_builddir) -DSECRET_COMPILATION -DSECRET_API_SUBJECT_TO_CHANGE
 Secret_@SECRET_MAJOR@_gir_FILES = $(PUBLIC_FILES)
-Secret_@SECRET_MAJOR@_gir_SCANNERFLAGS = --c-include "secret.h"
+Secret_@SECRET_MAJOR@_gir_SCANNERFLAGS = --c-include "libsecret/secret.h"
 
 girdir = $(datadir)/gir-1.0
 gir_DATA = $(INTROSPECTION_GIRS)

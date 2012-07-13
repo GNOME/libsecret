@@ -21,12 +21,12 @@ msgstr ""
 "X-Poedit-Language: Polish\n"
 "X-Poedit-Country: Poland\n"
 
-#: ../library/secret-item.c:994
+#: ../libsecret/secret-item.c:994
 #, c-format
 msgid "Received invalid secret from the secret storage"
 msgstr "Otrzymano nieprawidłowy sekret z przechowalni"
 
-#: ../library/secret-session.c:244 ../library/secret-session.c:281
+#: ../libsecret/secret-session.c:244 ../libsecret/secret-session.c:281
 msgid "Couldn't communicate with the secret storage"
 msgstr "Nie można komunikować się z przechowalnią"
 

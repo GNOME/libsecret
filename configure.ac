@@ -27,7 +27,7 @@ AC_CONFIG_MACRO_DIR([build/m4])
 AM_INIT_AUTOMAKE([1.11 tar-ustar foreign -Wno-portability])
 AM_SANITY_CHECK
 AM_CONFIG_HEADER(config.h)
-AC_CONFIG_SRCDIR([library/secret-value.c])
+AC_CONFIG_SRCDIR([libsecret/secret-value.c])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 AM_MAINTAINER_MODE([enable])
 
@@ -247,9 +247,9 @@ AC_CONFIG_FILES([
 	egg/tests/Makefile
 	po/Makefile.in
 	po/Makefile
-	library/Makefile
-	library/libsecret.pc
-	library/tests/Makefile
+	libsecret/Makefile
+	libsecret/libsecret.pc
+	libsecret/tests/Makefile
 	tool/Makefile
 ])
 AC_OUTPUT

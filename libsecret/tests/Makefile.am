@@ -2,7 +2,7 @@ include $(top_srcdir)/Makefile.decl
 
 INCLUDES = \
 	-I$(top_srcdir) \
-	-I$(top_srcdir)/library \
+	-I$(top_srcdir)/libsecret \
 	-DSRCDIR="\"@abs_srcdir@\"" \
 	-DSECRET_COMPILATION \
 	$(NULL)
@@ -22,12 +22,12 @@ libmock_service_la_LDFLAGS = \
 
 libmock_service_la_LIBADD = \
 	$(top_builddir)/egg/libegg.la \
-	$(top_builddir)/library/libsecret-@SECRET_MAJOR@.la \
+	$(top_builddir)/libsecret/libsecret-@SECRET_MAJOR@.la \
 	$(LIBGCRYPT_LIBS)
 
 LDADD =  \
 	$(top_builddir)/egg/libegg.la \
-	$(top_builddir)/library/libsecret-@SECRET_MAJOR@.la \
+	$(top_builddir)/libsecret/libsecret-@SECRET_MAJOR@.la \
 	libmock_service.la \
 	$(NULL)
 
@@ -159,15 +159,15 @@ vapi_DATA = mock-service-0.vapi
 
 VAPIGEN_VAPIS += libsecret-@SECRET_MAJOR@.vapi
 
-Secret-@SECRET_MAJOR@.metadata: $(top_srcdir)/library/Secret-@SECRET_MAJOR@.metadata
+Secret-@SECRET_MAJOR@.metadata: $(top_srcdir)/libsecret/Secret-@SECRET_MAJOR@.metadata
 	$(AM_V_GEN) echo "* cheader_filename=\"secret-collection.h,secret-item.h,secret-password.h,secret-prompt.h,secret-schema.h,secret-schemas.h,secret-service.h,secret-types.h,secret-value.h\"" > $@ && \
 	cat < $^ >> $@
 
-libsecret-@SECRET_MAJOR@.vapi: Secret-@SECRET_MAJOR@.metadata $(top_builddir)/library/Secret-@SECRET_MAJOR@.gir
+libsecret-@SECRET_MAJOR@.vapi: Secret-@SECRET_MAJOR@.metadata $(top_builddir)/libsecret/Secret-@SECRET_MAJOR@.gir
 
 libsecret_@SECRET_MAJOR@_vapi_DEPS = gio-2.0
 libsecret_@SECRET_MAJOR@_vapi_METADATADIRS = $(srcdir)
-libsecret_@SECRET_MAJOR@_vapi_FILES = $(top_builddir)/library/Secret-@SECRET_MAJOR@.gir
+libsecret_@SECRET_MAJOR@_vapi_FILES = $(top_builddir)/libsecret/Secret-@SECRET_MAJOR@.gir
 
 noinst_DATA += $(VAPIGEN_VAPIS)
 

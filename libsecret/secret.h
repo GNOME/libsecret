@@ -19,10 +19,10 @@
 
 #define __SECRET_INSIDE_HEADER__
 
-#include <secret/secret-password.h>
-#include <secret/secret-schema.h>
-#include <secret/secret-schemas.h>
-#include <secret/secret-types.h>
+#include <libsecret/secret-password.h>
+#include <libsecret/secret-schema.h>
+#include <libsecret/secret-schemas.h>
+#include <libsecret/secret-types.h>
 
 #undef __SECRET_INSIDE_HEADER__
 

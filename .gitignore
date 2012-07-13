@@ -66,14 +66,14 @@ stamp*
 /egg/tests/test-*
 !/egg/tests/test-*.c
 
-/library/secret-dbus-generated.[ch]
-/library/secret-enum-types.[ch]
-/library/tests/test-*
-/library/tests/*.metadata
-!/library/tests/test-*.c
-!/library/tests/test-*.js
-!/library/tests/test-*.py
-!/library/tests/test-*.vala
-/library/tests/test-vala-lang.c
+/libsecret/secret-dbus-generated.[ch]
+/libsecret/secret-enum-types.[ch]
+/libsecret/tests/test-*
+/libsecret/tests/*.metadata
+!/libsecret/tests/test-*.c
+!/libsecret/tests/test-*.js
+!/libsecret/tests/test-*.py
+!/libsecret/tests/test-*.vala
+/libsecret/tests/test-vala-lang.c
 
 /tool/secret-tool

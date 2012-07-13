@@ -21,18 +21,18 @@
 
 #include <glib.h>
 
-#include <secret/secret.h>
+#include <libsecret/secret.h>
 
 #define __SECRET_INSIDE_HEADER__
 
-#include <secret/secret-attributes.h>
-#include <secret/secret-collection.h>
-#include <secret/secret-enum-types.h>
-#include <secret/secret-item.h>
-#include <secret/secret-paths.h>
-#include <secret/secret-prompt.h>
-#include <secret/secret-service.h>
-#include <secret/secret-value.h>
+#include <libsecret/secret-attributes.h>
+#include <libsecret/secret-collection.h>
+#include <libsecret/secret-enum-types.h>
+#include <libsecret/secret-item.h>
+#include <libsecret/secret-paths.h>
+#include <libsecret/secret-prompt.h>
+#include <libsecret/secret-service.h>
+#include <libsecret/secret-value.h>
 
 #undef __SECRET_INSIDE_HEADER__
 

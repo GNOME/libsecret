@@ -8,7 +8,7 @@ ORIGDIR=`pwd`
 cd $srcdir
 PROJECT=libsecret
 TEST_TYPE=-f
-FILE=library/secret-value.c
+FILE=libsecret/secret-value.c
 
 DIE=0
 
