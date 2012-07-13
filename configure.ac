@@ -13,7 +13,7 @@ dnl  2. If any interfaces have been added, removed, or changed since the last up
 dnl  3. If any interfaces have been added since the last public release, then increment age.
 dnl  4. If any interfaces have been removed or changed since the last public release, then set age to 0.
 
-SECRET_MAJOR=0
+SECRET_MAJOR=1
 SECRET_MINOR=0
 SECRET_MICRO=0
 
