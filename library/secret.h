@@ -19,10 +19,28 @@
 
 #define __SECRET_INSIDE_HEADER__
 
-#include <secret/secret-password.h>
-#include <secret/secret-schema.h>
-#include <secret/secret-schemas.h>
-#include <secret/secret-types.h>
+#include "secret-password.h"
+#include "secret-schema.h"
+#include "secret-schemas.h"
+#include "secret-types.h"
+
+/* This symbol is defined by the secret-unstable.pc pkg-config file */
+#ifdef SECRET_WITH_UNSTABLE
+
+#ifndef SECRET_API_SUBJECT_TO_CHANGE
+#warning "This API has not yet reached stability. Define SECRET_API_SUBJECT_TO_CHANGE to acknowledge"
+#endif
+
+#include "secret-attributes.h"
+#include "secret-collection.h"
+#include "secret-enum-types.h"
+#include "secret-item.h"
+#include "secret-paths.h"
+#include "secret-prompt.h"
+#include "secret-service.h"
+#include "secret-value.h"
+
+#endif /* SECRET_WITH_UNSTABLE */
 
 #undef __SECRET_INSIDE_HEADER__
 

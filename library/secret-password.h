@@ -13,7 +13,7 @@
  */
 
 #if !defined (__SECRET_INSIDE_HEADER__) && !defined (SECRET_COMPILATION)
-#error "Only <secret/secret.h> or <secret/secret-unstable.h> can be included directly."
+#error "Only <secret/secret.h> can be included directly."
 #endif
 
 #ifndef __SECRET_PASSWORD_H__

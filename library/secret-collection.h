@@ -13,7 +13,7 @@
  */
 
 #if !defined (__SECRET_INSIDE_HEADER__) && !defined (SECRET_COMPILATION)
-#error "Only <secret/secret.h> or <secret/secret-unstable.h> can be included directly."
+#error "Only <secret/secret.h> can be included directly."
 #endif
 
 #ifndef __SECRET_COLLECTION_H__
@@ -22,6 +22,7 @@
 #include <gio/gio.h>
 
 #include "secret-schema.h"
+#include "secret-service.h"
 #include "secret-types.h"
 
 G_BEGIN_DECLS
@@ -42,6 +43,8 @@ typedef enum {
 #define SECRET_IS_COLLECTION_CLASS(class) (G_TYPE_CHECK_CLASS_TYPE ((class), SECRET_TYPE_COLLECTION))
 #define SECRET_COLLECTION_GET_CLASS(inst) (G_TYPE_INSTANCE_GET_CLASS ((inst), SECRET_TYPE_COLLECTION, SecretCollectionClass))
 
+typedef struct _SecretItem              SecretItem;
+typedef struct _SecretCollection        SecretCollection;
 typedef struct _SecretCollectionClass   SecretCollectionClass;
 typedef struct _SecretCollectionPrivate SecretCollectionPrivate;
 

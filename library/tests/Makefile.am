@@ -80,13 +80,25 @@ if ENABLE_VAPIGEN
 
 VALA_TESTS = \
 	test-vala-lang \
+	test-vala-unstable \
 	$(NULL)
 
 endif
 endif
 
-test-vala-lang.c: test-vala-lang.vala libsecret-@SECRET_MAJOR@.vapi mock-service-0.vapi
-	$(VALA_V)$(VALAC) -C --pkg gio-2.0 $^
+VALA_FLAGS = \
+	--vapidir=$(builddir)/.. \
+	--pkg gio-2.0
+
+VALA_TESTS_VAPIS = \
+	$(builddir)/../libsecret-unstable.vapi \
+	$(builddir)/../libsecret-@SECRET_MAJOR@.vapi \
+	mock-service-0.vapi
+
+test-vala-lang.c: test-vala-lang.vala $(VALA_TESTS_VAPIS)
+	$(VALA_V)$(VALAC) $(VALA_FLAGS) -C $^
+test-vala-unstable.c: test-vala-unstable.vala $(VALA_TESTS_VAPIS)
+	$(VALA_V)$(VALAC) $(VALA_FLAGS) -C $^
 
 TEST_PROGS += $(VALA_TESTS)
 
@@ -153,21 +165,6 @@ mock_service_0_vapi_FILES = MockService-0.gir
 
 vapidir = $(datadir)/vala/vapi
 vapi_DATA = mock-service-0.vapi
-
-# We have to make a version of the VAPI which references the
-# uninstalled C headers.
-
-VAPIGEN_VAPIS += libsecret-@SECRET_MAJOR@.vapi
-
-Secret-@SECRET_MAJOR@.metadata: $(top_srcdir)/library/Secret-@SECRET_MAJOR@.metadata
-	$(AM_V_GEN) echo "* cheader_filename=\"secret-collection.h,secret-item.h,secret-password.h,secret-prompt.h,secret-schema.h,secret-schemas.h,secret-service.h,secret-types.h,secret-value.h\"" > $@ && \
-	cat < $^ >> $@
-
-libsecret-@SECRET_MAJOR@.vapi: Secret-@SECRET_MAJOR@.metadata $(top_builddir)/library/Secret-@SECRET_MAJOR@.gir
-
-libsecret_@SECRET_MAJOR@_vapi_DEPS = gio-2.0
-libsecret_@SECRET_MAJOR@_vapi_METADATADIRS = $(srcdir)
-libsecret_@SECRET_MAJOR@_vapi_FILES = $(top_builddir)/library/Secret-@SECRET_MAJOR@.gir
 
 noinst_DATA += $(VAPIGEN_VAPIS)
 

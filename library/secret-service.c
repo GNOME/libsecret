@@ -1079,7 +1079,7 @@ secret_service_get_flags (SecretService *self)
  * initializing #SecretService proxy object, then this method will return
  * %NULL. Use secret_service_load_collections() to load the collections.
  *
- * Returns: (transfer full) (element-type Secret.Collection) (allow-none): a
+ * Returns: (transfer full) (element-type SecretUnstable.Collection) (allow-none): a
  *          list of the collections in the secret service
  */
 GList *

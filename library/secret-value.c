@@ -201,7 +201,7 @@ secret_value_ref (SecretValue *value)
 
 /**
  * secret_value_unref:
- * @value: (type Secret.Value) (allow-none): value to unreference
+ * @value: (type SecretUnstable.Value) (allow-none): value to unreference
  *
  * Unreference a #SecretValue. When the last reference is gone, then
  * the value will be freed.
