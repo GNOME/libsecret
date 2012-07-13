@@ -18,7 +18,7 @@ INCLUDES = \
 lib_LTLIBRARIES = libsecret-@SECRET_MAJOR@.la
 
 
-incdir = $(includedir)/secret-@SECRET_MAJOR@/libsecret
+incdir = $(includedir)/libsecret-@SECRET_MAJOR@/libsecret
 
 HEADER_FILES = \
 	secret.h \
