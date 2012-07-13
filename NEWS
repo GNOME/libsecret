@@ -1,3 +1,17 @@
+0.5
+ * secret_service_remove() removes all unlocked matching items
+ * Make sure that we have some attributes when searching
+ * Add flags for item and collection creation
+ * Add way to get schema name from a SecretItem
+ * Rename secret_service_read_alias() to
+   secret_collection_for_alias()
+ * Split the stable and unstable APIs into separate 
+   pkg-config files, girs and vapis
+ * Bump the library major version number to 1
+ * Document how to migrate from libgnome-keyring
+ * Document how to use libsecret from C, js, python, vala
+ * Documentation fixes
+
 0.4
  * Implement per collection search
  * Register secret service errors as GDBus errors

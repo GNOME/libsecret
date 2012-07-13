@@ -12,4 +12,4 @@ secret_tool_SOURCES = \
 	secret-tool.c
 
 secret_tool_LDADD = \
-	$(top_builddir)/libsecret/libsecret-0.la
+	$(top_builddir)/libsecret/libsecret-@SECRET_MAJOR@.la

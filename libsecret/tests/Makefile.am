@@ -185,7 +185,6 @@ EXTRA_DIST = \
 	mock-service-normal.py \
 	mock-service-only-plain.py \
 	mock-service-prompt.py \
-	Secret-@SECRET_MAJOR@.metadata \
 	$(VALA_SRCS) \
 	$(JS_TESTS) \
 	$(PY_TESTS) \
