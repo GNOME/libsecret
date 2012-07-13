@@ -25,11 +25,11 @@
 #include <libsecret/secret-schemas.h>
 #include <libsecret/secret-types.h>
 
-/* This symbol is defined by the secret-unstable.pc pkg-config file */
+/* SECRET_WITH_UNSTABLE is defined in the secret-unstable.pc pkg-config file */
 #if defined(SECRET_WITH_UNSTABLE) || defined(SECRET_API_SUBJECT_TO_CHANGE)
 
 #ifndef SECRET_API_SUBJECT_TO_CHANGE
-#warning "This API has not yet reached stability. Define SECRET_API_SUBJECT_TO_CHANGE to acknowledge"
+#warning "Some parts of the libsecret API are unstable. Define SECRET_API_SUBJECT_TO_CHANGE to acknowledge"
 #endif
 
 #include <libsecret/secret-collection.h>
