@@ -19,6 +19,7 @@
 
 #define __SECRET_INSIDE_HEADER__
 
+#include <libsecret/secret-attributes.h>
 #include <libsecret/secret-password.h>
 #include <libsecret/secret-schema.h>
 #include <libsecret/secret-schemas.h>
@@ -31,7 +32,6 @@
 #warning "This API has not yet reached stability. Define SECRET_API_SUBJECT_TO_CHANGE to acknowledge"
 #endif
 
-#include <libsecret/secret-attributes.h>
 #include <libsecret/secret-collection.h>
 #include <libsecret/secret-enum-types.h>
 #include <libsecret/secret-item.h>
