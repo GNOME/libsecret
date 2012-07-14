@@ -448,8 +448,8 @@ test_unlock_sync (Test *test,
 }
 
 static void
-test_remove_sync (Test *test,
-                  gconstpointer used)
+test_clear_sync (Test *test,
+                 gconstpointer used)
 {
 	GError *error = NULL;
 	GHashTable *attributes;
@@ -461,7 +461,7 @@ test_remove_sync (Test *test,
 	                                      "number", 1,
 	                                      NULL);
 
-	ret = secret_service_remove_sync (test->service, &MOCK_SCHEMA, attributes, NULL, &error);
+	ret = secret_service_clear_sync (test->service, &MOCK_SCHEMA, attributes, NULL, &error);
 
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
@@ -470,8 +470,8 @@ test_remove_sync (Test *test,
 }
 
 static void
-test_remove_async (Test *test,
-                   gconstpointer used)
+test_clear_async (Test *test,
+                  gconstpointer used)
 {
 	GError *error = NULL;
 	GAsyncResult *result = NULL;
@@ -484,15 +484,15 @@ test_remove_async (Test *test,
 	                                      "number", 1,
 	                                      NULL);
 
-	secret_service_remove (test->service, &MOCK_SCHEMA, attributes, NULL,
-	                        on_complete_get_result, &result);
+	secret_service_clear (test->service, &MOCK_SCHEMA, attributes, NULL,
+	                      on_complete_get_result, &result);
 
 	g_hash_table_unref (attributes);
 	g_assert (result == NULL);
 
 	egg_test_wait ();
 
-	ret = secret_service_remove_finish (test->service, result, &error);
+	ret = secret_service_clear_finish (test->service, result, &error);
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
 
@@ -500,8 +500,8 @@ test_remove_async (Test *test,
 }
 
 static void
-test_remove_locked (Test *test,
-                    gconstpointer used)
+test_clear_locked (Test *test,
+                   gconstpointer used)
 {
 	GError *error = NULL;
 	GHashTable *attributes;
@@ -514,7 +514,7 @@ test_remove_locked (Test *test,
 	                                      NULL);
 
 	/* Locked items can't be removed via this API */
-	ret = secret_service_remove_sync (test->service, &MOCK_SCHEMA, attributes, NULL, &error);
+	ret = secret_service_clear_sync (test->service, &MOCK_SCHEMA, attributes, NULL, &error);
 
 	g_hash_table_unref (attributes);
 	g_assert_no_error (error);
@@ -522,8 +522,8 @@ test_remove_locked (Test *test,
 }
 
 static void
-test_remove_no_match (Test *test,
-                      gconstpointer used)
+test_clear_no_match (Test *test,
+                     gconstpointer used)
 {
 	GError *error = NULL;
 	GHashTable *attributes;
@@ -535,7 +535,7 @@ test_remove_no_match (Test *test,
 	                                      NULL);
 
 	/* Won't match anything */
-	ret = secret_service_remove_sync (test->service, &MOCK_SCHEMA, attributes, NULL, &error);
+	ret = secret_service_clear_sync (test->service, &MOCK_SCHEMA, attributes, NULL, &error);
 
 	g_hash_table_unref (attributes);
 	g_assert_no_error (error);
@@ -543,8 +543,8 @@ test_remove_no_match (Test *test,
 }
 
 static void
-test_remove_no_name (Test *test,
-                     gconstpointer used)
+test_clear_no_name (Test *test,
+                    gconstpointer used)
 {
 	const gchar *paths[] = { "/org/freedesktop/secrets/collection/german", NULL };
 	GError *error = NULL;
@@ -556,7 +556,7 @@ test_remove_no_name (Test *test,
 	                                      NULL);
 
 	/* Shouldn't match anything, because no item with 5 in mock schema */
-	ret = secret_service_remove_sync (test->service, &MOCK_SCHEMA, attributes, NULL, &error);
+	ret = secret_service_clear_sync (test->service, &MOCK_SCHEMA, attributes, NULL, &error);
 	g_assert_no_error (error);
 	g_assert (ret == FALSE);
 
@@ -565,7 +565,7 @@ test_remove_no_name (Test *test,
 	g_assert_no_error (error);
 
 	/* We have an item with 5 in prime schema, but should match anyway becase of flags */
-	ret = secret_service_remove_sync (test->service, &NO_NAME_SCHEMA, attributes, NULL, &error);
+	ret = secret_service_clear_sync (test->service, &NO_NAME_SCHEMA, attributes, NULL, &error);
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
 
@@ -929,11 +929,11 @@ main (int argc, char **argv)
 	g_test_add ("/service/lookup-no-match", Test, "mock-service-normal.py", setup, test_lookup_no_match, teardown);
 	g_test_add ("/service/lookup-no-name", Test, "mock-service-normal.py", setup, test_lookup_no_name, teardown);
 
-	g_test_add ("/service/remove-sync", Test, "mock-service-delete.py", setup, test_remove_sync, teardown);
-	g_test_add ("/service/remove-async", Test, "mock-service-delete.py", setup, test_remove_async, teardown);
-	g_test_add ("/service/remove-locked", Test, "mock-service-delete.py", setup, test_remove_locked, teardown);
-	g_test_add ("/service/remove-no-match", Test, "mock-service-delete.py", setup, test_remove_no_match, teardown);
-	g_test_add ("/service/remove-no-name", Test, "mock-service-delete.py", setup, test_remove_no_name, teardown);
+	g_test_add ("/service/clear-sync", Test, "mock-service-delete.py", setup, test_clear_sync, teardown);
+	g_test_add ("/service/clear-async", Test, "mock-service-delete.py", setup, test_clear_async, teardown);
+	g_test_add ("/service/clear-locked", Test, "mock-service-delete.py", setup, test_clear_locked, teardown);
+	g_test_add ("/service/clear-no-match", Test, "mock-service-delete.py", setup, test_clear_no_match, teardown);
+	g_test_add ("/service/clear-no-name", Test, "mock-service-delete.py", setup, test_clear_no_name, teardown);
 
 	g_test_add ("/service/store-sync", Test, "mock-service-normal.py", setup, test_store_sync, teardown);
 	g_test_add ("/service/store-async", Test, "mock-service-normal.py", setup, test_store_async, teardown);

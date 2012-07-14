@@ -262,18 +262,18 @@ SecretValue *        secret_service_lookup_sync                   (SecretService
                                                                    GCancellable *cancellable,
                                                                    GError **error);
 
-void                 secret_service_remove                        (SecretService *service,
+void                 secret_service_clear                         (SecretService *service,
                                                                    const SecretSchema *schema,
                                                                    GHashTable *attributes,
                                                                    GCancellable *cancellable,
                                                                    GAsyncReadyCallback callback,
                                                                    gpointer user_data);
 
-gboolean             secret_service_remove_finish                 (SecretService *service,
+gboolean             secret_service_clear_finish                  (SecretService *service,
                                                                    GAsyncResult *result,
                                                                    GError **error);
 
-gboolean             secret_service_remove_sync                   (SecretService *service,
+gboolean             secret_service_clear_sync                    (SecretService *service,
                                                                    const SecretSchema *schema,
                                                                    GHashTable *attributes,
                                                                    GCancellable *cancellable,

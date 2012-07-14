@@ -101,34 +101,34 @@ gchar *     secret_password_lookupv_nonpageable_sync   (const SecretSchema *sche
                                                         GCancellable *cancellable,
                                                         GError **error);
 
-void        secret_password_remove                     (const SecretSchema *schema,
+void        secret_password_clear                      (const SecretSchema *schema,
                                                         GCancellable *cancellable,
                                                         GAsyncReadyCallback callback,
                                                         gpointer user_data,
                                                         ...) G_GNUC_NULL_TERMINATED;
 
-void        secret_password_removev                    (const SecretSchema *schema,
+void        secret_password_clearv                     (const SecretSchema *schema,
                                                         GHashTable *attributes,
                                                         GCancellable *cancellable,
                                                         GAsyncReadyCallback callback,
                                                         gpointer user_data);
 
-gboolean    secret_password_remove_finish              (GAsyncResult *result,
+gboolean    secret_password_clear_finish               (GAsyncResult *result,
                                                         GError **error);
 
-gboolean    secret_password_remove_sync                (const SecretSchema* schema,
+gboolean    secret_password_clear_sync                 (const SecretSchema* schema,
                                                         GCancellable *cancellable,
                                                         GError **error,
                                                         ...) G_GNUC_NULL_TERMINATED;
 
-gboolean    secret_password_removev_sync               (const SecretSchema *schema,
+gboolean    secret_password_clearv_sync                (const SecretSchema *schema,
                                                         GHashTable *attributes,
                                                         GCancellable *cancellable,
                                                         GError **error);
 
 void        secret_password_free                       (gchar *password);
 
-void        secret_password_clear                      (gchar *password);
+void        secret_password_wipe                       (gchar *password);
 
 G_END_DECLS
 

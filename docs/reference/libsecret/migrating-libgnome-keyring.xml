@@ -361,12 +361,12 @@
 	<tbody>
 		<row>
 			<entry>gnome_keyring_delete_password()</entry>
-			<entry>secret_password_remove(), although we now try to delete
+			<entry>secret_password_clear(), although we now try to delete
 			all unlocked matching items</entry>
 		</row>
 		<row>
 			<entry>gnome_keyring_delete_password_sync()</entry>
-			<entry>secret_password_remove_sync(), although we now try to delete
+			<entry>secret_password_clear_sync(), although we now try to delete
 			all unlocked matching items</entry>
 		</row>
 		<row>
@@ -403,11 +403,11 @@
 		</row>
 		<row>
 			<entry>gnome_keyring_item_delete()</entry>
-			<entry>secret_item_delete(), although secret_password_remove() may be simpler</entry>
+			<entry>secret_item_delete(), although secret_password_clear() may be simpler</entry>
 		</row>
 		<row>
 			<entry>gnome_keyring_item_delete_sync()</entry>
-			<entry>secret_item_delete_sync(), although secret_password_remove_sync() may be simpler</entry>
+			<entry>secret_item_delete_sync(), although secret_password_clear_sync() may be simpler</entry>
 		</row>
 		<row>
 			<entry>gnome_keyring_item_get_info()</entry>

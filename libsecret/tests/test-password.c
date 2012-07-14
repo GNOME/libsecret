@@ -230,11 +230,11 @@ test_delete_sync (Test *test,
 	GError *error = NULL;
 	gboolean ret;
 
-	ret = secret_password_remove_sync (&MOCK_SCHEMA, NULL, &error,
-	                                   "even", FALSE,
-	                                   "string", "one",
-	                                   "number", 1,
-	                                   NULL);
+	ret = secret_password_clear_sync (&MOCK_SCHEMA, NULL, &error,
+	                                  "even", FALSE,
+	                                  "string", "one",
+	                                  "number", 1,
+	                                  NULL);
 
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
@@ -248,18 +248,18 @@ test_delete_async (Test *test,
 	GAsyncResult *result = NULL;
 	gboolean ret;
 
-	secret_password_remove (&MOCK_SCHEMA, NULL,
-	                        on_complete_get_result, &result,
-	                        "even", FALSE,
-	                        "string", "one",
-	                        "number", 1,
-	                        NULL);
+	secret_password_clear (&MOCK_SCHEMA, NULL,
+	                       on_complete_get_result, &result,
+	                       "even", FALSE,
+	                       "string", "one",
+	                       "number", 1,
+	                       NULL);
 
 	g_assert (result == NULL);
 
 	egg_test_wait ();
 
-	ret = secret_password_remove_finish (result, &error);
+	ret = secret_password_clear_finish (result, &error);
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
 
@@ -267,8 +267,8 @@ test_delete_async (Test *test,
 }
 
 static void
-test_remove_no_name (Test *test,
-                     gconstpointer used)
+test_clear_no_name (Test *test,
+                    gconstpointer used)
 {
 	const gchar *paths[] = { "/org/freedesktop/secrets/collection/german", NULL };
 	SecretService *service;
@@ -276,9 +276,9 @@ test_remove_no_name (Test *test,
 	gboolean ret;
 
 	/* Shouldn't match anything, because no item with 5 in mock schema */
-	ret = secret_password_remove_sync (&MOCK_SCHEMA, NULL, &error,
-	                                   "number", 5,
-	                                   NULL);
+	ret = secret_password_clear_sync (&MOCK_SCHEMA, NULL, &error,
+	                                  "number", 5,
+	                                  NULL);
 	g_assert_no_error (error);
 	g_assert (ret == FALSE);
 
@@ -290,7 +290,7 @@ test_remove_no_name (Test *test,
 	g_object_unref (service);
 
 	/* We have an item with 5 in prime schema, but should match anyway becase of flags */
-	ret = secret_password_remove_sync (&NO_NAME_SCHEMA, NULL, &error,
+	ret = secret_password_clear_sync (&NO_NAME_SCHEMA, NULL, &error,
 	                                  "number", 5,
 	                                  NULL);
 
@@ -320,7 +320,7 @@ main (int argc, char **argv)
 
 	g_test_add ("/password/delete-sync", Test, "mock-service-delete.py", setup, test_delete_sync, teardown);
 	g_test_add ("/password/delete-async", Test, "mock-service-delete.py", setup, test_delete_async, teardown);
-	g_test_add ("/password/remove-no-name", Test, "mock-service-delete.py", setup, test_remove_no_name, teardown);
+	g_test_add ("/password/clear-no-name", Test, "mock-service-delete.py", setup, test_clear_no_name, teardown);
 
 	g_test_add_func ("/password/free-null", test_password_free_null);
 

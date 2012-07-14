@@ -48,10 +48,10 @@ static const GOptionEntry LOOKUP_OPTIONS[] = {
 	{ NULL }
 };
 
-/* secret-tool remove name:xxxx yyyy:zzzz */
-static const GOptionEntry REMOVE_OPTIONS[] = {
+/* secret-tool clear name:xxxx yyyy:zzzz */
+static const GOptionEntry CLEAR_OPTIONS[] = {
 	{ G_OPTION_REMAINING, 0, 0, G_OPTION_ARG_STRING_ARRAY, &attribute_args,
-	  N_("attribute value pairs which match item to remove"), NULL },
+	  N_("attribute value pairs which match items to clear"), NULL },
 	{ NULL }
 };
 
@@ -64,7 +64,7 @@ usage (void)
 {
 	g_printerr ("usage: secret-tool store --label='label' attribute value ...\n");
 	g_printerr ("       secret-tool lookup attribute value ...\n");
-	g_printerr ("       secret-tool remove attribute value ...\n");
+	g_printerr ("       secret-tool clear attribute value ...\n");
 	exit (2);
 }
 
@@ -113,8 +113,8 @@ attributes_from_arguments (gchar **args)
 }
 
 static int
-secret_tool_action_remove (int argc,
-                           char *argv[])
+secret_tool_action_clear (int argc,
+                          char *argv[])
 {
 	GError *error = NULL;
 	GOptionContext *context;
@@ -122,7 +122,7 @@ secret_tool_action_remove (int argc,
 	GHashTable *attributes;
 
 	context = g_option_context_new ("attribute value ...");
-	g_option_context_add_main_entries (context, REMOVE_OPTIONS, GETTEXT_PACKAGE);
+	g_option_context_add_main_entries (context, CLEAR_OPTIONS, GETTEXT_PACKAGE);
 	if (!g_option_context_parse (context, &argc, &argv, &error)) {
 		g_printerr ("%s\n", error->message);
 		usage();
@@ -135,7 +135,7 @@ secret_tool_action_remove (int argc,
 
 	service = secret_service_get_sync (SECRET_SERVICE_NONE, NULL, &error);
 	if (error == NULL)
-		secret_service_remove_sync (service, NULL, attributes, NULL, &error);
+		secret_service_clear_sync (service, NULL, attributes, NULL, &error);
 
 	g_object_unref (service);
 	g_hash_table_unref (attributes);
@@ -345,8 +345,8 @@ main (int argc,
 		action = secret_tool_action_store;
 	} else if (g_str_equal (argv[1], "lookup")) {
 		action = secret_tool_action_lookup;
-	} else if (g_str_equal (argv[1], "remove")) {
-		action = secret_tool_action_remove;
+	} else if (g_str_equal (argv[1], "clear")) {
+		action = secret_tool_action_clear;
 	} else {
 		usage ();
 	}

@@ -1582,7 +1582,7 @@ on_delete_service (GObject *source,
 }
 
 /**
- * secret_service_remove:
+ * secret_service_clear:
  * @service: (allow-none): the secret service
  * @schema: (allow-none): the schema for the attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
@@ -1590,11 +1590,9 @@ on_delete_service (GObject *source,
  * @callback: called when the operation completes
  * @user_data: data to be passed to the callback
  *
- * Remove a secret value from the secret service.
+ * Remove unlocked items which match the attributes from the secret service.
  *
  * The @attributes should be a set of key and value string pairs.
- *
- * If multiple items match the attributes, then only one will be deleted.
  *
  * If @service is NULL, then secret_service_get() will be called to get
  * the default #SecretService proxy.
@@ -1602,12 +1600,12 @@ on_delete_service (GObject *source,
  * This method will return immediately and complete asynchronously.
  */
 void
-secret_service_remove (SecretService *service,
-                       const SecretSchema *schema,
-                       GHashTable *attributes,
-                       GCancellable *cancellable,
-                       GAsyncReadyCallback callback,
-                       gpointer user_data)
+secret_service_clear (SecretService *service,
+                      const SecretSchema *schema,
+                      GHashTable *attributes,
+                      GCancellable *cancellable,
+                      GAsyncReadyCallback callback,
+                      gpointer user_data)
 {
 	const gchar *schema_name = NULL;
 	GSimpleAsyncResult *res;
@@ -1625,7 +1623,7 @@ secret_service_remove (SecretService *service,
 		schema_name = schema->name;
 
 	res = g_simple_async_result_new (G_OBJECT (service), callback, user_data,
-	                                 secret_service_remove);
+	                                 secret_service_clear);
 	closure = g_slice_new0 (DeleteClosure);
 	closure->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
 	closure->attributes = _secret_attributes_to_variant (attributes, schema_name);
@@ -1649,20 +1647,20 @@ secret_service_remove (SecretService *service,
 }
 
 /**
- * secret_service_remove_finish:
+ * secret_service_clear_finish:
  * @service: (allow-none): the secret service
  * @result: the asynchronous result passed to the callback
  * @error: location to place an error on failure
  *
- * Finish asynchronous operation to remove a secret value from the secret
+ * Finish asynchronous operation to remove items from the secret
  * service.
  *
  * Returns: whether the removal was successful or not
  */
 gboolean
-secret_service_remove_finish (SecretService *service,
-                              GAsyncResult *result,
-                              GError **error)
+secret_service_clear_finish (SecretService *service,
+                             GAsyncResult *result,
+                             GError **error)
 {
 	GSimpleAsyncResult *res;
 	DeleteClosure *closure;
@@ -1670,7 +1668,7 @@ secret_service_remove_finish (SecretService *service,
 	g_return_val_if_fail (service == NULL || SECRET_IS_SERVICE (service), FALSE);
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (service),
-	                      secret_service_remove), FALSE);
+	                      secret_service_clear), FALSE);
 
 	res = G_SIMPLE_ASYNC_RESULT (result);
 	if (g_simple_async_result_propagate_error (res, error))
@@ -1681,18 +1679,16 @@ secret_service_remove_finish (SecretService *service,
 }
 
 /**
- * secret_service_remove_sync:
+ * secret_service_clear_sync:
  * @service: (allow-none): the secret service
  * @schema: (allow-none): the schema for the attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
  * @cancellable: optional cancellation object
  * @error: location to place an error on failure
  *
- * Remove a secret value from the secret service.
+ * Remove unlocked items which match the attributes from the secret service.
  *
  * The @attributes should be a set of key and value string pairs.
- *
- * If multiple items match the attributes, then only one will be deleted.
  *
  * If @service is NULL, then secret_service_get_sync() will be called to get
  * the default #SecretService proxy.
@@ -1703,11 +1699,11 @@ secret_service_remove_finish (SecretService *service,
  * Returns: whether the removal was successful or not
  */
 gboolean
-secret_service_remove_sync (SecretService *service,
-                            const SecretSchema *schema,
-                            GHashTable *attributes,
-                            GCancellable *cancellable,
-                            GError **error)
+secret_service_clear_sync (SecretService *service,
+                           const SecretSchema *schema,
+                           GHashTable *attributes,
+                           GCancellable *cancellable,
+                           GError **error)
 {
 	SecretSync *sync;
 	gboolean result;
@@ -1723,12 +1719,12 @@ secret_service_remove_sync (SecretService *service,
 	sync = _secret_sync_new ();
 	g_main_context_push_thread_default (sync->context);
 
-	secret_service_remove (service, schema, attributes, cancellable,
-	                       _secret_sync_on_result, sync);
+	secret_service_clear (service, schema, attributes, cancellable,
+	                      _secret_sync_on_result, sync);
 
 	g_main_loop_run (sync->loop);
 
-	result = secret_service_remove_finish (service, sync->result, error);
+	result = secret_service_clear_finish (service, sync->result, error);
 
 	g_main_context_pop_thread_default (sync->context);
 	_secret_sync_free (sync);

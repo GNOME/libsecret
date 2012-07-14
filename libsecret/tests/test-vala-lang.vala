@@ -87,7 +87,7 @@ private void test_store_async () {
   loop.run ();
 }
 
-private void test_remove_sync () {
+private void test_clear_sync () {
   try {
     var attributes = new GLib.HashTable<string,string> (GLib.str_hash, GLib.str_equal);
     attributes["even"] = "false";
@@ -97,7 +97,7 @@ private void test_remove_sync () {
     string? password = Secret.password_lookupv_sync (schema, attributes);
     GLib.assert (password == "999");
 
-    bool removed = Secret.password_removev_sync (schema, attributes, null);
+    bool removed = Secret.password_clearv_sync (schema, attributes, null);
     GLib.assert (removed);
 
     password = Secret.password_lookupv_sync (schema, attributes);
@@ -107,7 +107,7 @@ private void test_remove_sync () {
   }
 }
 
-private async void test_remove_async_ex () {
+private async void test_clear_async_ex () {
   var attributes = new GLib.HashTable<string,string> (GLib.str_hash, GLib.str_equal);
   attributes["even"] = "true";
   attributes["string"] = "eight";
@@ -117,7 +117,7 @@ private async void test_remove_async_ex () {
     string? password = yield Secret.password_lookupv (schema, attributes, null);
     GLib.assert (password == "999");
 
-    bool removed = yield Secret.password_removev (schema, attributes, null);
+    bool removed = yield Secret.password_clearv (schema, attributes, null);
     GLib.assert (removed);
 
     password = yield Secret.password_lookupv (schema, attributes, null);
@@ -127,9 +127,9 @@ private async void test_remove_async_ex () {
   }
 }
 
-private void test_remove_async () {
+private void test_clear_async () {
   var loop = new GLib.MainLoop ();
-  test_remove_async_ex.begin ((obj, async_res) => {
+  test_clear_async_ex.begin ((obj, async_res) => {
       loop.quit ();
     });
   loop.run ();
@@ -160,8 +160,8 @@ private static int main (string[] args) {
   GLib.Test.add_data_func ("/vala/lookup/no-name", test_lookup_no_name);
   GLib.Test.add_data_func ("/vala/store/sync", test_store_sync);
   GLib.Test.add_data_func ("/vala/store/async", test_store_async);
-  GLib.Test.add_data_func ("/vala/remove/sync", test_remove_sync);
-  GLib.Test.add_data_func ("/vala/remove/async", test_remove_async);
+  GLib.Test.add_data_func ("/vala/clear/sync", test_clear_sync);
+  GLib.Test.add_data_func ("/vala/clear/async", test_clear_async);
 
   var res = GLib.Test.run ();
 

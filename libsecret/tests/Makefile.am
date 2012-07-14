@@ -59,7 +59,7 @@ noinst_PROGRAMS =  \
 
 JS_TESTS = \
 	test-lookup-password.js \
-	test-remove-password.js \
+	test-clear-password.js \
 	test-store-password.js \
 	test-unstable.js
 
@@ -69,7 +69,7 @@ JS_ENV = \
 
 PY_TESTS = \
 	test-lookup-password.py \
-	test-remove-password.py \
+	test-clear-password.py \
 	test-store-password.py \
 	test-unstable.py
 

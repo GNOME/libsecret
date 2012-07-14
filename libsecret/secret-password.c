@@ -633,30 +633,30 @@ secret_password_lookupv_sync (const SecretSchema *schema,
 }
 
 /**
- * secret_password_remove:
+ * secret_password_clear:
  * @schema: the schema for the attributes
  * @cancellable: optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to be passed to the callback
  * @...: the attribute keys and values, terminated with %NULL
  *
- * Remove passwords from the secret service.
+ * Clear unlocked matching passwords from the secret service.
  *
  * The variable argument list should contain pairs of a) The attribute name as
  * a null-terminated string, followed by b) attribute value, either a character
  * string, an int number, or a gboolean value, as defined in the password
  * @schema. The list of attribtues should be terminated with a %NULL.
  *
- * If multiple items match the attributes, then only one will be deleted.
+ * All unlocked items that match the attributes will be deleted.
  *
  * This method will return immediately and complete asynchronously.
  */
 void
-secret_password_remove (const SecretSchema *schema,
-                        GCancellable *cancellable,
-                        GAsyncReadyCallback callback,
-                        gpointer user_data,
-                        ...)
+secret_password_clear (const SecretSchema *schema,
+                       GCancellable *cancellable,
+                       GAsyncReadyCallback callback,
+                       gpointer user_data,
+                       ...)
 {
 	GHashTable *attributes;
 	va_list va;
@@ -668,22 +668,22 @@ secret_password_remove (const SecretSchema *schema,
 	attributes = secret_attributes_buildv (schema, va);
 	va_end (va);
 
-	secret_password_removev (schema, attributes, cancellable,
-	                         callback, user_data);
+	secret_password_clearv (schema, attributes, cancellable,
+	                        callback, user_data);
 
 	g_hash_table_unref (attributes);
 }
 
 
 /**
- * secret_password_removev:
+ * secret_password_clearv:
  * @schema: the schema for the attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
  * @cancellable: optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to be passed to the callback
  *
- * Remove passwords from the secret service.
+ * Remove unlocked matching passwords from the secret service.
  *
  * The @attributes should be a set of key and value string pairs.
  *
@@ -691,14 +691,14 @@ secret_password_remove (const SecretSchema *schema,
  *
  * This method will return immediately and complete asynchronously.
  *
- * Rename to: secret_password_remove
+ * Rename to: secret_password_clear
  */
 void
-secret_password_removev (const SecretSchema *schema,
-                         GHashTable *attributes,
-                         GCancellable *cancellable,
-                         GAsyncReadyCallback callback,
-                         gpointer user_data)
+secret_password_clearv (const SecretSchema *schema,
+                        GHashTable *attributes,
+                        GCancellable *cancellable,
+                        GAsyncReadyCallback callback,
+                        gpointer user_data)
 {
 	g_return_if_fail (schema != NULL);
 	g_return_if_fail (attributes != NULL);
@@ -708,12 +708,12 @@ secret_password_removev (const SecretSchema *schema,
 	if (!_secret_attributes_validate (schema, attributes, G_STRFUNC, TRUE))
 		return;
 
-	secret_service_remove (NULL, schema, attributes,
-	                       cancellable, callback, user_data);
+	secret_service_clear (NULL, schema, attributes,
+	                      cancellable, callback, user_data);
 }
 
 /**
- * secret_password_remove_finish:
+ * secret_password_clear_finish:
  * @result: the asynchronous result passed to the callback
  * @error: location to place an error on failure
  *
@@ -723,21 +723,21 @@ secret_password_removev (const SecretSchema *schema,
  * Returns: whether any passwords were removed
  */
 gboolean
-secret_password_remove_finish (GAsyncResult *result,
-                               GError **error)
+secret_password_clear_finish (GAsyncResult *result,
+                              GError **error)
 {
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
-	return secret_service_remove_finish (NULL, result, error);
+	return secret_service_clear_finish (NULL, result, error);
 }
 
 /**
- * secret_password_remove_sync:
+ * secret_password_clear_sync:
  * @schema: the schema for the attributes
  * @cancellable: optional cancellation object
  * @error: location to place an error on failure
  * @...: the attribute keys and values, terminated with %NULL
  *
- * Remove passwords from the secret service.
+ * Remove unlocked matching passwords from the secret service.
  *
  * The variable argument list should contain pairs of a) The attribute name as
  * a null-terminated string, followed by b) attribute value, either a character
@@ -752,10 +752,10 @@ secret_password_remove_finish (GAsyncResult *result,
  * Returns: whether the any passwords were removed
  */
 gboolean
-secret_password_remove_sync (const SecretSchema* schema,
-                             GCancellable *cancellable,
-                             GError **error,
-                             ...)
+secret_password_clear_sync (const SecretSchema* schema,
+                            GCancellable *cancellable,
+                            GError **error,
+                            ...)
 {
 	GHashTable *attributes;
 	gboolean result;
@@ -769,8 +769,8 @@ secret_password_remove_sync (const SecretSchema* schema,
 	attributes = secret_attributes_buildv (schema, va);
 	va_end (va);
 
-	result = secret_password_removev_sync (schema, attributes,
-	                                       cancellable, error);
+	result = secret_password_clearv_sync (schema, attributes,
+	                                      cancellable, error);
 
 	g_hash_table_unref (attributes);
 
@@ -778,13 +778,13 @@ secret_password_remove_sync (const SecretSchema* schema,
 }
 
 /**
- * secret_password_removev_sync:
+ * secret_password_clearv_sync:
  * @schema: the schema for the attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
  * @cancellable: optional cancellation object
  * @error: location to place an error on failure
  *
- * Remove passwords from the secret service.
+ * Remove unlocked matching passwords from the secret service.
  *
  * The @attributes should be a set of key and value string pairs.
  *
@@ -795,13 +795,13 @@ secret_password_remove_sync (const SecretSchema* schema,
  *
  * Returns: whether any passwords were removed
  *
- * Rename to: secret_password_remove_sync
+ * Rename to: secret_password_clear_sync
  */
 gboolean
-secret_password_removev_sync (const SecretSchema *schema,
-                              GHashTable *attributes,
-                              GCancellable *cancellable,
-                              GError **error)
+secret_password_clearv_sync (const SecretSchema *schema,
+                             GHashTable *attributes,
+                             GCancellable *cancellable,
+                             GError **error)
 {
 	SecretSync *sync;
 	gboolean result;
@@ -818,12 +818,12 @@ secret_password_removev_sync (const SecretSchema *schema,
 	sync = _secret_sync_new ();
 	g_main_context_push_thread_default (sync->context);
 
-	secret_password_removev (schema, attributes, cancellable,
-	                         _secret_sync_on_result, sync);
+	secret_password_clearv (schema, attributes, cancellable,
+	                        _secret_sync_on_result, sync);
 
 	g_main_loop_run (sync->loop);
 
-	result = secret_password_remove_finish (sync->result, error);
+	result = secret_password_clear_finish (sync->result, error);
 
 	g_main_context_pop_thread_default (sync->context);
 	_secret_sync_free (sync);
@@ -852,13 +852,13 @@ secret_password_free (gchar *password)
 }
 
 /**
- * secret_password_clear:
+ * secret_password_wipe:
  * @password: (allow-none): password to clear
  *
  * Clear the memory used by a password.
  */
 void
-secret_password_clear (gchar *password)
+secret_password_wipe (gchar *password)
 {
 	if (password == NULL)
 		return;
