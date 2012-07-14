@@ -44,7 +44,6 @@ typedef enum {
 #define SECRET_COLLECTION_GET_CLASS(inst) (G_TYPE_INSTANCE_GET_CLASS ((inst), SECRET_TYPE_COLLECTION, SecretCollectionClass))
 
 typedef struct _SecretItem              SecretItem;
-typedef struct _SecretCollection        SecretCollection;
 typedef struct _SecretCollectionClass   SecretCollectionClass;
 typedef struct _SecretCollectionPrivate SecretCollectionPrivate;
 
