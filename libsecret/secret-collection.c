@@ -140,7 +140,6 @@ secret_collection_init (SecretCollection *self)
 
 	g_mutex_init (&self->pv->mutex);
 	self->pv->cancellable = g_cancellable_new ();
-	self->pv->items = items_table_new ();
 	self->pv->constructing = TRUE;
 }
 
@@ -260,27 +259,11 @@ secret_collection_finalize (GObject *obj)
 		                              (gpointer *)&self->pv->service);
 
 	g_mutex_clear (&self->pv->mutex);
-	g_hash_table_destroy (self->pv->items);
+	if (self->pv->items)
+		g_hash_table_destroy (self->pv->items);
 	g_object_unref (self->pv->cancellable);
 
 	G_OBJECT_CLASS (secret_collection_parent_class)->finalize (obj);
-}
-
-static SecretItem *
-collection_lookup_item (SecretCollection *self,
-                        const gchar *path)
-{
-	SecretItem *item = NULL;
-
-	g_mutex_lock (&self->pv->mutex);
-
-	item = g_hash_table_lookup (self->pv->items, path);
-	if (item != NULL)
-		g_object_ref (item);
-
-	g_mutex_unlock (&self->pv->mutex);
-
-	return item;
 }
 
 static void
@@ -296,7 +279,9 @@ collection_update_items (SecretCollection *self,
 	self->pv->items = items;
 	g_mutex_unlock (&self->pv->mutex);
 
-	g_hash_table_unref (previous);
+	if (previous != NULL)
+		g_hash_table_unref (previous);
+
 	g_object_notify (G_OBJECT (self), "items");
 }
 
@@ -814,7 +799,7 @@ secret_collection_load_items (SecretCollection *self,
 
 	g_variant_iter_init (&iter, paths);
 	while (g_variant_iter_loop (&iter, "&o", &path)) {
-		item = collection_lookup_item (self, path);
+		item = _secret_collection_find_item_instance (self, path);
 
 		/* No such collection yet create a new one */
 		if (item == NULL) {
@@ -904,7 +889,7 @@ secret_collection_load_items_sync (SecretCollection *self,
 
 	g_variant_iter_init (&iter, paths);
 	while (g_variant_iter_next (&iter, "&o", &path)) {
-		item = collection_lookup_item (self, path);
+		item = _secret_collection_find_item_instance (self, path);
 
 		/* No such collection yet create a new one */
 		if (item == NULL) {
@@ -1777,12 +1762,13 @@ secret_collection_get_flags (SecretCollection *self)
 GList *
 secret_collection_get_items (SecretCollection *self)
 {
-	GList *l, *items;
+	GList *l, *items = NULL;
 
 	g_return_val_if_fail (SECRET_IS_COLLECTION (self), NULL);
 
 	g_mutex_lock (&self->pv->mutex);
-	items = g_hash_table_get_values (self->pv->items);
+	if (self->pv->items)
+		items = g_hash_table_get_values (self->pv->items);
 	for (l = items; l != NULL; l = g_list_next (l))
 		g_object_ref (l->data);
 	g_mutex_unlock (&self->pv->mutex);
@@ -1794,10 +1780,11 @@ SecretItem *
 _secret_collection_find_item_instance (SecretCollection *self,
                                        const gchar *item_path)
 {
-	SecretItem *item;
+	SecretItem *item = NULL;
 
 	g_mutex_lock (&self->pv->mutex);
-	item = g_hash_table_lookup (self->pv->items, item_path);
+	if (self->pv->items)
+		item = g_hash_table_lookup (self->pv->items, item_path);
 	if (item != NULL)
 		g_object_ref (item);
 	g_mutex_unlock (&self->pv->mutex);
