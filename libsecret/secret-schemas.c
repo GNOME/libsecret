@@ -22,11 +22,15 @@
  * A predefined schema for personal passwords stored by the user in the
  * password manager. This schema has no attributes, and the items are not
  * meant to be used automatically by applications.
+ *
+ * When used to search for items using this schema, it will only match
+ * items that have the same schema. Items stored via libgnome-keyring with the
+ * <literal>GNOME_KEYRING_ITEM_NOTE</literal> item type will match.
  */
 
 static const SecretSchema note_schema = {
 	"org.gnome.keyring.Note",
-	SECRET_SCHEMA_DONT_MATCH_NAME,
+	SECRET_SCHEMA_NONE,
 	{
 		{  "NULL", 0 },
 	}
@@ -41,6 +45,10 @@ const SecretSchema *  SECRET_SCHEMA_NOTE = &note_schema;
  * libgnome-keyring 'network password' functions. This is meant to be used by
  * applications migrating from libgnome-keyring which stored their secrets as
  * 'network passwords'. It is not recommended that new code use this schema.
+ *
+ * When used to search for items using this schema, it will only match
+ * items that have the same schema. Items stored via libgnome-keyring with the
+ * <literal>GNOME_KEYRING_ITEM_NETWORK_PASSWORD</literal> item type will match.
  *
  * The following attributes exist in the schema:
  * <variablelist><title>Attributes:</title>
@@ -63,7 +71,7 @@ const SecretSchema *  SECRET_SCHEMA_NOTE = &note_schema;
 
 static const SecretSchema network_schema = {
 	"org.gnome.keyring.NetworkPassword",
-	SECRET_SCHEMA_DONT_MATCH_NAME,
+	SECRET_SCHEMA_NONE,
 	{
 		{  "user", SECRET_SCHEMA_ATTRIBUTE_STRING },
 		{  "domain", SECRET_SCHEMA_ATTRIBUTE_STRING },
