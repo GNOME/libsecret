@@ -66,6 +66,7 @@ GType               secret_collection_get_type                 (void) G_GNUC_CON
 
 void                secret_collection_for_alias                (SecretService *service,
                                                                 const gchar *alias,
+                                                                SecretCollectionFlags flags,
                                                                 GCancellable *cancellable,
                                                                 GAsyncReadyCallback callback,
                                                                 gpointer user_data);
@@ -75,6 +76,7 @@ SecretCollection *  secret_collection_for_alias_finish         (GAsyncResult *re
 
 SecretCollection *  secret_collection_for_alias_sync           (SecretService *service,
                                                                 const gchar *alias,
+                                                                SecretCollectionFlags flags,
                                                                 GCancellable *cancellable,
                                                                 GError **error);
 

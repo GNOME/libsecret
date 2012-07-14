@@ -510,6 +510,24 @@ secret_collection_class_init (SecretCollectionClass *klass)
 }
 
 static gboolean
+collection_ensure_for_flags_sync (SecretCollection *self,
+                                  SecretCollectionFlags flags,
+                                  GCancellable *cancellable,
+                                  GError **error)
+{
+	SecretCollectionFlags want_flags;
+
+	want_flags = flags & ~secret_collection_get_flags (self);
+
+	if (want_flags & SECRET_COLLECTION_LOAD_ITEMS) {
+		if (!secret_collection_load_items_sync (self, cancellable, error))
+			return FALSE;
+	}
+
+	return TRUE;
+}
+
+static gboolean
 secret_collection_initable_init (GInitable *initable,
                                  GCancellable *cancellable,
                                  GError **error)
@@ -540,10 +558,8 @@ secret_collection_initable_init (GInitable *initable,
 			collection_take_service (self, service);
 	}
 
-	if (self->pv->init_flags & SECRET_COLLECTION_LOAD_ITEMS) {
-		if (!secret_collection_load_items_sync (self, cancellable, error))
-			return FALSE;
-	}
+	if (!collection_ensure_for_flags_sync (self, self->pv->init_flags, cancellable, error))
+		return FALSE;
 
 	self->pv->constructing = FALSE;
 	return TRUE;
@@ -570,9 +586,9 @@ init_closure_free (gpointer data)
 }
 
 static void
-on_init_items (GObject *source,
-               GAsyncResult *result,
-               gpointer user_data)
+on_ensure_items (GObject *source,
+                 GAsyncResult *result,
+                 gpointer user_data)
 {
 	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
 	SecretCollection *self = SECRET_COLLECTION (source);
@@ -588,16 +604,20 @@ on_init_items (GObject *source,
 static void
 collection_ensure_for_flags_async (SecretCollection *self,
                                    SecretCollectionFlags flags,
+                                   GCancellable *cancellable,
                                    GSimpleAsyncResult *async)
 {
-	InitClosure *init = g_simple_async_result_get_op_res_gpointer (async);
+	SecretCollectionFlags want_flags;
 
-	if (flags & SECRET_COLLECTION_LOAD_ITEMS)
-		secret_collection_load_items (self, init->cancellable,
-		                              on_init_items, g_object_ref (async));
+	want_flags = flags & ~secret_collection_get_flags (self);
 
-	else
+	if (want_flags & SECRET_COLLECTION_LOAD_ITEMS) {
+		secret_collection_load_items (self, cancellable,
+		                              on_ensure_items, g_object_ref (async));
+
+	} else {
 		g_simple_async_result_complete (async);
+	}
 }
 
 static void
@@ -607,13 +627,15 @@ on_init_service (GObject *source,
 {
 	GSimpleAsyncResult *async = G_SIMPLE_ASYNC_RESULT (user_data);
 	SecretCollection *self = SECRET_COLLECTION (g_async_result_get_source_object (user_data));
+	InitClosure *init = g_simple_async_result_get_op_res_gpointer (async);
 	SecretService *service;
 	GError *error = NULL;
 
 	service = secret_service_get_finish (result, &error);
 	if (error == NULL) {
 		collection_take_service (self, service);
-		collection_ensure_for_flags_async (self, self->pv->init_flags, async);
+		collection_ensure_for_flags_async (self, self->pv->init_flags,
+		                                   init->cancellable, async);
 
 	} else {
 		g_simple_async_result_take_error (async, error);
@@ -651,7 +673,8 @@ on_init_base (GObject *source,
 		                    on_init_service, g_object_ref (res));
 
 	} else {
-		collection_ensure_for_flags_async (self, self->pv->init_flags, res);
+		collection_ensure_for_flags_async (self, self->pv->init_flags,
+		                                   init->cancellable, res);
 	}
 
 	g_object_unref (res);
@@ -1979,6 +2002,7 @@ secret_collection_get_modified (SecretCollection *self)
 typedef struct {
 	GCancellable *cancellable;
 	gchar *alias;
+	SecretCollectionFlags flags;
 	SecretCollection *collection;
 } ReadClosure;
 
@@ -2033,12 +2057,15 @@ on_read_alias_path (GObject *source,
 			read->collection = _secret_service_find_collection_instance (self,
 			                                                             collection_path);
 			if (read->collection != NULL) {
-				g_simple_async_result_complete (async);
+
+				/* Make sure collection has necessary flags */
+				collection_ensure_for_flags_async (read->collection, read->flags,
+				                                   read->cancellable, async);
 
 			/* No collection loaded, but valid path, load */
 			} else {
 				secret_collection_new_for_dbus_path (self, collection_path,
-				                                     SECRET_COLLECTION_NONE,
+				                                     read->flags,
 				                                     read->cancellable,
 				                                     on_read_alias_collection,
 				                                     g_object_ref (async));
@@ -2082,6 +2109,7 @@ on_read_alias_service (GObject *source,
  * secret_collection_for_alias:
  * @service: (allow-none): a secret service object
  * @alias: the alias to lookup
+ * @flags: options for the collection initialization
  * @cancellable: (allow-none): optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to pass to the callback
@@ -2097,6 +2125,7 @@ on_read_alias_service (GObject *source,
 void
 secret_collection_for_alias (SecretService *service,
                              const gchar *alias,
+                             SecretCollectionFlags flags,
                              GCancellable *cancellable,
                              GAsyncReadyCallback callback,
                              gpointer user_data)
@@ -2113,6 +2142,7 @@ secret_collection_for_alias (SecretService *service,
 	read = g_slice_new0 (ReadClosure);
 	read->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
 	read->alias = g_strdup (alias);
+	read->flags = flags;
 	g_simple_async_result_set_op_res_gpointer (async, read, read_closure_free);
 
 	if (service == NULL) {
@@ -2160,6 +2190,7 @@ secret_collection_for_alias_finish (GAsyncResult *result,
  * secret_collection_for_alias_sync:
  * @service: (allow-none): a secret service object
  * @alias: the alias to lookup
+ * @flags: options for the collection initialization
  * @cancellable: (allow-none): optional cancellation object
  * @error: location to place error on failure
  *
@@ -2176,6 +2207,7 @@ secret_collection_for_alias_finish (GAsyncResult *result,
 SecretCollection *
 secret_collection_for_alias_sync (SecretService *service,
                                   const gchar *alias,
+                                  SecretCollectionFlags flags,
                                   GCancellable *cancellable,
                                   GError **error)
 {
@@ -2200,11 +2232,19 @@ secret_collection_for_alias_sync (SecretService *service,
 		collection = _secret_service_find_collection_instance (service,
 		                                                       collection_path);
 
+		if (collection != NULL) {
+
+			/* Have a collection with all necessary flags */
+			if (!collection_ensure_for_flags_sync (collection, flags,
+			                                       cancellable, error)) {
+				g_object_unref (collection);
+				collection = NULL;
+			}
+
 		/* No collection loaded, but valid path, load */
-		if (collection == NULL) {
+		} else {
 			collection = secret_collection_new_for_dbus_path_sync (service, collection_path,
-			                                                       SECRET_COLLECTION_LOAD_ITEMS,
-			                                                       cancellable, error);
+			                                                       flags, cancellable, error);
 		}
 	}
 
