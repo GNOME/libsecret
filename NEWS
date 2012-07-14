@@ -1,3 +1,10 @@
+0.6
+ * Rename secret_password_remove() to secret_password_clear()
+   and similar names for related functions.
+ * The secret_attribute_build() functions are stable
+ * The predefined secret schemas are stable
+ * Build fixes
+
 0.5
  * secret_service_remove() removes all unlocked matching items
  * Make sure that we have some attributes when searching

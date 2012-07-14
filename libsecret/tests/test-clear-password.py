@@ -27,7 +27,7 @@ class TestRemove(unittest.TestCase):
 		password = Secret.password_lookup_sync(STORE_SCHEMA, attributes, None)
 		self.assertEqual("111", password)
 
-		deleted = Secret.password_remove_sync(STORE_SCHEMA, attributes, None)
+		deleted = Secret.password_clear_sync(STORE_SCHEMA, attributes, None)
 		self.assertEqual(True, deleted)
 
 	def testSyncNotFound(self):
@@ -36,7 +36,7 @@ class TestRemove(unittest.TestCase):
 		password = Secret.password_lookup_sync(STORE_SCHEMA, attributes, None)
 		self.assertEqual(None, password)
 
-		deleted = Secret.password_remove_sync(STORE_SCHEMA, attributes, None)
+		deleted = Secret.password_clear_sync(STORE_SCHEMA, attributes, None)
 		self.assertEqual(False, deleted)
 
 	def testAsynchronous(self):
@@ -44,11 +44,11 @@ class TestRemove(unittest.TestCase):
 
 		def on_result_ready(source, result, unused):
 			loop.quit()
-			deleted = Secret.password_remove_finish(result)
+			deleted = Secret.password_clear_finish(result)
 			self.assertEquals(True, deleted)
 
-		Secret.password_remove(STORE_SCHEMA, { "number": "2", "string": "two" },
-		                       None, on_result_ready, None)
+		Secret.password_clear(STORE_SCHEMA, { "number": "2", "string": "two" },
+		                      None, on_result_ready, None)
 
 		loop.run()
 
@@ -57,11 +57,11 @@ class TestRemove(unittest.TestCase):
 
 		def on_result_ready(source, result, unused):
 			loop.quit()
-			deleted = Secret.password_remove_finish(result)
+			deleted = Secret.password_clear_finish(result)
 			self.assertEquals(False, deleted)
 
-		Secret.password_remove(STORE_SCHEMA, { "number": "7", "string": "five" },
-		                       None, on_result_ready, None)
+		Secret.password_clear(STORE_SCHEMA, { "number": "7", "string": "five" },
+		                      None, on_result_ready, None)
 
 		loop.run()
 
