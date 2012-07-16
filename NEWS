@@ -1,3 +1,9 @@
+0.7
+ * Match schema names for notes and network passwords
+ * Add flags argument to secret_collection_for_alias()
+ * Correct flags behavior for SecretCollection
+ * Build fixes
+
 0.6
  * Rename secret_password_remove() to secret_password_clear()
    and similar names for related functions.
