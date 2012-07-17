@@ -21,6 +21,7 @@
 #include <glib/gi18n.h>
 
 #include <errno.h>
+#include <locale.h>
 #include <limits.h>
 #include <stdlib.h>
 
@@ -335,6 +336,14 @@ main (int argc,
       char *argv[])
 {
 	SecretToolAction action;
+
+	setlocale (LC_ALL, "");
+
+#ifdef ENABLE_NLS
+	bindtextdomain (GETTEXT_PACKAGE, LOCALEDIR);
+	bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
+	textdomain (GETTEXT_PACKAGE);
+#endif
 
 	g_type_init ();
 

@@ -4,6 +4,7 @@ INCLUDES = \
 	-I$(top_srcdir) \
 	-I$(top_srcdir)/libsecret \
 	-DSECRET_COMPILATION \
+	-DLOCALEDIR=\""$(datadir)/locale"\" \
 	$(NULL)
 
 bin_PROGRAMS = secret-tool
