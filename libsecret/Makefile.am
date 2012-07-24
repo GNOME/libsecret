@@ -2,14 +2,6 @@ include $(top_srcdir)/Makefile.decl
 
 SUBDIRS = . tests
 
-module_flags = \
-	-version-info $(SECRET_LT_RELEASE) \
-	-export_dynamic \
-	-avoid-version \
-	-module \
-	-no-undefined \
-	-export-symbols-regex '^secret_'
-
 INCLUDES = \
 	-I$(top_srcdir) \
 	-DSECRET_COMPILATION \
@@ -79,10 +71,21 @@ libsecret_@SECRET_MAJOR@_la_SOURCES = \
 libsecret_@SECRET_MAJOR@_la_CFLAGS = \
 	$(LIBGCRYPT_CFLAGS)
 
+libsecret_@SECRET_MAJOR@_la_LDFLAGS = \
+	-version-info $(SECRET_LT_RELEASE) \
+	-no-undefined \
+	-export-symbols-regex '^secret_'
+
 libsecret_@SECRET_MAJOR@_la_LIBADD = \
 	$(top_builddir)/egg/libegg.la \
 	$(LIBGCRYPT_LIBS) \
 	$(LIBS)
+
+noinst_LTLIBRARIES = libsecret-testable.la
+libsecret_testable_la_SOURCES =
+libsecret_testable_la_LIBADD = $(libsecret_@SECRET_MAJOR@_la_OBJECTS) \
+	$(libsecret_@SECRET_MAJOR@_la_LIBADD)
+libsecret_testable_la_DEPENDENCIES = $(libsecret_@SECRET_MAJOR@_la_OBJECTS)
 
 DBUS_XML_DEFINITIONS = \
 	$(srcdir)/org.freedesktop.Secrets.xml
