@@ -267,7 +267,7 @@ read_password_tty (void)
 
 	password = getpass ("Password: ");
 	return secret_value_new_full (password, -1, "text/plain",
-	                              (GDestroyNotify)secret_password_clear);
+	                              (GDestroyNotify)secret_password_wipe);
 }
 
 static int
