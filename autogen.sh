@@ -43,19 +43,21 @@ fi
 	DIE=1
 }
 
-if automake-1.11 --version < /dev/null > /dev/null 2>&1 ; then
-    AUTOMAKE=automake-1.11
-    ACLOCAL=aclocal-1.11
-else if automake-1.10 --version < /dev/null > /dev/null 2>&1 ; then
-    AUTOMAKE=automake-1.10
-    ACLOCAL=aclocal-1.10
-else
+AUTOMAKE_VERSIONS="1.12 1.11 1.10"
+for version in $AUTOMAKE_VERSIONS; do
+	if automake-$version --version < /dev/null > /dev/null 2>&1 ; then
+		AUTOMAKE=automake-$version
+		ACLOCAL=aclocal-$version
+		break
+	fi
+done
+
+if test -z "$AUTOMAKE"; then
 	echo
-	echo "You must have automake 1.10.x or 1.11.x installed to compile $PROJECT."
+	echo "You must have one of automake $AUTOMAKE_VERSIONS to compile $PROJECT."
 	echo "Install the appropriate package for your distribution,"
 	echo "or get the source tarball at http://ftp.gnu.org/gnu/automake/"
 	DIE=1
-fi
 fi
 
 if test "$DIE" -eq 1; then
