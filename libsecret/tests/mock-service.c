@@ -45,7 +45,7 @@ mock_service_start (const gchar *mock_script,
 	g_return_val_if_fail (mock_script != NULL, FALSE);
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
-	_secret_service_set_default_bus_name (MOCK_SERVICE_NAME);
+	g_setenv ("SECRET_SERVICE_BUS_NAME", MOCK_SERVICE_NAME, TRUE);
 
 	if (pipe (wait_pipe) < 0) {
 		g_set_error_literal (error, G_IO_ERROR, g_io_error_from_errno (errno),
@@ -88,6 +88,5 @@ mock_service_stop (void)
 	}
 
 	g_spawn_close_pid (pid);
-	secret_service_disconnect ();
 	pid = 0;
 }

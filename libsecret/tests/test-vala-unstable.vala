@@ -20,6 +20,7 @@ private static int main (string[] args) {
 	GLib.Test.add_data_func ("/vala/unstable/read-alias", test_read_alias);
 
 	var res = GLib.Test.run ();
+	Secret.Service.disconnect ();
 	MockService.stop ();
 	return res;
 }

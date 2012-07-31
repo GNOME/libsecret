@@ -120,8 +120,6 @@ gboolean             _secret_util_set_property_sync           (GDBusProxy *proxy
 
 gboolean             _secret_util_have_cached_properties      (GDBusProxy *proxy);
 
-void                 _secret_service_set_default_bus_name     (const gchar *bus_name);
-
 SecretSession *      _secret_service_get_session              (SecretService *self);
 
 void                 _secret_service_take_session             (SecretService *self,

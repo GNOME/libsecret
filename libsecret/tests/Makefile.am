@@ -25,7 +25,6 @@ libmock_service_la_LDFLAGS = \
 	-rpath /force/shared
 
 libmock_service_la_LIBADD = \
-	$(top_builddir)/libsecret/libsecret-testable.la \
 	$(LIBGCRYPT_LIBS)
 
 LDADD =  \

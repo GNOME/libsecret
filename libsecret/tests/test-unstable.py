@@ -10,6 +10,7 @@ class TestStore(unittest.TestCase):
 		Mock.start("mock-service-normal.py")
 
 	def tearDown(self):
+		Secret.Service.disconnect()
 		Mock.stop()
 
 	def testSynchronous(self):

@@ -86,6 +86,7 @@ libsecret_testable_la_SOURCES =
 libsecret_testable_la_LIBADD = $(libsecret_@SECRET_MAJOR@_la_OBJECTS) \
 	$(libsecret_@SECRET_MAJOR@_la_LIBADD)
 libsecret_testable_la_DEPENDENCIES = $(libsecret_@SECRET_MAJOR@_la_OBJECTS)
+libsecret_testable_la_LDFLAGS = -rpath /force/shared
 
 DBUS_XML_DEFINITIONS = \
 	$(srcdir)/org.freedesktop.Secrets.xml

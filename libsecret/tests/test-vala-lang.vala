@@ -165,6 +165,7 @@ private static int main (string[] args) {
 
   var res = GLib.Test.run ();
 
+  Secret.Service.disconnect ();
   MockService.stop ();
   schema = null;
 
