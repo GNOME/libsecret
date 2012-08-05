@@ -74,7 +74,7 @@ libsecret_@SECRET_MAJOR@_la_CFLAGS = \
 libsecret_@SECRET_MAJOR@_la_LDFLAGS = \
 	-version-info $(SECRET_LT_RELEASE) \
 	-no-undefined \
-	-export-symbols-regex '^secret_'
+	-export-symbols-regex '^secret_|^SECRET_'
 
 libsecret_@SECRET_MAJOR@_la_LIBADD = \
 	$(top_builddir)/egg/libegg.la \
