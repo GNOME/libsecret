@@ -28,7 +28,6 @@ libmock_service_la_LIBADD = \
 	$(LIBGCRYPT_LIBS)
 
 LDADD =  \
-	$(top_builddir)/egg/libegg.la \
 	$(top_builddir)/libsecret/libsecret-testable.la \
 	libmock_service.la \
 	$(NULL)
