@@ -8,9 +8,7 @@
 #	under the Transitive Grace Period Public Licence, version 1.0 or, at
 #	your option, any later version.  (You may choose to use this package
 #	under the terms of either licence, at your option.)  See the file
-#	COPYING.GPL for the terms of the GNU General Public License, version 2.
-#	See the file COPYING.TGPPL.html for the terms of the Transitive Grace
-#	Period Public Licence, version 1.0.
+#	COPYING.TESTS for the terms of the GNU General Public License, version 2.
 #
 #	The following licensing text applies to a subset of the Crypto++ source code
 #	which is included in the pycryptopp source tree under the "embeddedcryptopp"

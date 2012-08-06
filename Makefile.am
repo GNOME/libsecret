@@ -12,6 +12,9 @@ DISTCHECK_CONFIGURE_FLAGS = \
 	--disable-silent-rules \
 	--enable-gtk-doc
 
+EXTRA_DIST = \
+	COPYING.TESTS
+
 dist-hook:
 	@if test -d "$(srcdir)/.git"; \
 	then \
