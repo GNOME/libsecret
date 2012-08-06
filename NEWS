@@ -1,3 +1,9 @@
+0.8
+ * Fix up libsecret licensing
+ * Initialize gettext correctly
+ * Fix crash in secret-tool
+ * Build and testing fixes
+
 0.7
  * Match schema names for notes and network passwords
  * Add flags argument to secret_collection_for_alias()
