@@ -10,7 +10,8 @@ DISTCHECK_CONFIGURE_FLAGS = \
 	--disable-coverage \
 	--enable-strict \
 	--disable-silent-rules \
-	--enable-gtk-doc
+	--enable-gtk-doc \
+	--enable-vala
 
 EXTRA_DIST = \
 	COPYING.TESTS
@@ -40,3 +41,14 @@ upload-release: $(DIST_ARCHIVES)
 
 upload-docs:
 	rsync -Hvax docs/reference/libsecret/html/./ master.gnome.org:public_html/libsecret-docs/
+
+if HAVE_VALAC
+dist-check-valac:
+
+else
+dist-check-valac:
+	@echo "*** valac must be installed and enabled in order to make dist"
+	@false
+endif
+
+dist-hook: dist-check-valac
