@@ -46,6 +46,7 @@ stamp*
 !/build/m4/vapigen.m4
 /build/valgrind-suppressions
 
+/docs/man/secret-tool.1
 /docs/reference/libsecret/version.xml
 /docs/reference/libsecret/version-major.xml
 /docs/reference/libsecret/libsecret-decl-list.txt

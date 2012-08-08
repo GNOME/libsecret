@@ -72,6 +72,20 @@ GOBJECT_INTROSPECTION_CHECK([1.29])
 AC_PATH_PROG(GLIB_MKENUMS, glib-mkenums)
 
 # --------------------------------------------------------------------
+# Manual pages
+
+AC_ARG_ENABLE(manpages,
+              AC_HELP_STRING([--disable-man-pages], [Build manual pages]))
+if test "$enable_manpages" != "no"; then
+	enable_manpages="yes"
+	AC_PATH_PROG([XSLTPROC], [xsltproc])
+	if test x$XSLTPROC = x; then
+		AC_MSG_ERROR([xsltproc is required to build manual pages])
+	fi
+fi
+AM_CONDITIONAL(WITH_MANPAGES, test x$enable_manpages = xyes)
+
+# --------------------------------------------------------------------
 # Vala
 
 VALA_REQUIRED=0.17.2.12
@@ -246,6 +260,7 @@ AC_CONFIG_FILES([
 	Makefile
 	build/Makefile
 	docs/Makefile
+	docs/man/Makefile
 	docs/reference/Makefile
 	docs/reference/libsecret/Makefile
 	docs/reference/libsecret/version.xml
@@ -266,7 +281,8 @@ echo
 echo "CFLAGS: $CFLAGS"
 echo
 echo "OPTIONS:"
-echo "  libgcrypt:            $gcrypt_status"
-echo "  Debug:                $debug_status"
-echo "  Coverage:             $enable_coverage"
+echo "  libgcrypt:     $gcrypt_status"
+echo "  Debug:         $debug_status"
+echo "  Coverage:      $enable_coverage"
+echo "  Manual Page:   $enable_manpages"
 echo
