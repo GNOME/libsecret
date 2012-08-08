@@ -95,13 +95,19 @@ AC_ARG_ENABLE(gcrypt,
               ])
 
 if test "$enable_gcrypt" != "no"; then
-	AM_PATH_LIBGCRYPT($GCRYPT_LIBVER:$GCRYPT_VERSION,,
-	                  AC_MSG_ERROR([[
+
+	have_gcrypt="no"
+	m4_ifdef([AM_PATH_LIBGCRYPT],
+	         [AM_PATH_LIBGCRYPT($GCRYPT_LIBVER:$GCRYPT_VERSION, have_gcrypt=yes)])
+
+	if test $have_gcrypt != "yes"; then
+		AC_MSG_ERROR([[
 ***
 *** libgcrypt was not found. You may want to get it from
 *** ftp://ftp.gnupg.org/gcrypt/libgcrypt/
 ***
-	                  ]]))
+		]])
+	fi
 
 	AC_DEFINE(WITH_GCRYPT, 1, [Build with libgcypt and transport encryption])
 	AC_DEFINE_UNQUOTED(LIBGCRYPT_VERSION, "$GCRYPT_VERSION",
