@@ -72,7 +72,8 @@ PY_TESTS = \
 
 PY_ENV = $(JS_ENV)
 
-if HAVE_VALAC
+# ------------------------------------------------------------------
+# VALA
 
 VALA_V = $(VALA_V_$(V))
 VALA_V_ = $(VALA_V_$(AM_DEFAULT_VERBOSITY))
@@ -93,33 +94,37 @@ VALA_TESTS_VAPIS = \
 	$(builddir)/mock-service-0.vapi
 
 VALA_SRCS = $(VALA_TESTS:=.vala)
+VALA_C_SRCS = $(VALA_SRCS:.vala=.c)
 
-.vala.c: $(VALA_TESTS_VAPIS)
+if HAVE_VALAC
+$(VALA_C_SRCS): %.c: %.vala $(VALA_TESTS_VAPIS)
 	$(VALA_V)$(VALAC) $(VALA_FLAGS) $(VALA_TESTS_VAPIS) -C $<
-
-if HAVE_INTROSPECTION
-if ENABLE_VAPIGEN
-
-TEST_PROGS += $(VALA_TESTS)
-
-endif
 endif
 
 test_vala_lang_CFLAGS = -w
 test_vala_unstable_CFLAGS = -DSECRET_WITH_UNSTABLE -w
 
-DISTCLEANFILES = \
-	test-vala-lang.c \
-	test-vala-unstable.c
+nodist_test_vala_lang_SOURCES = test-vala-lang.c
+nodist_test_vala_unstable_SOURCES = test-vala-unstable.c
+
+DISTCLEANFILES = $(VALA_C_SRCS)
 
 test-vala: $(VALA_TESTS)
 	@gtester --verbose -m $(TEST_MODE) --g-fatal-warnings $(VALA_TESTS)
 
-else
+VALA_TEST_TARGET =
 
-test-vala:
+if HAVE_INTROSPECTION
+if ENABLE_VAPIGEN
+if HAVE_VALAC
+
+VALA_TEST_TARGET += test-vala
+
+TEST_PROGS += $(VALA_TESTS)
 
 endif # HAVE_VALAC
+endif # ENABLE_VAPIGEN
+endif # HAVE_INTROSPECTION
 
 test-c: $(C_TESTS)
 	@gtester --verbose -m $(TEST_MODE) --g-fatal-warnings $(C_TESTS)
@@ -130,7 +135,7 @@ test-js:
 test-py:
 	@for py in $(PY_TESTS); do echo "TEST: $$py"; $(PY_ENV) python $(srcdir)/$$py; done
 
-test: test-c test-py test-js test-vala
+test: test-c test-py test-js $(VALA_TEST_TARGET)
 
 # ------------------------------------------------------------------
 # INTROSPECTION
