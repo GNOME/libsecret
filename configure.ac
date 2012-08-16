@@ -282,6 +282,7 @@ echo "CFLAGS: $CFLAGS"
 echo
 echo "OPTIONS:"
 echo "  libgcrypt:     $gcrypt_status"
+echo "  vala:          $enable_vala"
 echo "  Debug:         $debug_status"
 echo "  Coverage:      $enable_coverage"
 echo "  Manual Page:   $enable_manpages"
