@@ -350,7 +350,7 @@ secret_service_search_finish (SecretService *service,
 {
 	GSimpleAsyncResult *res;
 	SearchClosure *closure;
-	GList *items;
+	GList *items = NULL;
 
 	g_return_val_if_fail (service == NULL || SECRET_IS_SERVICE (service), FALSE);
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
