@@ -1,3 +1,8 @@
+0.9
+ * Add a manual page for secret-tool
+ * Fix up libsecret licensing
+ * Build and testing fixes
+
 0.8
  * Fix up libsecret licensing
  * Initialize gettext correctly
