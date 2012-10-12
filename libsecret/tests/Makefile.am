@@ -33,6 +33,7 @@ LDADD =  \
 	$(NULL)
 
 C_TESTS = \
+	test-attributes \
 	test-value \
 	test-prompt \
 	test-service \

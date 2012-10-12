@@ -153,7 +153,7 @@ secret_attributes_buildv (const SecretSchema *schema,
 		}
 
 		if (!type_found) {
-			g_warning ("The attribute '%s' was not found in the password schema.", attribute_name);
+			g_critical ("The attribute '%s' was not found in the password schema.", attribute_name);
 			g_hash_table_unref (attributes);
 			return NULL;
 		}
@@ -165,8 +165,12 @@ secret_attributes_buildv (const SecretSchema *schema,
 			break;
 		case SECRET_SCHEMA_ATTRIBUTE_STRING:
 			string = va_arg (va, gchar *);
+			if (string == NULL) {
+				g_critical ("The value for attribute '%s' was NULL", attribute_name);
+				return NULL;
+			}
 			if (!g_utf8_validate (string, -1, NULL)) {
-				g_warning ("The value for attribute '%s' was not a valid utf-8 string.", attribute_name);
+				g_critical ("The value for attribute '%s' was not a valid UTF-8 string.", attribute_name);
 				g_hash_table_unref (attributes);
 				return NULL;
 			}
@@ -177,7 +181,7 @@ secret_attributes_buildv (const SecretSchema *schema,
 			value = g_strdup_printf ("%d", integer);
 			break;
 		default:
-			g_warning ("The password attribute '%s' has an invalid type in the password schema.", attribute_name);
+			g_critical ("The password attribute '%s' has an invalid type in the password schema.", attribute_name);
 			g_hash_table_unref (attributes);
 			return NULL;
 		}
@@ -220,7 +224,7 @@ _secret_attributes_validate (const SecretSchema *schema,
 		}
 
 		if (attribute == NULL) {
-			g_critical ("%s: invalid %s attribute in for %s schema",
+			g_critical ("%s: invalid %s attribute for %s schema",
 			            pretty_function, key, schema->name);
 			return FALSE;
 		}

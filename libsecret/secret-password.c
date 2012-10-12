@@ -94,6 +94,10 @@ secret_password_store (const SecretSchema *schema,
 	attributes = secret_attributes_buildv (schema, va);
 	va_end (va);
 
+	/* Precondition failed, already warned */
+	if (!attributes)
+		return;
+
 	secret_password_storev (schema, attributes, collection, label, password,
 	                        cancellable, callback, user_data);
 
@@ -225,6 +229,10 @@ secret_password_store_sync (const SecretSchema *schema,
 	attributes = secret_attributes_buildv (schema, va);
 	va_end (va);
 
+	/* Precondition failed, already warned */
+	if (!attributes)
+		return FALSE;
+
 	ret = secret_password_storev_sync (schema, attributes, collection,
 	                                   label, password, cancellable, error);
 
@@ -334,6 +342,10 @@ secret_password_lookup (const SecretSchema *schema,
 	va_start (va, user_data);
 	attributes = secret_attributes_buildv (schema, va);
 	va_end (va);
+
+	/* Precondition failed, already warned */
+	if (!attributes)
+		return;
 
 	secret_password_lookupv (schema, attributes, cancellable,
 	                         callback, user_data);
@@ -468,6 +480,10 @@ secret_password_lookup_sync (const SecretSchema *schema,
 	attributes = secret_attributes_buildv (schema, va);
 	va_end (va);
 
+	/* Precondition failed, already warned */
+	if (!attributes)
+		return NULL;
+
 	password = secret_password_lookupv_sync (schema, attributes,
 	                                         cancellable, error);
 
@@ -515,6 +531,10 @@ secret_password_lookup_nonpageable_sync (const SecretSchema *schema,
 	va_start (va, error);
 	attributes = secret_attributes_buildv (schema, va);
 	va_end (va);
+
+	/* Precondition failed, already warned */
+	if (!attributes)
+		return NULL;
 
 	password = secret_password_lookupv_nonpageable_sync (schema, attributes,
 	                                                     cancellable, error);
@@ -668,6 +688,10 @@ secret_password_clear (const SecretSchema *schema,
 	attributes = secret_attributes_buildv (schema, va);
 	va_end (va);
 
+	/* Precondition failed, already warned */
+	if (!attributes)
+		return;
+
 	secret_password_clearv (schema, attributes, cancellable,
 	                        callback, user_data);
 
@@ -768,6 +792,10 @@ secret_password_clear_sync (const SecretSchema* schema,
 	va_start (va, error);
 	attributes = secret_attributes_buildv (schema, va);
 	va_end (va);
+
+	/* Precondition failed, already warned */
+	if (!attributes)
+		return FALSE;
 
 	result = secret_password_clearv_sync (schema, attributes,
 	                                      cancellable, error);
