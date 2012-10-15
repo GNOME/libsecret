@@ -1,6 +1,6 @@
 AC_PREREQ(2.63)
 
-AC_INIT([libsecret],[0.10],
+AC_INIT([libsecret],[0.11],
         [http://bugzilla.gnome.org/enter_bug.cgi?product=libsecret],
         [libsecret])
 
