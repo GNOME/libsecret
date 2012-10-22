@@ -563,7 +563,9 @@ main (int argc, char **argv)
 {
 	g_test_init (&argc, &argv, NULL);
 	g_set_prgname ("test-service");
+#if !GLIB_CHECK_VERSION(2,35,0)
 	g_type_init ();
+#endif
 
 	g_test_add_func ("/service/get-sync", test_get_sync);
 	g_test_add_func ("/service/get-async", test_get_async);

@@ -909,7 +909,9 @@ main (int argc, char **argv)
 {
 	g_test_init (&argc, &argv, NULL);
 	g_set_prgname ("test-service");
+#if !GLIB_CHECK_VERSION(2,35,0)
 	g_type_init ();
+#endif
 
 	g_test_add ("/service/search-sync", Test, "mock-service-normal.py", setup, test_search_sync, teardown);
 	g_test_add ("/service/search-async", Test, "mock-service-normal.py", setup, test_search_async, teardown);

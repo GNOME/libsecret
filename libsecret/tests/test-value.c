@@ -193,7 +193,10 @@ main (int argc, char **argv)
 {
 	g_test_init (&argc, &argv, NULL);
 	g_set_prgname ("test-value");
+
+#if !GLIB_CHECK_VERSION(2,35,0)
 	g_type_init ();
+#endif
 
 	g_test_add_func ("/value/new", test_new);
 	g_test_add_func ("/value/new-terminated", test_new_terminated);

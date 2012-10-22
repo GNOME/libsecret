@@ -128,7 +128,9 @@ main (int argc, char **argv)
 {
 	g_test_init (&argc, &argv, NULL);
 	g_set_prgname ("test-attributes");
+#if !GLIB_CHECK_VERSION(2,35,0)
 	g_type_init ();
+#endif
 
 	g_test_add_func ("/attributes/build", test_build);
 	g_test_add_func ("/attributes/build-unknown", test_build_unknown);
