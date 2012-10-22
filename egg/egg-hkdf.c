@@ -39,7 +39,7 @@ egg_hkdf_perform (const gchar *hash_algo, gconstpointer input, gsize n_input,
 	gpointer buffer = NULL;
 	gcry_md_hd_t md1, md2;
 	guint hash_len;
-	guchar i;
+	gint i;
 	gint flags, algo;
 	gsize step, n_buffer;
 	guchar *at;
@@ -89,7 +89,7 @@ egg_hkdf_perform (const gchar *hash_algo, gconstpointer input, gsize n_input,
 		gcry_md_reset (md2);
 		gcry_md_write (md2, buffer, n_buffer);
 		gcry_md_write (md2, info, n_info);
-		gcry_md_write (md2, &i, 1);
+		gcry_md_putc (md2, i);
 
 		n_buffer = hash_len;
 		memcpy (buffer, gcry_md_read (md2, algo), n_buffer);
