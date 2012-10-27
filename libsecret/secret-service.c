@@ -104,7 +104,7 @@
  * during a secret_service_get() or secret_service_new() operation.
  */
 
-EGG_SECURE_GLIB_DEFINITIONS ();
+EGG_SECURE_DEFINE_GLIB_GLOBALS ();
 
 GQuark _secret_error_quark = 0;
 

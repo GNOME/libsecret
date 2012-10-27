@@ -33,7 +33,7 @@
 
 #include <gcrypt.h>
 
-EGG_SECURE_GLIB_DEFINITIONS ();
+EGG_SECURE_DEFINE_GLIB_GLOBALS ();
 
 static void
 test_hkdf_test_case_1 (void)
