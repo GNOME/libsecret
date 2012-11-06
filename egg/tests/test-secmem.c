@@ -213,8 +213,6 @@ test_multialloc (void)
 	}
 
 	g_assert (memory->len == 0);
-	for (i = 0; i < memory->len; i++)
-		egg_secure_free (memory->pdata[i]);
 	g_ptr_array_free (memory, TRUE);
 
 	egg_secure_warnings = 1;
