@@ -31,7 +31,7 @@
 
 static const guchar TEST_DATA[] = { 0x05, 0xD6, 0x95, 0x96, 0x10, 0x12, 0xAE, 0x35 };
 static const gchar *TEST_HEX = "05D695961012AE35";
-static const gchar *TEST_HEX_DELIM = "05 D6 95 96 10 12 AE 35";
+static const gchar *TEST_HEX_DELIM = "05  D6  95  96  10  12  AE  35";
 
 static void
 test_encode (void)
@@ -41,6 +41,7 @@ test_encode (void)
 	hex = egg_hex_encode (TEST_DATA, sizeof (TEST_DATA));
 	g_assert (hex);
 	g_assert_cmpstr (hex, ==, TEST_HEX);
+
 	g_free (hex);
 }
 
@@ -53,12 +54,14 @@ test_encode_spaces (void)
 	hex = egg_hex_encode_full (TEST_DATA, sizeof (TEST_DATA), TRUE, 0, 0);
 	g_assert (hex);
 	g_assert_cmpstr (hex, ==, TEST_HEX);
+
 	g_free (hex);
 
 	/* Encode with spaces */
-	hex = egg_hex_encode_full (TEST_DATA, sizeof (TEST_DATA), TRUE, ' ', 1);
+	hex = egg_hex_encode_full (TEST_DATA, sizeof (TEST_DATA), TRUE, "  ", 1);
 	g_assert (hex);
 	g_assert_cmpstr (hex, ==, TEST_HEX_DELIM);
+
 	g_free (hex);
 }
 
@@ -81,7 +84,7 @@ test_decode (void)
 	g_free (data);
 
 	/* Delimited*/
-	data = egg_hex_decode_full (TEST_HEX_DELIM, -1, ' ', 1, &n_data);
+	data = egg_hex_decode_full (TEST_HEX_DELIM, -1, "  ", 1, &n_data);
 	g_assert (data);
 	g_assert (n_data == sizeof (TEST_DATA));
 	g_assert (memcmp (data, TEST_DATA, n_data) == 0);
@@ -103,7 +106,7 @@ test_decode_fail (void)
 	g_assert (!data);
 
 	/* Not Delimited, null out*/
-	data = egg_hex_decode_full ("ABABAB", -1, ':', 1, &n_data);
+	data = egg_hex_decode_full ("ABABAB", -1, ":", 1, &n_data);
 	g_assert (!data);
 }
 

@@ -2,17 +2,17 @@
  * gnome-keyring
  *
  * Copyright (C) 2008 Stefan Walter
- * 
- * This program is free software; you can redistribute it and/or modify 
+ *
+ * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation; either version 2.1 of
  * the License, or (at your option) any later version.
- *  
+ *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- *  
+ *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
@@ -37,11 +37,15 @@ egg_hex_decode (const gchar *data, gssize n_data, gsize *n_decoded)
 }
 
 gpointer
-egg_hex_decode_full (const gchar *data, gssize n_data,
-                     gchar delim, guint group, gsize *n_decoded)
+egg_hex_decode_full (const gchar *data,
+                     gssize n_data,
+                     const gchar *delim,
+                     guint group,
+                     gsize *n_decoded)
 {
 	guchar *result;
 	guchar *decoded;
+	gsize n_delim;
 	gushort j;
 	gint state = 0;
 	gint part = 0;
@@ -53,20 +57,20 @@ egg_hex_decode_full (const gchar *data, gssize n_data,
 
 	if (n_data == -1)
 		n_data = strlen (data);
-
+	n_delim = delim ? strlen (delim) : 0;
 	decoded = result = g_malloc0 ((n_data / 2) + 1);
 	*n_decoded = 0;
 
 	while (n_data > 0 && state == 0) {
 
 		if (decoded != result && delim) {
-			if (*data != delim) {
+			if (n_data < n_delim || memcmp (data, delim, n_delim) != 0) {
 				state = -1;
 				break;
 			}
 
-			++data;
-			--n_data;
+			data += n_delim;
+			n_data -= n_delim;
 		}
 
 		while (part < group && n_data > 0) {
@@ -110,12 +114,15 @@ egg_hex_decode_full (const gchar *data, gssize n_data,
 gchar*
 egg_hex_encode (gconstpointer data, gsize n_data)
 {
-	return egg_hex_encode_full (data, n_data, TRUE, '\0', 0);
+	return egg_hex_encode_full (data, n_data, TRUE, NULL, 0);
 }
 
 gchar*
-egg_hex_encode_full (gconstpointer data, gsize n_data,
-                     gboolean upper_case, gchar delim, guint group)
+egg_hex_encode_full (gconstpointer data,
+                     gsize n_data,
+                     gboolean upper_case,
+                     const gchar *delim,
+                     guint group)
 {
 	GString *result;
 	const gchar *input;
@@ -133,8 +140,8 @@ egg_hex_encode_full (gconstpointer data, gsize n_data,
 
 	while (n_data > 0) {
 
-		if (group && bytes && (bytes % group) == 0)
-			g_string_append_c (result, delim);
+		if (delim && group && bytes && (bytes % group) == 0)
+			g_string_append (result, delim);
 
 		j = *(input) >> 4 & 0xf;
 		g_string_append_c (result, hexc[j]);
