@@ -24,6 +24,8 @@
 #include "secret-types.h"
 #include "secret-value.h"
 
+#include <glib/gi18n-lib.h>
+
 /**
  * SecretSearchFlags:
  * @SECRET_SEARCH_NONE: no flags
@@ -1025,7 +1027,7 @@ on_store_create (GObject *source,
 	    (g_error_matches (error, SECRET_ERROR, SECRET_ERROR_NO_SUCH_OBJECT) ||
 	     g_error_matches (error, G_DBUS_ERROR, G_DBUS_ERROR_UNKNOWN_METHOD)) &&
 	    g_strcmp0 (store->collection_path, SECRET_ALIAS_PREFIX "default") == 0) {
-		properties = _secret_collection_properties_new ("Default keyring");
+		properties = _secret_collection_properties_new (_("Default keyring"));
 		secret_service_create_collection_dbus_path (service, properties, "default",
 		                                            SECRET_COLLECTION_CREATE_NONE, store->cancellable,
 		                                            on_store_keyring, g_object_ref (async));

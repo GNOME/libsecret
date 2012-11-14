@@ -1,3 +1,4 @@
 libsecret/secret-item.c
+libsecret/secret-methods.c
 libsecret/secret-session.c
 tool/secret-tool.c
