@@ -2088,6 +2088,13 @@ secret_service_create_item_dbus_path_finish (SecretService *self,
 	return path;
 }
 
+void
+_secret_service_create_item_dbus_path_finish_raw (GAsyncResult *result,
+                                                  GError **error)
+{
+	g_simple_async_result_propagate_error (G_SIMPLE_ASYNC_RESULT (result), error);
+}
+
 /**
  * secret_service_create_item_dbus_path_sync:
  * @self: a secret service object

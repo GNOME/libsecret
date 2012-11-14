@@ -171,6 +171,9 @@ gint                 _secret_service_xlock_paths_finish       (SecretService *se
                                                                gchar ***xlocked,
                                                                GError **error);
 
+void                 _secret_service_create_item_dbus_path_finish_raw  (GAsyncResult *result,
+                                                                        GError **error);
+
 GHashTable *         _secret_collection_properties_new        (const gchar *label);
 
 SecretItem *         _secret_collection_find_item_instance    (SecretCollection *self,

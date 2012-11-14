@@ -1014,9 +1014,8 @@ on_store_create (GObject *source,
 	SecretService *service = SECRET_SERVICE (source);
 	GError *error = NULL;
 	GHashTable *properties;
-	gchar *path;
 
-	path = secret_service_create_item_dbus_path_finish (service, result, &error);
+	_secret_service_create_item_dbus_path_finish_raw (result, &error);
 
 	/*
 	 * This happens when the collection doesn't exist. If the collection is
@@ -1040,7 +1039,6 @@ on_store_create (GObject *source,
 		g_simple_async_result_complete (async);
 	}
 
-	g_free (path);
 	g_object_unref (async);
 }
 
