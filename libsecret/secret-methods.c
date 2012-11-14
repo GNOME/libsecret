@@ -955,6 +955,7 @@ typedef struct {
 	gchar *collection_path;
 	SecretValue *value;
 	GHashTable *properties;
+	gboolean created_collection;
 } StoreClosure;
 
 static void
@@ -972,18 +973,72 @@ store_closure_free (gpointer data)
 static void
 on_store_create (GObject *source,
                  GAsyncResult *result,
-                 gpointer user_data)
+                 gpointer user_data);
+
+static void
+on_store_keyring (GObject *source,
+                  GAsyncResult *result,
+                  gpointer user_data)
 {
 	GSimpleAsyncResult *async = G_SIMPLE_ASYNC_RESULT (user_data);
+	StoreClosure *store = g_simple_async_result_get_op_res_gpointer (async);
+	SecretService *service = SECRET_SERVICE (source);
 	GError *error = NULL;
 	gchar *path;
 
-	path = secret_service_create_item_dbus_path_finish (SECRET_SERVICE (source), result, &error);
-	if (error != NULL)
+	path = secret_service_create_collection_dbus_path_finish (service, result, &error);
+	if (error == NULL) {
+		store->created_collection = TRUE;
+		secret_service_create_item_dbus_path (service, store->collection_path,
+		                                      store->properties, store->value,
+		                                      SECRET_ITEM_CREATE_REPLACE, store->cancellable,
+		                                      on_store_create, g_object_ref (async));
+	} else {
 		g_simple_async_result_take_error (async, error);
-	g_free (path);
+		g_simple_async_result_complete (async);
+	}
 
-	g_simple_async_result_complete (async);
+	g_object_unref (async);
+	g_free (path);
+}
+
+static void
+on_store_create (GObject *source,
+                 GAsyncResult *result,
+                 gpointer user_data)
+{
+	GSimpleAsyncResult *async = G_SIMPLE_ASYNC_RESULT (user_data);
+	StoreClosure *store = g_simple_async_result_get_op_res_gpointer (async);
+	SecretService *service = SECRET_SERVICE (source);
+	GError *error = NULL;
+	GHashTable *properties;
+	gchar *path;
+
+	path = secret_service_create_item_dbus_path_finish (service, result, &error);
+
+	/*
+	 * This happens when the collection doesn't exist. If the collection is
+	 * the default alias, we should try and create it
+	 */
+
+	if (!store->created_collection &&
+	    (g_error_matches (error, SECRET_ERROR, SECRET_ERROR_NO_SUCH_OBJECT) ||
+	     g_error_matches (error, G_DBUS_ERROR, G_DBUS_ERROR_UNKNOWN_METHOD)) &&
+	    g_strcmp0 (store->collection_path, SECRET_ALIAS_PREFIX "default") == 0) {
+		properties = _secret_collection_properties_new ("Default keyring");
+		secret_service_create_collection_dbus_path (service, properties, "default",
+		                                            SECRET_COLLECTION_CREATE_NONE, store->cancellable,
+		                                            on_store_keyring, g_object_ref (async));
+		g_hash_table_unref (properties);
+		g_error_free (error);
+
+	} else {
+		if (error != NULL)
+			g_simple_async_result_take_error (async, error);
+		g_simple_async_result_complete (async);
+	}
+
+	g_free (path);
 	g_object_unref (async);
 }
 

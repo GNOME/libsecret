@@ -31,6 +31,8 @@ typedef struct {
 
 typedef struct _SecretSession SecretSession;
 
+#define              SECRET_ALIAS_PREFIX                      "/org/freedesktop/secrets/aliases/"
+
 #define              SECRET_SERVICE_PATH                      "/org/freedesktop/secrets"
 
 #define              SECRET_SERVICE_BUS_NAME                  "org.freedesktop.secrets"
@@ -165,6 +167,8 @@ gint                 _secret_service_xlock_paths_finish       (SecretService *se
                                                                GAsyncResult *result,
                                                                gchar ***xlocked,
                                                                GError **error);
+
+GHashTable *         _secret_collection_properties_new        (const gchar *label);
 
 SecretItem *         _secret_collection_find_item_instance    (SecretCollection *self,
                                                                const gchar *item_path);

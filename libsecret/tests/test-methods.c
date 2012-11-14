@@ -866,6 +866,55 @@ test_store_async (Test *test,
 }
 
 static void
+test_store_no_default (Test *test,
+                       gconstpointer used)
+{
+	SecretValue *value = secret_value_new ("apassword", -1, "text/plain");
+	GHashTable *attributes;
+	GError *error = NULL;
+	gchar **paths;
+	gboolean ret;
+	gsize length;
+
+	attributes = secret_attributes_build (&MOCK_SCHEMA,
+	                                      "even", FALSE,
+	                                      "string", "seventeen",
+	                                      "number", 17,
+	                                      NULL);
+
+	ret = secret_service_store_sync (test->service, &MOCK_SCHEMA, attributes, SECRET_COLLECTION_DEFAULT,
+	                                 "New Item Label", value, NULL, &error);
+	g_assert_no_error (error);
+	secret_value_unref (value);
+	g_hash_table_unref (attributes);
+
+	attributes = g_hash_table_new (g_str_hash, g_str_equal);
+	g_hash_table_insert (attributes, "even", "false");
+	g_hash_table_insert (attributes, "string", "seventeen");
+	g_hash_table_insert (attributes, "number", "17");
+
+	ret = secret_service_search_for_dbus_paths_sync (test->service, &MOCK_SCHEMA, attributes,
+	                                                 NULL, &paths, NULL, &error);
+	g_hash_table_unref (attributes);
+	g_assert (ret == TRUE);
+
+	g_assert (paths != NULL);
+	g_assert (paths[0] != NULL);
+	g_assert (paths[1] == NULL);
+
+	value = secret_service_get_secret_for_dbus_path_sync (test->service, paths[0],
+	                                                      NULL, &error);
+	g_assert_no_error (error);
+
+	g_assert (value != NULL);
+	g_assert_cmpstr (secret_value_get (value, &length), ==, "apassword");
+	g_assert_cmpuint (length, ==, 9);
+
+	secret_value_unref (value);
+	g_strfreev (paths);
+}
+
+static void
 test_set_alias_sync (Test *test,
                      gconstpointer used)
 {
@@ -941,6 +990,7 @@ main (int argc, char **argv)
 	g_test_add ("/service/store-sync", Test, "mock-service-normal.py", setup, test_store_sync, teardown);
 	g_test_add ("/service/store-async", Test, "mock-service-normal.py", setup, test_store_async, teardown);
 	g_test_add ("/service/store-replace", Test, "mock-service-normal.py", setup, test_store_replace, teardown);
+	g_test_add ("/service/store-no-default", Test, "mock-service-empty.py", setup, test_store_no_default, teardown);
 
 	g_test_add ("/service/set-alias-sync", Test, "mock-service-normal.py", setup, test_set_alias_sync, teardown);
 

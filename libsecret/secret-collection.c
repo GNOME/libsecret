@@ -1042,8 +1042,8 @@ on_create_service (GObject *source,
 	g_object_unref (async);
 }
 
-static GHashTable *
-collection_properties_new (const gchar *label)
+GHashTable *
+_secret_collection_properties_new (const gchar *label)
 {
 	GHashTable *properties;
 	GVariant *value;
@@ -1104,7 +1104,7 @@ secret_collection_create (SecretService *service,
 	                                 secret_collection_create);
 	closure = g_slice_new0 (CreateClosure);
 	closure->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
-	closure->properties = collection_properties_new (label);
+	closure->properties = _secret_collection_properties_new (label);
 	closure->alias = g_strdup (alias);
 	closure->flags = flags;
 	g_simple_async_result_set_op_res_gpointer (res, closure, create_closure_free);
@@ -1208,7 +1208,7 @@ secret_collection_create_sync (SecretService *service,
 		g_object_ref (service);
 	}
 
-	properties = collection_properties_new (label);
+	properties = _secret_collection_properties_new (label);
 
 	path = secret_service_create_collection_dbus_path_sync (service, properties, alias,
 	                                                        flags, cancellable, error);
