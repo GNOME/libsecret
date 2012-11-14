@@ -315,7 +315,7 @@ class SecretCollection(dbus.service.Object):
 	def __init__(self, service, identifier=None, label="Collection", locked=False,
 	             confirm=False, master=None):
 		if identifier is None:
-			identifier = label
+			identifier = next_identifier(label)
 		identifier = encode_identifier(identifier)
 		self.service = service
 		self.identifier = identifier
@@ -627,6 +627,8 @@ class SecretService(dbus.service.Object):
 		service = self
 		def prompt_callback():
 			collection = SecretCollection(service, None, label, locked=False, confirm=True)
+			if alias:
+				collection.add_alias(alias)
 			return dbus.ObjectPath(collection.path, variant_level=1)
 		prompt = SecretPrompt(self, sender, dismiss=False, action=prompt_callback)
 		return (dbus.ObjectPath("/"), dbus.ObjectPath(prompt.path))
