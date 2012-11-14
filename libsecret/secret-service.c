@@ -354,7 +354,7 @@ secret_service_real_prompt_finish (SecretService *self,
 	                      secret_service_real_prompt_async), NULL);
 
 	res = G_SIMPLE_ASYNC_RESULT (result);
-	if (g_simple_async_result_propagate_error (res, error))
+	if (_secret_util_propagate_error (res, error))
 		return NULL;
 
 	retval = g_simple_async_result_get_op_res_gpointer (res);
@@ -716,7 +716,7 @@ secret_service_async_initable_init_finish (GAsyncInitable *initable,
 	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (initable),
 	                      secret_service_async_initable_init_async), FALSE);
 
-	if (g_simple_async_result_propagate_error (G_SIMPLE_ASYNC_RESULT (result), error))
+	if (_secret_util_propagate_error (G_SIMPLE_ASYNC_RESULT (result), error))
 		return FALSE;
 
 	return TRUE;
@@ -824,7 +824,7 @@ secret_service_get_finish (GAsyncResult *result,
 
 	/* Just ensuring that the service matches flags */
 	if (g_simple_async_result_is_valid (result, source_object, secret_service_get)) {
-		if (!g_simple_async_result_propagate_error (G_SIMPLE_ASYNC_RESULT (result), error))
+		if (!_secret_util_propagate_error (G_SIMPLE_ASYNC_RESULT (result), error))
 			service = g_object_ref (source_object);
 
 	/* Creating a whole new service */
@@ -1543,7 +1543,7 @@ secret_service_load_collections_finish (SecretService *self,
 	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (self),
 	                      secret_service_load_collections), FALSE);
 
-	if (g_simple_async_result_propagate_error (G_SIMPLE_ASYNC_RESULT (result), error))
+	if (_secret_util_propagate_error (G_SIMPLE_ASYNC_RESULT (result), error))
 		return FALSE;
 
 	return TRUE;

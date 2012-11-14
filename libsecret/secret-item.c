@@ -595,7 +595,7 @@ secret_item_async_initable_init_finish (GAsyncInitable *initable,
 	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (initable),
 	                      secret_item_async_initable_init_async), FALSE);
 
-	if (g_simple_async_result_propagate_error (G_SIMPLE_ASYNC_RESULT (result), error))
+	if (_secret_util_propagate_error (G_SIMPLE_ASYNC_RESULT (result), error))
 		return FALSE;
 
 	return TRUE;
@@ -842,7 +842,7 @@ secret_item_create_finish (GAsyncResult *result,
 
 	res = G_SIMPLE_ASYNC_RESULT (result);
 
-	if (g_simple_async_result_propagate_error (res, error))
+	if (_secret_util_propagate_error (res, error))
 		return NULL;
 
 	closure = g_simple_async_result_get_op_res_gpointer (res);
@@ -1002,7 +1002,7 @@ secret_item_delete_finish (SecretItem *self,
 
 	res = G_SIMPLE_ASYNC_RESULT (result);
 
-	if (g_simple_async_result_propagate_error (res, error))
+	if (_secret_util_propagate_error (res, error))
 		return FALSE;
 
 	return g_simple_async_result_get_op_res_gboolean (res);
@@ -1169,7 +1169,6 @@ on_item_load_secret (GObject *source,
 	}
 
 	if (error != NULL) {
-		_secret_util_strip_remote_error (&error);
 		g_simple_async_result_take_error (res, error);
 	}
 
@@ -1271,7 +1270,7 @@ secret_item_load_secret_finish (SecretItem *self,
 	                      secret_item_load_secret), FALSE);
 
 	res = G_SIMPLE_ASYNC_RESULT (result);
-	if (g_simple_async_result_propagate_error (res, error))
+	if (_secret_util_propagate_error (res, error))
 		return FALSE;
 
 	return TRUE;
@@ -1370,10 +1369,8 @@ on_get_secrets_complete (GObject *source,
 		g_variant_unref (retval);
 	}
 
-	if (error != NULL) {
-		_secret_util_strip_remote_error (&error);
+	if (error != NULL)
 		g_simple_async_result_take_error (async, error);
-	}
 
 	g_simple_async_result_complete (async);
 	g_object_unref (async);
@@ -1499,7 +1496,7 @@ secret_item_load_secrets_finish (GAsyncResult *result,
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
 	async = G_SIMPLE_ASYNC_RESULT (result);
-	if (g_simple_async_result_propagate_error (async, error))
+	if (_secret_util_propagate_error (async, error))
 		return FALSE;
 
 	return TRUE;
@@ -1583,7 +1580,6 @@ on_item_set_secret (GObject *source,
 	if (error == NULL) {
 		_secret_item_set_cached_secret (self, set->value);
 	} else {
-		_secret_util_strip_remote_error (&error);
 		g_simple_async_result_take_error (res, error);
 	}
 	if (retval != NULL)
@@ -1688,7 +1684,7 @@ secret_item_set_secret_finish (SecretItem *self,
 	                      secret_item_set_secret), FALSE);
 
 	res = G_SIMPLE_ASYNC_RESULT (result);
-	if (g_simple_async_result_propagate_error (res, error))
+	if (_secret_util_propagate_error (res, error))
 		return FALSE;
 
 	return TRUE;

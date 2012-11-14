@@ -714,7 +714,7 @@ secret_collection_async_initable_init_finish (GAsyncInitable *initable,
 	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (initable),
 	                      secret_collection_async_initable_init_async), FALSE);
 
-	if (g_simple_async_result_propagate_error (G_SIMPLE_ASYNC_RESULT (result), error))
+	if (_secret_util_propagate_error (G_SIMPLE_ASYNC_RESULT (result), error))
 		return FALSE;
 
 	self->pv->constructing = FALSE;
@@ -865,7 +865,7 @@ secret_collection_load_items_finish (SecretCollection *self,
 	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (self),
 	                      secret_collection_load_items), FALSE);
 
-	if (g_simple_async_result_propagate_error (G_SIMPLE_ASYNC_RESULT (result), error))
+	if (_secret_util_propagate_error (G_SIMPLE_ASYNC_RESULT (result), error))
 		return FALSE;
 
 	return TRUE;
@@ -1146,7 +1146,7 @@ secret_collection_create_finish (GAsyncResult *result,
 
 	res = G_SIMPLE_ASYNC_RESULT (result);
 
-	if (g_simple_async_result_propagate_error (res, error))
+	if (_secret_util_propagate_error (res, error))
 		return NULL;
 
 	closure = g_simple_async_result_get_op_res_gpointer (res);
@@ -1487,7 +1487,7 @@ secret_collection_search_finish (SecretCollection *self,
 	                      secret_collection_search), NULL);
 
 	async = G_SIMPLE_ASYNC_RESULT (result);
-	if (g_simple_async_result_propagate_error (async, error))
+	if (_secret_util_propagate_error (async, error))
 		return NULL;
 
 	search = g_simple_async_result_get_op_res_gpointer (async);
@@ -1681,7 +1681,7 @@ secret_collection_delete_finish (SecretCollection *self,
 	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (self),
 	                      secret_collection_delete), FALSE);
 
-	if (g_simple_async_result_propagate_error (G_SIMPLE_ASYNC_RESULT (result), error))
+	if (_secret_util_propagate_error (G_SIMPLE_ASYNC_RESULT (result), error))
 		return FALSE;
 
 	return TRUE;
@@ -2178,7 +2178,7 @@ secret_collection_for_alias_finish (GAsyncResult *result,
 	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 
 	async = G_SIMPLE_ASYNC_RESULT (result);
-	if (g_simple_async_result_propagate_error (async, error))
+	if (_secret_util_propagate_error (async, error))
 		return NULL;
 	read = g_simple_async_result_get_op_res_gpointer (async);
 	if (read->collection)

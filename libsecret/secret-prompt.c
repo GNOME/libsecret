@@ -334,7 +334,6 @@ on_prompt_prompted (GObject *source,
 		g_clear_error (&error);
 
 	if (error != NULL) {
-		_secret_util_strip_remote_error (&error);
 		g_simple_async_result_take_error (res, error);
 		perform_prompt_complete (res, TRUE);
 
@@ -381,7 +380,6 @@ on_prompt_dismissed (GObject *source,
 		g_clear_error (&error);
 
 	if (error != NULL) {
-		_secret_util_strip_remote_error (&error);
 		g_simple_async_result_take_error (res, error);
 		perform_prompt_complete (res, TRUE);
 	}
@@ -529,7 +527,7 @@ secret_prompt_perform_finish (SecretPrompt *self,
 
 	res = G_SIMPLE_ASYNC_RESULT (result);
 
-	if (g_simple_async_result_propagate_error (res, error))
+	if (_secret_util_propagate_error (res, error))
 		return NULL;
 
 	closure = g_simple_async_result_get_op_res_gpointer (res);

@@ -300,7 +300,6 @@ on_search_items_complete (GObject *source,
 
 	response = g_dbus_proxy_call_finish (G_DBUS_PROXY (source), result, &error);
 	if (error != NULL) {
-		_secret_util_strip_remote_error (&error);
 		g_simple_async_result_take_error (res, error);
 	} else {
 		g_simple_async_result_set_op_res_gpointer (res, response,
@@ -393,7 +392,7 @@ secret_collection_search_for_dbus_paths_finish (SecretCollection *collection,
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
 	async = G_SIMPLE_ASYNC_RESULT (result);
-	if (g_simple_async_result_propagate_error (async, error))
+	if (_secret_util_propagate_error (async, error))
 		return FALSE;
 
 	retval= g_simple_async_result_get_op_res_gpointer (async);
@@ -564,7 +563,7 @@ secret_service_search_for_dbus_paths_finish (SecretService *self,
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
 	res = G_SIMPLE_ASYNC_RESULT (result);
-	if (g_simple_async_result_propagate_error (res, error))
+	if (_secret_util_propagate_error (res, error))
 		return FALSE;
 
 	if (unlocked || locked) {
@@ -687,7 +686,6 @@ on_get_secrets_complete (GObject *source,
 
 	closure->out = g_dbus_proxy_call_finish (G_DBUS_PROXY (source), result, &error);
 	if (error != NULL) {
-		_secret_util_strip_remote_error (&error);
 		g_simple_async_result_take_error (res, error);
 	}
 	g_simple_async_result_complete (res);
@@ -794,7 +792,7 @@ secret_service_get_secret_for_dbus_path_finish (SecretService *self,
 	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 
 	res = G_SIMPLE_ASYNC_RESULT (result);
-	if (g_simple_async_result_propagate_error (res, error))
+	if (_secret_util_propagate_error (res, error))
 		return NULL;
 
 	closure = g_simple_async_result_get_op_res_gpointer (res);
@@ -926,7 +924,7 @@ secret_service_get_secrets_for_dbus_paths_finish (SecretService *self,
 	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 
 	res = G_SIMPLE_ASYNC_RESULT (result);
-	if (g_simple_async_result_propagate_error (res, error))
+	if (_secret_util_propagate_error (res, error))
 		return NULL;
 
 	closure = g_simple_async_result_get_op_res_gpointer (res);
@@ -1047,7 +1045,6 @@ on_xlock_called (GObject *source,
 
 	retval = g_dbus_proxy_call_finish (G_DBUS_PROXY (source), result, &error);
 	if (error != NULL) {
-		_secret_util_strip_remote_error (&error);
 		g_simple_async_result_take_error (res, error);
 		g_simple_async_result_complete (res);
 
@@ -1110,7 +1107,7 @@ _secret_service_xlock_paths_finish (SecretService *self,
 	gint count;
 
 	res = G_SIMPLE_ASYNC_RESULT (result);
-	if (g_simple_async_result_propagate_error (res, error))
+	if (_secret_util_propagate_error (res, error))
 		return -1;
 
 	closure = g_simple_async_result_get_op_res_gpointer (res);
@@ -1442,7 +1439,6 @@ on_delete_complete (GObject *source,
 		g_variant_unref (retval);
 
 	} else {
-		_secret_util_strip_remote_error (&error);
 		g_simple_async_result_take_error (res, error);
 		g_simple_async_result_complete (res);
 	}
@@ -1496,7 +1492,7 @@ _secret_service_delete_path_finish (SecretService *self,
 	                      _secret_service_delete_path), FALSE);
 
 	res = G_SIMPLE_ASYNC_RESULT (result);
-	if (g_simple_async_result_propagate_error (res, error))
+	if (_secret_util_propagate_error (res, error))
 		return FALSE;
 
 	closure = g_simple_async_result_get_op_res_gpointer (res);
@@ -1671,7 +1667,6 @@ on_create_collection_called (GObject *source,
 		g_variant_unref (retval);
 
 	} else {
-		_secret_util_strip_remote_error (&error);
 		g_simple_async_result_take_error (res, error);
 		g_simple_async_result_complete (res);
 	}
@@ -1789,7 +1784,7 @@ secret_service_create_collection_dbus_path_finish (SecretService *self,
 
 	res = G_SIMPLE_ASYNC_RESULT (result);
 
-	if (g_simple_async_result_propagate_error (res, error))
+	if (_secret_util_propagate_error (res, error))
 		return NULL;
 
 	closure = g_simple_async_result_get_op_res_gpointer (res);
@@ -1941,7 +1936,6 @@ on_create_item_called (GObject *source,
 		g_variant_unref (retval);
 
 	} else {
-		_secret_util_strip_remote_error (&error);
 		g_simple_async_result_take_error (res, error);
 		g_simple_async_result_complete (res);
 	}
@@ -2085,7 +2079,7 @@ secret_service_create_item_dbus_path_finish (SecretService *self,
 
 	res = G_SIMPLE_ASYNC_RESULT (result);
 
-	if (g_simple_async_result_propagate_error (res, error))
+	if (_secret_util_propagate_error (res, error))
 		return NULL;
 
 	closure = g_simple_async_result_get_op_res_gpointer (res);

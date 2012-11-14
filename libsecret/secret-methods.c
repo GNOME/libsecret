@@ -361,7 +361,7 @@ secret_service_search_finish (SecretService *service,
 
 	res = G_SIMPLE_ASYNC_RESULT (result);
 
-	if (g_simple_async_result_propagate_error (res, error))
+	if (_secret_util_propagate_error (res, error))
 		return FALSE;
 
 	closure = g_simple_async_result_get_op_res_gpointer (res);
@@ -708,7 +708,7 @@ service_xlock_finish (SecretService *service,
 	                                                      service_xlock_async), -1);
 
 	async = G_SIMPLE_ASYNC_RESULT (result);
-	if (g_simple_async_result_propagate_error (async, error))
+	if (_secret_util_propagate_error (async, error))
 		return -1;
 
 	xlock = g_simple_async_result_get_op_res_gpointer (async);
@@ -1181,7 +1181,7 @@ secret_service_store_finish (SecretService *service,
 	                                                      secret_service_store), FALSE);
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
-	if (g_simple_async_result_propagate_error (G_SIMPLE_ASYNC_RESULT (result), error))
+	if (_secret_util_propagate_error (G_SIMPLE_ASYNC_RESULT (result), error))
 		return FALSE;
 
 	return TRUE;
@@ -1476,7 +1476,7 @@ secret_service_lookup_finish (SecretService *service,
 	                      secret_service_lookup), NULL);
 
 	res = G_SIMPLE_ASYNC_RESULT (result);
-	if (g_simple_async_result_propagate_error (res, error))
+	if (_secret_util_propagate_error (res, error))
 		return NULL;
 
 	closure = g_simple_async_result_get_op_res_gpointer (res);
@@ -1728,7 +1728,7 @@ secret_service_clear_finish (SecretService *service,
 	                      secret_service_clear), FALSE);
 
 	res = G_SIMPLE_ASYNC_RESULT (result);
-	if (g_simple_async_result_propagate_error (res, error))
+	if (_secret_util_propagate_error (res, error))
 		return FALSE;
 
 	closure = g_simple_async_result_get_op_res_gpointer (res);
@@ -1933,7 +1933,7 @@ secret_service_set_alias_finish (SecretService *service,
 	                                                      secret_service_set_alias), FALSE);
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
-	if (g_simple_async_result_propagate_error (G_SIMPLE_ASYNC_RESULT (result), error))
+	if (_secret_util_propagate_error (G_SIMPLE_ASYNC_RESULT (result), error))
 		return FALSE;
 
 	return TRUE;

@@ -96,6 +96,17 @@ secret_error_get_quark (void)
 	return quark;
 }
 
+gboolean
+_secret_util_propagate_error (GSimpleAsyncResult *async,
+                              GError **error)
+{
+	if (!g_simple_async_result_propagate_error (async, error))
+		return FALSE;
+
+	_secret_util_strip_remote_error (error);
+	return TRUE;
+}
+
 void
 _secret_util_strip_remote_error (GError **error)
 {
@@ -206,7 +217,6 @@ on_get_properties (GObject *source,
 	if (error == NULL) {
 		process_get_all_reply (proxy, retval);
 	} else {
-		_secret_util_strip_remote_error (&error);
 		g_simple_async_result_take_error (res, error);
 	}
 	if (retval != NULL)
@@ -256,7 +266,7 @@ _secret_util_get_properties_finish (GDBusProxy *proxy,
 
 	res = G_SIMPLE_ASYNC_RESULT (result);
 
-	if (g_simple_async_result_propagate_error (res, error))
+	if (_secret_util_propagate_error (res, error))
 		return FALSE;
 
 	return TRUE;
@@ -291,7 +301,6 @@ on_set_property (GObject *source,
 	retval = g_dbus_connection_call_finish (G_DBUS_CONNECTION (source),
 	                                        result, &error);
 	if (error != NULL) {
-		_secret_util_strip_remote_error (&error);
 		g_simple_async_result_take_error (res, error);
 	}
 	if (retval != NULL)
@@ -357,7 +366,7 @@ _secret_util_set_property_finish (GDBusProxy *proxy,
 
 	res = G_SIMPLE_ASYNC_RESULT (result);
 
-	if (g_simple_async_result_propagate_error (res, error))
+	if (_secret_util_propagate_error (res, error))
 		return FALSE;
 
 	closure = g_simple_async_result_get_op_res_gpointer (res);
