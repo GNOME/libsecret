@@ -188,6 +188,7 @@ endif # HAVE_INTROSPECTION
 EXTRA_DIST = \
 	mock \
 	mock-service-delete.py \
+	mock-service-empty.py \
 	mock-service-lock.py \
 	mock-service-normal.py \
 	mock-service-only-plain.py \
