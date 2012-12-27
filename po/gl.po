@@ -1,0 +1,48 @@
+# Galician translations for PACKAGE package.
+# Copyright (C) 2012 THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# Fran Diéguez <frandieguez@gnome.org>, 2012.
+# Fran Dieguez <frandieguez@gnome.org>, 2012.
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2012-12-27 01:01+0100\n"
+"PO-Revision-Date: 2012-12-27 01:03+0200\n"
+"Last-Translator: Fran Dieguez <frandieguez@gnome.org>\n"
+"Language-Team: gnome-l10n-gl@gnome.org\n"
+"Language: gl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Virtaal 0.7.1\n"
+
+#: ../libsecret/secret-item.c:1164
+#, c-format
+msgid "Received invalid secret from the secret storage"
+msgstr "Recibiuse un segredo non válido desde o almacenamento de segredos"
+
+#: ../libsecret/secret-methods.c:1029
+msgid "Default keyring"
+msgstr "Anel de chaves por omisión"
+
+#: ../libsecret/secret-session.c:244 ../libsecret/secret-session.c:281
+msgid "Couldn't communicate with the secret storage"
+msgstr "Non foi posíbel comunicarse co almacenamento de segredos"
+
+#: ../tool/secret-tool.c:37
+msgid "the label for the new stored item"
+msgstr "a etiqueta para o novo elemento almacenado"
+
+#: ../tool/secret-tool.c:39
+msgid "the collection in which to place the stored item"
+msgstr "A colección na que se poñerá o elemento almacenado"
+
+#: ../tool/secret-tool.c:41 ../tool/secret-tool.c:48
+msgid "attribute value pairs of item to lookup"
+msgstr "pares de atributo-valor do elemento a buscar"
+
+#: ../tool/secret-tool.c:55
+msgid "attribute value pairs which match items to clear"
+msgstr "pares de atributo-valor nos que os elementos a limpar deben coincidir"
