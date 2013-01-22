@@ -1,0 +1,50 @@
+# Czech translation for libsecret.
+# Copyright (C) 2013 libsecret's COPYRIGHT HOLDER
+# This file is distributed under the same license as the libsecret package.
+#
+# Marek Černocký <marek@manet.cz>, 2013.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: libsecret master\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
+"product=libsecret&keywords=I18N+L10N&component=general\n"
+"POT-Creation-Date: 2013-01-15 15:37+0000\n"
+"PO-Revision-Date: 2013-01-22 09:43+0100\n"
+"Last-Translator: Marek Černocký <marek@manet.cz>\n"
+"Language-Team: Czech <gnome-cs-list@gnome.org>\n"
+"Language: cs\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
+"X-Generator: Gtranslator 2.91.6\n"
+
+#: ../libsecret/secret-item.c:1164
+#, c-format
+msgid "Received invalid secret from the secret storage"
+msgstr "Přijata neplatná tajná informace z úložiště tajných dat"
+
+#: ../libsecret/secret-methods.c:1029
+msgid "Default keyring"
+msgstr "Výchozí klíčenka"
+
+#: ../libsecret/secret-session.c:244 ../libsecret/secret-session.c:281
+msgid "Couldn't communicate with the secret storage"
+msgstr "Nelze komunikovat s úložištěm tajných dat"
+
+#: ../tool/secret-tool.c:37
+msgid "the label for the new stored item"
+msgstr "popisek pro nově ukládanou položku"
+
+#: ../tool/secret-tool.c:39
+msgid "the collection in which to place the stored item"
+msgstr "kolekce, do které se má umístit ukládaná položka"
+
+#: ../tool/secret-tool.c:41 ../tool/secret-tool.c:48
+msgid "attribute value pairs of item to lookup"
+msgstr "dvojice atribut – hodnota hledané položky"
+
+#: ../tool/secret-tool.c:55
+msgid "attribute value pairs which match items to clear"
+msgstr "dvojice atribut – hodnota, které odpovídají mazaným položkám"
