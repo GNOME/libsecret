@@ -146,7 +146,7 @@ if test "$GCC" = "yes"; then
 		-Wall -Wmissing-declarations \
 		-Wmissing-prototypes -Wnested-externs -Wpointer-arith \
 		-Wdeclaration-after-statement -Wformat=2 -Winit-self \
-		-Waggregate-return -Wmissing-format-attribute"
+		-Waggregate-return"
 
 	for option in -Wmissing-include-dirs -Wundef; do
 		SAVE_CFLAGS="$CFLAGS"
