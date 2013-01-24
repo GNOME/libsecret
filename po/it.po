@@ -1,0 +1,49 @@
+# Italian translations for libsecret
+# Copyright (C) 2013 the Free Software Foundation Inc.
+# This file is distributed under the same license as the libsecret package.
+# Milo Casagrande <milo@casagrande.name>, 2013.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: libsecret\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2013-01-24 22:00+0100\n"
+"PO-Revision-Date: 2013-01-24 22:04+0100\n"
+"Last-Translator: Milo Casagrande <milo@casagrande.name>\n"
+"Language-Team: Italian <tp@lists.linux.it>\n"
+"Language: it\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8-bit\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n"
+
+#: ../libsecret/secret-item.c:1164
+#, c-format
+msgid "Received invalid secret from the secret storage"
+msgstr ""
+"Ricevuto un segreto non valido dal dispositivo di archiviazione dei segreti"
+
+#: ../libsecret/secret-methods.c:1029
+msgid "Default keyring"
+msgstr "Portachiavi predefinito"
+
+#: ../libsecret/secret-session.c:244 ../libsecret/secret-session.c:281
+msgid "Couldn't communicate with the secret storage"
+msgstr "Impossibile comunicare col dispositivo di archiviazione dei segreti"
+
+#: ../tool/secret-tool.c:37
+msgid "the label for the new stored item"
+msgstr "l'etichetta per il nuovo elemento salvato"
+
+#: ../tool/secret-tool.c:39
+msgid "the collection in which to place the stored item"
+msgstr "la collezione in cui posizionare l'elemento salvato"
+
+#: ../tool/secret-tool.c:41 ../tool/secret-tool.c:48
+msgid "attribute value pairs of item to lookup"
+msgstr "coppia di valori dell'attributo dell'elemento da cercare"
+
+#: ../tool/secret-tool.c:55
+msgid "attribute value pairs which match items to clear"
+msgstr ""
+"coppia di valori dell'attributo corrispondenti all'attributo da eliminare"
