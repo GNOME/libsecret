@@ -60,8 +60,8 @@ AC_CHECK_FUNCS(mlock)
 # GLib
 
 PKG_CHECK_MODULES(GLIB,
-	glib-2.0 >= 2.31.0
-	gio-2.0 >= 2.31.0
+	glib-2.0 >= 2.32.0
+	gio-2.0 >= 2.32.0
 	gio-unix-2.0)
 LIBS="$LIBS $GLIB_LIBS"
 CFLAGS="$CFLAGS $GLIB_CFLAGS"

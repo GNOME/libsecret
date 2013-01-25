@@ -57,11 +57,11 @@ typedef struct {
 		lock, unlock, fallback, NULL, EGG_SECURE_POOL_VER_STR };
 
 #define EGG_SECURE_DEFINE_GLIB_GLOBALS() \
-	static GStaticMutex memory_mutex = G_STATIC_MUTEX_INIT; \
+	static GMutex memory_mutex = { NULL, }; \
 	static void egg_memory_lock (void) \
-		{ g_static_mutex_lock (&memory_mutex); } \
+		{ g_mutex_lock (&memory_mutex); } \
 	static void egg_memory_unlock (void) \
-		{ g_static_mutex_unlock (&memory_mutex); } \
+		{ g_mutex_unlock (&memory_mutex); } \
 	EGG_SECURE_DEFINE_GLOBALS (egg_memory_lock, egg_memory_unlock, g_realloc);
 
 extern egg_secure_glob EGG_SECURE_GLOBALS;
