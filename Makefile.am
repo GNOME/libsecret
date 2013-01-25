@@ -52,3 +52,6 @@ dist-check-valac:
 endif
 
 dist-hook: dist-check-valac
+
+distcleancheck_listfiles =  \
+       find . -name '*.gc[dn][oa]' -prune -o -type f -print
