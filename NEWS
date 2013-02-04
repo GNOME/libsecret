@@ -1,3 +1,7 @@
+0.13
+ * Updated translations
+ * Build fixes
+
 0.12
  * When storing a secret, create default keyring if necessary
  * Share the memory pool with the gcr or libgnome-keyring library.
