@@ -727,7 +727,7 @@ service_xlock_finish (SecretService *service,
 /**
  * secret_service_lock:
  * @service: (allow-none): the secret service
- * @objects: (element-type GLib.DBusProxy): the items or collections to lock
+ * @objects: (element-type Gio.DBusProxy): the items or collections to lock
  * @cancellable: optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to pass to the callback
@@ -761,7 +761,7 @@ secret_service_lock (SecretService *service,
  * secret_service_lock_finish:
  * @service: (allow-none): the secret service
  * @result: asynchronous result passed to the callback
- * @locked: (out) (element-type GLib.DBusProxy) (transfer full) (allow-none):
+ * @locked: (out) (element-type Gio.DBusProxy) (transfer full) (allow-none):
  *          location to place list of items or collections that were locked
  * @error: location to place an error on failure
  *
@@ -788,9 +788,9 @@ secret_service_lock_finish (SecretService *service,
 /**
  * secret_service_lock_sync:
  * @service: (allow-none): the secret service
- * @objects: (element-type GLib.DBusProxy): the items or collections to lock
+ * @objects: (element-type Gio.DBusProxy): the items or collections to lock
  * @cancellable: optional cancellation object
- * @locked: (out) (element-type GLib.DBusProxy) (transfer full) (allow-none):
+ * @locked: (out) (element-type Gio.DBusProxy) (transfer full) (allow-none):
  *          location to place list of items or collections that were locked
  * @error: location to place an error on failure
  *
@@ -841,7 +841,7 @@ secret_service_lock_sync (SecretService *service,
 /**
  * secret_service_unlock:
  * @service: (allow-none): the secret service
- * @objects: (element-type GLib.DBusProxy): the items or collections to unlock
+ * @objects: (element-type Gio.DBusProxy): the items or collections to unlock
  * @cancellable: optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to pass to the callback
@@ -875,7 +875,7 @@ secret_service_unlock (SecretService *service,
  * secret_service_unlock_finish:
  * @service: (allow-none): the secret service
  * @result: asynchronous result passed to the callback
- * @unlocked: (out) (element-type GLib.DBusProxy) (transfer full) (allow-none):
+ * @unlocked: (out) (element-type Gio.DBusProxy) (transfer full) (allow-none):
  *            location to place list of items or collections that were unlocked
  * @error: location to place an error on failure
  *
@@ -902,9 +902,9 @@ secret_service_unlock_finish (SecretService *service,
 /**
  * secret_service_unlock_sync:
  * @service: (allow-none): the secret service
- * @objects: (element-type GLib.DBusProxy): the items or collections to unlock
+ * @objects: (element-type Gio.DBusProxy): the items or collections to unlock
  * @cancellable: optional cancellation object
- * @unlocked: (out) (element-type GLib.DBusProxy) (transfer full) (allow-none):
+ * @unlocked: (out) (element-type Gio.DBusProxy) (transfer full) (allow-none):
  *            location to place list of items or collections that were unlocked
  * @error: location to place an error on failure
  *
