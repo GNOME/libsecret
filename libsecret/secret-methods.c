@@ -958,6 +958,7 @@ typedef struct {
 	SecretValue *value;
 	GHashTable *properties;
 	gboolean created_collection;
+	gboolean unlocked_collection;
 } StoreClosure;
 
 static void
@@ -1005,6 +1006,31 @@ on_store_keyring (GObject *source,
 }
 
 static void
+on_store_unlock (GObject *source,
+                 GAsyncResult *result,
+                 gpointer user_data)
+{
+	GSimpleAsyncResult *async = G_SIMPLE_ASYNC_RESULT (user_data);
+	StoreClosure *store = g_simple_async_result_get_op_res_gpointer (async);
+	SecretService *service = SECRET_SERVICE (source);
+	GError *error = NULL;
+
+	secret_service_unlock_dbus_paths_finish (service, result, NULL, &error);
+	if (error == NULL) {
+		store->unlocked_collection = TRUE;
+		secret_service_create_item_dbus_path (service, store->collection_path,
+		                                      store->properties, store->value,
+		                                      SECRET_ITEM_CREATE_REPLACE, store->cancellable,
+		                                      on_store_create, g_object_ref (async));
+	} else {
+		g_simple_async_result_take_error (async, error);
+		g_simple_async_result_complete (async);
+	}
+
+	g_object_unref (async);
+}
+
+static void
 on_store_create (GObject *source,
                  GAsyncResult *result,
                  gpointer user_data)
@@ -1033,6 +1059,12 @@ on_store_create (GObject *source,
 		g_hash_table_unref (properties);
 		g_error_free (error);
 
+	} else if (!store->unlocked_collection &&
+	           g_error_matches (error, SECRET_ERROR, SECRET_ERROR_IS_LOCKED)) {
+		const gchar *paths[2] = { store->collection_path, NULL };
+		secret_service_unlock_dbus_paths (service, paths, store->cancellable,
+		                                  on_store_unlock, g_object_ref (async));
+		g_error_free (error);
 	} else {
 		if (error != NULL)
 			g_simple_async_result_take_error (async, error);

@@ -392,6 +392,8 @@ class SecretCollection(dbus.service.Object):
 		session = objects.get(session_path, None)
 		if not session or session.sender != sender:
 			raise InvalidArgs("session invalid: %s" % session_path)
+		if self.locked:
+			raise IsLocked("collection is locked: %s" % self.path)
 
 		attributes = properties.get("org.freedesktop.Secret.Item.Attributes", { })
 		label = properties.get("org.freedesktop.Secret.Item.Label", None)

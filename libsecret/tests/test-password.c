@@ -225,6 +225,71 @@ test_store_async (Test *test,
 }
 
 static void
+test_store_unlock (Test *test,
+                   gconstpointer unused)
+{
+	const gchar *collection_path = "/org/freedesktop/secrets/collection/english";
+	GAsyncResult *result = NULL;
+	SecretCollection *collection;
+	SecretService *service;
+	GError *error = NULL;
+	gchar *password;
+	gboolean ret;
+	GList *objects;
+	gint count;
+
+	service = secret_service_get_sync (SECRET_SERVICE_NONE, NULL, &error);
+	g_assert_no_error (error);
+
+	/* Check collection state */
+	collection = secret_collection_new_for_dbus_path_sync (service, collection_path,
+	                                                       SECRET_COLLECTION_NONE, NULL, &error);
+	g_assert_no_error (error);
+	g_assert (secret_collection_get_locked (collection) == FALSE);
+
+	/* Lock it, use async, so collection properties update */
+	objects = g_list_append (NULL, collection);
+	secret_service_lock (service, objects, NULL, on_complete_get_result, &result);
+	egg_test_wait ();
+	count = secret_service_lock_finish (service, result, NULL, &error);
+	g_assert_cmpint (count, ==, 1);
+	g_clear_object (&result);
+	g_list_free (objects);
+
+	/* Check collection state */
+	g_assert (secret_collection_get_locked (collection) == TRUE);
+
+	/* Store the password, use async so collection properties update */
+	secret_password_store (&MOCK_SCHEMA, collection_path, "Label here",
+	                       "the password", NULL, on_complete_get_result, &result,
+	                       "even", TRUE,
+	                       "string", "twelve",
+	                       "number", 12,
+	                       NULL);
+	g_assert (result == NULL);
+	egg_test_wait ();
+	ret = secret_password_store_finish (result, &error);
+	g_assert_no_error (error);
+	g_assert (ret == TRUE);
+	g_clear_object (&result);
+
+	/* Check collection state */
+	g_assert (secret_collection_get_locked (collection) == FALSE);
+
+
+	password = secret_password_lookup_nonpageable_sync (&MOCK_SCHEMA, NULL, &error,
+	                                                    "string", "twelve",
+	                                                    NULL);
+
+	g_assert_no_error (error);
+	g_assert_cmpstr (password, ==, "the password");
+
+	secret_password_free (password);
+	g_object_unref (collection);
+	g_object_unref (service);
+}
+
+static void
 test_delete_sync (Test *test,
                   gconstpointer used)
 {
@@ -320,6 +385,7 @@ main (int argc, char **argv)
 
 	g_test_add ("/password/store-sync", Test, "mock-service-normal.py", setup, test_store_sync, teardown);
 	g_test_add ("/password/store-async", Test, "mock-service-normal.py", setup, test_store_async, teardown);
+	g_test_add ("/password/store-unlock", Test, "mock-service-normal.py", setup, test_store_unlock, teardown);
 
 	g_test_add ("/password/delete-sync", Test, "mock-service-delete.py", setup, test_delete_sync, teardown);
 	g_test_add ("/password/delete-async", Test, "mock-service-delete.py", setup, test_delete_async, teardown);
