@@ -102,8 +102,7 @@ egg_libgcrypt_initialize (void)
 		
 		/* Only initialize libgcrypt if it hasn't already been initialized */
 		if (!gcry_control (GCRYCTL_INITIALIZATION_FINISHED_P)) {
-			if (g_thread_supported())
-				gcry_control (GCRYCTL_SET_THREAD_CBS, &glib_thread_cbs);
+			gcry_control (GCRYCTL_SET_THREAD_CBS, &glib_thread_cbs);
 			gcry_check_version (LIBGCRYPT_VERSION);
 			gcry_set_log_handler (log_handler, NULL);
 			gcry_set_outofcore_handler (no_mem_handler, NULL);
