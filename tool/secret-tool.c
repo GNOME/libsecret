@@ -14,6 +14,7 @@
 
 #include "config.h"
 
+#include "secret-item.h"
 #include "secret-password.h"
 #include "secret-service.h"
 #include "secret-value.h"
@@ -24,6 +25,7 @@
 #include <locale.h>
 #include <limits.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define SECRET_ALIAS_PREFIX "/org/freedesktop/secrets/aliases/"
 
@@ -66,6 +68,7 @@ usage (void)
 	g_printerr ("usage: secret-tool store --label='label' attribute value ...\n");
 	g_printerr ("       secret-tool lookup attribute value ...\n");
 	g_printerr ("       secret-tool clear attribute value ...\n");
+	g_printerr ("       secret-tool search [--all] [--details] attribute value ...\n");
 	exit (2);
 }
 
@@ -150,16 +153,11 @@ secret_tool_action_clear (int argc,
 }
 
 static void
-write_password_stdout (SecretValue *value)
+write_password_data (SecretValue *value)
 {
 	const gchar *at;
 	gsize length;
 	int r;
-
-	if (!is_password_value (value)) {
-		g_printerr ("%s: secret does not contain a textual password\n", g_get_prgname ());
-		exit (1);
-	}
 
 	at = secret_value_get (value, &length);
 
@@ -176,6 +174,17 @@ write_password_stdout (SecretValue *value)
 			length -= r;
 		}
 	}
+}
+
+static void
+write_password_stdout (SecretValue *value)
+{
+	if (!is_password_value (value)) {
+		g_printerr ("%s: secret does not contain a textual password\n", g_get_prgname ());
+		exit (1);
+	}
+
+	write_password_data (value);
 
 	/* Add a new line if we're writing out to a tty */
 	if (isatty (1))
@@ -331,6 +340,143 @@ secret_tool_action_store (int argc,
 	return 0;
 }
 
+static void
+print_item_when (const char *field,
+                 guint64 when)
+{
+	GDateTime *dt;
+	gchar *value;
+
+	if (!when) {
+		value = g_strdup ("");
+	} else {
+		dt = g_date_time_new_from_unix_utc (when);
+		value = g_date_time_format (dt, "%Y-%m-%d %H:%M:%S");
+		g_date_time_unref (dt);
+	}
+
+	g_print ("%s = %s\n", field, value);
+	g_free (value);
+}
+
+static void
+print_item_details (SecretItem *item)
+{
+	SecretValue *secret;
+	GHashTableIter iter;
+	GHashTable *attributes;
+	gchar *value, *key;
+	guint64 when;
+	const gchar *part;
+	const gchar *path;
+
+	path = g_dbus_proxy_get_object_path (G_DBUS_PROXY (item));
+	g_return_if_fail (path != NULL);
+
+	/* The item identifier */
+	part = strrchr (path, '/');
+	if (part == NULL)
+		part = path;
+	g_print ("[%s]\n", path);
+
+	/* The label */
+	value = secret_item_get_label (item);
+	g_print ("label = %s\n", value);
+	g_free (value);
+
+	/* The secret value */
+	secret = secret_item_get_secret (item);
+	g_print ("secret = ");
+	if (secret != NULL) {
+		write_password_data (secret);
+		secret_value_unref (secret);
+	}
+	g_print ("\n");
+
+	/* The dates */
+	when = secret_item_get_created (item);
+	print_item_when ("created", when);
+	when = secret_item_get_modified (item);
+	print_item_when ("modified", when);
+
+	/* The schema */
+	value = secret_item_get_schema_name (item);
+	g_print ("schema = %s\n", value);
+	g_free (value);
+
+	/* The attributes */
+	attributes = secret_item_get_attributes (item);
+	g_hash_table_iter_init (&iter, attributes);
+	while (g_hash_table_iter_next (&iter, (void **)&key, (void **)&value)) {
+		if (strcmp (key, "xdg:schema") != 0)
+			g_printerr ("attribute.%s = %s\n", key, value);
+	}
+	g_hash_table_unref (attributes);
+}
+
+static int
+secret_tool_action_search (int argc,
+                           char *argv[])
+{
+	GError *error = NULL;
+	GOptionContext *context;
+	SecretService *service;
+	GHashTable *attributes;
+	SecretSearchFlags flags;
+	gboolean flag_all = FALSE;
+	gboolean flag_unlock = FALSE;
+	GList *items, *l;
+
+	/* secret-tool lookup name xxxx yyyy zzzz */
+	const GOptionEntry lookup_options[] = {
+		{ "all", 'a', 0, G_OPTION_ARG_NONE, &flag_all,
+		  N_("return all results, instead of just first one"), NULL },
+		{ "unlock", 'a', 0, G_OPTION_ARG_NONE, &flag_unlock,
+		  N_("unlock item results if necessary"), NULL },
+		{ G_OPTION_REMAINING, 0, 0, G_OPTION_ARG_STRING_ARRAY, &attribute_args,
+		  N_("attribute value pairs of item to lookup"), NULL },
+		{ NULL }
+	};
+
+	context = g_option_context_new ("attribute value ...");
+	g_option_context_add_main_entries (context, lookup_options, GETTEXT_PACKAGE);
+	if (!g_option_context_parse (context, &argc, &argv, &error)) {
+		g_printerr ("%s\n", error->message);
+		usage();
+	}
+
+	g_option_context_free (context);
+
+	attributes = attributes_from_arguments (attribute_args);
+	g_strfreev (attribute_args);
+
+	service = secret_service_get_sync (SECRET_SERVICE_NONE, NULL, &error);
+	if (error == NULL) {
+		flags = SECRET_SEARCH_LOAD_SECRETS;
+		if (flag_all)
+			flags |= SECRET_SEARCH_ALL;
+		if (flag_unlock)
+			flags |= SECRET_SEARCH_UNLOCK;
+		items = secret_service_search_sync (service, NULL, attributes, flags, NULL, &error);
+		if (error == NULL) {
+			for (l = items; l != NULL; l = g_list_next (l))
+				print_item_details (l->data);
+			g_list_free_full (items, g_object_unref);
+		}
+
+		g_object_unref (service);
+	}
+
+	g_hash_table_unref (attributes);
+
+	if (error != NULL) {
+		g_printerr ("%s: %s\n", g_get_prgname (), error->message);
+		return 1;
+	}
+
+	return 0;
+}
+
 int
 main (int argc,
       char *argv[])
@@ -358,6 +504,8 @@ main (int argc,
 		action = secret_tool_action_lookup;
 	} else if (g_str_equal (argv[1], "clear")) {
 		action = secret_tool_action_clear;
+	} else if (g_str_equal (argv[1], "search")) {
+		action = secret_tool_action_search;
 	} else {
 		usage ();
 	}
