@@ -4,14 +4,14 @@
 # pomóc w jego rozwijaniu i pielęgnowaniu, napisz do nas:
 # gnomepl@aviary.pl
 # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-# Piotr Drąg <piotrdrag@gmail.com>, 2012.
-# Aviary.pl <gnomepl@aviary.pl>, 2012.
+# Piotr Drąg <piotrdrag@gmail.com>, 2012-2013.
+# Aviary.pl <gnomepl@aviary.pl>, 2012-2013.
 msgid ""
 msgstr ""
 "Project-Id-Version: libsecret\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-12-04 00:43+0100\n"
-"PO-Revision-Date: 2012-12-04 00:44+0100\n"
+"POT-Creation-Date: 2013-02-18 16:11+0100\n"
+"PO-Revision-Date: 2013-02-18 16:12+0100\n"
 "Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
 "Language-Team: Polish <gnomepl@aviary.pl>\n"
 "Language: pl\n"
@@ -36,18 +36,26 @@ msgstr "Domyślna baza kluczy"
 msgid "Couldn't communicate with the secret storage"
 msgstr "Nie można komunikować się z przechowalnią"
 
-#: ../tool/secret-tool.c:37
+#: ../tool/secret-tool.c:39
 msgid "the label for the new stored item"
 msgstr "etykieta dla nowo przechowywanego elementu"
 
-#: ../tool/secret-tool.c:39
+#: ../tool/secret-tool.c:41
 msgid "the collection in which to place the stored item"
 msgstr "kolekcja, w której umieścić przechowywany element"
 
-#: ../tool/secret-tool.c:41 ../tool/secret-tool.c:48
+#: ../tool/secret-tool.c:43 ../tool/secret-tool.c:50 ../tool/secret-tool.c:437
 msgid "attribute value pairs of item to lookup"
 msgstr "pary wartości atrybutu wyszukiwanego elementu"
 
-#: ../tool/secret-tool.c:55
+#: ../tool/secret-tool.c:57
 msgid "attribute value pairs which match items to clear"
 msgstr "pary wartości atrybutu pasujące do czyszczonych elementów"
+
+#: ../tool/secret-tool.c:433
+msgid "return all results, instead of just first one"
+msgstr "zwraca wszystkie wyniki, zamiast tylko pierwszego"
+
+#: ../tool/secret-tool.c:435
+msgid "unlock item results if necessary"
+msgstr "odblokowuje wyniki elementów, jeśli to potrzebne"
