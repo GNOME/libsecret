@@ -212,6 +212,22 @@ _secret_attributes_validate (const SecretSchema *schema,
 	while (g_hash_table_iter_next (&iter, (gpointer *)&key, (gpointer *)&value)) {
 		any = TRUE;
 
+		/* If the 'xdg:schema' meta-attribute is present,
+		   ensure that it is consistent with the schema
+		   name. */
+		if (g_str_equal (key, "xdg:schema")) {
+			if (!g_str_equal (value, schema->name)) {
+				g_critical ("%s: xdg:schema value %s differs from schema %s:",
+					    pretty_function, value, schema->name);
+				return FALSE;
+			}
+			continue;
+		}
+
+		/* Pass through libgnomekeyring specific attributes */
+		if (g_str_has_prefix (key, "gkr:"))
+			continue;
+
 		/* Find the attribute */
 		attribute = NULL;
 		for (i = 0; i < G_N_ELEMENTS (schema->attributes); i++) {
