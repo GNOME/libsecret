@@ -151,13 +151,13 @@ secret_value_new_full (gchar *secret,
 /**
  * secret_value_get:
  * @value: the value
- * @length: (out): the length of the secret
+ * @length: the length of the secret
  *
  * Get the secret data in the #SecretValue. The value is not necessarily
  * null-terminated unless it was created with secret_value_new() or a
  * null-terminated string was passed to secret_value_new_full().
  *
- * Returns: (array length=length): the secret data
+ * Returns: (array length=length) (element-type guint8): the secret data
  */
 const gchar *
 secret_value_get (SecretValue *value,
