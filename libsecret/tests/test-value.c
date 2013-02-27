@@ -95,6 +95,28 @@ test_new_full_terminated (void)
 }
 
 static void
+test_new_empty (void)
+{
+	SecretValue *value;
+	const gchar *password;
+	gsize length;
+
+	value = secret_value_new (NULL, 0, "text/plain");
+	g_assert (value != NULL);
+	password = secret_value_get (value, &length);
+	g_assert_cmpuint (length, ==, 0);
+	g_assert_cmpstr (password, ==, "");
+	secret_value_unref (value);
+
+	value = secret_value_new ("", 0, "text/plain");
+	g_assert (value != NULL);
+	password = secret_value_get (value, &length);
+	g_assert_cmpuint (length, ==, 0);
+	g_assert_cmpstr (password, ==, "");
+	secret_value_unref (value);
+}
+
+static void
 test_ref_unref (void)
 {
 	SecretValue *value;
@@ -202,6 +224,7 @@ main (int argc, char **argv)
 	g_test_add_func ("/value/new-terminated", test_new_terminated);
 	g_test_add_func ("/value/new-full", test_new_full);
 	g_test_add_func ("/value/new-full-terminated", test_new_full_terminated);
+	g_test_add_func ("/value/new-empty", test_new_empty);
 	g_test_add_func ("/value/ref-unref", test_ref_unref);
 	g_test_add_func ("/value/boxed", test_boxed);
 	g_test_add_func ("/value/to-password", test_to_password);

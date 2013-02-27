@@ -97,14 +97,15 @@ secret_value_new (const gchar *secret,
 {
 	gchar *copy;
 
-	g_return_val_if_fail (secret == NULL || length != 0, NULL);
+	g_return_val_if_fail (length == 0 || secret != NULL, NULL);
 	g_return_val_if_fail (content_type, NULL);
 
 	if (length < 0)
 		length = strlen (secret);
 
 	copy = egg_secure_alloc (length + 1);
-	memcpy (copy, secret, length);
+	if (secret)
+		memcpy (copy, secret, length);
 	copy[length] = 0;
 	return secret_value_new_full (copy, length, content_type, egg_secure_free);
 }
@@ -132,7 +133,6 @@ secret_value_new_full (gchar *secret,
 {
 	SecretValue *value;
 
-	g_return_val_if_fail (secret == NULL || length != 0, NULL);
 	g_return_val_if_fail (content_type, NULL);
 
 	if (length < 0)
