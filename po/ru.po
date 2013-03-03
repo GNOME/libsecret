@@ -1,0 +1,58 @@
+# Russian translation for libsecret.
+# Copyright (C) 2013 libsecret's COPYRIGHT HOLDER
+# This file is distributed under the same license as the libsecret package.
+# Stas Solovey <whats_up@tut.by>, 2013.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: libsecret master\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
+"product=libsecret&keywords=I18N+L10N&component=general\n"
+"POT-Creation-Date: 2013-02-26 18:31+0000\n"
+"PO-Revision-Date: 2013-03-02 16:26+0300\n"
+"Last-Translator: Stas Solovey <whats_up@tut.by>\n"
+"Language-Team: Russian <gnome-cyr@gnome.org>\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2)\n"
+"X-Generator: Gtranslator 2.91.6\n"
+
+#: ../libsecret/secret-item.c:1164
+#, c-format
+msgid "Received invalid secret from the secret storage"
+msgstr "Получен неверный секретный ключ из хранилища"
+
+#: ../libsecret/secret-methods.c:1055
+msgid "Default keyring"
+msgstr "Связка ключей по умолчанию"
+
+#: ../libsecret/secret-session.c:244 ../libsecret/secret-session.c:281
+msgid "Couldn't communicate with the secret storage"
+msgstr "Не удалось связаться с хранилищем секретных ключей"
+
+#: ../tool/secret-tool.c:39
+msgid "the label for the new stored item"
+msgstr "метка для нового сохранённого значения"
+
+#: ../tool/secret-tool.c:41
+msgid "the collection in which to place the stored item"
+msgstr "коллекция, в которую помещается сохранённое значение"
+
+#: ../tool/secret-tool.c:43 ../tool/secret-tool.c:50 ../tool/secret-tool.c:437
+msgid "attribute value pairs of item to lookup"
+msgstr "значения пары атрибутов для поиска"
+
+#: ../tool/secret-tool.c:57
+msgid "attribute value pairs which match items to clear"
+msgstr "значения пары атрибутов, соответствующие удаляемым"
+
+#: ../tool/secret-tool.c:433
+msgid "return all results, instead of just first one"
+msgstr "выводить все результаты, а не только первый"
+
+#: ../tool/secret-tool.c:435
+msgid "unlock item results if necessary"
+msgstr "разблокировать результаты значений при необходимости"
