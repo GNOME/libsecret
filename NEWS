@@ -1,3 +1,11 @@
+0.14
+ * Add a 'search' command to the tool for looking up items [#693881]
+ * Try to unlock locked collection when storing an item [#693723]
+ * Improve validation of the attributes table [#694107]
+ * Allow empty SecretValue contents [#694787]
+ * Introspection fixes [#694448]
+ * Updated translations
+
 0.13
  * Updated translations
  * Build fixes
