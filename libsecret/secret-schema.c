@@ -53,7 +53,7 @@
  * 			{  "number", SECRET_SCHEMA_ATTRIBUTE_INTEGER },
  * 			{  "string", SECRET_SCHEMA_ATTRIBUTE_STRING },
  * 			{  "even", SECRET_SCHEMA_ATTRIBUTE_BOOLEAN },
- * 			{  "NULL", 0 },
+ * 			{  NULL, 0 },
  * 		}
  * 	};
  * 	return &the_schema;

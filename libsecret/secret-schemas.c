@@ -32,7 +32,7 @@ static const SecretSchema note_schema = {
 	"org.gnome.keyring.Note",
 	SECRET_SCHEMA_NONE,
 	{
-		{  "NULL", 0 },
+		{  NULL, 0 },
 	}
 };
 
@@ -80,7 +80,7 @@ static const SecretSchema network_schema = {
 		{  "port", SECRET_SCHEMA_ATTRIBUTE_INTEGER },
 		{  "server", SECRET_SCHEMA_ATTRIBUTE_STRING },
 		{  "authtype", SECRET_SCHEMA_ATTRIBUTE_STRING },
-		{  "NULL", 0 },
+		{  NULL, 0 },
 	}
 };
 
