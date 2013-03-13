@@ -1,15 +1,15 @@
 # Italian translations for libsecret
 # Copyright (C) 2013 the Free Software Foundation Inc.
 # This file is distributed under the same license as the libsecret package.
-# Milo Casagrande <milo@casagrande.name>, 2013.
+# Milo Casagrande <milo@ubuntu.com>, 2013.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: libsecret\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-01-24 22:00+0100\n"
-"PO-Revision-Date: 2013-01-24 22:04+0100\n"
-"Last-Translator: Milo Casagrande <milo@casagrande.name>\n"
+"POT-Creation-Date: 2013-03-13 21:38+0100\n"
+"PO-Revision-Date: 2013-03-13 21:40+0100\n"
+"Last-Translator: Milo Casagrande <milo@ubuntu.com>\n"
 "Language-Team: Italian <tp@lists.linux.it>\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
@@ -23,7 +23,7 @@ msgid "Received invalid secret from the secret storage"
 msgstr ""
 "Ricevuto un segreto non valido dal dispositivo di archiviazione dei segreti"
 
-#: ../libsecret/secret-methods.c:1029
+#: ../libsecret/secret-methods.c:1055
 msgid "Default keyring"
 msgstr "Portachiavi predefinito"
 
@@ -31,19 +31,27 @@ msgstr "Portachiavi predefinito"
 msgid "Couldn't communicate with the secret storage"
 msgstr "Impossibile comunicare col dispositivo di archiviazione dei segreti"
 
-#: ../tool/secret-tool.c:37
+#: ../tool/secret-tool.c:39
 msgid "the label for the new stored item"
 msgstr "l'etichetta per il nuovo elemento salvato"
 
-#: ../tool/secret-tool.c:39
+#: ../tool/secret-tool.c:41
 msgid "the collection in which to place the stored item"
 msgstr "la collezione in cui posizionare l'elemento salvato"
 
-#: ../tool/secret-tool.c:41 ../tool/secret-tool.c:48
+#: ../tool/secret-tool.c:43 ../tool/secret-tool.c:50 ../tool/secret-tool.c:437
 msgid "attribute value pairs of item to lookup"
 msgstr "coppia di valori dell'attributo dell'elemento da cercare"
 
-#: ../tool/secret-tool.c:55
+#: ../tool/secret-tool.c:57
 msgid "attribute value pairs which match items to clear"
 msgstr ""
 "coppia di valori dell'attributo corrispondenti all'attributo da eliminare"
+
+#: ../tool/secret-tool.c:433
+msgid "return all results, instead of just first one"
+msgstr "restituisce tutti i risultati invece che solamente il primo"
+
+#: ../tool/secret-tool.c:435
+msgid "unlock item results if necessary"
+msgstr "sblocca gli oggetti dei risultati se necessario"
