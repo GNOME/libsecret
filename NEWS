@@ -1,3 +1,7 @@
+0.15
+ * Tweak predefined schemas [#695791]
+ * Updated translations
+
 0.14
  * Add a 'search' command to the tool for looking up items [#693881]
  * Try to unlock locked collection when storing an item [#693723]
