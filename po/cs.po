@@ -1,7 +1,6 @@
 # Czech translation for libsecret.
 # Copyright (C) 2013 libsecret's COPYRIGHT HOLDER
 # This file is distributed under the same license as the libsecret package.
-#
 # Marek Černocký <marek@manet.cz>, 2013.
 #
 msgid ""
@@ -9,8 +8,8 @@ msgstr ""
 "Project-Id-Version: libsecret master\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
 "product=libsecret&keywords=I18N+L10N&component=general\n"
-"POT-Creation-Date: 2013-01-15 15:37+0000\n"
-"PO-Revision-Date: 2013-01-22 09:43+0100\n"
+"POT-Creation-Date: 2013-02-18 14:22+0000\n"
+"PO-Revision-Date: 2013-03-18 21:05+0100\n"
 "Last-Translator: Marek Černocký <marek@manet.cz>\n"
 "Language-Team: Czech <gnome-cs-list@gnome.org>\n"
 "Language: cs\n"
@@ -33,18 +32,26 @@ msgstr "Výchozí klíčenka"
 msgid "Couldn't communicate with the secret storage"
 msgstr "Nelze komunikovat s úložištěm tajných dat"
 
-#: ../tool/secret-tool.c:37
+#: ../tool/secret-tool.c:39
 msgid "the label for the new stored item"
 msgstr "popisek pro nově ukládanou položku"
 
-#: ../tool/secret-tool.c:39
+#: ../tool/secret-tool.c:41
 msgid "the collection in which to place the stored item"
 msgstr "kolekce, do které se má umístit ukládaná položka"
 
-#: ../tool/secret-tool.c:41 ../tool/secret-tool.c:48
+#: ../tool/secret-tool.c:43 ../tool/secret-tool.c:50 ../tool/secret-tool.c:437
 msgid "attribute value pairs of item to lookup"
 msgstr "dvojice atribut – hodnota hledané položky"
 
-#: ../tool/secret-tool.c:55
+#: ../tool/secret-tool.c:57
 msgid "attribute value pairs which match items to clear"
 msgstr "dvojice atribut – hodnota, které odpovídají mazaným položkám"
+
+#: ../tool/secret-tool.c:433
+msgid "return all results, instead of just first one"
+msgstr "vrátit všechny výsledky, ne jen první"
+
+#: ../tool/secret-tool.c:435
+msgid "unlock item results if necessary"
+msgstr "odemknout položky výsledků, pokud je potřeba"
