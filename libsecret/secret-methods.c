@@ -354,15 +354,15 @@ secret_service_search_finish (SecretService *service,
 	SearchClosure *closure;
 	GList *items = NULL;
 
-	g_return_val_if_fail (service == NULL || SECRET_IS_SERVICE (service), FALSE);
-	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+	g_return_val_if_fail (service == NULL || SECRET_IS_SERVICE (service), NULL);
+	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (service),
-	                      secret_service_search), FALSE);
+	                      secret_service_search), NULL);
 
 	res = G_SIMPLE_ASYNC_RESULT (result);
 
 	if (_secret_util_propagate_error (res, error))
-		return FALSE;
+		return NULL;
 
 	closure = g_simple_async_result_get_op_res_gpointer (res);
 	if (closure->unlocked)
