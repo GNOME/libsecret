@@ -1,0 +1,54 @@
+# Norwegian bokmål translation of libsecret.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# Kjartan Maraas <kmaraas@gnome.org>, 2013.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: libsecret 3.9.x\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2013-06-02 02:18+0200\n"
+"PO-Revision-Date: 2013-06-02 02:21+0200\n"
+"Last-Translator: Kjartan Maraas <kmaraas@gnome.org>\n"
+"Language-Team: Norwegian bokmål <i18n-nb@lister.ping.uio.no>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../libsecret/secret-item.c:1164
+#, c-format
+msgid "Received invalid secret from the secret storage"
+msgstr "Mottok ugyldig hemmelighet fra hemmelig lager"
+
+#: ../libsecret/secret-methods.c:1055
+msgid "Default keyring"
+msgstr "Forvalgt nøkkelring"
+
+#: ../libsecret/secret-session.c:244 ../libsecret/secret-session.c:281
+msgid "Couldn't communicate with the secret storage"
+msgstr "Kunne ikke kommunisere med hemmelig lager"
+
+#: ../tool/secret-tool.c:39
+msgid "the label for the new stored item"
+msgstr "etikett for den nye lagrede oppføringen"
+
+#: ../tool/secret-tool.c:41
+msgid "the collection in which to place the stored item"
+msgstr ""
+
+#: ../tool/secret-tool.c:43 ../tool/secret-tool.c:50 ../tool/secret-tool.c:437
+msgid "attribute value pairs of item to lookup"
+msgstr ""
+
+#: ../tool/secret-tool.c:57
+msgid "attribute value pairs which match items to clear"
+msgstr ""
+
+#: ../tool/secret-tool.c:433
+msgid "return all results, instead of just first one"
+msgstr "returner alle resultater i stedet for bare det første"
+
+#: ../tool/secret-tool.c:435
+msgid "unlock item results if necessary"
+msgstr "lås opp oppføringsresultater hvis nødvendig"
