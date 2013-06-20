@@ -43,6 +43,8 @@ SecretValue *       secret_value_new_full          (gchar *secret,
 const gchar *       secret_value_get               (SecretValue *value,
                                                     gsize *length);
 
+const gchar *       secret_value_get_text          (SecretValue *value);
+
 const gchar *       secret_value_get_content_type  (SecretValue *value);
 
 SecretValue *       secret_value_ref               (SecretValue *value);

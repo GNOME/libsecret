@@ -44,6 +44,8 @@
  * Stability: Unstable
  */
 
+static gboolean     is_password_value    (SecretValue *value);
+
 /**
  * SecretValue:
  *
@@ -166,6 +168,26 @@ secret_value_get (SecretValue *value,
 	g_return_val_if_fail (value, NULL);
 	if (length)
 		*length = value->length;
+	return value->secret;
+}
+
+/**
+ * secret_value_get_text:
+ * @value: the value
+ *
+ * Get the secret data in the #SecretValue if it contains a textual
+ * value. The content type must be <literal>text/plain</literal>.
+ *
+ * Returns: (allow-none): the content type
+ */
+const gchar *
+secret_value_get_text (SecretValue *value)
+{
+	g_return_val_if_fail (value, NULL);
+
+	if (!is_password_value (value))
+		return NULL;
+
 	return value->secret;
 }
 
