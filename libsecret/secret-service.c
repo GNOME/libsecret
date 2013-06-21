@@ -38,12 +38,12 @@
  * Normally a single #SecretService object can be shared between multiple
  * callers. The secret_service_get() method is used to access this #SecretService
  * object. If a new independent #SecretService object is required, use
- * secret_service_new().
+ * secret_service_open().
  *
  * In order to securely transfer secrets to the Sercret Service, an session
  * is established. This session can be established while initializing a
  * #SecretService object by passing the %SECRET_SERVICE_OPEN_SESSION flag
- * to the secret_service_get() or secret_service_new() functions. In order to
+ * to the secret_service_get() or secret_service_open() functions. In order to
  * establish a session on an already existing #SecretService, use the
  * secret_service_ensure_session() function.
  *
@@ -53,7 +53,7 @@
  * secret items. In order to instantiate #SecretCollection objects which
  * represent those collections while initializing a #SecretService then pass
  * the %SECRET_SERVICE_LOAD_COLLECTIONS flag to the secret_service_get() or
- * secret_service_new() functions. In order to establish a session on an already
+ * secret_service_open() functions. In order to establish a session on an already
  * existing #SecretService, use the secret_service_load_collections() function.
  * To access the list of collections use secret_service_get_collections().
  *
@@ -101,7 +101,7 @@
  *                                   #SecretService
  *
  * Flags which determine which parts of the #SecretService proxy are initialized
- * during a secret_service_get() or secret_service_new() operation.
+ * during a secret_service_get() or secret_service_open() operation.
  */
 
 EGG_SECURE_DEFINE_GLIB_GLOBALS ();
@@ -537,7 +537,7 @@ secret_service_class_init (SecretServiceClass *klass)
 	 *
 	 * To load the collections, specify the %SECRET_SERVICE_LOAD_COLLECTIONS
 	 * initialization flag when calling the secret_service_get() or
-	 * secret_service_new() functions. Or call the secret_service_load_collections()
+	 * secret_service_open() functions. Or call the secret_service_load_collections()
 	 * method.
 	 */
 	g_object_class_install_property (object_class, PROP_COLLECTIONS,
@@ -914,7 +914,7 @@ secret_service_disconnect (void)
 }
 
 /**
- * secret_service_new:
+ * secret_service_open:
  * @service_gtype: the GType of the new secret service
  * @service_bus_name: (allow-none): the D-Bus service name of the secret service
  * @flags: flags for which service functionality to ensure is initialized
@@ -937,12 +937,12 @@ secret_service_disconnect (void)
  * This method will return immediately and complete asynchronously.
  */
 void
-secret_service_new (GType service_gtype,
-                    const gchar *service_bus_name,
-                    SecretServiceFlags flags,
-                    GCancellable *cancellable,
-                    GAsyncReadyCallback callback,
-                    gpointer user_data)
+secret_service_open (GType service_gtype,
+                     const gchar *service_bus_name,
+                     SecretServiceFlags flags,
+                     GCancellable *cancellable,
+                     GAsyncReadyCallback callback,
+                     gpointer user_data)
 {
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 	g_return_if_fail (g_type_is_a (service_gtype, SECRET_TYPE_SERVICE));
@@ -963,7 +963,7 @@ secret_service_new (GType service_gtype,
 }
 
 /**
- * secret_service_new_finish:
+ * secret_service_open_finish:
  * @result: the asynchronous result passed to the callback
  * @error: location to place an error on failure
  *
@@ -974,8 +974,8 @@ secret_service_new (GType service_gtype,
  *          should be released with g_object_unref().
  */
 SecretService *
-secret_service_new_finish (GAsyncResult *result,
-                           GError **error)
+secret_service_open_finish (GAsyncResult *result,
+                            GError **error)
 {
 	GObject *source_object;
 	GObject *object;
@@ -995,7 +995,7 @@ secret_service_new_finish (GAsyncResult *result,
 }
 
 /**
- * secret_service_new_sync:
+ * secret_service_open_sync:
  * @service_gtype: the GType of the new secret service
  * @service_bus_name: (allow-none): the D-Bus service name of the secret service
  * @flags: flags for which service functionality to ensure is initialized
@@ -1021,11 +1021,11 @@ secret_service_new_finish (GAsyncResult *result,
  *          should be released with g_object_unref().
  */
 SecretService *
-secret_service_new_sync (GType service_gtype,
-                         const gchar *service_bus_name,
-                         SecretServiceFlags flags,
-                         GCancellable *cancellable,
-                         GError **error)
+secret_service_open_sync (GType service_gtype,
+                          const gchar *service_bus_name,
+                          SecretServiceFlags flags,
+                          GCancellable *cancellable,
+                          GError **error)
 {
 	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
 	g_return_val_if_fail (g_type_is_a (service_gtype, SECRET_TYPE_SERVICE), NULL);

@@ -104,17 +104,17 @@ SecretService *      secret_service_get_sync                      (SecretService
 
 void                 secret_service_disconnect                    (void);
 
-void                 secret_service_new                           (GType service_gtype,
+void                 secret_service_open                          (GType service_gtype,
                                                                    const gchar *service_bus_name,
                                                                    SecretServiceFlags flags,
                                                                    GCancellable *cancellable,
                                                                    GAsyncReadyCallback callback,
                                                                    gpointer user_data);
 
-SecretService *      secret_service_new_finish                    (GAsyncResult *result,
+SecretService *      secret_service_open_finish                   (GAsyncResult *result,
                                                                    GError **error);
 
-SecretService *      secret_service_new_sync                      (GType service_gtype,
+SecretService *      secret_service_open_sync                     (GType service_gtype,
                                                                    const gchar *service_bus_name,
                                                                    SecretServiceFlags flags,
                                                                    GCancellable *cancellable,

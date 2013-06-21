@@ -246,7 +246,7 @@ test_get_more_async (Test *test,
 }
 
 static void
-test_new_sync (void)
+test_open_sync (void)
 {
 	SecretService *service1;
 	SecretService *service2;
@@ -254,12 +254,12 @@ test_new_sync (void)
 
 	/* Both these sohuld point to different things */
 
-	service1 = secret_service_new_sync (SECRET_TYPE_SERVICE, NULL,
-	                                    SECRET_SERVICE_NONE, NULL, &error);
+	service1 = secret_service_open_sync (SECRET_TYPE_SERVICE, NULL,
+	                                     SECRET_SERVICE_NONE, NULL, &error);
 	g_assert_no_error (error);
 
-	service2 = secret_service_new_sync (SECRET_TYPE_SERVICE, NULL,
-	                                    SECRET_SERVICE_NONE, NULL, &error);
+	service2 = secret_service_open_sync (SECRET_TYPE_SERVICE, NULL,
+	                                     SECRET_SERVICE_NONE, NULL, &error);
 	g_assert_no_error (error);
 
 	g_assert (SECRET_IS_SERVICE (service1));
@@ -274,7 +274,7 @@ test_new_sync (void)
 }
 
 static void
-test_new_async (void)
+test_open_async (void)
 {
 	SecretService *service1;
 	SecretService *service2;
@@ -283,19 +283,19 @@ test_new_async (void)
 
 	/* Both these sohuld point to different things */
 
-	secret_service_new (SECRET_TYPE_SERVICE, NULL, SECRET_SERVICE_NONE,
-	                    NULL, on_complete_get_result, &result);
+	secret_service_open (SECRET_TYPE_SERVICE, NULL, SECRET_SERVICE_NONE,
+	                     NULL, on_complete_get_result, &result);
 	g_assert (result == NULL);
 	egg_test_wait ();
-	service1 = secret_service_new_finish (result, &error);
+	service1 = secret_service_open_finish (result, &error);
 	g_assert_no_error (error);
 	g_clear_object (&result);
 
-	secret_service_new (SECRET_TYPE_SERVICE, NULL, SECRET_SERVICE_NONE, NULL,
-	                    on_complete_get_result, &result);
+	secret_service_open (SECRET_TYPE_SERVICE, NULL, SECRET_SERVICE_NONE, NULL,
+	                     on_complete_get_result, &result);
 	g_assert (result == NULL);
 	egg_test_wait ();
-	service2 = secret_service_new_finish (result, &error);
+	service2 = secret_service_open_finish (result, &error);
 	g_assert_no_error (error);
 	g_clear_object (&result);
 
@@ -311,7 +311,7 @@ test_new_async (void)
 }
 
 static void
-test_new_more_sync (Test *test,
+test_open_more_sync (Test *test,
                     gconstpointer data)
 {
 	SecretService *service;
@@ -319,8 +319,8 @@ test_new_more_sync (Test *test,
 	const gchar *path;
 	GList *collections;
 
-	service = secret_service_new_sync (SECRET_TYPE_SERVICE, NULL, SECRET_SERVICE_NONE,
-	                                   NULL, &error);
+	service = secret_service_open_sync (SECRET_TYPE_SERVICE, NULL, SECRET_SERVICE_NONE,
+	                                    NULL, &error);
 	g_assert_no_error (error);
 	g_assert (SECRET_IS_SERVICE (service));
 
@@ -331,8 +331,8 @@ test_new_more_sync (Test *test,
 	g_object_unref (service);
 	egg_assert_not_object (service);
 
-	service = secret_service_new_sync (SECRET_TYPE_SERVICE, NULL,
-	                                   SECRET_SERVICE_LOAD_COLLECTIONS, NULL, &error);
+	service = secret_service_open_sync (SECRET_TYPE_SERVICE, NULL,
+	                                    SECRET_SERVICE_LOAD_COLLECTIONS, NULL, &error);
 	g_assert_no_error (error);
 	g_assert (SECRET_IS_SERVICE (service));
 
@@ -345,8 +345,8 @@ test_new_more_sync (Test *test,
 	g_object_unref (service);
 	egg_assert_not_object (service);
 
-	service = secret_service_new_sync (SECRET_TYPE_SERVICE, NULL,
-	                                   SECRET_SERVICE_OPEN_SESSION, NULL, &error);
+	service = secret_service_open_sync (SECRET_TYPE_SERVICE, NULL,
+	                                    SECRET_SERVICE_OPEN_SESSION, NULL, &error);
 	g_assert_no_error (error);
 	g_assert (SECRET_IS_SERVICE (service));
 
@@ -360,7 +360,7 @@ test_new_more_sync (Test *test,
 }
 
 static void
-test_new_more_async (Test *test,
+test_open_more_async (Test *test,
                      gconstpointer data)
 {
 	GAsyncResult *result = NULL;
@@ -369,13 +369,13 @@ test_new_more_async (Test *test,
 	const gchar *path;
 	GList *collections;
 
-	secret_service_new (SECRET_TYPE_SERVICE, NULL,
-	                    SECRET_SERVICE_LOAD_COLLECTIONS | SECRET_SERVICE_OPEN_SESSION, NULL, on_complete_get_result, &result);
+	secret_service_open (SECRET_TYPE_SERVICE, NULL,
+	                     SECRET_SERVICE_LOAD_COLLECTIONS | SECRET_SERVICE_OPEN_SESSION, NULL, on_complete_get_result, &result);
 	g_assert (result == NULL);
 
 	egg_test_wait ();
 
-	service = secret_service_new_finish (result, &error);
+	service = secret_service_open_finish (result, &error);
 	g_assert_no_error (error);
 	g_object_unref (result);
 	result = NULL;
@@ -393,13 +393,13 @@ test_new_more_async (Test *test,
 
 	/* Now get a session with just collections */
 
-	secret_service_new (SECRET_TYPE_SERVICE, NULL, SECRET_SERVICE_LOAD_COLLECTIONS,
-	                    NULL, on_complete_get_result, &result);
+	secret_service_open (SECRET_TYPE_SERVICE, NULL, SECRET_SERVICE_LOAD_COLLECTIONS,
+	                     NULL, on_complete_get_result, &result);
 	g_assert (result == NULL);
 
 	egg_test_wait ();
 
-	service = secret_service_new_finish (result, &error);
+	service = secret_service_open_finish (result, &error);
 	g_assert_no_error (error);
 	g_object_unref (result);
 
@@ -481,8 +481,8 @@ test_ensure_sync (Test *test,
 	gboolean ret;
 
 	/* Passing true, ensures session is established */
-	service = secret_service_new_sync (SECRET_TYPE_SERVICE, NULL,
-	                                   SECRET_SERVICE_NONE, NULL, &error);
+	service = secret_service_open_sync (SECRET_TYPE_SERVICE, NULL,
+	                                    SECRET_SERVICE_NONE, NULL, &error);
 	g_assert_no_error (error);
 	g_assert (service != NULL);
 
@@ -518,8 +518,8 @@ test_ensure_async (Test *test,
 	gboolean ret;
 
 	/* Passing true, ensures session is established */
-	service = secret_service_new_sync (SECRET_TYPE_SERVICE, NULL,
-	                                   SECRET_SERVICE_NONE, NULL, &error);
+	service = secret_service_open_sync (SECRET_TYPE_SERVICE, NULL,
+	                                    SECRET_SERVICE_NONE, NULL, &error);
 	g_assert_no_error (error);
 	g_assert (service != NULL);
 
@@ -572,10 +572,10 @@ main (int argc, char **argv)
 	g_test_add ("/service/get-more-sync", Test, "mock-service-normal.py", setup_mock, test_get_more_sync, teardown_mock);
 	g_test_add ("/service/get-more-async", Test, "mock-service-normal.py", setup_mock, test_get_more_async, teardown_mock);
 
-	g_test_add_func ("/service/new-sync", test_new_sync);
-	g_test_add_func ("/service/new-async", test_new_async);
-	g_test_add ("/service/new-more-sync", Test, "mock-service-normal.py", setup_mock, test_new_more_sync, teardown_mock);
-	g_test_add ("/service/new-more-async", Test, "mock-service-normal.py", setup_mock, test_new_more_async, teardown_mock);
+	g_test_add_func ("/service/open-sync", test_open_sync);
+	g_test_add_func ("/service/open-async", test_open_async);
+	g_test_add ("/service/open-more-sync", Test, "mock-service-normal.py", setup_mock, test_open_more_sync, teardown_mock);
+	g_test_add ("/service/open-more-async", Test, "mock-service-normal.py", setup_mock, test_open_more_async, teardown_mock);
 
 	g_test_add ("/service/connect-sync", Test, "mock-service-normal.py", setup_mock, test_connect_async, teardown_mock);
 	g_test_add ("/service/connect-ensure-sync", Test, "mock-service-normal.py", setup_mock, test_connect_ensure_async, teardown_mock);
