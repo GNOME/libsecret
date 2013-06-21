@@ -2,7 +2,7 @@ include $(top_srcdir)/Makefile.decl
 
 SUBDIRS = . tests
 
-INCLUDES = \
+AM_CPPFLAGS = \
 	-I$(top_srcdir) \
 	-DSECRET_COMPILATION \
 	$(NULL)

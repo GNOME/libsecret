@@ -5,7 +5,7 @@ noinst_LTLIBRARIES = \
 
 EXTRA_DIST = egg-testing.h
 
-INCLUDES = \
+AM_CPPFLAGS = \
 	-I$(top_srcdir) \
 	-I$(top_srcdir)/build \
 	-DWITH_VALGRIND

@@ -4,7 +4,7 @@ include $(top_srcdir)/Makefile.decl
 # and I'm not sure how we can add that dependency.
 .NOTPARALLEL:
 
-INCLUDES = \
+AM_CPPFLAGS = \
 	-I$(top_srcdir) \
 	-I$(top_srcdir)/libsecret \
 	-DSRCDIR="\"@abs_srcdir@\"" \
