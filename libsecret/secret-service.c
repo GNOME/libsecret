@@ -496,6 +496,24 @@ secret_service_signal (GDBusProxy *proxy,
 	g_variant_unref (paths);
 }
 
+static GType
+secret_service_real_get_collection_gtype (SecretService *self)
+{
+	SecretServiceClass *klass;
+
+	klass = SECRET_SERVICE_GET_CLASS (self);
+	return klass->collection_gtype;
+}
+
+static GType
+secret_service_real_get_item_gtype (SecretService *self)
+{
+	SecretServiceClass *klass;
+
+	klass = SECRET_SERVICE_GET_CLASS (self);
+	return klass->item_gtype;
+}
+
 static void
 secret_service_class_init (SecretServiceClass *klass)
 {
@@ -516,6 +534,8 @@ secret_service_class_init (SecretServiceClass *klass)
 
 	klass->item_gtype = SECRET_TYPE_ITEM;
 	klass->collection_gtype = SECRET_TYPE_COLLECTION;
+	klass->get_item_gtype = secret_service_real_get_item_gtype;
+	klass->get_collection_gtype = secret_service_real_get_collection_gtype;
 
 	/**
 	 * SecretService:flags:
@@ -1728,4 +1748,60 @@ secret_service_prompt_finish (SecretService *self,
 	g_return_val_if_fail (klass->prompt_finish != NULL, NULL);
 
 	return (klass->prompt_finish) (self, result, return_type, error);
+}
+
+/**
+ * secret_service_get_collection_gtype:
+ * @self: the secret service
+ *
+ * Get the GObject type for collections instantiated by this service.
+ * This will always be either #SecretCollection or derived from it.
+ *
+ * Returns: the gobject type for collections
+ */
+GType
+secret_service_get_collection_gtype (SecretService *self)
+{
+	SecretServiceClass *klass;
+	GType type;
+
+	g_return_val_if_fail (SECRET_IS_SERVICE (self), 0);
+
+	klass = SECRET_SERVICE_GET_CLASS (self);
+	g_return_val_if_fail (klass->get_collection_gtype != NULL,
+	                      SECRET_TYPE_COLLECTION);
+
+	type = (klass->get_collection_gtype) (self);
+	g_return_val_if_fail (g_type_is_a (type, SECRET_TYPE_COLLECTION),
+	                      SECRET_TYPE_COLLECTION);
+
+	return type;
+}
+
+/**
+ * secret_service_get_item_gtype:
+ * @self: the collection
+ *
+ * Get the GObject type for items instantiated by this collection.
+ * This will always be either #SecretItem or derived from it.
+ *
+ * Returns: the gobject type for items
+ */
+GType
+secret_service_get_item_gtype (SecretService *self)
+{
+	SecretServiceClass *klass;
+	GType type;
+
+	g_return_val_if_fail (SECRET_IS_SERVICE (self), 0);
+
+	klass = SECRET_SERVICE_GET_CLASS (self);
+	g_return_val_if_fail (klass->get_item_gtype != NULL,
+	                      SECRET_TYPE_ITEM);
+
+	type = (klass->get_item_gtype) (self);
+	g_return_val_if_fail (g_type_is_a (type, SECRET_TYPE_ITEM),
+	                      SECRET_TYPE_ITEM);
+
+	return type;
 }

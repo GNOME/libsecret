@@ -74,7 +74,7 @@ secret_collection_new_for_dbus_path (SecretService *service,
 
 	proxy = G_DBUS_PROXY (service);
 
-	g_async_initable_new_async (SECRET_SERVICE_GET_CLASS (service)->collection_gtype,
+	g_async_initable_new_async (secret_service_get_collection_gtype (service),
 	                            G_PRIORITY_DEFAULT, cancellable, callback, user_data,
 	                            "g-flags", G_DBUS_CALL_FLAGS_NONE,
 	                            "g-interface-info", _secret_gen_collection_interface_info (),
@@ -154,7 +154,7 @@ secret_collection_new_for_dbus_path_sync (SecretService *service,
 
 	proxy = G_DBUS_PROXY (service);
 
-	return g_initable_new (SECRET_SERVICE_GET_CLASS (service)->collection_gtype,
+	return g_initable_new (secret_service_get_collection_gtype (service),
 	                       cancellable, error,
 	                       "g-flags", G_DBUS_CALL_FLAGS_NONE,
 	                       "g-interface-info", _secret_gen_collection_interface_info (),
@@ -199,7 +199,7 @@ secret_item_new_for_dbus_path (SecretService *service,
 
 	proxy = G_DBUS_PROXY (service);
 
-	g_async_initable_new_async (SECRET_SERVICE_GET_CLASS (service)->item_gtype,
+	g_async_initable_new_async (secret_service_get_item_gtype (service),
 	                            G_PRIORITY_DEFAULT, cancellable, callback, user_data,
 	                            "g-flags", G_DBUS_CALL_FLAGS_NONE,
 	                            "g-interface-info", _secret_gen_item_interface_info (),
@@ -276,7 +276,7 @@ secret_item_new_for_dbus_path_sync (SecretService *service,
 
 	proxy = G_DBUS_PROXY (service);
 
-	return g_initable_new (SECRET_SERVICE_GET_CLASS (service)->item_gtype,
+	return g_initable_new (secret_service_get_item_gtype (service),
 	                       cancellable, error,
 	                       "g-flags", G_DBUS_CALL_FLAGS_NONE,
 	                       "g-interface-info", _secret_gen_item_interface_info (),

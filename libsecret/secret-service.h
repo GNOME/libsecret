@@ -84,11 +84,19 @@ struct _SecretServiceClass {
 	                                  const GVariantType *return_type,
 	                                  GError **error);
 
+	GType       (* get_collection_gtype)  (SecretService *self);
+
+	GType       (* get_item_gtype)        (SecretService *self);
+
 	/*< private >*/
-	gpointer padding[16];
+	gpointer padding[14];
 };
 
 GType                secret_service_get_type                      (void) G_GNUC_CONST;
+
+GType                secret_service_get_collection_gtype          (SecretService *self);
+
+GType                secret_service_get_item_gtype                (SecretService *self);
 
 void                 secret_service_get                           (SecretServiceFlags flags,
                                                                    GCancellable *cancellable,
