@@ -176,13 +176,13 @@ GVariant *          secret_service_prompt_at_dbus_path_sync            (SecretSe
 
 void                secret_service_prompt_at_dbus_path                 (SecretService *self,
                                                                         const gchar *prompt_path,
+                                                                        const GVariantType *return_type,
                                                                         GCancellable *cancellable,
                                                                         GAsyncReadyCallback callback,
                                                                         gpointer user_data);
 
 GVariant *          secret_service_prompt_at_dbus_path_finish          (SecretService *self,
                                                                         GAsyncResult *result,
-                                                                        const GVariantType *return_type,
                                                                         GError **error);
 
 void                secret_service_delete_item_dbus_path               (SecretService *self,

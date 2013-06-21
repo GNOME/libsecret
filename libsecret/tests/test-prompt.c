@@ -146,12 +146,12 @@ test_perform_async (Test *test,
 
 	prompt = _secret_prompt_instance (test->service, "/org/freedesktop/secrets/prompts/simple");
 
-	secret_prompt_perform (prompt, 0, NULL, on_async_result, &result);
+	secret_prompt_perform (prompt, 0, NULL, NULL, on_async_result, &result);
 	g_assert (result == NULL);
 
 	egg_test_wait ();
 
-	retval = secret_prompt_perform_finish (prompt, result, NULL, &error);
+	retval = secret_prompt_perform_finish (prompt, result, &error);
 	g_assert_no_error (error);
 	g_assert (retval != NULL);
 	g_variant_unref (retval);
@@ -177,7 +177,7 @@ test_perform_cancel (Test *test,
 	prompt = _secret_prompt_instance (test->service, "/org/freedesktop/secrets/prompts/delay");
 
 	cancellable = g_cancellable_new ();
-	secret_prompt_perform (prompt, 0, cancellable, on_async_result, &result);
+	secret_prompt_perform (prompt, 0, NULL, cancellable, on_async_result, &result);
 	g_assert (result == NULL);
 
 	g_cancellable_cancel (cancellable);
@@ -185,7 +185,7 @@ test_perform_cancel (Test *test,
 
 	egg_test_wait ();
 
-	retval = secret_prompt_perform_finish (prompt, result, NULL, &error);
+	retval = secret_prompt_perform_finish (prompt, result, &error);
 	g_assert_no_error (error);
 	g_assert (retval != NULL);
 	g_variant_unref (retval);
@@ -305,12 +305,12 @@ test_service_async (Test *test,
 
 	prompt = _secret_prompt_instance (test->service, "/org/freedesktop/secrets/prompts/simple");
 
-	secret_service_prompt (test->service, prompt, NULL, on_async_result, &result);
+	secret_service_prompt (test->service, prompt, NULL, NULL, on_async_result, &result);
 	g_assert (result == NULL);
 
 	egg_test_wait ();
 
-	retval = secret_service_prompt_finish (test->service, result, NULL, &error);
+	retval = secret_service_prompt_finish (test->service, result, &error);
 	g_assert_no_error (error);
 	g_assert (retval != NULL);
 	g_variant_unref (retval);
@@ -334,12 +334,12 @@ test_service_fail (Test *test,
 
 	prompt = _secret_prompt_instance (test->service, "/org/freedesktop/secrets/prompts/error");
 
-	secret_service_prompt (test->service, prompt, NULL, on_async_result, &result);
+	secret_service_prompt (test->service, prompt, NULL, NULL, on_async_result, &result);
 	g_assert (result == NULL);
 
 	egg_test_wait ();
 
-	retval = secret_service_prompt_finish (test->service, result, NULL, &error);
+	retval = secret_service_prompt_finish (test->service, result, &error);
 	g_assert_error (error, G_DBUS_ERROR, G_DBUS_ERROR_NOT_SUPPORTED);
 	g_assert (retval == NULL);
 	g_object_unref (result);
@@ -362,13 +362,13 @@ test_service_path (Test *test,
 
 	prompt = _secret_prompt_instance (test->service, "/org/freedesktop/secrets/prompts/simple");
 
-	secret_service_prompt (test->service, prompt, NULL, on_async_result, &result);
+	secret_service_prompt (test->service, prompt, NULL, NULL, on_async_result, &result);
 	g_assert (result == NULL);
 
 	g_object_unref (prompt);
 	egg_test_wait ();
 
-	retval = secret_service_prompt_finish (test->service, result, NULL, &error);
+	retval = secret_service_prompt_finish (test->service, result, &error);
 	g_assert_no_error (error);
 	g_assert (retval != NULL);
 	g_variant_unref (retval);

@@ -312,7 +312,7 @@ on_real_prompt_completed (GObject *source,
 	GError *error = NULL;
 	GVariant *retval;
 
-	retval = secret_prompt_perform_finish (SECRET_PROMPT (source), result, NULL, &error);
+	retval = secret_prompt_perform_finish (SECRET_PROMPT (source), result, &error);
 	if (retval != NULL)
 		g_simple_async_result_set_op_res_gpointer (res, retval, (GDestroyNotify)g_variant_unref);
 	if (error != NULL)
@@ -324,6 +324,7 @@ on_real_prompt_completed (GObject *source,
 static void
 secret_service_real_prompt_async (SecretService *self,
                                   SecretPrompt *prompt,
+                                  const GVariantType *return_type,
                                   GCancellable *cancellable,
                                   GAsyncReadyCallback callback,
                                   gpointer user_data)
@@ -333,7 +334,7 @@ secret_service_real_prompt_async (SecretService *self,
 	res =  g_simple_async_result_new (G_OBJECT (self), callback, user_data,
 	                                  secret_service_real_prompt_async);
 
-	secret_prompt_perform (prompt, 0, cancellable,
+	secret_prompt_perform (prompt, 0, return_type, cancellable,
 	                       on_real_prompt_completed,
 	                       g_object_ref (res));
 
@@ -343,12 +344,10 @@ secret_service_real_prompt_async (SecretService *self,
 static GVariant *
 secret_service_real_prompt_finish (SecretService *self,
                                    GAsyncResult *result,
-                                   const GVariantType *return_type,
                                    GError **error)
 {
 	GSimpleAsyncResult *res;
 	GVariant *retval;
-	gchar *string;
 
 	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (self),
 	                      secret_service_real_prompt_async), NULL);
@@ -360,14 +359,6 @@ secret_service_real_prompt_finish (SecretService *self,
 	retval = g_simple_async_result_get_op_res_gpointer (res);
 	if (retval == NULL)
 		return NULL;
-
-	if (return_type != NULL && !g_variant_is_of_type (retval, return_type)) {
-		string = g_variant_type_dup_string (return_type);
-		g_warning ("received unexpected result type %s from prompt's Completed signal instead of expected %s",
-		           g_variant_get_type_string (retval), string);
-		g_free (string);
-		return NULL;
-	}
 
 	return g_variant_ref (retval);
 }
@@ -1684,6 +1675,7 @@ secret_service_prompt_sync (SecretService *self,
  * secret_service_prompt:
  * @self: the secret service
  * @prompt: the prompt
+ * @return_type: (allow-none): the variant type of the prompt result
  * @cancellable: optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to be passed to the callback
@@ -1700,6 +1692,7 @@ secret_service_prompt_sync (SecretService *self,
 void
 secret_service_prompt (SecretService *self,
                        SecretPrompt *prompt,
+                       const GVariantType *return_type,
                        GCancellable *cancellable,
                        GAsyncReadyCallback callback,
                        gpointer user_data)
@@ -1713,14 +1706,13 @@ secret_service_prompt (SecretService *self,
 	klass = SECRET_SERVICE_GET_CLASS (self);
 	g_return_if_fail (klass->prompt_async != NULL);
 
-	(klass->prompt_async) (self, prompt, cancellable, callback, user_data);
+	(klass->prompt_async) (self, prompt, return_type, cancellable, callback, user_data);
 }
 
 /**
  * secret_service_prompt_finish:
  * @self: the secret service
  * @result: the asynchronous result passed to the callback
- * @return_type: the variant type of the prompt result
  * @error: location to place an error on failure
  *
  * Complete asynchronous operation to perform prompting for a #SecretPrompt.
@@ -1735,7 +1727,6 @@ secret_service_prompt (SecretService *self,
 GVariant *
 secret_service_prompt_finish (SecretService *self,
                               GAsyncResult *result,
-                              const GVariantType *return_type,
                               GError **error)
 {
 	SecretServiceClass *klass;
@@ -1747,7 +1738,7 @@ secret_service_prompt_finish (SecretService *self,
 	klass = SECRET_SERVICE_GET_CLASS (self);
 	g_return_val_if_fail (klass->prompt_finish != NULL, NULL);
 
-	return (klass->prompt_finish) (self, result, return_type, error);
+	return (klass->prompt_finish) (self, result, error);
 }
 
 /**

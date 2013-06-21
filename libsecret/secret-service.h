@@ -75,13 +75,13 @@ struct _SecretServiceClass {
 
 	void        (* prompt_async)     (SecretService *self,
 	                                  SecretPrompt *prompt,
+	                                  const GVariantType *return_type,
 	                                  GCancellable *cancellable,
 	                                  GAsyncReadyCallback callback,
 	                                  gpointer user_data);
 
 	GVariant *  (* prompt_finish)    (SecretService *self,
 	                                  GAsyncResult *result,
-	                                  const GVariantType *return_type,
 	                                  GError **error);
 
 	GType       (* get_collection_gtype)  (SecretService *self);
@@ -168,13 +168,13 @@ GVariant *           secret_service_prompt_sync                   (SecretService
 
 void                 secret_service_prompt                        (SecretService *self,
                                                                    SecretPrompt *prompt,
+                                                                   const GVariantType *return_type,
                                                                    GCancellable *cancellable,
                                                                    GAsyncReadyCallback callback,
                                                                    gpointer user_data);
 
 GVariant *           secret_service_prompt_finish                 (SecretService *self,
                                                                    GAsyncResult *result,
-                                                                   const GVariantType *return_type,
                                                                    GError **error);
 
 void                 secret_service_search                        (SecretService *service,

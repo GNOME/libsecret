@@ -167,12 +167,12 @@ secret_prompt_run (SecretPrompt *self,
 	closure = g_new0 (RunClosure, 1);
 	closure->loop = g_main_loop_new (context, FALSE);
 
-	secret_prompt_perform (self, window_id, cancellable,
+	secret_prompt_perform (self, window_id, return_type, cancellable,
 	                       on_prompt_run_complete, closure);
 
 	g_main_loop_run (closure->loop);
 
-	retval = secret_prompt_perform_finish (self, closure->result, return_type, error);
+	retval = secret_prompt_perform_finish (self, closure->result, error);
 
 	g_main_loop_unref (closure->loop);
 	g_object_unref (closure->result);
@@ -244,6 +244,7 @@ typedef struct {
 	GVariant *result;
 	guint signal;
 	guint watch;
+	GVariantType *return_type;
 } PerformClosure;
 
 static void
@@ -255,6 +256,8 @@ perform_closure_free (gpointer data)
 	g_object_unref (closure->connection);
 	if (closure->result)
 		g_variant_unref (closure->result);
+	if (closure->return_type)
+		g_variant_type_free (closure->return_type);
 	g_assert (closure->signal == 0);
 	g_assert (closure->watch == 0);
 	g_slice_free (PerformClosure, closure);
@@ -409,6 +412,7 @@ on_prompt_cancelled (GCancellable *cancellable,
  * secret_prompt_perform:
  * @self: a prompt
  * @window_id: XWindow id for parent window to be transient for
+ * @return_type: the variant type of the prompt result
  * @cancellable: optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to be passed to the callback
@@ -426,6 +430,7 @@ on_prompt_cancelled (GCancellable *cancellable,
 void
 secret_prompt_perform (SecretPrompt *self,
                        gulong window_id,
+                       const GVariantType *return_type,
                        GCancellable *cancellable,
                        GAsyncReadyCallback callback,
                        gpointer user_data)
@@ -455,6 +460,7 @@ secret_prompt_perform (SecretPrompt *self,
 	closure->connection = g_object_ref (g_dbus_proxy_get_connection (proxy));
 	closure->call_cancellable = g_cancellable_new ();
 	closure->async_cancellable = cancellable ? g_object_ref (cancellable) : NULL;
+	closure->return_type = return_type ? g_variant_type_copy (return_type) : NULL;
 	g_simple_async_result_set_op_res_gpointer (res, closure, perform_closure_free);
 
 	if (window_id == 0)
@@ -498,7 +504,6 @@ secret_prompt_perform (SecretPrompt *self,
  * secret_prompt_perform_finish:
  * @self: a prompt
  * @result: the asynchronous result passed to the callback
- * @return_type: the variant type of the prompt result
  * @error: location to place an error on failure
  *
  * Complete asynchronous operation to run a prompt and perform the prompting.
@@ -513,7 +518,6 @@ secret_prompt_perform (SecretPrompt *self,
 GVariant *
 secret_prompt_perform_finish (SecretPrompt *self,
                               GAsyncResult *result,
-                              const GVariantType *return_type,
                               GError **error)
 {
 	PerformClosure *closure;
@@ -533,8 +537,8 @@ secret_prompt_perform_finish (SecretPrompt *self,
 	closure = g_simple_async_result_get_op_res_gpointer (res);
 	if (closure->result == NULL)
 		return NULL;
-	if (return_type != NULL && !g_variant_is_of_type (closure->result, return_type)) {
-		string = g_variant_type_dup_string (return_type);
+	if (closure->return_type != NULL && !g_variant_is_of_type (closure->result, closure->return_type)) {
+		string = g_variant_type_dup_string (closure->return_type);
 		g_warning ("received unexpected result type %s from Completed signal instead of expected %s",
 		           g_variant_get_type_string (closure->result), string);
 		g_free (string);

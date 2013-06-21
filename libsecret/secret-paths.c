@@ -1014,7 +1014,7 @@ on_xlock_prompted (GObject *source,
 	GVariant *retval;
 	gchar *path;
 
-	retval = secret_service_prompt_finish (self, result, G_VARIANT_TYPE ("ao"), &error);
+	retval = secret_service_prompt_finish (self, result, &error);
 	if (error != NULL)
 		g_simple_async_result_take_error (res, error);
 
@@ -1058,8 +1058,8 @@ on_xlock_called (GObject *source,
 
 		} else {
 			closure->prompt = _secret_prompt_instance (self, prompt);
-			secret_service_prompt (self, closure->prompt, closure->cancellable,
-			                        on_xlock_prompted, g_object_ref (res));
+			secret_service_prompt (self, closure->prompt, G_VARIANT_TYPE ("ao"),
+			                       closure->cancellable, on_xlock_prompted, g_object_ref (res));
 		}
 
 		g_strfreev (xlocked);
@@ -1395,7 +1395,7 @@ on_delete_prompted (GObject *source,
 	GVariant *retval;
 
 	retval = secret_service_prompt_finish (SECRET_SERVICE (source), result,
-	                                       NULL, &error);
+	                                       &error);
 
 	if (error == NULL)
 		closure->deleted = TRUE;
@@ -1430,7 +1430,7 @@ on_delete_complete (GObject *source,
 		} else {
 			closure->prompt = _secret_prompt_instance (self, prompt_path);
 
-			secret_service_prompt (self, closure->prompt,
+			secret_service_prompt (self, closure->prompt, NULL,
 			                       closure->cancellable,
 			                       on_delete_prompted,
 			                       g_object_ref (res));
@@ -1624,8 +1624,7 @@ on_create_collection_prompt (GObject *source,
 	GError *error = NULL;
 	GVariant *value;
 
-	value = secret_service_prompt_finish (SECRET_SERVICE (source), result,
-	                                      G_VARIANT_TYPE ("o"), &error);
+	value = secret_service_prompt_finish (SECRET_SERVICE (source), result, &error);
 	if (error != NULL)
 		g_simple_async_result_take_error (res, error);
 	if (value != NULL) {
@@ -1655,7 +1654,7 @@ on_create_collection_called (GObject *source,
 		g_variant_get (retval, "(&o&o)", &collection_path, &prompt_path);
 		if (!_secret_util_empty_path (prompt_path)) {
 			closure->prompt = _secret_prompt_instance (self, prompt_path);
-			secret_service_prompt (self, closure->prompt,
+			secret_service_prompt (self, closure->prompt, G_VARIANT_TYPE ("o"),
 			                       closure->cancellable, on_create_collection_prompt,
 			                       g_object_ref (res));
 
@@ -1893,8 +1892,7 @@ on_create_item_prompt (GObject *source,
 	GError *error = NULL;
 	GVariant *value;
 
-	value = secret_service_prompt_finish (SECRET_SERVICE (source), result,
-	                                      G_VARIANT_TYPE ("o"), &error);
+	value = secret_service_prompt_finish (SECRET_SERVICE (source), result, &error);
 	if (error != NULL)
 		g_simple_async_result_take_error (res, error);
 	if (value != NULL) {
@@ -1924,7 +1922,7 @@ on_create_item_called (GObject *source,
 		g_variant_get (retval, "(&o&o)", &item_path, &prompt_path);
 		if (!_secret_util_empty_path (prompt_path)) {
 			closure->prompt = _secret_prompt_instance (self, prompt_path);
-			secret_service_prompt (self, closure->prompt,
+			secret_service_prompt (self, closure->prompt, G_VARIANT_TYPE ("o"),
 			                       closure->cancellable, on_create_item_prompt,
 			                       g_object_ref (res));
 
@@ -2422,6 +2420,7 @@ secret_service_prompt_at_dbus_path_sync (SecretService *self,
  * secret_service_prompt_at_dbus_path:
  * @self: the secret service
  * @prompt_path: the D-Bus object path of the prompt
+ * @return_type: (allow-none): the variant type of the prompt result
  * @cancellable: optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to be passed to the callback
@@ -2438,6 +2437,7 @@ secret_service_prompt_at_dbus_path_sync (SecretService *self,
 void
 secret_service_prompt_at_dbus_path (SecretService *self,
                                     const gchar *prompt_path,
+                                    const GVariantType *return_type,
                                     GCancellable *cancellable,
                                     GAsyncReadyCallback callback,
                                     gpointer user_data)
@@ -2449,7 +2449,7 @@ secret_service_prompt_at_dbus_path (SecretService *self,
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
 	prompt = _secret_prompt_instance (self, prompt_path);
-	secret_service_prompt (self, prompt, cancellable, callback, user_data);
+	secret_service_prompt (self, prompt, return_type, cancellable, callback, user_data);
 	g_object_unref (prompt);
 }
 
@@ -2457,7 +2457,6 @@ secret_service_prompt_at_dbus_path (SecretService *self,
  * secret_service_prompt_at_dbus_path_finish:
  * @self: the secret service
  * @result: the asynchronous result passed to the callback
- * @return_type: the variant type of the prompt result
  * @error: location to place an error on failure
  *
  * Complete asynchronous operation to perform prompting for a #SecretPrompt.
@@ -2472,12 +2471,11 @@ secret_service_prompt_at_dbus_path (SecretService *self,
 GVariant *
 secret_service_prompt_at_dbus_path_finish (SecretService *self,
                                            GAsyncResult *result,
-                                           const GVariantType *return_type,
                                            GError **error)
 {
 	g_return_val_if_fail (SECRET_IS_SERVICE (self), NULL);
 	g_return_val_if_fail (G_IS_ASYNC_RESULT (result), NULL);
 	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 
-	return secret_service_prompt_finish (self, result, return_type, error);
+	return secret_service_prompt_finish (self, result, error);
 }
