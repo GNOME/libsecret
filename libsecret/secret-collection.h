@@ -28,12 +28,12 @@
 G_BEGIN_DECLS
 
 typedef enum {
-	SECRET_COLLECTION_NONE = 0,
+	SECRET_COLLECTION_NONE = 0 << 0,
 	SECRET_COLLECTION_LOAD_ITEMS = 1 << 1,
 } SecretCollectionFlags;
 
 typedef enum {
-	SECRET_COLLECTION_CREATE_NONE = 0,
+	SECRET_COLLECTION_CREATE_NONE = 0 << 0,
 } SecretCollectionCreateFlags;
 
 #define SECRET_TYPE_COLLECTION            (secret_collection_get_type ())
