@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: libsecret master\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
 "product=libsecret&keywords=I18N+L10N&component=general\n"
-"POT-Creation-Date: 2013-06-02 00:21+0000\n"
-"PO-Revision-Date: 2013-06-04 10:56+0100\n"
+"POT-Creation-Date: 2013-07-04 05:34+0000\n"
+"PO-Revision-Date: 2013-07-14 12:19+0100\n"
 "Last-Translator: Pavol Klačanský <pavol@klacansky.com>, 2013\n"
 "Language-Team: Slovak <gnome-sk-list@gnome.org>\n"
 "Language: sk\n"
@@ -37,38 +37,27 @@ msgstr "Nepodarilo sa komunikovať s úložiskom tajomstiev"
 msgid "the label for the new stored item"
 msgstr "menovka pre novo uloženú položku"
 
-# PM: skôr asi zaradí uložená položka
 # cmd desc
 #: ../tool/secret-tool.c:41
-#, fuzzy
 msgid "the collection in which to place the stored item"
-msgstr "zbierka, do ktorej sa uloží položka"
+msgstr "zbierka, do ktorej sa zaradí uložená položka"
 
-# PM: 1. prečo nie atribút - hodnota
-# 2. nebude tá pomlčka miasť kedže ide o popis voľby?
-# 3. nemôže tých párov byť viac zadaných, lebo originál je v množnom čísle
 # cmd desc
 #: ../tool/secret-tool.c:43 ../tool/secret-tool.c:50 ../tool/secret-tool.c:437
-#, fuzzy
 msgid "attribute value pairs of item to lookup"
-msgstr "pár hodnota - atribút vyhľadávanej položky"
+msgstr "páry (atribút, hodnota) vyhľadávanej položky"
 
 # cmd desc
 #: ../tool/secret-tool.c:57
-#, fuzzy
 msgid "attribute value pairs which match items to clear"
-msgstr "pár hodnota - atribút zodpovedajúci mazanej položke"
+msgstr "páry (atribút, hodnota) zodpovedajúci mazanej položke"
 
-# PM: zamýšlam sa nad tým a navrhujem iný preklad - Vráti všetky výsledky, nie len prvý
 # cmd desc
 #: ../tool/secret-tool.c:433
-#, fuzzy
 msgid "return all results, instead of just first one"
-msgstr "namiesto prvého výsledku vrátiť všetky"
+msgstr "vráti všetky výsledky, nie len prvý"
 
-# PM: neznamená to to že sa tie položky odomknú aby sa mohli zobraziť ako výsledok hľadania? - nejak mi to totiž nedáva zmysel
 # cmd desc
 #: ../tool/secret-tool.c:435
-#, fuzzy
 msgid "unlock item results if necessary"
-msgstr "odomknúť výsledky položky ak je to nevyhnutné"
+msgstr "odomknúť nájdené položky ak je to nevyhnutné"
