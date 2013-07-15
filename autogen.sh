@@ -43,7 +43,7 @@ fi
 	DIE=1
 }
 
-AUTOMAKE_VERSIONS="1.13 1.12 1.11 1.10"
+AUTOMAKE_VERSIONS="1.14 1.13 1.12 1.11 1.10"
 for version in $AUTOMAKE_VERSIONS; do
 	if automake-$version --version < /dev/null > /dev/null 2>&1 ; then
 		AUTOMAKE=automake-$version
