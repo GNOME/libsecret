@@ -1,0 +1,55 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# Yaron Shahrabani <sh.yaron@gmail.com>, 2013.
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2013-07-31 16:10+0300\n"
+"PO-Revision-Date: 2013-07-31 17:29+0300\n"
+"Last-Translator: Yaron Shahrabani <sh.yaron@gmail.com>\n"
+"Language-Team: Gezer\n"
+"Language: he\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Virtaal 0.7.1\n"
+
+#: ../libsecret/secret-item.c:1164
+#, c-format
+msgid "Received invalid secret from the secret storage"
+msgstr "התקבל קוד שגוי מאחסון הסודות"
+
+#: ../libsecret/secret-methods.c:1055
+msgid "Default keyring"
+msgstr "קבוצת המפתחות כבררת המחדל"
+
+#: ../libsecret/secret-session.c:244 ../libsecret/secret-session.c:281
+msgid "Couldn't communicate with the secret storage"
+msgstr "לא ניתן לתקשר עם מאגר הסודות"
+
+#: ../tool/secret-tool.c:39
+msgid "the label for the new stored item"
+msgstr "התווית לפריטים חדשים באחסון"
+
+#: ../tool/secret-tool.c:41
+msgid "the collection in which to place the stored item"
+msgstr "האוסף בו לשים את הפריט המאוחסן"
+
+#: ../tool/secret-tool.c:43 ../tool/secret-tool.c:50 ../tool/secret-tool.c:437
+msgid "attribute value pairs of item to lookup"
+msgstr "צמדי ערכי מאפיינים של פריט לחיפוש"
+
+#: ../tool/secret-tool.c:57
+msgid "attribute value pairs which match items to clear"
+msgstr "צמדי ערכי מאפיינים של פריט לפינוי"
+
+#: ../tool/secret-tool.c:433
+msgid "return all results, instead of just first one"
+msgstr "החזרת כל התוצאות במקום רק את הראשונה"
+
+#: ../tool/secret-tool.c:435
+msgid "unlock item results if necessary"
+msgstr "שחרור תוצאות הפריטים אם נדרש"
