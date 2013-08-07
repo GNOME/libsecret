@@ -1742,7 +1742,7 @@ secret_service_clear (SecretService *service,
  * Finish asynchronous operation to remove items from the secret
  * service.
  *
- * Returns: whether the removal was successful or not
+ * Returns: whether items were removed or not
  */
 gboolean
 secret_service_clear_finish (SecretService *service,
@@ -1783,7 +1783,7 @@ secret_service_clear_finish (SecretService *service,
  * This method may block indefinitely and should not be used in user interface
  * threads.
  *
- * Returns: whether the removal was successful or not
+ * Returns: whether items were removed or not
  */
 gboolean
 secret_service_clear_sync (SecretService *service,
