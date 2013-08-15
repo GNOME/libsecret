@@ -55,6 +55,7 @@ setup (Test *test,
 
 	test->service = secret_service_get_sync (SECRET_SERVICE_NONE, NULL, &error);
 	g_assert_no_error (error);
+	g_object_add_weak_pointer (G_OBJECT (test->service), (gpointer *)&test->service);
 }
 
 static void
@@ -63,7 +64,7 @@ teardown (Test *test,
 {
 	g_object_unref (test->service);
 	secret_service_disconnect ();
-	egg_assert_not_object (test->service);
+	g_assert (test->service == NULL);
 
 	mock_service_stop ();
 }
@@ -103,11 +104,12 @@ test_new_sync (Test *test,
 	collection = secret_collection_new_for_dbus_path_sync (test->service, collection_path,
 	                                                       SECRET_COLLECTION_NONE, NULL, &error);
 	g_assert_no_error (error);
+	g_object_add_weak_pointer (G_OBJECT (collection), (gpointer *)&collection);
 
 	g_assert_cmpstr (g_dbus_proxy_get_object_path (G_DBUS_PROXY (collection)), ==, collection_path);
 
 	g_object_unref (collection);
-	egg_assert_not_object (collection);
+	g_assert (collection == NULL);
 }
 
 static void
@@ -128,11 +130,12 @@ test_new_async (Test *test,
 	collection = secret_collection_new_for_dbus_path_finish (result, &error);
 	g_assert_no_error (error);
 	g_object_unref (result);
+	g_object_add_weak_pointer (G_OBJECT (collection), (gpointer *)&collection);
 
 	g_assert_cmpstr (g_dbus_proxy_get_object_path (G_DBUS_PROXY (collection)), ==, collection_path);
 
 	g_object_unref (collection);
-	egg_assert_not_object (collection);
+	g_assert (collection == NULL);
 }
 
 static void
@@ -296,13 +299,14 @@ test_create_sync (Test *test,
 	collection = secret_collection_create_sync (test->service, "Train", NULL,
 	                                            SECRET_COLLECTION_CREATE_NONE, NULL, &error);
 	g_assert_no_error (error);
+	g_object_add_weak_pointer (G_OBJECT (collection), (gpointer *)&collection);
 
 	g_assert (g_str_has_prefix (g_dbus_proxy_get_object_path (G_DBUS_PROXY (collection)), "/org/freedesktop/secrets/collection"));
 	g_assert_cmpstr (secret_collection_get_label (collection), ==, "Train");
 	g_assert (secret_collection_get_locked (collection) == FALSE);
 
 	g_object_unref (collection);
-	egg_assert_not_object (collection);
+	g_assert (collection == NULL);
 }
 
 static void
@@ -323,13 +327,14 @@ test_create_async (Test *test,
 	collection = secret_collection_create_finish (result, &error);
 	g_assert_no_error (error);
 	g_object_unref (result);
+	g_object_add_weak_pointer (G_OBJECT (collection), (gpointer *)&collection);
 
 	g_assert (g_str_has_prefix (g_dbus_proxy_get_object_path (G_DBUS_PROXY (collection)), "/org/freedesktop/secrets/collection"));
 	g_assert_cmpstr (secret_collection_get_label (collection), ==, "Train");
 	g_assert (secret_collection_get_locked (collection) == FALSE);
 
 	g_object_unref (collection);
-	egg_assert_not_object (collection);
+	g_assert (collection == NULL);
 }
 
 static void

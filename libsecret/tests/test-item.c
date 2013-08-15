@@ -56,6 +56,7 @@ setup (Test *test,
 
 	test->service = secret_service_get_sync (SECRET_SERVICE_NONE, NULL, &error);
 	g_assert_no_error (error);
+	g_object_add_weak_pointer (G_OBJECT (test->service), (gpointer *)&test->service);
 }
 
 static void
@@ -64,7 +65,7 @@ teardown (Test *test,
 {
 	g_object_unref (test->service);
 	secret_service_disconnect ();
-	egg_assert_not_object (test->service);
+	g_assert (test->service == NULL);
 
 	mock_service_stop ();
 }
@@ -192,6 +193,7 @@ test_create_sync (Test *test,
 	item = secret_item_create_sync (collection, &MOCK_SCHEMA, attributes, "Tunnel",
 	                                value, SECRET_ITEM_CREATE_NONE, NULL, &error);
 	g_assert_no_error (error);
+	g_object_add_weak_pointer (G_OBJECT (item), (gpointer *)&item);
 
 	g_hash_table_unref (attributes);
 	g_object_unref (collection);
@@ -202,7 +204,7 @@ test_create_sync (Test *test,
 	g_assert (secret_item_get_locked (item) == FALSE);
 
 	g_object_unref (item);
-	egg_assert_not_object (item);
+	g_assert (item == NULL);
 }
 
 static void
@@ -241,13 +243,14 @@ test_create_async (Test *test,
 	item = secret_item_create_finish (result, &error);
 	g_assert_no_error (error);
 	g_object_unref (result);
+	g_object_add_weak_pointer (G_OBJECT (item), (gpointer *)&item);
 
 	g_assert (g_str_has_prefix (g_dbus_proxy_get_object_path (G_DBUS_PROXY (item)), collection_path));
 	g_assert_cmpstr (secret_item_get_label (item), ==, "Tunnel");
 	g_assert (secret_item_get_locked (item) == FALSE);
 
 	g_object_unref (item);
-	egg_assert_not_object (item);
+	g_assert (item == NULL);
 }
 
 static void

@@ -37,16 +37,6 @@
 	            G_STRFUNC, #a "[" #na"] " #cmp " " #b "[" #nb "]", \
                     __p1, __n1, #cmp, __p2, __n2); } while (0)
 
-#define egg_assert_not_object(p) \
-	(egg_assertion_not_object (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC, #p, (p)))
-
-void       egg_assertion_not_object          (const char *domain,
-                                              const char *file,
-                                              int         line,
-                                              const char *func,
-                                              const char *expr,
-                                              gpointer was_object);
-
 void       egg_assertion_message_cmpmem        (const char *domain, const char *file,
                                                 int line, const char *func,
                                                 const char *expr, gconstpointer arg1,

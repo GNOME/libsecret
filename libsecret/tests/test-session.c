@@ -43,6 +43,7 @@ setup (Test *test,
 
 	test->service = secret_service_get_sync (SECRET_SERVICE_NONE, NULL, &error);
 	g_assert_no_error (error);
+	g_object_add_weak_pointer (G_OBJECT (test->service), (gpointer *)&test->service);
 }
 
 static void
@@ -51,7 +52,7 @@ teardown (Test *test,
 {
 	g_object_unref (test->service);
 	secret_service_disconnect ();
-	egg_assert_not_object (test->service);
+	g_assert (test->service == NULL);
 
 	mock_service_stop ();
 }
