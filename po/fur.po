@@ -1,0 +1,56 @@
+# Friulian translation for libsecret.
+# Copyright (C) 2013 libsecret's COPYRIGHT HOLDER
+# This file is distributed under the same license as the libsecret package.
+# Fabio Tomat <f.t.public@gmail.com>, 2013.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: libsecret master\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
+"product=libsecret&keywords=I18N+L10N&component=general\n"
+"POT-Creation-Date: 2013-08-15 21:02+0000\n"
+"PO-Revision-Date: 2013-08-20 14:21+0100\n"
+"Last-Translator: Fabio Tomat <f.t.public@gmail.com>\n"
+"Language-Team: Friulian <fur@li.org>\n"
+"Language: fur\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.5.4\n"
+
+#: ../libsecret/secret-item.c:1164
+#, c-format
+msgid "Received invalid secret from the secret storage"
+msgstr "Ricevût un segret no valit dal dispositîf di archiviazion dai segrets"
+
+#: ../libsecret/secret-methods.c:1055
+msgid "Default keyring"
+msgstr "Puarteclâfs predefinît"
+
+#: ../libsecret/secret-session.c:244 ../libsecret/secret-session.c:281
+msgid "Couldn't communicate with the secret storage"
+msgstr "Impussibil comunicâ cul dispositîf di archiviazion dai segrets"
+
+#: ../tool/secret-tool.c:39
+msgid "the label for the new stored item"
+msgstr "le etichete par il gnûf element salvât"
+
+#: ../tool/secret-tool.c:41
+msgid "the collection in which to place the stored item"
+msgstr "la colezion dulà plaçâ l'element salvât"
+
+#: ../tool/secret-tool.c:43 ../tool/secret-tool.c:50 ../tool/secret-tool.c:437
+msgid "attribute value pairs of item to lookup"
+msgstr ""
+
+#: ../tool/secret-tool.c:57
+msgid "attribute value pairs which match items to clear"
+msgstr ""
+
+#: ../tool/secret-tool.c:433
+msgid "return all results, instead of just first one"
+msgstr "torne ducj i risultâts invezit che dome il prin"
+
+#: ../tool/secret-tool.c:435
+msgid "unlock item results if necessary"
+msgstr "Sbloche i elements dai risultâts se necessari"
