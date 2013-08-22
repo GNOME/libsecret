@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: libsecret 3.9.x\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-06-02 02:18+0200\n"
-"PO-Revision-Date: 2013-06-02 02:21+0200\n"
+"POT-Creation-Date: 2013-08-22 16:06+0200\n"
+"PO-Revision-Date: 2013-08-22 16:07+0200\n"
 "Last-Translator: Kjartan Maraas <kmaraas@gnome.org>\n"
 "Language-Team: Norwegian bokmål <i18n-nb@lister.ping.uio.no>\n"
 "Language: \n"
@@ -35,15 +35,15 @@ msgstr "etikett for den nye lagrede oppføringen"
 
 #: ../tool/secret-tool.c:41
 msgid "the collection in which to place the stored item"
-msgstr ""
+msgstr "samling den lagrede oppføringen skal plasseres i"
 
 #: ../tool/secret-tool.c:43 ../tool/secret-tool.c:50 ../tool/secret-tool.c:437
 msgid "attribute value pairs of item to lookup"
-msgstr ""
+msgstr "attributt-/verdipar for oppføringer som skal slås opp"
 
 #: ../tool/secret-tool.c:57
 msgid "attribute value pairs which match items to clear"
-msgstr ""
+msgstr "attributt-/verdi-par som er lik oppføringer som skal tømmes"
 
 #: ../tool/secret-tool.c:433
 msgid "return all results, instead of just first one"
