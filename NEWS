@@ -1,3 +1,14 @@
+0.16
+ * Clarify documentation for secret_service_clear_xxx() [#705629]
+ * Pass return_type to prompt async begin functions, rather than finish
+ * Simpler way to use custom service/collection/item types
+ * service: Rename secret_service_new() and friends to xxx_open()
+ * Add secret_value_get_text() function to return NULL terminated secret
+ * Fix return types in secret_service_search_finish() on error paths [#698040]
+ * Testing fixes [#705202]
+ * Build fixes [#704233]
+ * Updated translations
+
 0.15
  * Tweak predefined schemas [#695791]
  * Updated translations
