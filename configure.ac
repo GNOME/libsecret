@@ -75,7 +75,7 @@ AC_PATH_PROG(GLIB_MKENUMS, glib-mkenums)
 # Manual pages
 
 AC_ARG_ENABLE(manpages,
-              AC_HELP_STRING([--disable-man-pages], [Build manual pages]))
+              AC_HELP_STRING([--disable-manpages], [Build manual pages]))
 if test "$enable_manpages" != "no"; then
 	enable_manpages="yes"
 	AC_PATH_PROG([XSLTPROC], [xsltproc])
