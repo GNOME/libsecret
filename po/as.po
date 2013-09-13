@@ -1,0 +1,58 @@
+# Assamese translation for libsecret.
+# Copyright (C) 2013 libsecret's COPYRIGHT HOLDER
+# This file is distributed under the same license as the libsecret package.
+#
+# Nilamdyuti Goswami <ngoswami@redhat.com>, 2013.
+msgid ""
+msgstr ""
+"Project-Id-Version: libsecret master\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
+"product=libsecret&keywords=I18N+L10N&component=general\n"
+"POT-Creation-Date: 2013-09-12 17:52+0000\n"
+"PO-Revision-Date: 2013-09-13 18:35+0530\n"
+"Last-Translator: Nilamdyuti Goswami <ngoswami@redhat.com>\n"
+"Language-Team: Assamese <kde-i18n-doc@kde.org>\n"
+"Language: as\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Lokalize 1.5\n"
+
+#: ../libsecret/secret-item.c:1164
+#, c-format
+msgid "Received invalid secret from the secret storage"
+msgstr "গোপন সংৰক্ষণৰ পৰা অবৈধ গোপন তথ্য প্ৰাপ্ত হৈছে"
+
+#: ../libsecret/secret-methods.c:1055
+msgid "Default keyring"
+msgstr "অবিকল্পিত কিৰিং"
+
+#: ../libsecret/secret-session.c:244 ../libsecret/secret-session.c:281
+msgid "Couldn't communicate with the secret storage"
+msgstr "গোপন সংৰক্ষণৰ সৈতে সংযোগ কৰিব পৰা নগল"
+
+#: ../tool/secret-tool.c:39
+msgid "the label for the new stored item"
+msgstr "নতুন সংৰক্ষিত বস্তুৰ বাবে লেবেল"
+
+#: ../tool/secret-tool.c:41
+msgid "the collection in which to place the stored item"
+msgstr "সংৰক্ষিত বস্তু থবলৈ সংগ্ৰহ"
+
+#: ../tool/secret-tool.c:43 ../tool/secret-tool.c:50 ../tool/secret-tool.c:437
+msgid "attribute value pairs of item to lookup"
+msgstr "চাবলৈ বস্তুৰ বৈশিষ্ট্য মান যোৰ"
+
+#: ../tool/secret-tool.c:57
+msgid "attribute value pairs which match items to clear"
+msgstr "পৰিষ্কাৰ কৰিব লগিয়া বস্তুবোৰৰ সৈতে মিল খোৱা বৈশিষ্ট্য মান যোৰ"
+
+#: ../tool/secret-tool.c:433
+msgid "return all results, instead of just first one"
+msgstr "সকলো ফলাফল দেখুৱাওক, কেৱল প্ৰথমটো দেখুৱাৰ পৰিৱৰ্তে"
+
+#: ../tool/secret-tool.c:435
+msgid "unlock item results if necessary"
+msgstr "প্ৰয়োজন সাপেক্ষে বস্তুৰ ফলাফলসমূহ আনলক কৰিব"
+
