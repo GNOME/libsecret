@@ -1,0 +1,55 @@
+# Korean translation for libsecret.
+# This file is distributed under the same license as the libsecret package.
+#
+# Changwoo Ryu <cwryu@debian.org>, 2013.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: libsecret master\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?product=libsecret&keywords=I18N+L10N&component=general\n"
+"POT-Creation-Date: 2013-09-13 13:01+0000\n"
+"PO-Revision-Date: 2013-09-14 22:21+0900\n"
+"Last-Translator: Changwoo Ryu <cwryu@debian.org>\n"
+"Language-Team: GNOME Korea <gnome-kr@googlegroups.com>\n"
+"Language: ko\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: ../libsecret/secret-item.c:1164
+#, c-format
+msgid "Received invalid secret from the secret storage"
+msgstr "비밀 저장소에서 잘못된 비밀 정보를 받았습니다"
+
+#: ../libsecret/secret-methods.c:1055
+msgid "Default keyring"
+msgstr "기본 키 모음"
+
+#: ../libsecret/secret-session.c:244 ../libsecret/secret-session.c:281
+msgid "Couldn't communicate with the secret storage"
+msgstr "비밀 저장 장치와 통신할 수 없습니다"
+
+#: ../tool/secret-tool.c:39
+msgid "the label for the new stored item"
+msgstr "새로 저장한 항목의 레이블"
+
+#: ../tool/secret-tool.c:41
+msgid "the collection in which to place the stored item"
+msgstr "저장한 항목을 놓을 모음"
+
+#: ../tool/secret-tool.c:43 ../tool/secret-tool.c:50 ../tool/secret-tool.c:437
+msgid "attribute value pairs of item to lookup"
+msgstr "찾아볼 항목의 속성 값의 쌍"
+
+#: ../tool/secret-tool.c:57
+msgid "attribute value pairs which match items to clear"
+msgstr "지울 항목에 해당하는 속성 값의 쌍"
+
+#: ../tool/secret-tool.c:433
+msgid "return all results, instead of just first one"
+msgstr "첫 번째 결과가 아니라 모든 결과를 리턴합니다"
+
+#: ../tool/secret-tool.c:435
+msgid "unlock item results if necessary"
+msgstr "필요하면 항목 결과의 잠금을 풉니다"
