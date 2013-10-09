@@ -1,0 +1,58 @@
+# Esperanto translation for libsecret.
+# Copyright (C) 2013 Free Software Foundation, Inc.
+# This file is distributed under the same license as the libsecret package.
+# Kristjan SCHMIDT <kristjan.schmidt@googlemail.com>, 2013.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: libsecret master\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
+"product=libsecret&keywords=I18N+L10N&component=general\n"
+"POT-Creation-Date: 2013-09-23 18:43+0000\n"
+"PO-Revision-Date: 2013-10-09 20:00+0200\n"
+"Last-Translator: Kristjan SCHMIDT <kristjan.schmidt@googlemail.com>\n"
+"Language-Team: Esperanto <gnome-l10n-eo@lists.launchpad.net>\n"
+"Language: eo\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+"X-Generator: Gtranslator 2.91.6\n"
+"X-Project-Style: gnome\n"
+
+#: ../libsecret/secret-item.c:1164
+#, c-format
+msgid "Received invalid secret from the secret storage"
+msgstr "Ricevis nevalidan sekreton de la sekret-konservejo"
+
+#: ../libsecret/secret-methods.c:1055
+msgid "Default keyring"
+msgstr "Defaŭlta ŝlosilaro"
+
+#: ../libsecret/secret-session.c:244 ../libsecret/secret-session.c:281
+msgid "Couldn't communicate with the secret storage"
+msgstr "Ne eblis komuniki kun la sekret-konservejo"
+
+#: ../tool/secret-tool.c:39
+msgid "the label for the new stored item"
+msgstr "la etikedo por la nova konservita elemento"
+
+#: ../tool/secret-tool.c:41
+msgid "the collection in which to place the stored item"
+msgstr "la kolekto en kiun meti la konservitan elementon"
+
+#: ../tool/secret-tool.c:43 ../tool/secret-tool.c:50 ../tool/secret-tool.c:437
+msgid "attribute value pairs of item to lookup"
+msgstr "atribut-valor-paroj de la elserĉata elemento"
+
+#: ../tool/secret-tool.c:57
+msgid "attribute value pairs which match items to clear"
+msgstr "atribut-valor-paroj kiuj kongruas al la forigendaj elementoj"
+
+#: ../tool/secret-tool.c:433
+msgid "return all results, instead of just first one"
+msgstr "liveri ĉiujn rezultojn, anstataŭ nur la unuan"
+
+#: ../tool/secret-tool.c:435
+msgid "unlock item results if necessary"
+msgstr "malŝlosi element-rezultojn se necesas"
