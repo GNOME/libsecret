@@ -1,0 +1,57 @@
+# Malayalam translation for libsecret.
+# Copyright (C) 2013 libsecret's COPYRIGHT HOLDER
+# This file is distributed under the same license as the libsecret package.
+# Anish Sheela <aneesh.nl@gmail.com>, 2013.
+msgid ""
+msgstr ""
+"Project-Id-Version: libsecret master\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
+"product=libsecret&keywords=I18N+L10N&component=general\n"
+"POT-Creation-Date: 2013-10-10 11:47+0000\n"
+"PO-Revision-Date: 2013-10-11 21:55+0530\n"
+"Last-Translator: Anish Sheela <aneesh.nl@gmail.com>\n"
+"Language-Team: Swatantra Malayalam Computing <discuss@lists.smc.org.in>\n"
+"Language: ml\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Virtaal 0.7.1\n"
+"X-Project-Style: gnome\n"
+
+#: ../libsecret/secret-item.c:1164
+#, c-format
+msgid "Received invalid secret from the secret storage"
+msgstr "രഹസ്യ സംഭരണിയില്‍ നിന്ന് സാധുവല്ലാത്ത രഹസ്യം കിട്ടി"
+
+#: ../libsecret/secret-methods.c:1055
+msgid "Default keyring"
+msgstr "സ്വതവേയുള്ള ചാവികൂട്ടം"
+
+#: ../libsecret/secret-session.c:244 ../libsecret/secret-session.c:281
+msgid "Couldn't communicate with the secret storage"
+msgstr "രഹസ്യസംഭരണിയുമായി ബന്ധപെടാനാകുന്നില്ല"
+
+#: ../tool/secret-tool.c:39
+msgid "the label for the new stored item"
+msgstr "പുതിയതായി സംഭരിച്ച ഇനത്തിന്റെ ലേബല്‍"
+
+#: ../tool/secret-tool.c:41
+msgid "the collection in which to place the stored item"
+msgstr "സംഭരിക്കേണ്ട ഇനം വെയ്ക്കേണ്ട ശേഖരം"
+
+#: ../tool/secret-tool.c:43 ../tool/secret-tool.c:50 ../tool/secret-tool.c:437
+msgid "attribute value pairs of item to lookup"
+msgstr "നോക്കേണ്ട ഇനത്തിന്റെ ഗുണം - വില ജോടി"
+
+#: ../tool/secret-tool.c:57
+msgid "attribute value pairs which match items to clear"
+msgstr "ചേര്‍ന്ന ഇനങ്ങള്‍ മാറ്റേണ്ട ഗുണം - വില ജോടി"
+
+#: ../tool/secret-tool.c:433
+msgid "return all results, instead of just first one"
+msgstr "ആദ്യത്തേതിന് പകരം എല്ലാ ഫലങ്ങളും നല്‍കുക"
+
+#: ../tool/secret-tool.c:435
+msgid "unlock item results if necessary"
+msgstr "ഇനത്തിന്റെ ഫലങ്ങള്‍ ആവശ്യമെങ്കില്‍ തുറക്കുക"
