@@ -32,6 +32,13 @@
  */
 
 /**
+ * SECRET_ERROR:
+ *
+ * The error domain quark which denotes libsecret specific errors from the
+ * #SecretError enumeration.
+ */
+
+/**
  * SecretError:
  * @SECRET_ERROR_PROTOCOL: received an invalid data or message from the Secret
  *                         Service

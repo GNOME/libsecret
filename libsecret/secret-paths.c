@@ -242,7 +242,7 @@ secret_item_new_for_dbus_path_finish (GAsyncResult *result,
 }
 
 /**
- * secret_item_new_dbus_path_sync:
+ * secret_item_new_for_dbus_path_sync:
  * @service: (allow-none): a secret service object
  * @item_path: the D-Bus path of the item
  * @flags: initialization flags for the new item
@@ -2394,6 +2394,29 @@ secret_service_set_alias_to_dbus_path_sync (SecretService *self,
 	return ret;
 }
 
+/**
+ * secret_service_prompt_at_dbus_path_sync:
+ * @self: the secret service
+ * @prompt_path: the D-Bus object path of the prompt
+ * @cancellable: optional cancellation object
+ * @return_type: (allow-none): the variant type of the prompt result
+ * @error: location to place error on failure
+ *
+ * Perform prompting for a #SecretPrompt.
+ *
+ * Override the #SecretServiceClass <literal>prompt_async</literal> virtual method
+ * to change the behavior of the propmting. The default behavior is to simply
+ * run secret_prompt_perform() on the prompt.
+ *
+ * Returns a variant result if the prompt was completed and not dismissed. The
+ * type of result depends on the action the prompt is completing, and is defined
+ * in the Secret Service DBus API specification.
+ *
+ * This method may block and should not be used in user interface threads.
+ *
+ * Returns: (transfer full): %NULL if the prompt was dismissed or an error occurred,
+ *          a variant result if the prompt was successful
+ */
 GVariant *
 secret_service_prompt_at_dbus_path_sync (SecretService *self,
                                          const gchar *prompt_path,

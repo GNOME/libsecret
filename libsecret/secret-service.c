@@ -88,6 +88,10 @@
  * @prompt_async: called to perform asynchronous prompting when necessary
  * @prompt_finish: called to complete an asynchronous prompt operation
  * @prompt_sync: called to perform synchronous prompting when necessary
+ * @get_collection_gtype: called to get the GObject type for collections
+ *                        instantiated by the #SecretService proxy
+ * @get_item_gtype: called to get the GObject type for collections
+ *                  instantiated by the #SecretService proxy
  *
  * The class for #SecretService.
  */
