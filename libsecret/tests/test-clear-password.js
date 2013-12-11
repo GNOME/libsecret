@@ -20,7 +20,7 @@ const assertTrue = JsUnit.assertTrue;
 
 Mock.start("mock-service-normal.py");
 
-const STORE_SCHEMA = new Secret.Schema.new("org.mock.Schema",
+const STORE_SCHEMA = new Secret.Schema("org.mock.Schema",
 	Secret.SchemaFlags.NONE,
 	{
 		"number": Secret.SchemaAttributeType.INTEGER,
@@ -52,7 +52,7 @@ var attributes = { "number": "2", "string": "two", "even": "true" };
 var password = Secret.password_lookup_sync (STORE_SCHEMA, attributes, null);
 assertEquals("222", password);
 
-var loop = new GLib.MainLoop.new(null, false);
+var loop = new GLib.MainLoop(null, false);
 
 Secret.password_clear (STORE_SCHEMA, attributes,
                        null, function(source, result) {

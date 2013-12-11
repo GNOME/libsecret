@@ -52,7 +52,7 @@ class TestStore(unittest.TestCase):
 		password = Secret.password_lookup_sync(STORE_SCHEMA, attributes, None)
 		self.assertEqual(None, password);
 
-		loop = GLib.MainLoop(None, False)
+		loop = GLib.MainLoop(None)
 
 		def on_result_ready(source, result, unused):
 			loop.quit()

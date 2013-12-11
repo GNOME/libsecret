@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 #
 # Copyright 2012 Red Hat Inc.
 #
@@ -9,8 +11,7 @@
 # See the included COPYING file for more information.
 #
 
-#!/usr/bin/env python
-
+import sys
 import unittest
 
 from gi.repository import MockService as Mock
@@ -52,7 +53,7 @@ class TestRemove(unittest.TestCase):
 		self.assertEqual(False, deleted)
 
 	def testAsynchronous(self):
-		loop = GLib.MainLoop(None, False)
+		loop = GLib.MainLoop(None)
 
 		def on_result_ready(source, result, unused):
 			loop.quit()
@@ -65,7 +66,7 @@ class TestRemove(unittest.TestCase):
 		loop.run()
 
 	def testAsyncNotFound(self):
-		loop = GLib.MainLoop(None, False)
+		loop = GLib.MainLoop(None)
 
 		def on_result_ready(source, result, unused):
 			loop.quit()

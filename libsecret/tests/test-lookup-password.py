@@ -42,7 +42,7 @@ class TestLookup(unittest.TestCase):
 		self.assertEqual(None, password)
 
 	def testAsynchronous(self):
-		loop = GLib.MainLoop(None, False)
+		loop = GLib.MainLoop(None)
 
 		def on_result_ready(source, result, unused):
 			loop.quit()
@@ -55,7 +55,7 @@ class TestLookup(unittest.TestCase):
 		loop.run()
 
 	def testAsyncNotFound(self):
-		loop = GLib.MainLoop(None, False)
+		loop = GLib.MainLoop(None)
 
 		def on_result_ready(source, result, unused):
 			loop.quit()
