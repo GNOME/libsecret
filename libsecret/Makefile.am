@@ -96,7 +96,8 @@ temp-dbus-generated.c: $(DBUS_XML_DEFINITIONS) Makefile.am
 		--generate-c-code temp-dbus-generated --c-namespace SecretGen \
 		$(DBUS_XML_DEFINITIONS)
 secret-dbus-generated.c: temp-dbus-generated.c Makefile.am
-	$(AM_V_GEN) sed -e '1i #define GLIB_DISABLE_DEPRECATION_WARNINGS' \
+	$(AM_V_GEN) sed -e '1i\
+	#define GLIB_DISABLE_DEPRECATION_WARNINGS' \
 		-e 's/secret_gen_/_secret_gen_/g' -e 's/type-/type/g' \
 		-e 's/temp-dbus-generated.h/secret-dbus-generated.h/g' \
 		temp-dbus-generated.c > secret-dbus-generated.c
