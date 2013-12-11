@@ -36,9 +36,6 @@
  * service using the DBus API directly, and only wish to use a few calls
  * in libsecret.
  *
- * These functions have an unstable API and may change across versions. Use
- * <literal>libsecret-unstable</literal> package to access them.
- *
  * Stability: Unstable
  */
 
@@ -906,7 +903,7 @@ secret_service_get_secrets_for_dbus_paths (SecretService *self,
  *
  * Items that are locked will not be included the results.
  *
- * Returns: (transfer full) (element-type utf8 SecretUnstable.Value): a newly
+ * Returns: (transfer full) (element-type utf8 Secret.Value): a newly
  *          allocated hash table of item_path keys to #SecretValue
  *          values.
  */
@@ -949,7 +946,7 @@ secret_service_get_secrets_for_dbus_paths_finish (SecretService *self,
  *
  * Items that are locked will not be included the results.
  *
- * Returns: (transfer full) (element-type utf8 SecretUnstable.Value): a newly
+ * Returns: (transfer full) (element-type utf8 Secret.Value): a newly
  *          allocated hash table of item_path keys to #SecretValue
  *          values.
  */

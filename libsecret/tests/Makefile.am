@@ -59,7 +59,7 @@ JS_TESTS = \
 	test-lookup-password.js \
 	test-clear-password.js \
 	test-store-password.js \
-	test-unstable.js
+	$(NULL)
 
 JS_ENV = \
 	LD_LIBRARY_PATH=$(builddir)/../.libs:$(builddir)/.libs \
@@ -69,7 +69,7 @@ PY_TESTS = \
 	test-lookup-password.py \
 	test-clear-password.py \
 	test-store-password.py \
-	test-unstable.py
+	$(NULL)
 
 PY_ENV = $(JS_ENV)
 

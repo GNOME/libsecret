@@ -342,7 +342,7 @@ secret_service_search (SecretService *service,
  *
  * Complete asynchronous operation to search for items.
  *
- * Returns: (transfer full) (element-type SecretUnstable.Item):
+ * Returns: (transfer full) (element-type Secret.Item):
  *          a list of items that matched the search
  */
 GList *
@@ -432,7 +432,7 @@ service_load_items_sync (SecretService *service,
  * This function may block indefinetely. Use the asynchronous version
  * in user interface threads.
  *
- * Returns: (transfer full) (element-type SecretUnstable.Item):
+ * Returns: (transfer full) (element-type Secret.Item):
  *          a list of items that matched the search
  */
 GList *

@@ -39,10 +39,7 @@
  * Each of the functions accept a variable list of attributes names and their
  * values. Include a %NULL to terminate the list of attributes.
  *
- * These functions have an unstable API and may change across versions. Use
- * <literal>libsecret-unstable</literal> package to access them.
- *
- * Stability: Unstable
+ * Stability: Stable
  */
 
 /**

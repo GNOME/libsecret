@@ -15,7 +15,7 @@ import sys
 import unittest
 
 from gi.repository import MockService as Mock
-from gi.repository import Secret, SecretUnstable, GLib
+from gi.repository import Secret, GLib
 
 STORE_SCHEMA = Secret.Schema.new("org.mock.Schema",
 	Secret.SchemaFlags.NONE,
@@ -31,7 +31,7 @@ class TestRemove(unittest.TestCase):
 		Mock.start("mock-service-normal.py")
 
 	def tearDown(self):
-		SecretUnstable.Service.disconnect()
+		Secret.Service.disconnect()
 		Mock.stop()
 
 	def testSynchronous(self):

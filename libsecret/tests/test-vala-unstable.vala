@@ -12,7 +12,7 @@
 private void test_read_alias () {
 	try {
 		var service = Secret.Service.get_sync(Secret.ServiceFlags.NONE);
-		var path = service.read_alias_dbus_path_sync("default", null);
+		var path = Secret.service_read_alias_dbus_path_sync(service, "default", null);
 		GLib.assert (path != null);
 	} catch ( GLib.Error e ) {
 		GLib.error (e.message);

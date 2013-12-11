@@ -66,10 +66,7 @@
  * In order to customize prompt handling, override the <literal>prompt_async</literal>
  * and <literal>prompt_finish</literal> virtual methods of the #SecretService class.
  *
- * These functions have an unstable API and may change across versions. Use
- * <literal>libsecret-unstable</literal> package to access them.
- *
- * Stability: Unstable
+ * Stability: Stable
  */
 
 /**
@@ -1101,7 +1098,7 @@ secret_service_get_flags (SecretService *self)
  * initializing #SecretService proxy object, then this method will return
  * %NULL. Use secret_service_load_collections() to load the collections.
  *
- * Returns: (transfer full) (element-type SecretUnstable.Collection) (allow-none): a
+ * Returns: (transfer full) (element-type Secret.Collection) (allow-none): a
  *          list of the collections in the secret service
  */
 GList *

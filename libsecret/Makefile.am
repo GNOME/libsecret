@@ -39,20 +39,20 @@ BUILT_SOURCES = \
 
 STABLE_FILES = \
 	secret-attributes.h secret-attributes.c \
-	secret-password.h secret-password.c \
-	secret-schema.h secret-schema.c \
-	secret-schemas.h secret-schemas.c \
-	secret-types.h \
-	$(NULL)
-
-UNSTABLE_FILES = \
 	secret-collection.h secret-collection.c \
 	secret-item.h secret-item.c \
 	secret-methods.c \
-	secret-paths.h secret-paths.c \
+	secret-password.h secret-password.c \
 	secret-prompt.h secret-prompt.c \
+	secret-schema.h secret-schema.c \
+	secret-schemas.h secret-schemas.c \
 	secret-service.h secret-service.c \
+	secret-types.h \
 	secret-value.h secret-value.c \
+	$(NULL)
+
+UNSTABLE_FILES = \
+	secret-paths.h secret-paths.c \
 	$(NULL)
 
 PRIVATE_FILES = \
@@ -144,7 +144,9 @@ SecretUnstable_0_gir_FILES = $(UNSTABLE_FILES)
 SecretUnstable_0_gir_SCANNERFLAGS = --c-include "libsecret/secret.h" --identifier-prefix=Secret --symbol-prefix=secret --include-uninstalled=$(builddir)/Secret-@SECRET_MAJOR@.gir
 
 girdir = $(datadir)/gir-1.0
-gir_DATA = $(INTROSPECTION_GIRS)
+gir_DATA = Secret-@SECRET_MAJOR@.gir
+
+noinst_DATA = SecretUnstable-0.gir
 
 typelibsdir = $(libdir)/girepository-1.0
 typelibs_DATA = $(INTROSPECTION_GIRS:.gir=.typelib)
@@ -217,6 +219,7 @@ CLEANFILES += \
 	$(pkgconfig_DATA) \
 	$(gir_DATA) \
 	$(typelibs_DATA) \
+	$(noinst_DATA) \
 	temp-dbus-generated.c \
 	temp-dbus-generated.h \
 	$(NULL)

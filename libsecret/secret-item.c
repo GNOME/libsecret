@@ -50,10 +50,7 @@
  *
  * Items can be created with secret_item_create() or secret_service_store().
  *
- * These functions have an unstable API and may change across versions. Use
- * <literal>libsecret-unstable</literal> package to access them.
- *
- * Stability: Unstable
+ * Stability: Stable
  */
 
 /**
@@ -1405,7 +1402,7 @@ on_loads_secrets_session (GObject *source,
 
 /**
  * secret_item_load_secrets:
- * @items: (element-type SecretUnstable.Item): the items to retrieve secrets for
+ * @items: (element-type Secret.Item): the items to retrieve secrets for
  * @cancellable: optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to pass to the callback
@@ -1504,7 +1501,7 @@ secret_item_load_secrets_finish (GAsyncResult *result,
 
 /**
  * secret_item_load_secrets_sync:
- * @items: (element-type SecretUnstable.Item): the items to retrieve secrets for
+ * @items: (element-type Secret.Item): the items to retrieve secrets for
  * @cancellable: optional cancellation object
  * @error: location to place an error on failure
  *
