@@ -187,11 +187,7 @@ AC_ARG_ENABLE(strict, [
 AC_MSG_CHECKING([build strict])
 
 if test "$enable_strict" = "yes"; then
-	CFLAGS="$CFLAGS -Werror \
-		-DGTK_DISABLE_DEPRECATED \
-		-DGDK_DISABLE_DEPRECATED \
-		-DG_DISABLE_DEPRECATED \
-		-DGDK_PIXBUF_DISABLE_DEPRECATED"
+	CFLAGS="$CFLAGS -Werror -DG_DISABLE_DEPRECATED"
 	INTROSPECTION_FLAGS="--warn-error"
 	TEST_MODE="thorough"
 else
