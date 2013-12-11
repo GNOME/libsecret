@@ -91,13 +91,18 @@ libsecret_testable_la_LDFLAGS = -rpath /force/shared
 DBUS_XML_DEFINITIONS = \
 	$(srcdir)/org.freedesktop.Secrets.xml
 
-secret-dbus-generated.c: $(DBUS_XML_DEFINITIONS) Makefile.am
+temp-dbus-generated.c: $(DBUS_XML_DEFINITIONS) Makefile.am
 	$(AM_V_GEN) gdbus-codegen --interface-prefix org.freedesktop.Secret. \
-		--generate-c-code secret-dbus-generated --c-namespace SecretGen \
+		--generate-c-code temp-dbus-generated --c-namespace SecretGen \
 		$(DBUS_XML_DEFINITIONS)
-	$(AM_V_GEN) sed -i -e 's/secret_gen_/_secret_gen_/g' -e 's/type-/type/g' secret-dbus-generated.[ch]
-	$(AM_V_GEN) sed -i -e '1i #define GLIB_DISABLE_DEPRECATION_WARNINGS' secret-dbus-generated.c
-secret-dbus-generated.h: secret-dbus-generated.c
+secret-dbus-generated.c: temp-dbus-generated.c Makefile.am
+	$(AM_V_GEN) sed -e '1i #define GLIB_DISABLE_DEPRECATION_WARNINGS' \
+		-e 's/secret_gen_/_secret_gen_/g' -e 's/type-/type/g' \
+		-e 's/temp-dbus-generated.h/secret-dbus-generated.h/g' \
+		temp-dbus-generated.c > secret-dbus-generated.c
+secret-dbus-generated.h: temp-dbus-generated.c Makefile.am
+	$(AM_V_GEN) sed -e 's/secret_gen_/_secret_gen_/g' -e 's/type-/type/g' \
+		temp-dbus-generated.h > secret-dbus-generated.h
 
 secret-enum-types.h: secret-enum-types.h.template $(HEADER_FILES)
 	$(AM_V_GEN) $(GLIB_MKENUMS) --template $^ > $@
@@ -212,9 +217,13 @@ CLEANFILES += \
 	$(pkgconfig_DATA) \
 	$(gir_DATA) \
 	$(typelibs_DATA) \
+	temp-dbus-generated.c \
+	temp-dbus-generated.h \
 	$(NULL)
 
 DISTCLEANFILES = \
+	secret-dbus-generated.c \
+	secret-dbus-generated.h \
 	$(NULL)
 
 check-memory:

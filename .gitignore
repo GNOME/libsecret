@@ -70,7 +70,7 @@ stamp*
 /egg/tests/test-*
 !/egg/tests/test-*.c
 
-/libsecret/secret-dbus-generated.[ch]
+/libsecret/*-dbus-generated.[ch]
 /libsecret/secret-enum-types.[ch]
 /libsecret/tests/test-*
 /libsecret/tests/*.metadata
