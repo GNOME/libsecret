@@ -131,10 +131,10 @@ test-c: $(C_TESTS)
 	@gtester --verbose -m $(TEST_MODE) --g-fatal-warnings $(C_TESTS)
 
 test-js:
-	@for js in $(JS_TESTS); do echo "TEST: $$js"; $(JS_ENV) gjs $(srcdir)/$$js; done
+	@for js in $(JS_TESTS); do echo "TEST: $$js"; $(JS_ENV) gjs $(srcdir)/$$js || exit $?; done
 
 test-py:
-	@for py in $(PY_TESTS); do echo "TEST: $$py"; $(PY_ENV) python $(srcdir)/$$py; done
+	@for py in $(PY_TESTS); do echo "TEST: $$py"; $(PY_ENV) python $(srcdir)/$$py || exit $?; done
 
 test: test-c test-py test-js $(VALA_TEST_TARGET)
 
