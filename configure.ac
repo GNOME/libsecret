@@ -5,6 +5,27 @@ AC_INIT([libsecret],[0.16],
         [libsecret])
 
 dnl ****************************************************************************
+dnl Dependency versions
+
+# Required
+
+GLIB_REQ=2.38.0
+GLIB_MIN=GLIB_VERSION_2_38
+GLIB_MAX=GLIB_VERSION_2_38
+
+INTLTOOL_REQ=0.35.0
+
+# Optional
+
+VALA_WANT=0.17.2.12
+
+GCRYPT_WANT=1.2.2
+
+GTKDOC_WANT=1.9
+
+GIR_WANT=1.29
+
+dnl ****************************************************************************
 dnl Library package and libtool versioning
 dnl
 dnl Updating the libtool versions, follow these instructions sequentially:
@@ -43,7 +64,7 @@ AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
 AM_PROG_LIBTOOL
-IT_PROG_INTLTOOL([0.35.0])
+IT_PROG_INTLTOOL($INTLTOOL_REQ)
 AC_PATH_PROG(PKG_CONFIG, pkg-config, no)
 
 GETTEXT_PACKAGE=libsecret
@@ -60,15 +81,15 @@ AC_CHECK_FUNCS(mlock)
 # GLib
 
 PKG_CHECK_MODULES(GLIB,
-	glib-2.0 >= 2.32.0
-	gio-2.0 >= 2.32.0
+	glib-2.0 >= $GLIB_REQ
+	gio-2.0
 	gio-unix-2.0)
-LIBS="$LIBS $GLIB_LIBS"
-CFLAGS="$CFLAGS $GLIB_CFLAGS"
+LIBS="$LIBS $GLIB_LIBS -DGLIB_VERSION_MIN_REQUIRED=$GLIB_MIN"
+CFLAGS="$CFLAGS $GLIB_CFLAGS -DGLIB_VERSION_MAX_ALLOWED=$GLIB_MAX"
 
-GTK_DOC_CHECK(1.9)
+GTK_DOC_CHECK($GTKDOC_WANT)
 
-GOBJECT_INTROSPECTION_CHECK([1.29])
+GOBJECT_INTROSPECTION_CHECK($GIR_WANT)
 AC_PATH_PROG(GLIB_MKENUMS, glib-mkenums)
 
 # --------------------------------------------------------------------
@@ -88,9 +109,7 @@ AM_CONDITIONAL(WITH_MANPAGES, test x$enable_manpages = xyes)
 # --------------------------------------------------------------------
 # Vala
 
-VALA_REQUIRED=0.17.2.12
-
-VAPIGEN_CHECK($VALA_REQUIRED)
+VAPIGEN_CHECK($VALA_WANT)
 
 if test "$enable_vala" != "no"; then
 	AC_PATH_PROG([VALAC], [valac], [])
@@ -100,7 +119,6 @@ AM_CONDITIONAL(HAVE_VALAC, test "x$VALAC" != "x")
 # --------------------------------------------------------------------
 # libgcrypt
 
-GCRYPT_VERSION=1.2.2
 GCRYPT_LIBVER=1
 
 AC_ARG_ENABLE(gcrypt,
@@ -112,7 +130,7 @@ if test "$enable_gcrypt" != "no"; then
 
 	have_gcrypt="no"
 	m4_ifdef([AM_PATH_LIBGCRYPT],
-	         [AM_PATH_LIBGCRYPT($GCRYPT_LIBVER:$GCRYPT_VERSION, have_gcrypt=yes)])
+	         [AM_PATH_LIBGCRYPT($GCRYPT_LIBVER:$GCRYPT_WANT, have_gcrypt=yes)])
 
 	if test $have_gcrypt != "yes"; then
 		AC_MSG_ERROR([[
@@ -124,13 +142,13 @@ if test "$enable_gcrypt" != "no"; then
 	fi
 
 	AC_DEFINE(WITH_GCRYPT, 1, [Build with libgcypt and transport encryption])
-	AC_DEFINE_UNQUOTED(LIBGCRYPT_VERSION, "$GCRYPT_VERSION",
+	AC_DEFINE_UNQUOTED(LIBGCRYPT_VERSION, "$GCRYPT_WANT",
 	                   [Version of GCRYPT we expect])
 
 	AC_SUBST([LIBGCRYPT_CFLAGS])
 	AC_SUBST([LIBGCRYPT_LIBS])
 
-	gcrypt_status=$GCRYPT_VERSION
+	gcrypt_status="yes"
 	enable_gcrypt="yes"
 else
 	gcrypt_status="no"
