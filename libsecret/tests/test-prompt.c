@@ -94,7 +94,7 @@ test_perform_sync (Test *test,
 
 	prompt = _secret_prompt_instance (test->service, "/org/freedesktop/secrets/prompts/simple");
 
-	retval = secret_prompt_perform_sync (prompt, 0, NULL, NULL, &error);
+	retval = secret_prompt_perform_sync (prompt, NULL, NULL, NULL, &error);
 	g_assert_no_error (error);
 	g_assert (retval != NULL);
 	g_variant_unref (retval);
@@ -215,7 +215,7 @@ test_perform_fail (Test *test,
 	prompt = _secret_prompt_instance (test->service, "/org/freedesktop/secrets/prompts/error");
 	g_object_add_weak_pointer (G_OBJECT (prompt), (gpointer *)&prompt);
 
-	retval = secret_prompt_perform_sync (prompt, 0, NULL, NULL, &error);
+	retval = secret_prompt_perform_sync (prompt, NULL, NULL, NULL, &error);
 	g_assert_error (error, G_DBUS_ERROR, G_DBUS_ERROR_NOT_SUPPORTED);
 	g_assert (retval == NULL);
 
@@ -234,7 +234,7 @@ test_perform_vanish (Test *test,
 	prompt = _secret_prompt_instance (test->service, "/org/freedesktop/secrets/prompts/vanish");
 	g_object_add_weak_pointer (G_OBJECT (prompt), (gpointer *)&prompt);
 
-	retval = secret_prompt_perform_sync (prompt, 0, NULL, NULL, &error);
+	retval = secret_prompt_perform_sync (prompt, NULL, NULL, NULL, &error);
 	g_assert_no_error (error);
 	g_assert (retval == NULL);
 
@@ -274,7 +274,7 @@ test_prompt_window_id (Test *test,
 	prompt = _secret_prompt_instance (test->service, "/org/freedesktop/secrets/prompts/window");
 	g_object_add_weak_pointer (G_OBJECT (prompt), (gpointer *)&prompt);
 
-	retval = secret_prompt_perform_sync (prompt, 555, NULL, G_VARIANT_TYPE_STRING, &error);
+	retval = secret_prompt_perform_sync (prompt, "555", NULL, G_VARIANT_TYPE_STRING, &error);
 	g_assert_no_error (error);
 	g_assert (retval != NULL);
 	g_assert_cmpstr (g_variant_get_string (retval, NULL), ==, "555");

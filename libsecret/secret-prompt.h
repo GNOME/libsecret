@@ -53,19 +53,19 @@ struct _SecretPromptClass {
 GType               secret_prompt_get_type                  (void) G_GNUC_CONST;
 
 GVariant *          secret_prompt_run                       (SecretPrompt *self,
-                                                             gulong window_id,
+                                                             const gchar *window_id,
                                                              GCancellable *cancellable,
                                                              const GVariantType *return_type,
                                                              GError **error);
 
 GVariant *          secret_prompt_perform_sync              (SecretPrompt *self,
-                                                             gulong window_id,
+                                                             const gchar *window_id,
                                                              GCancellable *cancellable,
                                                              const GVariantType *return_type,
                                                              GError **error);
 
 void                secret_prompt_perform                   (SecretPrompt *self,
-                                                             gulong window_id,
+                                                             const gchar *window_id,
                                                              const GVariantType *return_type,
                                                              GCancellable *cancellable,
                                                              GAsyncReadyCallback callback,

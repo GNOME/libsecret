@@ -125,7 +125,7 @@ _secret_prompt_instance (SecretService *service,
 /**
  * secret_prompt_run:
  * @self: a prompt
- * @window_id: XWindow id for parent window to be transient for
+ * @window_id: (allow-none): string form of XWindow id for parent window to be transient for
  * @cancellable: optional cancellation object
  * @return_type: the variant type of the prompt result
  * @error: location to place an error on failure
@@ -135,10 +135,11 @@ _secret_prompt_instance (SecretService *service,
  * action the prompt is completing, and is defined in the Secret Service DBus
  * API specification.
  *
- * If @window_id is non-zero then it is used as an XWindow id. The Secret
- * Service can make its prompt transient for the window with this id. In some
- * Secret Service implementations this is not possible, so the behavior
- * depending on this should degrade gracefully.
+ * If @window_id is non-null then it is used as an XWindow id on Linux. The API
+ * expects this id to be converted to a string using the <literal>%d</literal>
+ * printf format. The Secret Service can make its prompt transient for the window
+ * with this id. In some Secret Service implementations this is not possible, so
+ * the behavior depending on this should degrade gracefully.
  *
  * This runs the dialog in a recursive mainloop. When run from a user interface
  * thread, this means the user interface will remain responsive. Care should be
@@ -149,7 +150,7 @@ _secret_prompt_instance (SecretService *service,
  */
 GVariant *
 secret_prompt_run (SecretPrompt *self,
-                   gulong window_id,
+                   const gchar *window_id,
                    GCancellable *cancellable,
                    const GVariantType *return_type,
                    GError **error)
@@ -184,7 +185,7 @@ secret_prompt_run (SecretPrompt *self,
 /**
  * secret_prompt_perform_sync:
  * @self: a prompt
- * @window_id: XWindow id for parent window to be transient for
+ * @window_id: (allow-none): string form of XWindow id for parent window to be transient for
  * @cancellable: optional cancellation object
  * @return_type: the variant type of the prompt result
  * @error: location to place an error on failure
@@ -194,10 +195,11 @@ secret_prompt_run (SecretPrompt *self,
  * action the prompt is completing, and is defined in the Secret Service DBus
  * API specification.
  *
- * If @window_id is non-zero then it is used as an XWindow id. The Secret
- * Service can make its prompt transient for the window with this id. In some
- * Secret Service implementations this is not possible, so the behavior
- * depending on this should degrade gracefully.
+ * If @window_id is non-null then it is used as an XWindow id on Linux. The API
+ * expects this id to be converted to a string using the <literal>%d</literal>
+ * printf format. The Secret Service can make its prompt transient for the window
+ * with this id. In some Secret Service implementations this is not possible,
+ * so the behavior depending on this should degrade gracefully.
  *
  * This method may block indefinitely and should not be used in user interface
  * threads.
@@ -206,7 +208,7 @@ secret_prompt_run (SecretPrompt *self,
  */
 GVariant *
 secret_prompt_perform_sync (SecretPrompt *self,
-                            gulong window_id,
+                            const gchar *window_id,
                             GCancellable *cancellable,
                             const GVariantType *return_type,
                             GError **error)
@@ -411,7 +413,7 @@ on_prompt_cancelled (GCancellable *cancellable,
 /**
  * secret_prompt_perform:
  * @self: a prompt
- * @window_id: XWindow id for parent window to be transient for
+ * @window_id: (allow-none): string form of XWindow id for parent window to be transient for
  * @return_type: the variant type of the prompt result
  * @cancellable: optional cancellation object
  * @callback: called when the operation completes
@@ -420,16 +422,17 @@ on_prompt_cancelled (GCancellable *cancellable,
  * Runs a prompt and performs the prompting. Returns %TRUE if the prompt
  * was completed and not dismissed.
  *
- * If @window_id is non-zero then it is used as an XWindow id. The Secret
- * Service can make its prompt transient for the window with this id. In some
- * Secret Service implementations this is not possible, so the behavior
- * depending on this should degrade gracefully.
+ * If @window_id is non-null then it is used as an XWindow id on Linux. The API
+ * expects this id to be converted to a string using the <literal>%d</literal>
+ * printf format. The Secret Service can make its prompt transient for the window
+ * with this id. In some Secret Service implementations this is not possible, so
+ * the behavior depending on this should degrade gracefully.
  *
  * This method will return immediately and complete asynchronously.
  */
 void
 secret_prompt_perform (SecretPrompt *self,
-                       gulong window_id,
+                       const gchar *window_id,
                        const GVariantType *return_type,
                        GCancellable *cancellable,
                        GAsyncReadyCallback callback,
@@ -441,7 +444,6 @@ secret_prompt_perform (SecretPrompt *self,
 	const gchar *object_path;
 	gboolean prompted;
 	GDBusProxy *proxy;
-	gchar *window;
 
 	g_return_if_fail (SECRET_IS_PROMPT (self));
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
@@ -463,10 +465,8 @@ secret_prompt_perform (SecretPrompt *self,
 	closure->return_type = return_type ? g_variant_type_copy (return_type) : NULL;
 	g_simple_async_result_set_op_res_gpointer (res, closure, perform_closure_free);
 
-	if (window_id == 0)
-		window = g_strdup ("");
-	else
-		window = g_strdup_printf ("%lu", window_id);
+	if (window_id == NULL)
+		window_id = "";
 
 	owner_name = g_dbus_proxy_get_name_owner (proxy);
 	object_path = g_dbus_proxy_get_object_path (proxy);
@@ -492,11 +492,10 @@ secret_prompt_perform (SecretPrompt *self,
 		                                                res, NULL);
 	}
 
-	g_dbus_proxy_call (proxy, "Prompt", g_variant_new ("(s)", window),
+	g_dbus_proxy_call (proxy, "Prompt", g_variant_new ("(s)", window_id),
 	                   G_DBUS_CALL_FLAGS_NO_AUTO_START, -1,
 	                   closure->call_cancellable, on_prompt_prompted, g_object_ref (res));
 
-	g_free (window);
 	g_object_unref (res);
 }
 

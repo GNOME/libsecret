@@ -304,7 +304,7 @@ secret_service_real_prompt_sync (SecretService *self,
                                  const GVariantType *return_type,
                                  GError **error)
 {
-	return secret_prompt_perform_sync (prompt, 0, cancellable, return_type, error);
+	return secret_prompt_perform_sync (prompt, NULL, cancellable, return_type, error);
 }
 
 static void
@@ -1650,7 +1650,7 @@ secret_service_load_collections_sync (SecretService *self,
  *
  * Override the #SecretServiceClass <literal>prompt_sync</literal> virtual method
  * to change the behavior of the propmting. The default behavior is to simply
- * run secret_prompt_perform_sync() on the prompt.
+ * run secret_prompt_perform_sync() on the prompt with a %NULL <literal>window_id</literal>.
  *
  * Returns: (transfer full): %NULL if the prompt was dismissed or an error occurred,
  *          a variant result if the prompt was successful
