@@ -59,15 +59,17 @@ test_build_unknown (void)
 {
 	GHashTable *attributes;
 
-	if (g_test_trap_fork (0, G_TEST_TRAP_SILENCE_STDERR)) {
+	if (g_test_subprocess ()) {
 		attributes = secret_attributes_build (&MOCK_SCHEMA,
 		                                      "invalid", "whee",
 		                                      "string", "four",
 		                                      "even", TRUE,
 		                                      NULL);
 		g_assert (attributes == NULL);
+		return;
 	}
 
+	g_test_trap_subprocess ("/attributes/build-unknown", 0, G_TEST_SUBPROCESS_INHERIT_STDOUT);
 	g_test_trap_assert_failed ();
 	g_test_trap_assert_stderr ("*was not found in*");
 }
@@ -77,15 +79,17 @@ test_build_null_string (void)
 {
 	GHashTable *attributes;
 
-	if (g_test_trap_fork (0, G_TEST_TRAP_SILENCE_STDERR)) {
+	if (g_test_subprocess ()) {
 		attributes = secret_attributes_build (&MOCK_SCHEMA,
 		                                      "number", 4,
 		                                      "string", NULL,
 		                                      "even", TRUE,
 		                                      NULL);
 		g_assert (attributes == NULL);
+		return;
 	}
 
+	g_test_trap_subprocess ("/attributes/build-null-string", 0, G_TEST_SUBPROCESS_INHERIT_STDOUT);
 	g_test_trap_assert_failed ();
 	g_test_trap_assert_stderr ("*attribute*NULL*");
 }
@@ -95,15 +99,17 @@ test_build_non_utf8_string (void)
 {
 	GHashTable *attributes;
 
-	if (g_test_trap_fork (0, G_TEST_TRAP_SILENCE_STDERR)) {
+	if (g_test_subprocess ()) {
 		attributes = secret_attributes_build (&MOCK_SCHEMA,
 		                                      "number", 4,
 		                                      "string", "\xfftest",
 		                                      "even", TRUE,
 		                                      NULL);
 		g_assert (attributes == NULL);
+		return;
 	}
 
+	g_test_trap_subprocess ("/attributes/build-non-utf8-string", 0, G_TEST_SUBPROCESS_INHERIT_STDOUT);
 	g_test_trap_assert_failed ();
 	g_test_trap_assert_stderr ("*attribute*UTF-8*");
 }
@@ -113,13 +119,15 @@ test_build_bad_type (void)
 {
 	GHashTable *attributes;
 
-	if (g_test_trap_fork (0, G_TEST_TRAP_SILENCE_STDERR)) {
+	if (g_test_subprocess ()) {
 		attributes = secret_attributes_build (&MOCK_SCHEMA,
 		                                      "bad-type", "test",
 		                                      NULL);
 		g_assert (attributes == NULL);
+		return;
 	}
 
+	g_test_trap_subprocess ("/attributes/build-bad-type", 0, G_TEST_SUBPROCESS_INHERIT_STDOUT);
 	g_test_trap_assert_failed ();
 	g_test_trap_assert_stderr ("*invalid type*");
 }
@@ -147,17 +155,20 @@ test_validate_schema_bad (void)
 	GHashTable *attributes;
 	gboolean ret;
 
-	attributes = g_hash_table_new (g_str_hash, g_str_equal);
-	g_hash_table_replace (attributes, "number", "1");
-	g_hash_table_replace (attributes, "string", "test");
-	g_hash_table_replace (attributes, "xdg:schema", "mismatched.Schema");
+	if (g_test_subprocess ()) {
+		attributes = g_hash_table_new (g_str_hash, g_str_equal);
+		g_hash_table_replace (attributes, "number", "1");
+		g_hash_table_replace (attributes, "string", "test");
+		g_hash_table_replace (attributes, "xdg:schema", "mismatched.Schema");
 
-	if (g_test_trap_fork (0, G_TEST_TRAP_SILENCE_STDERR)) {
 		ret = _secret_attributes_validate (&MOCK_SCHEMA, attributes, G_STRFUNC, TRUE);
 		g_assert (ret == FALSE);
+
+		g_hash_table_unref (attributes);
+		return;
 	}
 
-	g_hash_table_unref (attributes);
+	g_test_trap_subprocess ("/attributes/validate-schema-bad", 0, G_TEST_SUBPROCESS_INHERIT_STDOUT);
 }
 
 static void
