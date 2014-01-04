@@ -37,7 +37,7 @@ BUILT_SOURCES = \
 	secret-enum-types.c secret-enum-types.h \
 	$(NULL)
 
-STABLE_FILES = \
+PUBLIC_FILES = \
 	secret-attributes.h secret-attributes.c \
 	secret-collection.h secret-collection.c \
 	secret-item.h secret-item.c \
@@ -49,9 +49,6 @@ STABLE_FILES = \
 	secret-service.h secret-service.c \
 	secret-types.h \
 	secret-value.h secret-value.c \
-	$(NULL)
-
-UNSTABLE_FILES = \
 	secret-paths.h secret-paths.c \
 	$(NULL)
 
@@ -62,8 +59,7 @@ PRIVATE_FILES = \
 	$(NULL)
 
 libsecret_@SECRET_MAJOR@_la_SOURCES = \
-	$(STABLE_FILES) \
-	$(UNSTABLE_FILES) \
+	$(PUBLIC_FILES) \
 	$(PRIVATE_FILES) \
 	$(BUILT_SOURCES) \
 	$(NULL)
@@ -120,7 +116,7 @@ if HAVE_INTROSPECTION
 
 include $(INTROSPECTION_MAKEFILE)
 
-INTROSPECTION_GIRS = Secret-@SECRET_MAJOR@.gir SecretUnstable-0.gir
+INTROSPECTION_GIRS = Secret-@SECRET_MAJOR@.gir
 INTROSPECTION_SCANNER_ARGS = $(INTROSPECTION_FLAGS) --warn-all --add-include-path=$(srcdir) --add-include-path=.
 INTROSPECTION_COMPILER_ARGS = --includedir=$(srcdir) --includedir=.
 
@@ -131,23 +127,11 @@ Secret_@SECRET_MAJOR@_gir_EXPORT_PACKAGES = libsecret-@SECRET_MAJOR@
 Secret_@SECRET_MAJOR@_gir_INCLUDES = GObject-2.0 Gio-2.0
 Secret_@SECRET_MAJOR@_gir_LIBS = libsecret-@SECRET_MAJOR@.la
 Secret_@SECRET_MAJOR@_gir_CFLAGS = -I$(top_srcdir) -I$(top_builddir) -DSECRET_COMPILATION
-Secret_@SECRET_MAJOR@_gir_FILES = $(STABLE_FILES)
+Secret_@SECRET_MAJOR@_gir_FILES = $(PUBLIC_FILES)
 Secret_@SECRET_MAJOR@_gir_SCANNERFLAGS = --c-include "libsecret/secret.h"
-
-SecretUnstable-0.gir: Secret-@SECRET_MAJOR@.gir
-
-SecretUnstable_0_gir_NAMESPACE = SecretUnstable
-SecretUnstable_0_gir_EXPORT_PACKAGES = libsecret-unstable
-SecretUnstable_0_gir_INCLUDES = GObject-2.0 Gio-2.0
-SecretUnstable_0_gir_LIBS = libsecret-@SECRET_MAJOR@.la
-SecretUnstable_0_gir_CFLAGS = -I$(top_srcdir) -I$(top_builddir) -DSECRET_COMPILATION -DSECRET_API_SUBJECT_TO_CHANGE
-SecretUnstable_0_gir_FILES = $(UNSTABLE_FILES)
-SecretUnstable_0_gir_SCANNERFLAGS = --c-include "libsecret/secret.h" --identifier-prefix=Secret --symbol-prefix=secret --include-uninstalled=$(builddir)/Secret-@SECRET_MAJOR@.gir
 
 girdir = $(datadir)/gir-1.0
 gir_DATA = Secret-@SECRET_MAJOR@.gir
-
-noinst_DATA = SecretUnstable-0.gir
 
 typelibsdir = $(libdir)/girepository-1.0
 typelibs_DATA = $(INTROSPECTION_GIRS:.gir=.typelib)
@@ -157,30 +141,17 @@ include $(VAPIGEN_MAKEFILE)
 
 libsecret-@SECRET_MAJOR@.vapi: Secret-@SECRET_MAJOR@.gir Secret-@SECRET_MAJOR@.metadata libsecret-@SECRET_MAJOR@.deps
 
-libsecret-unstable.vapi: SecretUnstable-0.gir SecretUnstable-0.metadata libsecret-unstable.deps
-
 VAPIGEN_VAPIS = \
-	libsecret-@SECRET_MAJOR@.vapi \
-	libsecret-unstable.vapi
+	libsecret-@SECRET_MAJOR@.vapi
 
 libsecret_@SECRET_MAJOR@_vapi_DEPS = glib-2.0 gio-2.0
 libsecret_@SECRET_MAJOR@_vapi_METADATADIRS = $(srcdir)
 libsecret_@SECRET_MAJOR@_vapi_FILES = Secret-@SECRET_MAJOR@.gir
 
-libsecret_unstable_vapi_DEPS = gio-2.0 libsecret-@SECRET_MAJOR@
-libsecret_unstable_vapi_METADATADIRS = $(srcdir)
-libsecret_unstable_vapi_VAPIDIRS = $(builddir)
-libsecret_unstable_vapi_GIRDIRS = $(builddir)
-# ... because _GIRDIRS above is broken, yes, this is ugly
-libsecret_unstable_vapi_FILES = --girdir=$(builddir)
-libsecret_unstable_vapi_FILES += SecretUnstable-0.gir
-
 VAPI_DEPS = $(VAPIGEN_VAPIS:.vapi=.deps)
 
 libsecret-$(SECRET_MAJOR).deps: Makefile.am
 	$(AM_V_GEN) echo $(libsecret_@SECRET_MAJOR@_vapi_DEPS) | tr ' ' '\n' > $@
-libsecret-unstable.deps: Makefile.am
-	$(AM_V_GEN) echo $(libsecret_unstable_vapi_DEPS) | tr ' ' '\n' > $@
 
 vapidir = $(datadir)/vala/vapi
 vapi_DATA = \
@@ -213,7 +184,6 @@ EXTRA_DIST = \
 	secret-enum-types.c.template \
 	org.freedesktop.Secrets.xml \
 	Secret-@SECRET_MAJOR@.metadata \
-	SecretUnstable-0.metadata \
 	$(NULL)
 
 CLEANFILES += \

@@ -40,7 +40,7 @@
  */
 
 /**
- * secret_collection_new_for_dbus_path:
+ * secret_collection_new_for_dbus_path: (skip)
  * @service: (allow-none): a secret service object
  * @collection_path: the D-Bus path of the collection
  * @flags: options for the collection initialization
@@ -54,6 +54,8 @@
  * the default #SecretService proxy.
  *
  * This method will return immediately and complete asynchronously.
+ *
+ * Stability: Unstable
  */
 void
 secret_collection_new_for_dbus_path (SecretService *service,
@@ -85,7 +87,7 @@ secret_collection_new_for_dbus_path (SecretService *service,
 }
 
 /**
- * secret_collection_new_for_dbus_path_finish:
+ * secret_collection_new_for_dbus_path_finish: (skip)
  * @result: the asynchronous result passed to the callback
  * @error: location to place an error on failure
  *
@@ -117,7 +119,7 @@ secret_collection_new_for_dbus_path_finish (GAsyncResult *result,
 }
 
 /**
- * secret_collection_new_for_dbus_path_sync:
+ * secret_collection_new_for_dbus_path_sync: (skip)
  * @service: (allow-none): a secret service object
  * @collection_path: the D-Bus path of the collection
  * @flags: options for the collection initialization
@@ -131,6 +133,8 @@ secret_collection_new_for_dbus_path_finish (GAsyncResult *result,
  *
  * This method may block indefinitely and should not be used in user interface
  * threads.
+ *
+ * Stability: Unstable
  *
  * Returns: (transfer full): the new collection, which should be unreferenced
  *          with g_object_unref()
@@ -165,7 +169,7 @@ secret_collection_new_for_dbus_path_sync (SecretService *service,
 }
 
 /**
- * secret_item_new_for_dbus_path:
+ * secret_item_new_for_dbus_path: (skip)
  * @service: (allow-none): a secret service object
  * @item_path: the D-Bus path of the collection
  * @flags: initialization flags for the new item
@@ -179,6 +183,8 @@ secret_collection_new_for_dbus_path_sync (SecretService *service,
  * the default #SecretService proxy.
  *
  * This method will return immediately and complete asynchronously.
+ *
+ * Stability: Unstable
  */
 void
 secret_item_new_for_dbus_path (SecretService *service,
@@ -210,12 +216,14 @@ secret_item_new_for_dbus_path (SecretService *service,
 }
 
 /**
- * secret_item_new_for_dbus_path_finish:
+ * secret_item_new_for_dbus_path_finish: (skip)
  * @result: the asynchronous result passed to the callback
  * @error: location to place an error on failure
  *
  * Finish asynchronous operation to get a new item proxy for an secret
  * item in the secret service.
+ *
+ * Stability: Unstable
  *
  * Returns: (transfer full): the new item, which should be unreferenced
  *          with g_object_unref()
@@ -239,7 +247,7 @@ secret_item_new_for_dbus_path_finish (GAsyncResult *result,
 }
 
 /**
- * secret_item_new_for_dbus_path_sync:
+ * secret_item_new_for_dbus_path_sync: (skip)
  * @service: (allow-none): a secret service object
  * @item_path: the D-Bus path of the item
  * @flags: initialization flags for the new item
@@ -253,6 +261,8 @@ secret_item_new_for_dbus_path_finish (GAsyncResult *result,
  *
  * This method may block indefinitely and should not be used in user interface
  * threads.
+ *
+ * Stability: Unstable
  *
  * Returns: (transfer full): the new item, which should be unreferenced
  *          with g_object_unref()
@@ -308,7 +318,7 @@ on_search_items_complete (GObject *source,
 }
 
 /**
- * secret_collection_search_for_dbus_paths:
+ * secret_collection_search_for_dbus_paths: (skip)
  * @collection: the secret collection
  * @schema: (allow-none): the schema for the attributes
  * @attributes: (element-type utf8 utf8): search for items matching these attributes
@@ -326,6 +336,8 @@ on_search_items_complete (GObject *source,
  * to get the results of this function. Only the DBus object paths of the
  * items will be returned. If you would like #SecretItem objects to be returned
  * instead, then use the secret_collection_search() function.
+ *
+ * Stability: Unstable
  */
 void
 secret_collection_search_for_dbus_paths (SecretCollection *collection,
@@ -361,7 +373,7 @@ secret_collection_search_for_dbus_paths (SecretCollection *collection,
 }
 
 /**
- * secret_collection_search_for_dbus_paths_finish:
+ * secret_collection_search_for_dbus_paths_finish: (skip)
  * @collection: the secret collection
  * @result: asynchronous result passed to callback
  * @error: location to place error on failure
@@ -371,6 +383,8 @@ secret_collection_search_for_dbus_paths (SecretCollection *collection,
  * DBus object paths of the items will be returned. If you would to have
  * #SecretItem objects to be returned instead, then use the
  * secret_collection_search() and secret_collection_search_finish() functions.
+ *
+ * Stability: Unstable
  *
  * Returns: (transfer full) (array zero-terminated=1): an array of DBus object
  *          paths for matching items.
@@ -398,7 +412,7 @@ secret_collection_search_for_dbus_paths_finish (SecretCollection *collection,
 }
 
 /**
- * secret_collection_search_for_dbus_paths_sync:
+ * secret_collection_search_for_dbus_paths_sync: (skip)
  * @collection: the secret collection
  * @schema: (allow-none): the schema for the attributes
  * @attributes: (element-type utf8 utf8): search for items matching these attributes
@@ -415,6 +429,8 @@ secret_collection_search_for_dbus_paths_finish (SecretCollection *collection,
  * DBus object paths of the items will be returned. If you would to have
  * #SecretItem objects to be returned instead, then use the
  * secret_collection_search_sync() function.
+ *
+ * Stability: Unstable
  *
  * Returns: (transfer full) (array zero-terminated=1): an array of DBus object
  *          paths for matching items.
@@ -451,7 +467,7 @@ secret_collection_search_for_dbus_paths_sync (SecretCollection *collection,
 }
 
 /**
- * secret_service_search_for_dbus_paths:
+ * secret_service_search_for_dbus_paths: (skip)
  * @self: the secret service
  * @schema: (allow-none): the schema for the attributes
  * @attributes: (element-type utf8 utf8): search for items matching these attributes
@@ -469,6 +485,8 @@ secret_collection_search_for_dbus_paths_sync (SecretCollection *collection,
  * to get the results of this function. Only the D-Bus object paths of the
  * items will be returned. If you would like #SecretItem objects to be returned
  * instead, then use the secret_service_search() function.
+ *
+ * Stability: Unstable
  */
 void
 secret_service_search_for_dbus_paths (SecretService *self,
@@ -520,7 +538,7 @@ _secret_service_search_for_paths_variant (SecretService *self,
 }
 
 /**
- * secret_service_search_for_dbus_paths_finish:
+ * secret_service_search_for_dbus_paths_finish: (skip)
  * @self: the secret service
  * @result: asynchronous result passed to callback
  * @unlocked: (out) (transfer full) (array zero-terminated=1) (allow-none):
@@ -541,6 +559,8 @@ _secret_service_search_for_paths_variant (SecretService *self,
  * @locked arrays. If you would to have #SecretItem objects to be returned
  * instead, then us the secret_service_search() and
  * secret_service_search_finish() functions.
+ *
+ * Stability: Unstable
  *
  * Returns: whether the search was successful or not
  */
@@ -577,7 +597,7 @@ secret_service_search_for_dbus_paths_finish (SecretService *self,
 }
 
 /**
- * secret_service_search_for_dbus_paths_sync:
+ * secret_service_search_for_dbus_paths_sync: (skip)
  * @self: the secret service
  * @schema: (allow-none): the schema for the attributes
  * @attributes: (element-type utf8 utf8): search for items matching these attributes
@@ -603,6 +623,8 @@ secret_service_search_for_dbus_paths_finish (SecretService *self,
  * D-Bus object paths of the items will be returned in the @unlocked or
  * @locked arrays. If you would to have #SecretItem objects to be returned
  * instead, then use the secret_service_search_sync() function.
+ *
+ * Stability: Unstable
  *
  * Returns: whether the search was successful or not
  */
@@ -717,7 +739,7 @@ on_get_secrets_session (GObject *source,
 }
 
 /**
- * secret_service_get_secret_for_dbus_path:
+ * secret_service_get_secret_for_dbus_path: (skip)
  * @self: the secret service
  * @item_path: the D-Bus path to item to retrieve secret for
  * @cancellable: optional cancellation object
@@ -731,6 +753,8 @@ on_get_secrets_session (GObject *source,
  * get its secret value.
  *
  * This function returns immediately and completes asynchronously.
+ *
+ * Stability: Unstable
  */
 void
 secret_service_get_secret_for_dbus_path (SecretService *self,
@@ -762,7 +786,7 @@ secret_service_get_secret_for_dbus_path (SecretService *self,
 }
 
 /**
- * secret_service_get_secret_for_dbus_path_finish:
+ * secret_service_get_secret_for_dbus_path_finish: (skip)
  * @self: the secret service
  * @result: asynchronous result passed to callback
  * @error: location to place an error on failure
@@ -771,6 +795,8 @@ secret_service_get_secret_for_dbus_path (SecretService *self,
  * secret item stored in the service.
  *
  * Will return %NULL if the item is locked.
+ *
+ * Stability: Unstable
  *
  * Returns: (transfer full) (allow-none): the newly allocated secret value
  *          for the item, which should be released with secret_value_unref()
@@ -797,7 +823,7 @@ secret_service_get_secret_for_dbus_path_finish (SecretService *self,
 }
 
 /**
- * secret_service_get_secret_for_dbus_path_sync:
+ * secret_service_get_secret_for_dbus_path_sync: (skip)
  * @self: the secret service
  * @item_path: the D-Bus path to item to retrieve secret for
  * @cancellable: optional cancellation object
@@ -813,6 +839,8 @@ secret_service_get_secret_for_dbus_path_finish (SecretService *self,
  * threads.
  *
  * Will return %NULL if the item is locked.
+ *
+ * Stability: Unstable
  *
  * Returns: (transfer full) (allow-none): the newly allocated secret value
  *          for the item, which should be released with secret_value_unref()
@@ -848,7 +876,7 @@ secret_service_get_secret_for_dbus_path_sync (SecretService *self,
 }
 
 /**
- * secret_service_get_secrets_for_dbus_paths:
+ * secret_service_get_secrets_for_dbus_paths: (skip)
  * @self: the secret service
  * @item_paths: the D-Bus paths to items to retrieve secrets for
  * @cancellable: optional cancellation object
@@ -862,6 +890,8 @@ secret_service_get_secret_for_dbus_path_sync (SecretService *self,
  * get their secret values.
  *
  * This function returns immediately and completes asynchronously.
+ *
+ * Stability: Unstable
  */
 void
 secret_service_get_secrets_for_dbus_paths (SecretService *self,
@@ -893,7 +923,7 @@ secret_service_get_secrets_for_dbus_paths (SecretService *self,
 }
 
 /**
- * secret_service_get_secrets_for_dbus_paths_finish:
+ * secret_service_get_secrets_for_dbus_paths_finish: (skip)
  * @self: the secret service
  * @result: asynchronous result passed to callback
  * @error: location to place an error on failure
@@ -902,6 +932,8 @@ secret_service_get_secrets_for_dbus_paths (SecretService *self,
  * secret items stored in the service.
  *
  * Items that are locked will not be included the results.
+ *
+ * Stability: Unstable
  *
  * Returns: (transfer full) (element-type utf8 Secret.Value): a newly
  *          allocated hash table of item_path keys to #SecretValue
@@ -929,7 +961,7 @@ secret_service_get_secrets_for_dbus_paths_finish (SecretService *self,
 }
 
 /**
- * secret_service_get_secrets_for_dbus_paths_sync:
+ * secret_service_get_secrets_for_dbus_paths_sync: (skip)
  * @self: the secret service
  * @item_paths: the D-Bus paths to items to retrieve secrets for
  * @cancellable: optional cancellation object
@@ -945,6 +977,8 @@ secret_service_get_secrets_for_dbus_paths_finish (SecretService *self,
  * threads.
  *
  * Items that are locked will not be included the results.
+ *
+ * Stability: Unstable
  *
  * Returns: (transfer full) (element-type utf8 Secret.Value): a newly
  *          allocated hash table of item_path keys to #SecretValue
@@ -1120,7 +1154,7 @@ _secret_service_xlock_paths_finish (SecretService *self,
 }
 
 /**
- * secret_service_lock_dbus_paths_sync:
+ * secret_service_lock_dbus_paths_sync: (skip)
  * @self: the secret service
  * @paths: the D-Bus object paths of the items or collections to lock
  * @cancellable: optional cancellation object
@@ -1141,6 +1175,8 @@ _secret_service_xlock_paths_finish (SecretService *self,
  * This method may block indefinitely and should not be used in user
  * interface threads. The secret service may prompt the user.
  * secret_service_prompt() will be used to handle any prompts that show up.
+ *
+ * Stability: Unstable
  *
  * Returns: the number of items or collections that were locked
  */
@@ -1177,7 +1213,7 @@ secret_service_lock_dbus_paths_sync (SecretService *self,
 }
 
 /**
- * secret_service_lock_dbus_paths:
+ * secret_service_lock_dbus_paths: (skip)
  * @self: the secret service
  * @paths: the D-Bus paths for items or collections to lock
  * @cancellable: optional cancellation object
@@ -1196,6 +1232,8 @@ secret_service_lock_dbus_paths_sync (SecretService *self,
  * This method returns immediately and completes asynchronously. The secret
  * service may prompt the user. secret_service_prompt() will be used to handle
  * any prompts that show up.
+ *
+ * Stability: Unstable
  */
 void
 secret_service_lock_dbus_paths (SecretService *self,
@@ -1213,7 +1251,7 @@ secret_service_lock_dbus_paths (SecretService *self,
 }
 
 /**
- * secret_service_lock_dbus_paths_finish:
+ * secret_service_lock_dbus_paths_finish: (skip)
  * @self: the secret service
  * @result: asynchronous result passed to the callback
  * @locked: (out) (array zero-terminated=1) (transfer full) (allow-none):
@@ -1226,6 +1264,8 @@ secret_service_lock_dbus_paths (SecretService *self,
  *
  * The secret service may not be able to lock items individually, and may
  * lock an entire collection instead.
+ *
+ * Stability: Unstable
  *
  * Returns: the number of items or collections that were locked
  */
@@ -1243,7 +1283,7 @@ secret_service_lock_dbus_paths_finish (SecretService *self,
 }
 
 /**
- * secret_service_unlock_dbus_paths_sync:
+ * secret_service_unlock_dbus_paths_sync: (skip)
  * @self: the secret service
  * @paths: the D-Bus object paths of the items or collections to unlock
  * @cancellable: optional cancellation object
@@ -1264,6 +1304,8 @@ secret_service_lock_dbus_paths_finish (SecretService *self,
  * This method may block indefinitely and should not be used in user
  * interface threads. The secret service may prompt the user.
  * secret_service_prompt() will be used to handle any prompts that show up.
+ *
+ * Stability: Unstable
  *
  * Returns: the number of items or collections that were unlocked
  */
@@ -1300,7 +1342,7 @@ secret_service_unlock_dbus_paths_sync (SecretService *self,
 }
 
 /**
- * secret_service_unlock_dbus_paths:
+ * secret_service_unlock_dbus_paths: (skip)
  * @self: the secret service
  * @paths: the D-Bus paths for items or collections to unlock
  * @cancellable: optional cancellation object
@@ -1319,6 +1361,8 @@ secret_service_unlock_dbus_paths_sync (SecretService *self,
  * This method returns immediately and completes asynchronously. The secret
  * service may prompt the user. secret_service_prompt() will be used to handle
  * any prompts that show up.
+ *
+ * Stability: Unstable
  */
 void
 secret_service_unlock_dbus_paths (SecretService *self,
@@ -1337,7 +1381,7 @@ secret_service_unlock_dbus_paths (SecretService *self,
 }
 
 /**
- * secret_service_unlock_dbus_paths_finish:
+ * secret_service_unlock_dbus_paths_finish: (skip)
  * @self: the secret service
  * @result: asynchronous result passed to the callback
  * @unlocked: (out) (array zero-terminated=1) (transfer full) (allow-none):
@@ -1350,6 +1394,8 @@ secret_service_unlock_dbus_paths (SecretService *self,
  *
  * The secret service may not be able to unlock items individually, and may
  * unlock an entire collection instead.
+ *
+ * Stability: Unstable
  *
  * Returns: the number of items or collections that were unlocked
  */
@@ -1497,7 +1543,7 @@ _secret_service_delete_path_finish (SecretService *self,
 }
 
 /**
- * secret_service_delete_item_dbus_path:
+ * secret_service_delete_item_dbus_path: (skip)
  * @self: the secret service
  * @item_path: the D-Bus path of item to delete
  * @cancellable: optional cancellation object
@@ -1510,6 +1556,8 @@ _secret_service_delete_path_finish (SecretService *self,
  * #SecretItem proxy objects, use use secret_item_delete() instead.
  *
  * This method will return immediately and complete asynchronously.
+ *
+ * Stability: Unstable
  */
 void
 secret_service_delete_item_dbus_path (SecretService *self,
@@ -1526,13 +1574,15 @@ secret_service_delete_item_dbus_path (SecretService *self,
 }
 
 /**
- * secret_service_delete_item_dbus_path_finish:
+ * secret_service_delete_item_dbus_path_finish: (skip)
  * @self: the secret service
  * @result: the asynchronous result passed to the callback
  * @error: location to place an error on failure
  *
  * Complete an asynchronous operation to delete a secret item from the secret
  * service.
+ *
+ * Stability: Unstable
  *
  * Returns: whether the deletion was successful or not
  */
@@ -1550,7 +1600,7 @@ secret_service_delete_item_dbus_path_finish (SecretService *self,
 }
 
 /**
- * secret_service_delete_item_dbus_path_sync:
+ * secret_service_delete_item_dbus_path_sync: (skip)
  * @self: the secret service
  * @item_path: the D-Bus path of item to delete
  * @cancellable: optional cancellation object
@@ -1563,6 +1613,8 @@ secret_service_delete_item_dbus_path_finish (SecretService *self,
  *
  * This method may block indefinitely and should not be used in user interface
  * threads.
+ *
+ * Stability: Unstable
  *
  * Returns: whether the deletion was successful or not
  */
@@ -1672,7 +1724,7 @@ on_create_collection_called (GObject *source,
 }
 
 /**
- * secret_service_create_collection_dbus_path:
+ * secret_service_create_collection_dbus_path: (skip)
  * @self: a secret service object
  * @properties: (element-type utf8 GLib.Variant): hash table of properties for
  *              the new collection
@@ -1706,6 +1758,8 @@ on_create_collection_called (GObject *source,
  * This method will return immediately and complete asynchronously. The secret
  * service may prompt the user. secret_service_prompt() will be used to handle
  * any prompts that are required.
+ *
+ * Stability: Unstable
  */
 void
 secret_service_create_collection_dbus_path (SecretService *self,
@@ -1754,13 +1808,15 @@ secret_service_create_collection_dbus_path (SecretService *self,
 }
 
 /**
- * secret_service_create_collection_dbus_path_finish:
+ * secret_service_create_collection_dbus_path_finish: (skip)
  * @self: a secret service object
  * @result: the asynchronous result passed to the callback
  * @error: location to place an error on failure
  *
  * Finish asynchronous operation to create a new collection in the secret
  * service.
+ *
+ * Stability: Unstable
  *
  * Returns: (transfer full): a new string containing the D-Bus object path
  *          of the collection
@@ -1790,7 +1846,7 @@ secret_service_create_collection_dbus_path_finish (SecretService *self,
 }
 
 /**
- * secret_service_create_collection_dbus_path_sync:
+ * secret_service_create_collection_dbus_path_sync: (skip)
  * @self: a secret service object
  * @properties: (element-type utf8 GLib.Variant): hash table of D-Bus properties
  *              for the new collection
@@ -1821,6 +1877,8 @@ secret_service_create_collection_dbus_path_finish (SecretService *self,
  * This method may block indefinitely and should not be used in user interface
  * threads. The secret service may prompt the user. secret_service_prompt()
  * will be used to handle any prompts that are required.
+ *
+ * Stability: Unstable
  *
  * Returns: (transfer full): a new string containing the D-Bus object path
  *          of the collection
@@ -1979,7 +2037,7 @@ on_create_item_session (GObject *source,
 }
 
 /**
- * secret_service_create_item_dbus_path:
+ * secret_service_create_item_dbus_path: (skip)
  * @self: a secret service object
  * @collection_path: the D-Bus object path of the collection in which to create item
  * @properties: (element-type utf8 GLib.Variant): hash table of D-Bus properties
@@ -2009,6 +2067,8 @@ on_create_item_session (GObject *source,
  * This method will return immediately and complete asynchronously. The secret
  * service may prompt the user. secret_service_prompt() will be used to handle
  * any prompts that are required.
+ *
+ * Stability: Unstable
  */
 void
 secret_service_create_item_dbus_path (SecretService *self,
@@ -2048,13 +2108,15 @@ secret_service_create_item_dbus_path (SecretService *self,
 }
 
 /**
- * secret_service_create_item_dbus_path_finish:
+ * secret_service_create_item_dbus_path_finish: (skip)
  * @self: a secret service object
  * @result: the asynchronous result passed to the callback
  * @error: location to place an error on failure
  *
  * Finish asynchronous operation to create a new item in the secret
  * service.
+ *
+ * Stability: Unstable
  *
  * Returns: (transfer full): a new string containing the D-Bus object path
  *          of the item
@@ -2121,6 +2183,8 @@ _secret_service_create_item_dbus_path_finish_raw (GAsyncResult *result,
  * threads. The secret service may prompt the user. secret_service_prompt()
  * will be used to handle any prompts that are required.
  *
+ * Stability: Unstable
+ *
  * Returns: (transfer full): a new string containing the D-Bus object path
  *          of the item
  */
@@ -2159,7 +2223,7 @@ secret_service_create_item_dbus_path_sync (SecretService *self,
 }
 
 /**
- * secret_service_read_alias_dbus_path:
+ * secret_service_read_alias_dbus_path: (skip)
  * @self: a secret service object
  * @alias: the alias to lookup
  * @cancellable: (allow-none): optional cancellation object
@@ -2171,6 +2235,8 @@ secret_service_create_item_dbus_path_sync (SecretService *self,
  * dbus object path of the well known collection.
  *
  * This method will return immediately and complete asynchronously.
+ *
+ * Stability: Unstable
  */
 void
 secret_service_read_alias_dbus_path (SecretService *self,
@@ -2190,13 +2256,15 @@ secret_service_read_alias_dbus_path (SecretService *self,
 }
 
 /**
- * secret_service_read_alias_dbus_path_finish:
+ * secret_service_read_alias_dbus_path_finish: (skip)
  * @self: a secret service object
  * @result: asynchronous result passed to callback
  * @error: location to place error on failure
  *
  * Finish an asynchronous operation to lookup which collection is assigned
  * to an alias. This method returns the DBus object path of the collection
+ *
+ * Stability: Unstable
  *
  * Returns: (transfer full): the collection dbus object path, or %NULL if
  *          none assigned to the alias
@@ -2227,7 +2295,7 @@ secret_service_read_alias_dbus_path_finish (SecretService *self,
 }
 
 /**
- * secret_service_read_alias_dbus_path_sync:
+ * secret_service_read_alias_dbus_path_sync: (skip)
  * @self: a secret service object
  * @alias: the alias to lookup
  * @cancellable: (allow-none): optional cancellation object
@@ -2238,6 +2306,8 @@ secret_service_read_alias_dbus_path_finish (SecretService *self,
  * object path of the collection.
  *
  * This method may block and should not be used in user interface threads.
+ *
+ * Stability: Unstable
  *
  * Returns: (transfer full): the collection dbus object path, or %NULL if
  *          none assigned to the alias
@@ -2272,7 +2342,7 @@ secret_service_read_alias_dbus_path_sync (SecretService *self,
 }
 
 /**
- * secret_service_set_alias_to_dbus_path:
+ * secret_service_set_alias_to_dbus_path: (skip)
  * @self: a secret service object
  * @alias: the alias to assign the collection to
  * @collection_path: (allow-none): the dbus object path of the collection to assign to the alias
@@ -2285,6 +2355,8 @@ secret_service_read_alias_dbus_path_sync (SecretService *self,
  * path of the collection to assign to the alias.
  *
  * This method will return immediately and complete asynchronously.
+ *
+ * Stability: Unstable
  */
 void
 secret_service_set_alias_to_dbus_path (SecretService *self,
@@ -2310,12 +2382,14 @@ secret_service_set_alias_to_dbus_path (SecretService *self,
 }
 
 /**
- * secret_service_set_alias_to_dbus_path_finish:
+ * secret_service_set_alias_to_dbus_path_finish: (skip)
  * @self: a secret service object
  * @result: asynchronous result passed to callback
  * @error: location to place error on failure
  *
  * Finish an asynchronous operation to assign a collection to an alias.
+ *
+ * Stability: Unstable
  *
  * Returns: %TRUE if successful
  */
@@ -2340,7 +2414,7 @@ secret_service_set_alias_to_dbus_path_finish (SecretService *self,
 }
 
 /**
- * secret_service_set_alias_to_dbus_path_sync:
+ * secret_service_set_alias_to_dbus_path_sync: (skip)
  * @self: a secret service object
  * @alias: the alias to assign the collection to
  * @collection_path: (allow-none): the dbus object path of the collection to assign to the alias
@@ -2352,6 +2426,8 @@ secret_service_set_alias_to_dbus_path_finish (SecretService *self,
  * path of the collection to assign to the alias.
  *
  * This method may block and should not be used in user interface threads.
+ *
+ * Stability: Unstable
  *
  * Returns: %TRUE if successful
  */
@@ -2392,7 +2468,7 @@ secret_service_set_alias_to_dbus_path_sync (SecretService *self,
 }
 
 /**
- * secret_service_prompt_at_dbus_path_sync:
+ * secret_service_prompt_at_dbus_path_sync: (skip)
  * @self: the secret service
  * @prompt_path: the D-Bus object path of the prompt
  * @cancellable: optional cancellation object
@@ -2410,6 +2486,8 @@ secret_service_set_alias_to_dbus_path_sync (SecretService *self,
  * in the Secret Service DBus API specification.
  *
  * This method may block and should not be used in user interface threads.
+ *
+ * Stability: Unstable
  *
  * Returns: (transfer full): %NULL if the prompt was dismissed or an error occurred,
  *          a variant result if the prompt was successful
@@ -2437,7 +2515,7 @@ secret_service_prompt_at_dbus_path_sync (SecretService *self,
 }
 
 /**
- * secret_service_prompt_at_dbus_path:
+ * secret_service_prompt_at_dbus_path: (skip)
  * @self: the secret service
  * @prompt_path: the D-Bus object path of the prompt
  * @return_type: (allow-none): the variant type of the prompt result
@@ -2453,6 +2531,8 @@ secret_service_prompt_at_dbus_path_sync (SecretService *self,
  * Override the #SecretServiceClass <literal>prompt_async</literal> virtual method
  * to change the behavior of the propmting. The default behavior is to simply
  * run secret_prompt_perform() on the prompt.
+ *
+ * Stability: Unstable
  */
 void
 secret_service_prompt_at_dbus_path (SecretService *self,
@@ -2474,7 +2554,7 @@ secret_service_prompt_at_dbus_path (SecretService *self,
 }
 
 /**
- * secret_service_prompt_at_dbus_path_finish:
+ * secret_service_prompt_at_dbus_path_finish: (skip)
  * @self: the secret service
  * @result: the asynchronous result passed to the callback
  * @error: location to place an error on failure
@@ -2484,6 +2564,8 @@ secret_service_prompt_at_dbus_path (SecretService *self,
  * Returns a variant result if the prompt was completed and not dismissed. The
  * type of result depends on the action the prompt is completing, and is defined
  * in the Secret Service DBus API specification.
+ *
+ * Stability: Unstable
  *
  * Returns: (transfer full): %NULL if the prompt was dismissed or an error occurred,
  *          a variant result if the prompt was successful

@@ -90,7 +90,6 @@ VALA_FLAGS = \
 	--pkg gio-2.0
 
 VALA_TESTS_VAPIS = \
-	$(builddir)/../libsecret-unstable.vapi \
 	$(builddir)/../libsecret-@SECRET_MAJOR@.vapi \
 	$(builddir)/mock-service-0.vapi
 
