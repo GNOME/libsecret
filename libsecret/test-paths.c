@@ -710,6 +710,33 @@ test_set_alias_path (Test *test,
 	g_assert (path == NULL);
 }
 
+static void
+test_encode_decode_secret (Test *test,
+                           gconstpointer unused)
+{
+	GVariant *variant;
+	SecretValue *value;
+	SecretValue *decoded;
+	GError *error = NULL;
+
+	value = secret_value_new ("zerogjuggs", -1, "text/plain");
+
+	secret_service_ensure_session_sync (test->service, NULL, &error);
+	g_assert_no_error (error);
+
+	variant = secret_service_encode_dbus_secret (test->service, value);
+	g_assert (variant != NULL);
+	g_assert_cmpstr (g_variant_get_type_string (variant), ==, "(oayays)");
+	secret_value_unref (value);
+
+	decoded = secret_service_decode_dbus_secret (test->service, variant);
+	g_assert (variant != NULL);
+	g_variant_unref (variant);
+
+	g_assert_cmpstr (secret_value_get_text (decoded), ==, "zerogjuggs");
+	secret_value_unref (decoded);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -745,6 +772,8 @@ main (int argc, char **argv)
 	g_test_add ("/service/create-item-async", Test, "mock-service-normal.py", setup, test_item_async, teardown);
 
 	g_test_add ("/service/set-alias-path", Test, "mock-service-normal.py", setup, test_set_alias_path, teardown);
+
+	g_test_add ("/service/encode-decode-secret", Test, "mock-service-normal.py", setup, test_encode_decode_secret, teardown);
 
 	return egg_tests_run_with_loop ();
 }

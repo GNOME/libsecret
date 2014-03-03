@@ -2581,3 +2581,62 @@ secret_service_prompt_at_dbus_path_finish (SecretService *self,
 
 	return secret_service_prompt_finish (self, result, error);
 }
+
+/**
+ * secret_service_encode_dbus_secret:
+ * @service: the service
+ * @value: the secret value
+ *
+ * Encodes a #SecretValue into GVariant for use with the Secret Service
+ * DBus API.
+ *
+ * The resulting GVariant will have a <literal>(oayays)</literal> signature.
+ *
+ * A session must have already been established by the #SecretService.
+ *
+ * Returns: (transfer floating): the encoded secret
+ */
+GVariant *
+secret_service_encode_dbus_secret (SecretService *service,
+                                   SecretValue *value)
+{
+	SecretSession *session;
+
+	g_return_val_if_fail (service != NULL, NULL);
+	g_return_val_if_fail (value != NULL, NULL);
+
+	session = _secret_service_get_session (service);
+	g_return_val_if_fail (session != NULL, NULL);
+
+	return _secret_session_encode_secret (session, value);
+}
+
+/**
+ * secret_service_decode_dbus_secret:
+ * @service: the service
+ * @value: the encoded secret
+ *
+ * Decode a #SecretValue into GVariant received with the Secret Service
+ * DBus API.
+ *
+ * The GVariant should have a <literal>(oayays)</literal> signature.
+ *
+ * A session must have already been established by the #SecretService, and
+ * the encoded secret must be valid for that session.
+ *
+ * Returns: (transfer full): the decoded secret value
+ */
+SecretValue *
+secret_service_decode_dbus_secret (SecretService *service,
+                                   GVariant *value)
+{
+	SecretSession *session;
+
+	g_return_val_if_fail (service != NULL, NULL);
+	g_return_val_if_fail (value != NULL, NULL);
+
+	session = _secret_service_get_session (service);
+	g_return_val_if_fail (session != NULL, NULL);
+
+	return _secret_session_decode_secret (session, value);
+}

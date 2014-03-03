@@ -272,6 +272,12 @@ gboolean            secret_service_set_alias_to_dbus_path_sync         (SecretSe
                                                                         GCancellable *cancellable,
                                                                         GError **error);
 
+GVariant *          secret_service_encode_dbus_secret                  (SecretService *service,
+                                                                        SecretValue *value);
+
+SecretValue *       secret_service_decode_dbus_secret                  (SecretService *service,
+                                                                        GVariant *value);
+
 G_END_DECLS
 
 #endif /* __SECRET_SERVICE_H___ */
