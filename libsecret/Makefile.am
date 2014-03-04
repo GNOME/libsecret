@@ -253,9 +253,12 @@ if HAVE_VALAC
 
 VALA_V = $(VALA_V_$(V))
 VALA_V_ = $(VALA_V_$(AM_DEFAULT_VERBOSITY))
-VALA_V_0 = @echo "  VALAC   ";
+VALA_V_0 = @echo "  VALAC   " $@;
 
 VALA_TESTS_FLAGS = \
+	--Xcc=-w \
+	--Xcc=-I$(srcdir) \
+	--Xcc=-I$(srcdir)/libsecret \
 	--vapidir=$(builddir) \
 	--pkg libsecret-@SECRET_MAJOR@ \
 	--pkg mock-service-0 \
@@ -270,22 +273,24 @@ VALA_TESTS = \
 	test-vala-unstable \
 	$(NULL)
 
-%.c: libsecret/%.vala $(VALA_TESTS_VAPIS)
-	$(VALA_V) $(VALAC) -C $(VALA_TESTS_FLAGS) $<
+SUFFIXES = .vala .vala.o
 
-test_vala_lang_CFLAGS = -w
-test_vala_lang_LDADD = libsecret-@SECRET_MAJOR@.la libmock_service.la
+test-vala-lang.vala.o: libsecret/test-vala-lang.vala
+	$(VALA_V) $(VALAC) --compile $(VALA_TESTS_FLAGS) $<
+test-vala-unstable.vala.o: libsecret/test-vala-unstable.vala
+	$(VALA_V) $(VALAC) --compile $(VALA_TESTS_FLAGS) $<
 
-test_vala_unstable_CFLAGS = -w
-test_vala_unstable_LDADD = libsecret-@SECRET_MAJOR@.la libmock_service.la
+test_vala_lang_SOURCES =
+test_vala_lang_LDADD = \
+	test-vala-lang.vala.o \
+	libsecret-@SECRET_MAJOR@.la \
+	libmock_service.la
 
-VALA_TESTS_SRCS = \
-	libsecret/test-vala-lang.vala \
-	libsecret/test-vala-unstable.vala
-
-CLEANFILES += \
-	test-vala-lang.c \
-	test-vala-unstable.c
+test_vala_unstable_SOURCES =
+test_vala_unstable_LDADD = \
+	test-vala-unstable.vala.o \
+	libsecret-@SECRET_MAJOR@.la \
+	libmock_service.la
 
 if HAVE_INTROSPECTION
 if ENABLE_VAPIGEN
@@ -348,7 +353,6 @@ EXTRA_DIST += \
 	libsecret/mock-service-normal.py \
 	libsecret/mock-service-only-plain.py \
 	libsecret/mock-service-prompt.py \
-	$(VALA_TESTS_SRCS) \
 	$(JS_TESTS) \
 	$(PY_TESTS) \
 	$(NULL)
