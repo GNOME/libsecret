@@ -261,6 +261,7 @@ VALA_V_0 = @echo "  VALAC   " $@;
 VALA_TESTS_FLAGS = \
 	--Xcc=-w \
 	--Xcc=-I$(srcdir) \
+	--Xcc=-I$(builddir) \
 	--Xcc=-I$(srcdir)/libsecret \
 	--vapidir=$(builddir) \
 	--pkg libsecret-@SECRET_MAJOR@ \
