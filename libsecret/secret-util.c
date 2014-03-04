@@ -448,6 +448,8 @@ _secret_sync_free (gpointer data)
 {
 	SecretSync *sync = data;
 
+	while (g_main_context_iteration (sync->context, FALSE));
+
 	g_clear_object (&sync->result);
 	g_main_loop_unref (sync->loop);
 	g_main_context_unref (sync->context);

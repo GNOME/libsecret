@@ -21,12 +21,14 @@
 
 #include <errno.h>
 #include <stdio.h>
+#include <string.h>
 
+static GTestDBus *test_bus = NULL;
 static GPid pid = 0;
 
-gboolean
-mock_service_start (const gchar *mock_script,
-                    GError **error)
+static gboolean
+service_start (const gchar *mock_script,
+               GError **error)
 {
 	gchar ready[8] = { 0, };
 	GSpawnFlags flags;
@@ -44,6 +46,9 @@ mock_service_start (const gchar *mock_script,
 
 	g_return_val_if_fail (mock_script != NULL, FALSE);
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+
+	test_bus = g_test_dbus_new (G_TEST_DBUS_NONE);
+	g_test_dbus_up (test_bus);
 
 	g_setenv ("SECRET_SERVICE_BUS_NAME", MOCK_SERVICE_NAME, TRUE);
 
@@ -76,9 +81,25 @@ mock_service_start (const gchar *mock_script,
 	return ret;
 }
 
+gboolean
+mock_service_start (const gchar *mock_script,
+                    GError **error)
+{
+	gchar *path;
+	gboolean ret;
+
+	path = g_build_filename (SRCDIR, "libsecret", mock_script, NULL);
+	ret = service_start (path, error);
+	g_free (path);
+
+	return ret;
+}
+
 void
 mock_service_stop (void)
 {
+	const gchar *prgname;
+
 	if (!pid)
 		return;
 
@@ -89,4 +110,21 @@ mock_service_stop (void)
 
 	g_spawn_close_pid (pid);
 	pid = 0;
+
+	while (g_main_context_iteration (NULL, FALSE));
+
+	/*
+	 * HACK: Don't worry about leaking tests when running under gjs.
+	 * Waiting for the connection to go away is hopeless due to
+	 * the way gjs garbage collects.
+	 */
+	prgname = g_get_prgname ();
+	if (prgname && strstr (prgname, "gjs")) {
+		g_test_dbus_stop (test_bus);
+
+	} else {
+		g_test_dbus_down (test_bus);
+		g_object_unref (test_bus);
+	}
+	test_bus = NULL;
 }

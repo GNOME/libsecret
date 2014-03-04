@@ -17,13 +17,14 @@
 
 #include "secret-collection.h"
 #include "secret-dbus-generated.h"
-#include "secret-enum-types.h"
 #include "secret-item.h"
 #include "secret-paths.h"
 #include "secret-private.h"
 #include "secret-service.h"
 #include "secret-types.h"
 #include "secret-value.h"
+
+#include "libsecret/secret-enum-types.h"
 
 #include "egg/egg-secure-memory.h"
 
@@ -202,7 +203,7 @@ service_cache_instance (SecretService *instance)
 	proxy = G_DBUS_PROXY (instance);
 	watch = g_bus_watch_name_on_connection (g_dbus_proxy_get_connection (proxy),
 	                                        g_dbus_proxy_get_name (proxy),
-	                                        G_BUS_NAME_WATCHER_FLAGS_AUTO_START,
+	                                        G_BUS_NAME_WATCHER_FLAGS_NONE,
 	                                        NULL, on_service_instance_vanished,
 	                                        instance, NULL);
 

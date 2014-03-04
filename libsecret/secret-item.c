@@ -16,13 +16,14 @@
 
 #include "secret-collection.h"
 #include "secret-dbus-generated.h"
-#include "secret-enum-types.h"
 #include "secret-item.h"
 #include "secret-paths.h"
 #include "secret-private.h"
 #include "secret-service.h"
 #include "secret-types.h"
 #include "secret-value.h"
+
+#include "libsecret/secret-enum-types.h"
 
 #include <glib/gi18n-lib.h>
 
@@ -97,11 +98,11 @@ struct _SecretItemPrivate {
 	/* No changes between construct and finalize */
 	SecretService *service;
 	SecretItemFlags init_flags;
-	GCancellable *cancellable;
 
 	/* Locked by mutex */
 	GMutex mutex;
 	SecretValue *value;
+	gint disposed;
 };
 
 static GInitableIface *secret_item_initable_parent_iface = NULL;
@@ -121,7 +122,6 @@ static void
 secret_item_init (SecretItem *self)
 {
 	self->pv = G_TYPE_INSTANCE_GET_PRIVATE (self, SECRET_TYPE_ITEM, SecretItemPrivate);
-	self->pv->cancellable = g_cancellable_new ();
 	g_mutex_init (&self->pv->mutex);
 }
 
@@ -133,10 +133,12 @@ on_set_attributes (GObject *source,
 	SecretItem *self = SECRET_ITEM (user_data);
 	GError *error = NULL;
 
-	secret_item_set_attributes_finish (self, result, &error);
-	if (error != NULL) {
-		g_warning ("couldn't set SecretItem Attributes: %s", error->message);
-		g_error_free (error);
+	if (!g_atomic_int_get (&self->pv->disposed)) {
+		secret_item_set_attributes_finish (self, result, &error);
+		if (error != NULL) {
+			g_warning ("couldn't set SecretItem Attributes: %s", error->message);
+			g_error_free (error);
+		}
 	}
 
 	g_object_unref (self);
@@ -150,10 +152,12 @@ on_set_label (GObject *source,
 	SecretItem *self = SECRET_ITEM (user_data);
 	GError *error = NULL;
 
-	secret_item_set_label_finish (self, result, &error);
-	if (error != NULL) {
-		g_warning ("couldn't set SecretItem Label: %s", error->message);
-		g_error_free (error);
+	if (!g_atomic_int_get (&self->pv->disposed)) {
+		secret_item_set_label_finish (self, result, &error);
+		if (error != NULL) {
+			g_warning ("couldn't set SecretItem Label: %s", error->message);
+			g_error_free (error);
+		}
 	}
 
 	g_object_unref (self);
@@ -194,12 +198,12 @@ secret_item_set_property (GObject *obj,
 		break;
 	case PROP_ATTRIBUTES:
 		secret_item_set_attributes (self, NULL, g_value_get_boxed (value),
-		                            self->pv->cancellable, on_set_attributes,
+		                            NULL, on_set_attributes,
 		                            g_object_ref (self));
 		break;
 	case PROP_LABEL:
 		secret_item_set_label (self, g_value_get_string (value),
-		                       self->pv->cancellable, on_set_label,
+		                       NULL, on_set_label,
 		                       g_object_ref (self));
 		break;
 	default:
@@ -249,7 +253,7 @@ secret_item_dispose (GObject *obj)
 {
 	SecretItem *self = SECRET_ITEM (obj);
 
-	g_cancellable_cancel (self->pv->cancellable);
+	g_atomic_int_inc (&self->pv->disposed);
 
 	G_OBJECT_CLASS (secret_item_parent_class)->dispose (obj);
 }
@@ -263,7 +267,6 @@ secret_item_finalize (GObject *obj)
 		g_object_remove_weak_pointer (G_OBJECT (self->pv->service),
 		                              (gpointer *)&self->pv->service);
 
-	g_object_unref (self->pv->cancellable);
 	g_mutex_clear (&self->pv->mutex);
 
 	G_OBJECT_CLASS (secret_item_parent_class)->finalize (obj);
@@ -1170,6 +1173,7 @@ on_item_load_secret (GObject *source,
 	}
 
 	g_simple_async_result_complete (res);
+	g_object_unref (self);
 	g_object_unref (res);
 }
 
@@ -1332,6 +1336,7 @@ loads_closure_free (gpointer data)
 	if (loads->service)
 		g_object_unref (loads->service);
 	g_clear_object (&loads->cancellable);
+	g_hash_table_destroy (loads->items);
 	g_slice_free (LoadsClosure, loads);
 }
 

@@ -45,6 +45,7 @@ SECRET_AGE=0
 # -----------------------------------------------------------------------------
 
 AC_CONFIG_MACRO_DIR([build/m4])
+AC_CONFIG_AUX_DIR([build])
 AM_INIT_AUTOMAKE([1.11 tar-ustar foreign -Wno-portability])
 AM_SANITY_CHECK
 AC_CONFIG_HEADERS(config.h)
@@ -272,22 +273,13 @@ AC_SUBST(SECRET_MINOR)
 
 AC_CONFIG_FILES([
 	Makefile
-	build/Makefile
-	docs/Makefile
-	docs/man/Makefile
-	docs/reference/Makefile
 	docs/reference/libsecret/Makefile
 	docs/reference/libsecret/version.xml
 	docs/reference/libsecret/version-major.xml
-	egg/Makefile
-	egg/tests/Makefile
 	po/Makefile.in
 	po/Makefile
-	libsecret/Makefile
 	libsecret/libsecret.pc
 	libsecret/libsecret-unstable.pc
-	libsecret/tests/Makefile
-	tool/Makefile
 ])
 AC_OUTPUT
 

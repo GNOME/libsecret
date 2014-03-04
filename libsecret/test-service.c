@@ -64,7 +64,8 @@ on_complete_get_result (GObject *source,
 }
 
 static void
-test_get_sync (void)
+test_get_sync (Test *test,
+               gconstpointer data)
 {
 	SecretService *service1;
 	SecretService *service2;
@@ -102,7 +103,8 @@ test_get_sync (void)
 }
 
 static void
-test_get_async (void)
+test_get_async (Test *test,
+                gconstpointer data)
 {
 	SecretService *service1;
 	SecretService *service2;
@@ -253,7 +255,8 @@ test_get_more_async (Test *test,
 }
 
 static void
-test_open_sync (void)
+test_open_sync (Test *test,
+                gconstpointer data)
 {
 	SecretService *service1;
 	SecretService *service2;
@@ -283,7 +286,8 @@ test_open_sync (void)
 }
 
 static void
-test_open_async (void)
+test_open_async (Test *test,
+                 gconstpointer data)
 {
 	SecretService *service1;
 	SecretService *service2;
@@ -587,13 +591,13 @@ main (int argc, char **argv)
 	g_type_init ();
 #endif
 
-	g_test_add_func ("/service/get-sync", test_get_sync);
-	g_test_add_func ("/service/get-async", test_get_async);
+	g_test_add ("/service/get-sync", Test, "mock-service-normal.py", setup_mock, test_get_sync, teardown_mock);
+	g_test_add ("/service/get-async", Test, "mock-service-normal.py", setup_mock, test_get_async, teardown_mock);
 	g_test_add ("/service/get-more-sync", Test, "mock-service-normal.py", setup_mock, test_get_more_sync, teardown_mock);
 	g_test_add ("/service/get-more-async", Test, "mock-service-normal.py", setup_mock, test_get_more_async, teardown_mock);
 
-	g_test_add_func ("/service/open-sync", test_open_sync);
-	g_test_add_func ("/service/open-async", test_open_async);
+	g_test_add ("/service/open-sync", Test, "mock-service-normal.py", setup_mock, test_open_sync, teardown_mock);
+	g_test_add ("/service/open-async", Test, "mock-service-normal.py", setup_mock, test_open_async, teardown_mock);
 	g_test_add ("/service/open-more-sync", Test, "mock-service-normal.py", setup_mock, test_open_more_sync, teardown_mock);
 	g_test_add ("/service/open-more-async", Test, "mock-service-normal.py", setup_mock, test_open_more_async, teardown_mock);
 

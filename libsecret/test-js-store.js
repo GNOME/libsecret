@@ -65,4 +65,5 @@ loop.run();
 var password = Secret.password_lookup_sync (STORE_SCHEMA, attributes, null);
 assertEquals("888", password);
 
+Secret.Service.disconnect();
 Mock.stop();

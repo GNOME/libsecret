@@ -21,7 +21,7 @@ DOC_MAIN_SGML_FILE=$(DOC_MODULE)-docs.sgml
 # gtk-doc will search all .c & .h files beneath here for inline comments
 # documenting the functions and macros.
 # e.g. DOC_SOURCE_DIR=../../../gtk
-DOC_SOURCE_DIR=$(top_srcdir)/libsecret
+DOC_SOURCE_DIR=$(top_srcdir)/libsecret $(top_builddir)/libsecret
 
 # Extra options to pass to gtkdoc-scangobj. Not normally needed.
 SCANGOBJ_OPTIONS=
@@ -89,7 +89,7 @@ GTKDOC_CFLAGS= -I$(top_srcdir) -I$(top_builddir) $(GLIB_CFLAGS) -Wno-error \
 	-Wno-deprecated-declarations
 
 GTKDOC_LIBS= $(GLIB_LIBS) $(GOBJECT_LIBS) \
-	$(top_builddir)/libsecret/libsecret-@SECRET_MAJOR@.la
+	$(top_builddir)/libsecret-@SECRET_MAJOR@.la
 
 # This includes the standard gtk-doc make rules, copied by gtkdocize.
 include $(top_srcdir)/gtk-doc.make

@@ -1,26 +1,23 @@
-include $(top_srcdir)/Makefile.decl
-
-VALGRIND_CONTRIB = \
-	valgrind.h \
-	memcheck.h \
-	$(NULL)
-
 SUPPRESSIONS = \
-	$(srcdir)/gcrypt.supp \
-	$(srcdir)/glib.supp \
-	$(srcdir)/pthread.supp \
-	$(srcdir)/unknown.supp \
+	build/gcrypt.supp \
+	build/glib.supp \
+	build/pthread.supp \
+	build/unknown.supp \
 	$(NULL)
 
 valgrind-suppressions: $(SUPPRESSIONS)
-	$(AM_V_GEN) cat $(SUPPRESSIONS) > $@
+	$(AM_V_GEN) cat $^ > $@
 
-EXTRA_DIST = \
-	valgrind \
+EXTRA_DIST += \
+	build/valgrind \
+	build/tap-compiler \
+	build/tap-driver \
+	build/tap-unittest \
+	build/test-driver \
 	$(SUPPRESSIONS)
 
-CLEANFILES = \
+CLEANFILES += \
 	valgrind-suppressions \
 	$(NULL)
 
-all-local: valgrind-suppressions
+nodist_noinst_DATA += valgrind-suppressions

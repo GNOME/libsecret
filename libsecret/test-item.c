@@ -408,7 +408,11 @@ test_set_label_prop (Test *test,
 	g_assert_cmpstr (label, ==, "Blah blah");
 	g_free (label);
 
+	g_object_add_weak_pointer (G_OBJECT (item), (gpointer *)&item);
 	g_object_unref (item);
+
+	while (item != NULL)
+		g_main_context_iteration (g_main_context_get_thread_default (), TRUE);
 }
 
 static void
@@ -555,7 +559,11 @@ test_set_attributes_prop (Test *test,
 	g_assert_cmpuint (g_hash_table_size (attributes), ==, 2);
 	g_hash_table_unref (attributes);
 
+	g_object_add_weak_pointer (G_OBJECT (item), (gpointer *)&item);
 	g_object_unref (item);
+
+	while (item != NULL)
+		g_main_context_iteration (g_main_context_get_thread_default (), TRUE);
 }
 
 static void
@@ -831,6 +839,7 @@ test_delete_async (Test *test,
 	g_assert_no_error (error);
 	g_assert (ret == TRUE);
 
+	g_object_unref (result);
 	g_object_unref (item);
 
 	item = secret_item_new_for_dbus_path_sync (test->service, item_path, SECRET_ITEM_NONE, NULL, &error);

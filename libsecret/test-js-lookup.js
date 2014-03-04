@@ -31,48 +31,33 @@ const STORE_SCHEMA = new Secret.Schema("org.mock.Schema",
 
 /* Synchronous */
 
-var attributes = { "number": "1", "string": "one", "even": "false" };
-
-var password = Secret.password_lookup_sync (STORE_SCHEMA, attributes, null);
+var password = Secret.password_lookup_sync (STORE_SCHEMA, { "number": "1", "even": "false" }, null);
 assertEquals("111", password);
 
-var deleted = Secret.password_clear_sync (STORE_SCHEMA, attributes, null);
-assertEquals(true, deleted);
-
-var password = Secret.password_lookup_sync (STORE_SCHEMA, attributes, null);
+var password = Secret.password_lookup_sync (STORE_SCHEMA, { "number": "5", "even": "true" }, null);
 assertEquals(null, password);
 
-var deleted = Secret.password_clear_sync (STORE_SCHEMA, attributes, null);
-assertEquals(false, deleted);
-
-/* Asynchronous */ 
-
-var attributes = { "number": "2", "string": "two", "even": "true" };
-
-var password = Secret.password_lookup_sync (STORE_SCHEMA, attributes, null);
-assertEquals("222", password);
+/* Asynchronous */
 
 var loop = new GLib.MainLoop(null, false);
 
-Secret.password_clear (STORE_SCHEMA, attributes,
-                       null, function(source, result) {
+Secret.password_lookup (STORE_SCHEMA, { "number": "2", "string": "two" },
+                        null, function(source, result) {
 	loop.quit();
-	var deleted = Secret.password_clear_finish(result);
-	assertEquals(true, deleted);
+	var password = Secret.password_lookup_finish(result);
+	assertEquals("222", password);
 });
 
 loop.run();
 
-var password = Secret.password_lookup_sync (STORE_SCHEMA, attributes, null);
-assertEquals(null, password);
-
-Secret.password_clear (STORE_SCHEMA, attributes,
+Secret.password_lookup (STORE_SCHEMA, { "number": "7", "string": "five" },
         null, function(source, result) {
 	loop.quit();
-	var deleted = Secret.password_clear_finish(result);
-	assertEquals(false, deleted);
+	var password = Secret.password_lookup_finish(result);
+	assertEquals(null, password);
 });
 
 loop.run();
 
+Secret.Service.disconnect();
 Mock.stop();

@@ -14,12 +14,13 @@
 
 #include "config.h"
 
-#include "secret-enum-types.h"
 #include "secret-password.h"
 #include "secret-private.h"
 #include "secret-value.h"
 
-#include <egg/egg-secure-memory.h>
+#include "libsecret/secret-enum-types.h"
+
+#include "egg/egg-secure-memory.h"
 
 /**
  * SECTION:secret-schema

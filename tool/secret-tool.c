@@ -14,10 +14,10 @@
 
 #include "config.h"
 
-#include "secret-item.h"
-#include "secret-password.h"
-#include "secret-service.h"
-#include "secret-value.h"
+#include "libsecret/secret-item.h"
+#include "libsecret/secret-password.h"
+#include "libsecret/secret-service.h"
+#include "libsecret/secret-value.h"
 
 #include <glib/gi18n.h>
 

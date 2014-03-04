@@ -16,12 +16,13 @@
 
 #include "secret-collection.h"
 #include "secret-dbus-generated.h"
-#include "secret-enum-types.h"
 #include "secret-item.h"
 #include "secret-paths.h"
 #include "secret-private.h"
 #include "secret-service.h"
 #include "secret-types.h"
+
+#include "libsecret/secret-enum-types.h"
 
 #include <glib/gi18n-lib.h>
 
