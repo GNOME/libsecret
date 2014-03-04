@@ -1773,9 +1773,9 @@ secret_service_get_collection_gtype (SecretService *self)
 
 /**
  * secret_service_get_item_gtype:
- * @self: the collection
+ * @self: the service
  *
- * Get the GObject type for items instantiated by this collection.
+ * Get the GObject type for items instantiated by this service.
  * This will always be either #SecretItem or derived from it.
  *
  * Returns: the gobject type for items
