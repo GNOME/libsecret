@@ -74,9 +74,12 @@ BUILT_SOURCES += $(libsecret_BUILT)
 
 noinst_LTLIBRARIES += libsecret-testable.la
 libsecret_testable_la_SOURCES =
-libsecret_testable_la_LIBADD = $(libsecret_@SECRET_MAJOR@_la_OBJECTS) \
+libsecret_testable_la_LIBADD = \
+	$(libsecret_@SECRET_MAJOR@_la_OBJECTS) \
 	$(libsecret_@SECRET_MAJOR@_la_LIBADD)
-EXTRA_libsecret_testable_la_DEPENDENCIES = $(libsecret_@SECRET_MAJOR@_la_OBJECTS)
+libsecret_testable_la_DEPENDENCIES = \
+	$(libsecret_@SECRET_MAJOR@_la_OBJECTS) \
+	$(libsecret_@SECRET_MAJOR@_la_DEPENDENCIES)
 libsecret_testable_la_LDFLAGS = -rpath /force/shared
 
 DBUS_XML_DEFINITIONS = \
