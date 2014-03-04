@@ -144,7 +144,7 @@ endif # HAVE_INTROSPECTION
 # PKG CONFIG
 
 libsecret-$(SECRET_MAJOR).pc: libsecret/libsecret.pc
-	cp libsecret/libsecret.pc libsecret-$(SECRET_MAJOR).pc
+	$(AM_V_GEN) cp libsecret/libsecret.pc libsecret-$(SECRET_MAJOR).pc
 
 pkgconfig_DATA += \
 	libsecret-$(SECRET_MAJOR).pc \
