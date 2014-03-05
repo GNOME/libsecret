@@ -39,6 +39,7 @@ class Driver:
         self.argv = args.command
         self.test_name = args.test_name
         self.log = open(args.log_file, "w")
+        self.log.write("# %s\n" % " ".join(sys.argv))
         self.trs = open(args.trs_file, "w")
         self.color_tests = args.color_tests
         self.expect_failure = args.expect_failure
@@ -90,7 +91,7 @@ class Driver:
         else:
             self.report("SKIP", *args)
 
-    def report_error(self, description):
+    def report_error(self, description=""):
         self.report("ERROR", "", description)
 
     def process(self, output):
@@ -125,6 +126,7 @@ class Driver:
 
         proc.wait()
         return proc.returncode
+
 
 class TapDriver(Driver):
     def __init__(self, args):
@@ -195,9 +197,6 @@ class TapDriver(Driver):
             self.output += "\n"
         (ready, unused, self.output) = self.output.rpartition("\n")
         for line in ready.split("\n"):
-            self.log.write(line)
-            self.log.write("\n")
-
             if line.startswith("ok "):
                 self.consume_test_line(True, line[3:])
             elif line.startswith("not ok "):
@@ -223,14 +222,15 @@ class TapDriver(Driver):
             if code != "SKIP":
                 skipped = False
 
+        if not self.errored and returncode:
+            self.report_error("process failed: %d" % returncode)
+            self.errored = True
+
         # Check the plan
         if not self.errored:
             if not self.test_plan:
                 if not self.bail_out:
-                    if returncode:
-                        self.report_error("Test process failed: %d" % returncode)
-                    else:
-                        self.report_error("Didn't receive a TAP test plan")
+                    self.report_error("Didn't receive a TAP test plan")
             else:
                 for i in range(self.test_plan[0], self.test_plan[1] + 1):
                     if i not in self.reported:
@@ -244,7 +244,7 @@ class TapDriver(Driver):
         if self.errored:
             self.trs.write(":global-test-result: ERROR\n")
             self.trs.write(":test-global-result: ERROR\n")
-            self.trs.write(":recheck: no\n")
+            self.trs.write(":recheck: yes\n")
         elif failed:
             self.trs.write(":global-test-result: FAIL\n")
             self.trs.write(":test-global-result: FAIL\n")
@@ -253,11 +253,16 @@ class TapDriver(Driver):
             self.trs.write(":global-test-result: SKIP\n")
             self.trs.write(":test-global-result: SKIP\n")
             self.trs.write(":recheck: no\n")
+        else:
+            self.trs.write(":global-test-result: PASS\n")
+            self.trs.write(":test-global-result: PASS\n")
+            self.trs.write(":recheck: no\n")
         if self.errored or failed:
             self.trs.write(":copy-in-global-log: yes\n")
 
         # Process result code
-        return self.errored and 1 or 0
+        return 0
+
 
 class SimpleDriver(Driver):
     def __init__(self, args):
@@ -270,30 +275,40 @@ class SimpleDriver(Driver):
             self.trs.write(":global-test-result: PASS\n")
             self.trs.write(":test-global-result: PASS\n")
             self.trs.write(":recheck: no\n")
-            return 0
         elif returncode == 77:
             self.result_skip()
             self.trs.write(":global-test-result: SKIP\n")
             self.trs.write(":test-global-result: SKIP\n")
             self.trs.write(":recheck: no\n")
-            return 0
         elif returncode == 99:
-            self.result_error()
+            self.report_error()
             self.trs.write(":global-test-result: ERROR\n")
             self.trs.write(":test-global-result: ERROR\n")
             self.trs.write(":copy-in-global-log: yes\n")
-            self.trs.write(":recheck: no\n")
-            return 1
+            self.trs.write(":recheck: yes\n")
         else:
             self.result_fail()
             self.trs.write(":global-test-result: FAIL\n")
             self.trs.write(":test-global-result: FAIL\n")
             self.trs.write(":copy-in-global-log: yes\n")
             self.trs.write(":recheck: yes\n")
-            return 0
 
         # Process result code
-        return self.errored and 1 or 0
+        return 0
+
+
+class MissingDriver(Driver):
+    def __init__(self, args):
+        Driver.__init__(self, args)
+        self.missing = args.missing
+
+    def run(self):
+        self.result_skip("skipping due to: ", self.missing)
+        self.trs.write(":global-test-result: SKIP\n")
+        self.trs.write(":test-global-result: SKIP\n")
+        self.trs.write(":recheck: no\n")
+        return 0
+
 
 class YesNoAction(argparse.Action):
     def __init__(self, option_strings, dest, **kwargs):
@@ -305,10 +320,13 @@ class YesNoAction(argparse.Action):
         else:
             setattr(namespace, self.dest, False)
 
+
 def main(argv):
     parser = argparse.ArgumentParser(description='Automake TAP driver')
     parser.add_argument('--format', metavar='FORMAT', choices=[ "simple", "tap" ],
                         default="simple", help='The type of test to drive')
+    parser.add_argument('--missing', metavar="TOOL", nargs='?',
+                        help="Force the test to skip due to missing tool")
     parser.add_argument('--test-name', metavar='NAME',
                         help='The name of the test')
     parser.add_argument('--log-file', metavar='PATH.log', required=True,
@@ -327,7 +345,9 @@ def main(argv):
 
     if not args.test_name:
         args.test_name = os.path.basename(args.command[0])
-    if args.format == "simple":
+    if args.missing:
+        driver = MissingDriver(args)
+    elif args.format == "simple":
         driver = SimpleDriver(args)
     elif args.format == "tap":
         driver = TapDriver(args)

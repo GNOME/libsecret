@@ -45,6 +45,7 @@ stamp*
 /build/m4/*
 !/build/m4/vapigen.m4
 /build/valgrind-suppressions
+/build/test-driver
 
 /docs/man/secret-tool.1
 /docs/reference/libsecret/version.xml

@@ -30,12 +30,6 @@ dist-hook:
 		echo A git clone is required to generate a ChangeLog >&2; \
 	fi
 
-check-memory:
-	@for subdir in $(SUBDIRS); do \
-		test -d $(builddir)/$$subdir/tests && \
-			make -C $(builddir)/$$subdir/tests check-memory; \
-	done
-
 upload-release: $(DIST_ARCHIVES)
 		scp $(DIST_ARCHIVES) master.gnome.org:
 
@@ -56,18 +50,47 @@ dist-hook: dist-check-valac
 distcleancheck_listfiles =  \
        find . -name '*.gc[dn][oa]' -prune -o -type f -print
 
-TEST_SUPPRESSIONS = $(top_builddir)/build/valgrind-suppressions
+TESTS_ENVIRONMENT = LD_LIBRARY_PATH=$(builddir)/.libs GI_TYPELIB_PATH=$(builddir)
+TEST_EXTENSIONS = .py .js
 
-perform-memcheck: $(TEST_PROGS) $(TEST_SUPPRESSIONS)
-	@make -C $(top_builddir)/build all
-	@for test in $(TEST_PROGS); do \
-		G_SLICE=always-malloc libtool --mode=execute \
-			valgrind --trace-children=no --gen-suppressions=all \
-			--suppressions=$(TEST_SUPPRESSIONS) \
-			--leak-check=full --show-reachable=yes --num-callers=16 \
-			--quiet --error-exitcode=33 \
-			$(builddir)/$$test; \
-	done
+# Default executable tests
+LOG_DRIVER = $(srcdir)/build/tap-driver
+LOG_DRIVER_FLAGS = --format=tap
+LOG_COMPILER = $(srcdir)/build/tap-gtester
+
+# Python tests
+PY_LOG_DRIVER = $(srcdir)/build/tap-driver
+PY_LOG_DRIVER_FLAGS = --format=tap
+PY_LOG_COMPILER = $(srcdir)/build/tap-unittest
+
+# Javascript tests
+JS_LOG_DRIVER = $(srcdir)/build/tap-driver
+JS_LOG_DRIVER_FLAGS = --format=simple
+JS_LOG_COMPILER = gjs
+
+VALGRIND_ARGS = --trace-children=no --quiet --error-exitcode=33 \
+	--suppressions=valgrind-suppressions --gen-suppressions=all \
+	--num-callers=16
+VALGRIND_SUPPRESSIONS = \
+	build/gcrypt.supp \
+	build/glib.supp \
+	build/pthread.supp \
+	build/unknown.supp \
+	$(NULL)
+
+valgrind-suppressions: $(VALGRIND_SUPPRESSIONS)
+	$(AM_V_GEN) cat $^ > $@
+
+check-memory: valgrind-suppressions
+	$(MAKE) LOG_FLAGS="-- libtool --mode=execute valgrind $(VALGRIND_ARGS)" \
+		PY_LOG_DRIVER_FLAGS="--missing=no-python-valgrind" \
+		JS_LOG_DRIVER_FLAGS="--missing=no-gjs-valgrind" \
+		$(AM_MAKEFLAGS) check
+recheck-memory: valgrind-suppressions
+	$(MAKE) LOG_FLAGS="-- libtool --mode=execute valgrind $(VALGRIND_ARGS)" \
+		PY_LOG_DRIVER_FLAGS="--missing=no-python-valgrind" \
+		JS_LOG_DRIVER_FLAGS="--missing=no-gjs-valgrind" \
+		$(AM_MAKEFLAGS) recheck
 
 if WITH_COVERAGE
 coverage:
@@ -142,22 +165,17 @@ CLEANFILES = \
 	$(typelibs_DATA) \
 	$(BUILT_SOURCES) \
 	$(vapi_DATA) \
-	$(man_MANS)
+	$(man_MANS) \
+	valgrind-suppressions
 
 EXTRA_DIST = \
-	COPYING.TESTS
+	COPYING.TESTS \
+	build/valgrind \
+	build/tap-gtester \
+	build/tap-driver \
+	build/tap-unittest \
+	$(VALGRIND_SUPPRESSIONS)
 
-LOG_DRIVER = $(srcdir)/build/test-driver --format=tap
-LOG_COMPILER = $(srcdir)/build/tap-gtester
-
-TESTS_ENVIRONMENT = LD_LIBRARY_PATH=$(builddir)/.libs GI_TYPELIB_PATH=$(builddir)
-TEST_EXTENSIONS = .py .js
-PY_LOG_DRIVER = $(srcdir)/build/test-driver --format=tap
-PY_LOG_COMPILER = $(srcdir)/build/tap-unittest
-JS_LOG_DRIVER = $(srcdir)/build/test-driver --format=simple
-JS_LOG_COMPILER = gjs
-
-include build/Makefile.am
 include egg/Makefile.am
 include libsecret/Makefile.am
 include tool/Makefile.am

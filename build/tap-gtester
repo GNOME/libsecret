@@ -80,7 +80,8 @@ class GTestCompiler(NullCompiler):
                    print "not ok %d %s", (self.test_num, self.test_name)
                self.test_name = None
            elif cmd == "skipping":
-               print "ok %d # skip -- %s" % (self.test_num, self.test_name)
+               if "/subprocess" not in data:
+                   print "ok %d # skip -- %s" % (self.test_num, data)
                self.test_name = None
            elif data:
                print "# %s: %s" % (cmd, data)
@@ -97,7 +98,8 @@ class GTestCompiler(NullCompiler):
         output += proc.stdout.read()
         proc.wait()
         if proc.returncode:
-            raise subprocess.CalledProcessError(proc.returncode, self.command)
+            sys.stderr.write("tap-gtester: listing GTest tests failed: %d\n" % proc.returncode)
+            return proc.returncode
         self.test_remaining = []
         for line in output.split("\n"):
             if line.startswith("/"):
@@ -130,7 +132,7 @@ class GTestCompiler(NullCompiler):
             result = self.process(proc)
 
             # The various exit codes and signals we continue for
-            if result not in [ 0, 1, -4, -5, -6, -7, -8, -11 ]:
+            if result not in [ 0, 1, -4, -5, -6, -7, -8, -11, 33 ]:
                 break
 
         return result
