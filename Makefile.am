@@ -147,14 +147,14 @@ CLEANFILES = \
 EXTRA_DIST = \
 	COPYING.TESTS
 
-LOG_DRIVER = $(srcdir)/build/tap-driver
-LOG_COMPILER = $(srcdir)/build/tap-compiler
+LOG_DRIVER = $(srcdir)/build/test-driver --format=tap
+LOG_COMPILER = $(srcdir)/build/tap-gtester
 
 TESTS_ENVIRONMENT = LD_LIBRARY_PATH=$(builddir)/.libs GI_TYPELIB_PATH=$(builddir)
 TEST_EXTENSIONS = .py .js
-PY_LOG_DRIVER = $(srcdir)/build/tap-driver
+PY_LOG_DRIVER = $(srcdir)/build/test-driver --format=tap
 PY_LOG_COMPILER = $(srcdir)/build/tap-unittest
-JS_LOG_DRIVER = $(srcdir)/build/test-driver
+JS_LOG_DRIVER = $(srcdir)/build/test-driver --format=simple
 JS_LOG_COMPILER = gjs
 
 include build/Makefile.am
