@@ -325,3 +325,11 @@
    fun:g_rw_lock_get_impl
    fun:g_rw_lock_reader_lock
 }
+{
+   g_child_watch_finalize__rt_sigaction
+   Memcheck:Param
+   rt_sigaction(act->sa_flags)
+   fun:__libc_sigaction
+   ...
+   fun:g_child_watch_finalize
+}
