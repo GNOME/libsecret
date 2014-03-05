@@ -200,7 +200,7 @@ _secret_attributes_validate (const SecretSchema *schema,
 {
 	const SecretSchemaAttribute *attribute;
 	GHashTableIter iter;
-	gboolean any;
+	gboolean any = FALSE;
 	gchar *key;
 	gchar *value;
 	gchar *end;
