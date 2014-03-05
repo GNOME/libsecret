@@ -307,6 +307,10 @@ endif # HAVE_INTROSPECTION
 
 endif # HAVE_VALAC
 
+EXTRA_DIST += \
+	libsecret/test-vala-lang.vala \
+	libsecret/test-vala-unstable.vala
+
 # ------------------------------------------------------------------
 # TEST INTROSPECTION
 

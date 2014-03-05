@@ -11,7 +11,7 @@ SUBDIRS = \
 DISTCHECK_CONFIGURE_FLAGS = \
 	--enable-debug=yes \
 	--disable-coverage \
-	--enable-strict \
+	--disable-strict \
 	--disable-silent-rules \
 	--enable-gtk-doc \
 	--enable-vala
