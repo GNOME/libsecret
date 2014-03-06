@@ -151,6 +151,8 @@ def main(argv):
     cmd = args.command
     proc = None
 
+    os.environ['HARNESS_ACTIVE'] = '1'
+
     if format in ["auto", "gtest"]:
         list_cmd = cmd + ["-l", "--verbose"]
         proc = subprocess.Popen(list_cmd, close_fds=True, stdout=subprocess.PIPE)
