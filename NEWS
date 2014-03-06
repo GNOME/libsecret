@@ -1,3 +1,13 @@
+0.18
+ * Mark most of unstable API as stable
+ * Bump Glib dependency (2.38+)
+ * Add secret_service_encode_dbus_secret() and decode functions
+ * Use TAP for testing, parallel tests, and non-recursive make
+ * Updated FSF's address
+ * Remove unstable vapi [#721429]
+ * Build fixes [#720087 #720244 #707452]
+ * Updated translations
+
 0.16
  * Clarify documentation for secret_service_clear_xxx() [#705629]
  * Pass return_type to prompt async begin functions, rather than finish
