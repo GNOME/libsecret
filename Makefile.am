@@ -126,7 +126,7 @@ noinst_DATA =
 noinst_LTLIBRARIES =
 TESTS =
 
-noinst_PROGRAMS = $(check_PROGRAMS)
+noinst_PROGRAMS =
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA =
