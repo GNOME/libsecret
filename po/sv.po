@@ -1,0 +1,57 @@
+# Swedish translation for libsecret.
+# Copyright (C) 2014 Free Software Foundation, Inc.
+# This file is distributed under the same license as the libsecret package.
+# Mattias Eriksson <snaggen@gmail.com>, 2014.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: libsecret master\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
+"product=libsecret&keywords=I18N+L10N&component=general\n"
+"POT-Creation-Date: 2014-08-08 21:41+0000\n"
+"PO-Revision-Date: 2014-08-09 11:25+0100\n"
+"Last-Translator: Mattias Eriksson <snaggen@gmail.com>\n"
+"Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
+"Language: sv\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 1.5.4\n"
+
+#: ../libsecret/secret-item.c:1164
+#, c-format
+msgid "Received invalid secret from the secret storage"
+msgstr "Mottog en ogiltig hemlighet från hemlighetsförrådet"
+
+#: ../libsecret/secret-methods.c:1055
+msgid "Default keyring"
+msgstr "Standardnyckelring"
+
+#: ../libsecret/secret-session.c:244 ../libsecret/secret-session.c:281
+msgid "Couldn't communicate with the secret storage"
+msgstr "Kunde inte kommunicera med hemlighetsförrådet"
+
+#: ../tool/secret-tool.c:39
+msgid "the label for the new stored item"
+msgstr "etiketten för det nya lagrade objektet"
+
+#: ../tool/secret-tool.c:41
+msgid "the collection in which to place the stored item"
+msgstr "samlingen i vilken det lagrade objektet ska placeras"
+
+#: ../tool/secret-tool.c:43 ../tool/secret-tool.c:50 ../tool/secret-tool.c:437
+msgid "attribute value pairs of item to lookup"
+msgstr "attribut/värde-par av objekt att leta upp"
+
+#: ../tool/secret-tool.c:57
+msgid "attribute value pairs which match items to clear"
+msgstr "attribut/värde-par vilka matchar objekt att rensa"
+
+#: ../tool/secret-tool.c:433
+msgid "return all results, instead of just first one"
+msgstr "returnera alla resultat, istället för bara det första"
+
+#: ../tool/secret-tool.c:435
+msgid "unlock item results if necessary"
+msgstr "lås upp objektresultat om nödvändigt"
