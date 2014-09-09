@@ -149,7 +149,7 @@ G_DEFINE_BOXED_TYPE (SecretSchemaAttribute, secret_schema_attribute,
                      schema_attribute_copy, schema_attribute_free);
 
 /**
- * secret_schema_newv:
+ * secret_schema_newv: (rename-to secret_schema_new)
  * @name: the dotted name of the schema
  * @flags: the flags for the schema
  * @attribute_names_and_types: (element-type utf8 Secret.SchemaAttributeType): the attribute names and types of those attributes
@@ -175,8 +175,6 @@ G_DEFINE_BOXED_TYPE (SecretSchemaAttribute, secret_schema_attribute,
  * the schema's attributes are matched. This is useful when you are looking up items
  * that are not stored by the libsecret library. Other libraries such as libgnome-keyring
  * don't store the schema name.
- *
- * Rename to: secret_schema_new
  *
  * Returns: (transfer full): the new schema, which should be unreferenced with
  *          secret_schema_unref() when done

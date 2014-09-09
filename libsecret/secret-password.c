@@ -102,7 +102,7 @@ secret_password_store (const SecretSchema *schema,
 }
 
 /**
- * secret_password_storev:
+ * secret_password_storev: (rename-to secret_password_store)
  * @schema: the schema for attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
  * @collection: (allow-none): a collection alias, or D-Bus object path of the collection where to store the secret
@@ -124,8 +124,6 @@ secret_password_store (const SecretSchema *schema,
  * collection, which doesn't get stored across login sessions.
  *
  * This method will return immediately and complete asynchronously.
- *
- * Rename to: secret_password_store
  */
 void
 secret_password_storev (const SecretSchema *schema,
@@ -238,7 +236,7 @@ secret_password_store_sync (const SecretSchema *schema,
 }
 
 /**
- * secret_password_storev_sync:
+ * secret_password_storev_sync: (rename-to secret_password_store_sync)
  * @schema: the schema for attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
  * @collection: (allow-none): a collection alias, or D-Bus object path of the collection where to store the secret
@@ -262,8 +260,6 @@ secret_password_store_sync (const SecretSchema *schema,
  * threads.
  *
  * Returns: whether the storage was successful or not
- *
- * Rename to: secret_password_store_sync
  */
 gboolean
 secret_password_storev_sync (const SecretSchema *schema,
@@ -351,7 +347,7 @@ secret_password_lookup (const SecretSchema *schema,
 }
 
 /**
- * secret_password_lookupv:
+ * secret_password_lookupv: (rename-to secret_password_lookup)
  * @schema: the schema for attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
  * @cancellable: optional cancellation object
@@ -365,8 +361,6 @@ secret_password_lookup (const SecretSchema *schema,
  * If no secret is found then %NULL is returned.
  *
  * This method will return immediately and complete asynchronously.
- *
- * Rename to: secret_password_lookup
  */
 void
 secret_password_lookupv (const SecretSchema *schema,
@@ -595,7 +589,7 @@ secret_password_lookupv_nonpageable_sync (const SecretSchema *schema,
 }
 
 /**
- * secret_password_lookupv_sync:
+ * secret_password_lookupv_sync: (rename-to secret_password_lookup_sync)
  * @schema: the schema for attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
  * @cancellable: optional cancellation object
@@ -612,8 +606,6 @@ secret_password_lookupv_nonpageable_sync (const SecretSchema *schema,
  *
  * Returns: (transfer full): a new password string which should be freed with
  *          secret_password_free() or may be freed with g_free() when done
- *
- * Rename to: secret_password_lookup_sync
  */
 gchar *
 secret_password_lookupv_sync (const SecretSchema *schema,
@@ -697,7 +689,7 @@ secret_password_clear (const SecretSchema *schema,
 
 
 /**
- * secret_password_clearv:
+ * secret_password_clearv: (rename-to secret_password_clear)
  * @schema: the schema for the attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
  * @cancellable: optional cancellation object
@@ -711,8 +703,6 @@ secret_password_clear (const SecretSchema *schema,
  * All unlocked items that match the attributes will be deleted.
  *
  * This method will return immediately and complete asynchronously.
- *
- * Rename to: secret_password_clear
  */
 void
 secret_password_clearv (const SecretSchema *schema,
@@ -803,7 +793,7 @@ secret_password_clear_sync (const SecretSchema* schema,
 }
 
 /**
- * secret_password_clearv_sync:
+ * secret_password_clearv_sync: (rename-to secret_password_clear_sync)
  * @schema: the schema for the attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
  * @cancellable: optional cancellation object
@@ -819,8 +809,6 @@ secret_password_clear_sync (const SecretSchema* schema,
  * threads.
  *
  * Returns: whether any passwords were removed
- *
- * Rename to: secret_password_clear_sync
  */
 gboolean
 secret_password_clearv_sync (const SecretSchema *schema,

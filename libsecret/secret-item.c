@@ -346,13 +346,10 @@ secret_item_class_init (SecretItemClass *klass)
 	                                 G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS));
 
 	/**
-	 * SecretItem:attributes:
+	 * SecretItem:attributes: (type GLib.HashTable(utf8,utf8)) (transfer full)
 	 *
 	 * The attributes set on this item. Attributes are used to locate an
 	 * item. They are not guaranteed to be stored or transferred securely.
-	 *
-	 * Type: GLib.HashTable(utf8,utf8)
-	 * Transfer: full
 	 */
 	g_object_class_install_property (gobject_class, PROP_ATTRIBUTES,
 	             g_param_spec_boxed ("attributes", "Attributes", "Item attributes",
