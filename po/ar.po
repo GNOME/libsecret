@@ -1,0 +1,59 @@
+# Arabic translation for libsecret.
+# Copyright (C) 2014 libsecret's COPYRIGHT HOLDER
+# This file is distributed under the same license as the libsecret package.
+#
+# Mosaab Alzoubi <moceap@hotmail.com>, 2014.
+# Safa Alfulaij <safa1996alfulaij@gmail.com>, 2014.
+msgid ""
+msgstr ""
+"Project-Id-Version: libsecret master\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
+"product=libsecret&keywords=I18N+L10N&component=general\n"
+"POT-Creation-Date: 2014-09-30 10:00+0000\n"
+"PO-Revision-Date: 2014-10-06 09:19+0100\n"
+"Last-Translator: Safa Alfulaij <safa1996alfulaij@gmail.com>\n"
+"Language-Team: Arabic <doc@arabeyes.org>\n"
+"Language: ar\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
+"&& n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;\n"
+"X-Generator: Lokalize 1.5\n"
+
+#: ../libsecret/secret-item.c:1161
+#, c-format
+msgid "Received invalid secret from the secret storage"
+msgstr "استُقبِلَ سرّ غير سليم من مخزن الأسرار"
+
+#: ../libsecret/secret-methods.c:1055
+msgid "Default keyring"
+msgstr "حلقة المفاتيح الافتراضية"
+
+#: ../libsecret/secret-session.c:244 ../libsecret/secret-session.c:281
+msgid "Couldn't communicate with the secret storage"
+msgstr "تعذّر الاتّصال بمخزن الأسرار"
+
+#: ../tool/secret-tool.c:39
+msgid "the label for the new stored item"
+msgstr "عنوان العنصر المخزّن الجديد"
+
+#: ../tool/secret-tool.c:41
+msgid "the collection in which to place the stored item"
+msgstr "التّشكيل المُعدّ لشَغْل مكان العنصر المخزّن"
+
+#: ../tool/secret-tool.c:43 ../tool/secret-tool.c:50 ../tool/secret-tool.c:437
+msgid "attribute value pairs of item to lookup"
+msgstr "أزواج قيم الصفات للبحث عنها"
+
+#: ../tool/secret-tool.c:57
+msgid "attribute value pairs which match items to clear"
+msgstr "أزواج قيم الصفات المطابقة للعناصر لمحوها"
+
+#: ../tool/secret-tool.c:433
+msgid "return all results, instead of just first one"
+msgstr "أعد كل النّتائج، بدلًا من الأولى فقط"
+
+#: ../tool/secret-tool.c:435
+msgid "unlock item results if necessary"
+msgstr "ألغِ قفل عنصر النّتائج في حال الضّرورة"
