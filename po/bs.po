@@ -1,0 +1,57 @@
+# Bosnian translation for bosnianuniversetranslation
+# Copyright (c) 2013 Rosetta Contributors and Canonical Ltd 2013
+# This file is distributed under the same license as the bosnianuniversetranslation package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2013.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: bosnianuniversetranslation\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
+"product=libsecret&keywords=I18N+L10N&component=general\n"
+"POT-Creation-Date: 2015-02-26 23:06+0000\n"
+"PO-Revision-Date: 2013-10-15 23:10+0000\n"
+"Last-Translator: Samir Ribić <Unknown>\n"
+"Language-Team: Bosnian <bs@li.org>\n"
+"Language: bs\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Launchpad-Export-Date: 2014-10-23 07:14+0000\n"
+"X-Generator: Launchpad (build 17203)\n"
+
+#: ../libsecret/secret-item.c:1161
+#, c-format
+msgid "Received invalid secret from the secret storage"
+msgstr "Primljena pogrešna tajna s tajne memorije"
+
+#: ../libsecret/secret-methods.c:1055
+msgid "Default keyring"
+msgstr "Podrazumijevani prsten ključeva"
+
+#: ../libsecret/secret-session.c:244 ../libsecret/secret-session.c:281
+msgid "Couldn't communicate with the secret storage"
+msgstr "Ne mogu komunicirati s tajnom memorijom"
+
+#: ../tool/secret-tool.c:39
+msgid "the label for the new stored item"
+msgstr "labela za novosnimljenu stavku"
+
+#: ../tool/secret-tool.c:41
+msgid "the collection in which to place the stored item"
+msgstr "kolekcija gdje će se smjestiti stavka"
+
+#: ../tool/secret-tool.c:43 ../tool/secret-tool.c:50 ../tool/secret-tool.c:437
+msgid "attribute value pairs of item to lookup"
+msgstr "parovi atributa stavke koja se traži"
+
+#: ../tool/secret-tool.c:57
+msgid "attribute value pairs which match items to clear"
+msgstr "parovi atributa stavki kojoji se podudaraju s onim za brisanje"
+
+#: ../tool/secret-tool.c:433
+msgid "return all results, instead of just first one"
+msgstr "vrati sve rezultate umjesto samo prvog"
+
+#: ../tool/secret-tool.c:435
+msgid "unlock item results if necessary"
+msgstr "otključaj rezultat objekta ako je potrebno"
