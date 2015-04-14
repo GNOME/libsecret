@@ -28,8 +28,6 @@ import gobject
 
 COLLECTION_PREFIX = "/org/freedesktop/secrets/collection/"
 
-bus_name = 'org.freedesktop.Secret.MockService'
-ready_pipe = -1
 objects = { }
 
 class NotSupported(dbus.exceptions.DBusException):
@@ -132,7 +130,7 @@ class SecretPrompt(dbus.service.Object):
 			self.path = "/org/freedesktop/secrets/prompts/%s" % prompt_name
 		else:
 			self.path = "/org/freedesktop/secrets/prompts/%s" % next_identifier('p')
-		dbus.service.Object.__init__(self, service.bus_name, self.path)
+		dbus.service.Object.__init__(self, service.bus, self.path)
 		service.add_prompt(self)
 		assert self.path not in objects
 		objects[self.path] = self
@@ -166,7 +164,7 @@ class SecretSession(dbus.service.Object):
 		self.algorithm = algorithm
 		self.key = key
 		self.path = "/org/freedesktop/secrets/sessions/%s" % next_identifier('s')
-		dbus.service.Object.__init__(self, service.bus_name, self.path)
+		dbus.service.Object.__init__(self, service.bus, self.path)
 		service.add_session(self)
 		objects[self.path] = self
 
@@ -206,7 +204,7 @@ class SecretItem(dbus.service.Object):
 		self.path = "%s/%s" % (collection.path, identifier)
 		self.confirm = confirm
 		self.created = self.modified = time.time()
-		dbus.service.Object.__init__(self, collection.service.bus_name, self.path)
+		dbus.service.Object.__init__(self, collection.service.bus, self.path)
 		self.collection.add_item(self)
 		objects[self.path] = self
 
@@ -327,7 +325,7 @@ class SecretCollection(dbus.service.Object):
 		self.created = self.modified = time.time()
 		self.aliased = set()
 		self.path = "%s%s" % (COLLECTION_PREFIX, identifier)
-		dbus.service.Object.__init__(self, service.bus_name, self.path)
+		dbus.service.Object.__init__(self, service.bus, self.path)
 		self.service.add_collection(self)
 		objects[self.path] = self
 
@@ -476,12 +474,9 @@ class SecretService(dbus.service.Object):
 		"dh-ietf1024-sha256-aes128-cbc-pkcs7": AesAlgorithm(),
 	}
 
-	def __init__(self, name=None):
-		if name == None:
-			name = bus_name
-		bus = dbus.SessionBus()
-		self.bus_name = dbus.service.BusName(name, allow_replacement=True, replace_existing=True)
-		dbus.service.Object.__init__(self, self.bus_name, '/org/freedesktop/secrets')
+	def __init__(self):
+		self.bus = dbus.SessionBus()
+		dbus.service.Object.__init__(self, self.bus, '/org/freedesktop/secrets')
 		self.sessions = { }
 		self.prompts = { }
 		self.collections = { }
@@ -493,9 +488,7 @@ class SecretService(dbus.service.Object):
 				for session in list(self.sessions.get(old_owner, [])):
 					session.Close()
 
-		bus.add_signal_receiver(on_name_owner_changed,
-		                        'NameOwnerChanged',
-		                        'org.freedesktop.DBus')
+		self.bus.add_signal_receiver(on_name_owner_changed, 'NameOwnerChanged', 'org.freedesktop.DBus')
 
 	def add_standard_objects(self):
 		collection = SecretCollection(self, "english", label="Collection One", locked=False)
@@ -532,12 +525,12 @@ class SecretService(dbus.service.Object):
 		self.set_alias('session', collection)
 
 	def listen(self):
-		global ready_pipe
 		loop = gobject.MainLoop()
-		if ready_pipe >= 0:
-			os.write(ready_pipe, "GO")
-			os.close(ready_pipe)
-			ready_pipe = -1
+		name = self.bus.get_unique_name()
+		if not name:
+			raise NameError("No unique name available")
+		print name
+		sys.stdout.flush()
 		loop.run()
 
 	def add_session(self, session):
@@ -696,19 +689,13 @@ class SecretService(dbus.service.Object):
 
 
 def parse_options(args):
-	global bus_name, ready_pipe
 	try:
-		opts, args = getopt.getopt(args, "nr", ["name=", "ready="])
+		opts, args = getopt.getopt(args, "", [])
 	except getopt.GetoptError, err:
 		print str(err)
 		sys.exit(2)
 	for o, a in opts:
-		if o in ("-n", "--name"):
-			bus_name = a
-		elif o in ("-r", "--ready"):
-			ready_pipe = int(a)
-		else:
-			assert False, "unhandled option"
+		assert False, "unhandled option"
 	return args
 
 parse_options(sys.argv[1:])

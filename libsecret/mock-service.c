@@ -23,108 +23,127 @@
 #include <stdio.h>
 #include <string.h>
 
-static GTestDBus *test_bus = NULL;
+#ifdef __linux
+#include <sys/prctl.h>
+#endif
+
+static gchar *service_name = NULL;
 static GPid pid = 0;
 
-static gboolean
+static void
+on_python_child_setup (gpointer user_data)
+{
+#ifdef __linux
+  prctl (PR_SET_PDEATHSIG, 15);
+#endif
+}
+
+static gchar *
+read_until_end (int fd,
+                GError **error)
+{
+	GString *data;
+	gsize len;
+	gssize ret;
+	gchar *pos;
+
+	data = g_string_new ("");
+
+	for (;;) {
+		len = data->len;
+		g_string_set_size (data, len + 256);
+		ret = read (fd, data->str + len, 256);
+		if (ret < 0) {
+			if (errno != EAGAIN) {
+				g_set_error (error, G_IO_ERROR, g_io_error_from_errno (errno),
+				             "Couldn't read from mock service: %s", g_strerror (errno));
+				g_string_free (data, TRUE);
+				return NULL;
+			}
+		} else if (ret == 0) {
+			g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED, "Remote closed the output");
+			g_string_free (data, TRUE);
+			return NULL;
+		} else {
+			data->len = len + ret;
+			data->str[data->len] = '\0';
+		}
+
+		pos = strchr (data->str, '\n');
+		if (pos) {
+			g_string_set_size (data, pos - data->str);
+			break;
+		}
+	}
+
+	return g_string_free (data, FALSE);
+}
+
+static const gchar *
 service_start (const gchar *mock_script,
                GError **error)
 {
-	gchar ready[8] = { 0, };
 	GSpawnFlags flags;
-	int wait_pipe[2];
-	GPollFD poll_fd;
 	gboolean ret;
-	gint polled;
+	gint output;
 
 	gchar *argv[] = {
 		"python", (gchar *)mock_script,
-		"--name", MOCK_SERVICE_NAME,
-		"--ready", ready,
 		NULL
 	};
 
 	g_return_val_if_fail (mock_script != NULL, FALSE);
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
-	test_bus = g_test_dbus_new (G_TEST_DBUS_NONE);
-	g_test_dbus_up (test_bus);
+	g_free (service_name);
+	service_name = NULL;
 
-	g_setenv ("SECRET_SERVICE_BUS_NAME", MOCK_SERVICE_NAME, TRUE);
-
-	if (pipe (wait_pipe) < 0) {
-		g_set_error_literal (error, G_IO_ERROR, g_io_error_from_errno (errno),
-		                     "Couldn't create pipe for mock service");
-		return FALSE;
-	}
-
-	snprintf (ready, sizeof (ready), "%d", wait_pipe[1]);
-
-	flags = G_SPAWN_SEARCH_PATH | G_SPAWN_LEAVE_DESCRIPTORS_OPEN;
-	ret = g_spawn_async (SRCDIR, argv, NULL, flags, NULL, NULL, &pid, error);
-
-	close (wait_pipe[1]);
+	flags = G_SPAWN_SEARCH_PATH | G_SPAWN_DO_NOT_REAP_CHILD;
+	ret = g_spawn_async_with_pipes (SRCDIR, argv, NULL, flags, on_python_child_setup, NULL, &pid,
+	                                NULL, &output, NULL, error);
 
 	if (ret) {
-		poll_fd.events = G_IO_IN | G_IO_HUP | G_IO_ERR;
-		poll_fd.fd = wait_pipe[0];
-		poll_fd.revents = 0;
-
-		polled = g_poll (&poll_fd, 1, 2000);
-		if (polled < -1)
-			g_warning ("couldn't poll file descirptor: %s", g_strerror (errno));
-		if (polled != 1)
-			g_warning ("couldn't wait for mock service");
+		service_name = read_until_end (output, error);
+		if (service_name) {
+			g_strstrip (service_name);
+			g_assert_cmpstr (service_name, !=, "");
+			g_setenv ("SECRET_SERVICE_BUS_NAME", service_name, TRUE);
+		}
+		close (output);
 	}
 
-	close (wait_pipe[0]);
-	return ret;
+	return service_name;
 }
 
-gboolean
+const gchar *
 mock_service_start (const gchar *mock_script,
                     GError **error)
 {
 	gchar *path;
-	gboolean ret;
+	const gchar *name;
 
 	path = g_build_filename (SRCDIR, "libsecret", mock_script, NULL);
-	ret = service_start (path, error);
+	name = service_start (path, error);
 	g_free (path);
 
-	return ret;
+	return name;
 }
 
 void
 mock_service_stop (void)
 {
-	const gchar *prgname;
-
-	if (!pid)
-		return;
-
-	if (kill (pid, SIGTERM) < 0) {
-		if (errno != ESRCH)
-			g_warning ("kill() failed: %s", g_strerror (errno));
-	}
-
-	g_spawn_close_pid (pid);
-	pid = 0;
-
 	while (g_main_context_iteration (NULL, FALSE));
 
-	/*
-	 * HACK: Don't worry about leaking tests when running under gjs.
-	 * Waiting for the connection to go away is hopeless due to
-	 * the way gjs garbage collects.
-	 */
-	prgname = g_get_prgname ();
-	if (prgname && strstr (prgname, "gjs")) {
-		g_test_dbus_stop (test_bus);
+	if (pid) {
+		if (kill (pid, SIGTERM) < 0) {
+			if (errno != ESRCH)
+				g_warning ("kill() failed: %s", g_strerror (errno));
+		}
 
-	} else {
-		g_test_dbus_down (test_bus);
-		g_object_unref (test_bus);
+		g_spawn_close_pid (pid);
+		pid = 0;
 	}
-	test_bus = NULL;
+
+	while (g_main_context_iteration (NULL, FALSE));
+	g_unsetenv ("SECRET_SERVICE_BUS_NAME");
 }

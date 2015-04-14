@@ -47,8 +47,17 @@ static void
 teardown_mock (Test *test,
                gconstpointer unused)
 {
+	/*
+	 * Because the entire model of GDBus using another worker-thread
+	 * is shit and racy as hell. If I had more time I would fix GDBus not to segfault
+	 * during tests, but for now this is the best I can do.
+	 */
+	g_usleep (G_USEC_PER_SEC);
+
 	secret_service_disconnect ();
 	mock_service_stop ();
+
+	while (g_main_context_iteration (NULL, FALSE));
 }
 
 static void
@@ -98,6 +107,10 @@ test_get_sync (Test *test,
 	g_object_add_weak_pointer (G_OBJECT (service3), (gpointer *)&service3);
 
 	g_object_unref (service3);
+
+	/* Because the entire model of GDBus using another worker-thread is shite */
+	g_usleep (G_USEC_PER_SEC);
+
 	secret_service_disconnect ();
 	g_assert (service3 == NULL);
 }

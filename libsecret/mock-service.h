@@ -17,9 +17,7 @@
 
 #include <glib.h>
 
-#define MOCK_SERVICE_NAME "org.mock.Service"
-
-gboolean      mock_service_start     (const gchar *mock_script,
+const gchar * mock_service_start     (const gchar *mock_script,
                                       GError **error);
 
 void          mock_service_stop      (void);
