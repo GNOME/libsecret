@@ -275,7 +275,6 @@ AC_CONFIG_FILES([
 	Makefile
 	docs/reference/libsecret/Makefile
 	docs/reference/libsecret/version.xml
-	docs/reference/libsecret/version-major.xml
 	po/Makefile.in
 	po/Makefile
 	libsecret/libsecret.pc
