@@ -655,8 +655,8 @@ memcpy_with_vbits (void *dest,
 
 #ifdef WITH_VALGRIND
 	if (vbits_setup == 1) {
-		VALGRIND_SET_VBITS (dest, vbits, length);
-		VALGRIND_SET_VBITS (src, vbits, length);
+		(void)VALGRIND_SET_VBITS (dest, vbits, length);
+		(void)VALGRIND_SET_VBITS (src, vbits, length);
 	}
 	free (vbits);
 #endif

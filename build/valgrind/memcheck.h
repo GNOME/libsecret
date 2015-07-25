@@ -13,7 +13,7 @@
    This file is part of MemCheck, a heavyweight Valgrind tool for
    detecting memory errors.
 
-   Copyright (C) 2000-2010 Julian Seward.  All rights reserved.
+   Copyright (C) 2000-2015 Julian Seward.  All rights reserved.
 
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions
@@ -71,12 +71,6 @@
 
 #include "valgrind.h"
 
-#if defined(__GNUC__)
-# define VG_UNUSED __attribute__((unused))
-#else
-# define VG_UNUSED
-#endif
-
 /* !! ABIWARNING !! ABIWARNING !! ABIWARNING !! ABIWARNING !! 
    This enum comprises an ABI exported by Valgrind to programs
    which use client requests.  DO NOT CHANGE THE ORDER OF THESE
@@ -101,6 +95,9 @@ typedef
 
       /* Not next to VG_USERREQ__COUNT_LEAKS because it was added later. */
       VG_USERREQ__COUNT_LEAK_BLOCKS,
+
+      VG_USERREQ__ENABLE_ADDR_ERROR_REPORTING_IN_RANGE,
+      VG_USERREQ__DISABLE_ADDR_ERROR_REPORTING_IN_RANGE,
 
       /* This is just for memcheck's internal use - don't use it */
       _VG_USERREQ__MEMCHECK_RECORD_OVERLAP_ERROR 
@@ -190,19 +187,27 @@ typedef
 
 /* Do a full memory leak check (like --leak-check=full) mid-execution. */
 #define VALGRIND_DO_LEAK_CHECK                                   \
-   {unsigned long _qzz_res VG_UNUSED;                            \
-    VALGRIND_DO_CLIENT_REQUEST(_qzz_res, 0,                      \
-                            VG_USERREQ__DO_LEAK_CHECK,           \
-                            0, 0, 0, 0, 0);                      \
-   }
+    VALGRIND_DO_CLIENT_REQUEST_STMT(VG_USERREQ__DO_LEAK_CHECK,   \
+                                    0, 0, 0, 0, 0)
+
+/* Same as VALGRIND_DO_LEAK_CHECK but only showing the entries for
+   which there was an increase in leaked bytes or leaked nr of blocks
+   since the previous leak search. */
+#define VALGRIND_DO_ADDED_LEAK_CHECK                            \
+    VALGRIND_DO_CLIENT_REQUEST_STMT(VG_USERREQ__DO_LEAK_CHECK,  \
+                                    0, 1, 0, 0, 0)
+
+/* Same as VALGRIND_DO_ADDED_LEAK_CHECK but showing entries with
+   increased or decreased leaked bytes/blocks since previous leak
+   search. */
+#define VALGRIND_DO_CHANGED_LEAK_CHECK                          \
+    VALGRIND_DO_CLIENT_REQUEST_STMT(VG_USERREQ__DO_LEAK_CHECK,  \
+                                    0, 2, 0, 0, 0)
 
 /* Do a summary memory leak check (like --leak-check=summary) mid-execution. */
-#define VALGRIND_DO_QUICK_LEAK_CHECK				 \
-   {unsigned long _qzz_res;                                      \
-    VALGRIND_DO_CLIENT_REQUEST(_qzz_res, 0,                      \
-                            VG_USERREQ__DO_LEAK_CHECK,           \
-                            1, 0, 0, 0, 0);                      \
-   }
+#define VALGRIND_DO_QUICK_LEAK_CHECK                             \
+    VALGRIND_DO_CLIENT_REQUEST_STMT(VG_USERREQ__DO_LEAK_CHECK,   \
+                                    1, 0, 0, 0, 0)
 
 /* Return number of leaked, dubious, reachable and suppressed bytes found by
    all previous leak checks.  They must be lvalues.  */
@@ -213,10 +218,10 @@ typedef
       are.  We also initialise '_qzz_leaked', etc because
       VG_USERREQ__COUNT_LEAKS doesn't mark the values returned as
       defined. */                                                        \
-   {unsigned long _qzz_res;                                              \
+   {                                                                     \
     unsigned long _qzz_leaked    = 0, _qzz_dubious    = 0;               \
     unsigned long _qzz_reachable = 0, _qzz_suppressed = 0;               \
-    VALGRIND_DO_CLIENT_REQUEST(_qzz_res, 0,                              \
+    VALGRIND_DO_CLIENT_REQUEST_STMT(                                     \
                                VG_USERREQ__COUNT_LEAKS,                  \
                                &_qzz_leaked, &_qzz_dubious,              \
                                &_qzz_reachable, &_qzz_suppressed, 0);    \
@@ -235,10 +240,10 @@ typedef
       are.  We also initialise '_qzz_leaked', etc because
       VG_USERREQ__COUNT_LEAKS doesn't mark the values returned as
       defined. */                                                        \
-   {unsigned long _qzz_res;                                              \
+   {                                                                     \
     unsigned long _qzz_leaked    = 0, _qzz_dubious    = 0;               \
     unsigned long _qzz_reachable = 0, _qzz_suppressed = 0;               \
-    VALGRIND_DO_CLIENT_REQUEST(_qzz_res, 0,                              \
+    VALGRIND_DO_CLIENT_REQUEST_STMT(                                     \
                                VG_USERREQ__COUNT_LEAK_BLOCKS,            \
                                &_qzz_leaked, &_qzz_dubious,              \
                                &_qzz_reachable, &_qzz_suppressed, 0);    \
@@ -258,10 +263,11 @@ typedef
    The metadata is not copied in cases 0, 2 or 3 so it should be
    impossible to segfault your system by using this call.
 */
-#define VALGRIND_GET_VBITS(zza,zzvbits,zznbytes)                     \
-    VALGRIND_DO_CLIENT_REQUEST_EXPR(0,                               \
-                                    VG_USERREQ__GET_VBITS,           \
-                                    (char*)(zza), (char*)(zzvbits),  \
+#define VALGRIND_GET_VBITS(zza,zzvbits,zznbytes)                \
+    (unsigned)VALGRIND_DO_CLIENT_REQUEST_EXPR(0,                \
+                                    VG_USERREQ__GET_VBITS,      \
+                                    (const char*)(zza),         \
+                                    (char*)(zzvbits),           \
                                     (zznbytes), 0, 0)
 
 /* Set the validity data for addresses [zza..zza+zznbytes-1], copying it
@@ -273,11 +279,24 @@ typedef
    The metadata is not copied in cases 0, 2 or 3 so it should be
    impossible to segfault your system by using this call.
 */
-#define VALGRIND_SET_VBITS(zza,zzvbits,zznbytes)                     \
-    VALGRIND_DO_CLIENT_REQUEST_EXPR(0,                               \
-                                    VG_USERREQ__SET_VBITS,           \
-                                    (char*)(zza), (char*)(zzvbits),  \
+#define VALGRIND_SET_VBITS(zza,zzvbits,zznbytes)                \
+    (unsigned)VALGRIND_DO_CLIENT_REQUEST_EXPR(0,                \
+                                    VG_USERREQ__SET_VBITS,      \
+                                    (const char*)(zza),         \
+                                    (const char*)(zzvbits),     \
                                     (zznbytes), 0, 0 )
+
+/* Disable and re-enable reporting of addressing errors in the
+   specified address range. */
+#define VALGRIND_DISABLE_ADDR_ERROR_REPORTING_IN_RANGE(_qzz_addr,_qzz_len) \
+    VALGRIND_DO_CLIENT_REQUEST_EXPR(0 /* default return */,    \
+       VG_USERREQ__DISABLE_ADDR_ERROR_REPORTING_IN_RANGE,      \
+       (_qzz_addr), (_qzz_len), 0, 0, 0)
+
+#define VALGRIND_ENABLE_ADDR_ERROR_REPORTING_IN_RANGE(_qzz_addr,_qzz_len) \
+    VALGRIND_DO_CLIENT_REQUEST_EXPR(0 /* default return */,    \
+       VG_USERREQ__ENABLE_ADDR_ERROR_REPORTING_IN_RANGE,       \
+       (_qzz_addr), (_qzz_len), 0, 0, 0)
 
 #endif
 
