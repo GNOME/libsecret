@@ -443,7 +443,7 @@ secret_password_lookup_finish (GAsyncResult *result,
  * The variable argument list should contain pairs of a) The attribute name as
  * a null-terminated string, followed by b) attribute value, either a character
  * string, an int number, or a gboolean value, as defined in the password
- * @schema. The list of attribtues should be terminated with a %NULL.
+ * @schema. The list of attributes should be terminated with a %NULL.
  *
  * If no secret is found then %NULL is returned.
  *
