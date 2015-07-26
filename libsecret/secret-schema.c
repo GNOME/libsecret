@@ -355,16 +355,12 @@ _secret_schema_ref_if_nonstatic (const SecretSchema *schema)
 void
 secret_schema_unref (SecretSchema *schema)
 {
-	gint refs;
-	gint i;
-
 	g_return_if_fail (schema != NULL);
+	/* statically-allocated or invalid SecretSchema */
+	g_return_if_fail (g_atomic_int_get (&schema->reserved) > 0);
 
-	refs = g_atomic_int_add (&schema->reserved, -1);
-	if (refs < 0) {
-		g_warning ("should not unreference a static or invalid SecretSchema");
-
-	} else if (refs == 0) {
+	if (g_atomic_int_dec_and_test (&schema->reserved)) {
+		gint i;
 		g_free ((gpointer)schema->name);
 		for (i = 0; i < G_N_ELEMENTS (schema->attributes); i++)
 			g_free ((gpointer)schema->attributes[i].name);
