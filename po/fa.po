@@ -1,0 +1,56 @@
+# Persian translation for libsecret.
+# Copyright (C) 2015 libsecret's COPYRIGHT HOLDER
+# This file is distributed under the same license as the libsecret package.
+# Arash Mousavi <mousavi.arash@gmail.com>, 2015.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: libsecret master\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
+"product=libsecret&keywords=I18N+L10N&component=general\n"
+"POT-Creation-Date: 2015-09-16 11:01+0000\n"
+"PO-Revision-Date: 2015-09-17 01:18+0430\n"
+"Language-Team: Persian <fa@li.org>\n"
+"Language: fa\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Last-Translator: Arash Mousavi <mousavi.arash@gmail.com>\n"
+"X-Generator: Poedit 1.8.4\n"
+
+#: ../libsecret/secret-item.c:1161
+#, c-format
+msgid "Received invalid secret from the secret storage"
+msgstr "رمز نامعتبر از مخزن رمز دریافت شد"
+
+#: ../libsecret/secret-methods.c:1055
+msgid "Default keyring"
+msgstr "دسته‌کلید پیش‌فرض"
+
+#: ../libsecret/secret-session.c:244 ../libsecret/secret-session.c:281
+msgid "Couldn't communicate with the secret storage"
+msgstr "امکان برقراری ارتباط با مخرن رمز‌ها نبود"
+
+#: ../tool/secret-tool.c:39
+msgid "the label for the new stored item"
+msgstr "برچسب برای مورد ذخیره شده جدید"
+
+#: ../tool/secret-tool.c:41
+msgid "the collection in which to place the stored item"
+msgstr "مجموعه‌ای که در آن مورد ذخیره شده قرار بگیرد"
+
+#: ../tool/secret-tool.c:43 ../tool/secret-tool.c:50 ../tool/secret-tool.c:437
+msgid "attribute value pairs of item to lookup"
+msgstr "مقادیر جفت متغیرها برای جستجو"
+
+#: ../tool/secret-tool.c:57
+msgid "attribute value pairs which match items to clear"
+msgstr "مقادیر جفت متغیر که با موارد مربوط به پاک کردن منطبق است"
+
+#: ../tool/secret-tool.c:433
+msgid "return all results, instead of just first one"
+msgstr "برگرداندن تمام نتایج، بجای تنها مورد اول"
+
+#: ../tool/secret-tool.c:435
+msgid "unlock item results if necessary"
+msgstr "باز کردن نتایج مورد در صورت نیاز"
