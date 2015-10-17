@@ -218,6 +218,7 @@ test_perform_fail (Test *test,
 	retval = secret_prompt_perform_sync (prompt, NULL, NULL, NULL, &error);
 	g_assert_error (error, G_DBUS_ERROR, G_DBUS_ERROR_NOT_SUPPORTED);
 	g_assert (retval == NULL);
+	g_clear_error (&error);
 
 	g_object_unref (prompt);
 	g_assert (prompt == NULL);
@@ -355,6 +356,7 @@ test_service_fail (Test *test,
 	g_assert_error (error, G_DBUS_ERROR, G_DBUS_ERROR_NOT_SUPPORTED);
 	g_assert (retval == NULL);
 	g_object_unref (result);
+	g_clear_error (&error);
 
 	/* Make sure everything completes */
 	egg_test_wait_idle ();
