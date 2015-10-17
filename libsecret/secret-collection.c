@@ -1012,6 +1012,7 @@ on_create_path (GObject *source,
 	}
 
 	g_object_unref (res);
+	g_free (path);
 }
 
 static void
