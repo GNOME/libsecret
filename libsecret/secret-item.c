@@ -687,7 +687,7 @@ on_create_item (GObject *source,
 	if (error != NULL)
 		g_simple_async_result_take_error (res, error);
 
-	/* As a convenince mark down the SecretValue on the item */
+	/* As a convenience mark down the SecretValue on the item */
 	_secret_item_set_cached_secret (closure->item, closure->value);
 
 	g_simple_async_result_complete (res);
