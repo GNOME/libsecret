@@ -150,6 +150,7 @@ test_new_sync_noexist (Test *test,
 	                                                       SECRET_COLLECTION_NONE, NULL, &error);
 	g_assert_error (error, G_DBUS_ERROR, G_DBUS_ERROR_UNKNOWN_METHOD);
 	g_assert (collection == NULL);
+	g_clear_error (&error);
 }
 
 static void
@@ -170,6 +171,7 @@ test_new_async_noexist (Test *test,
 	collection = secret_collection_new_for_dbus_path_finish (result, &error);
 	g_assert_error (error, G_DBUS_ERROR, G_DBUS_ERROR_UNKNOWN_METHOD);
 	g_assert (collection == NULL);
+	g_clear_error (&error);
 	g_object_unref (result);
 }
 
@@ -624,6 +626,7 @@ test_delete_sync (Test *test,
 	                                                       SECRET_COLLECTION_NONE, NULL, &error);
 	g_assert_error (error, G_DBUS_ERROR, G_DBUS_ERROR_UNKNOWN_METHOD);
 	g_assert (collection == NULL);
+	g_clear_error (&error);
 }
 
 static void
@@ -656,6 +659,7 @@ test_delete_async (Test *test,
 	                                                       SECRET_COLLECTION_NONE, NULL, &error);
 	g_assert_error (error, G_DBUS_ERROR, G_DBUS_ERROR_UNKNOWN_METHOD);
 	g_assert (collection == NULL);
+	g_clear_error(&error);
 }
 
 static void
