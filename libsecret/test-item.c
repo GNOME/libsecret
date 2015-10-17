@@ -497,6 +497,7 @@ test_set_attributes_async (Test *test,
 	g_hash_table_insert (attributes, "number", "5");
 	secret_item_set_attributes (item, &MOCK_SCHEMA, attributes, NULL, on_async_result, &result);
 	g_assert (result == NULL);
+	g_hash_table_unref (attributes);
 
 	egg_test_wait ();
 
