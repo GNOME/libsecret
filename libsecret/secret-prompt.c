@@ -437,7 +437,7 @@ secret_prompt_perform (SecretPrompt *self,
 {
 	GSimpleAsyncResult *res;
 	PerformClosure *closure;
-	const gchar *owner_name;
+	gchar *owner_name;
 	const gchar *object_path;
 	gboolean prompted;
 	GDBusProxy *proxy;
@@ -494,6 +494,7 @@ secret_prompt_perform (SecretPrompt *self,
 	                   closure->call_cancellable, on_prompt_prompted, g_object_ref (res));
 
 	g_object_unref (res);
+	g_free (owner_name);
 }
 
 /**
