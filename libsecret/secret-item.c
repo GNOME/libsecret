@@ -267,6 +267,9 @@ secret_item_finalize (GObject *obj)
 		g_object_remove_weak_pointer (G_OBJECT (self->pv->service),
 		                              (gpointer *)&self->pv->service);
 
+	if (self->pv->value != NULL)
+		secret_value_unref (self->pv->value);
+
 	g_mutex_clear (&self->pv->mutex);
 
 	G_OBJECT_CLASS (secret_item_parent_class)->finalize (obj);
