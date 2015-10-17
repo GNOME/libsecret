@@ -1660,6 +1660,7 @@ collection_closure_free (gpointer data)
 	CollectionClosure *closure = data;
 	g_clear_object (&closure->cancellable);
 	g_clear_object (&closure->prompt);
+	g_free (closure->collection_path);
 	g_slice_free (CollectionClosure, closure);
 }
 
