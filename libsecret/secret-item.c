@@ -717,6 +717,7 @@ on_create_path (GObject *source,
 		g_simple_async_result_take_error (res, error);
 		g_simple_async_result_complete (res);
 	}
+	g_free (path);
 
 	g_object_unref (res);
 }
