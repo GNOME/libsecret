@@ -170,6 +170,8 @@ test_new_async_noexist (Test *test,
 	g_object_unref (result);
 }
 
+#define g_assert_cmpstr_free(str1, op, str2) G_STMT_START { char *str = str1; g_assert_cmpstr (str, op, str2); g_free (str); } G_STMT_END
+
 static void
 test_create_sync (Test *test,
                   gconstpointer unused)
@@ -202,7 +204,7 @@ test_create_sync (Test *test,
 	secret_value_unref (value);
 
 	g_assert (g_str_has_prefix (g_dbus_proxy_get_object_path (G_DBUS_PROXY (item)), collection_path));
-	g_assert_cmpstr (secret_item_get_label (item), ==, "Tunnel");
+	g_assert_cmpstr_free (secret_item_get_label (item), ==, "Tunnel");
 	g_assert (secret_item_get_locked (item) == FALSE);
 
 	g_object_unref (item);
@@ -248,7 +250,7 @@ test_create_async (Test *test,
 	g_object_add_weak_pointer (G_OBJECT (item), (gpointer *)&item);
 
 	g_assert (g_str_has_prefix (g_dbus_proxy_get_object_path (G_DBUS_PROXY (item)), collection_path));
-	g_assert_cmpstr (secret_item_get_label (item), ==, "Tunnel");
+	g_assert_cmpstr_free (secret_item_get_label (item), ==, "Tunnel");
 	g_assert (secret_item_get_locked (item) == FALSE);
 
 	g_object_unref (item);
