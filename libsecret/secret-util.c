@@ -453,6 +453,7 @@ _secret_sync_free (gpointer data)
 	g_clear_object (&sync->result);
 	g_main_loop_unref (sync->loop);
 	g_main_context_unref (sync->context);
+	g_free (sync);
 }
 
 void
