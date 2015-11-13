@@ -1647,7 +1647,7 @@ secret_service_load_collections_sync (SecretService *self,
  * for the various actions that can require prompting.
  *
  * Override the #SecretServiceClass <literal>prompt_sync</literal> virtual method
- * to change the behavior of the propmting. The default behavior is to simply
+ * to change the behavior of the prompting. The default behavior is to simply
  * run secret_prompt_perform_sync() on the prompt with a %NULL <literal>window_id</literal>.
  *
  * Returns: (transfer full): %NULL if the prompt was dismissed or an error occurred,
@@ -1688,7 +1688,7 @@ secret_service_prompt_sync (SecretService *self,
  * for the various actions that can require prompting.
  *
  * Override the #SecretServiceClass <literal>prompt_async</literal> virtual method
- * to change the behavior of the propmting. The default behavior is to simply
+ * to change the behavior of the prompting. The default behavior is to simply
  * run secret_prompt_perform() on the prompt.
  */
 void
