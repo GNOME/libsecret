@@ -11,8 +11,6 @@
 # Licensed under the Apache License, Version 2.0
 # http://www.apache.org/licenses/
 #
-import os
-import sys
 import math
 
 def append_PKCS7_padding(s):
@@ -586,62 +584,6 @@ class AESModeOfOperation(object):
                     iput = ciphertext
         return bytes(result)
 
-
-def encryptData(key, data, mode=AESModeOfOperation.modeOfOperation["CBC"]):
-    """encrypt `data` using `key`
-
-    `key` should be a string of bytes.
-
-    returned cipher is a string of bytes prepended with the initialization
-    vector.
-
-    """
-    key = map(ord, key)
-    if mode == AESModeOfOperation.modeOfOperation["CBC"]:
-        data = append_PKCS7_padding(data)
-    keysize = len(key)
-    assert keysize in AES.keySize.values(), 'invalid key size: %s' % keysize
-    # create a new iv using random data
-    iv = [ord(i) for i in os.urandom(16)]
-    moo = AESModeOfOperation()
-    (mode, length, ciph) = moo.encrypt(data, mode, key, keysize, iv)
-    # With padding, the original length does not need to be known. It's a bad
-    # idea to store the original message length.
-    # prepend the iv.
-    return ''.join(map(chr, iv)) + ''.join(map(chr, ciph))
-
-def decryptData(key, data, mode=AESModeOfOperation.modeOfOperation["CBC"]):
-    """decrypt `data` using `key`
-
-    `key` should be a string of bytes.
-
-    `data` should have the initialization vector prepended as a string of
-    ordinal values.
-
-    """
-
-    key = map(ord, key)
-    keysize = len(key)
-    assert keysize in AES.keySize.values(), 'invalid key size: %s' % keysize
-    # iv is first 16 bytes
-    iv = map(ord, data[:16])
-    data = map(ord, data[16:])
-    moo = AESModeOfOperation()
-    decr = moo.decrypt(data, None, mode, key, keysize, iv)
-    if mode == AESModeOfOperation.modeOfOperation["CBC"]:
-        decr = strip_PKCS7_padding(decr)
-    return decr
-
-def generateRandomKey(keysize):
-    """Generates a key from random data of length `keysize`.
-
-    The returned key is a string of bytes.
-
-    """
-    if keysize not in (16, 24, 32):
-        emsg = 'Invalid keysize, %s. Should be one of (16, 24, 32).'
-        raise ValueError(emsg % keysize)
-    return os.urandom(keysize)
 
 if __name__ == "__main__":
     moo = AESModeOfOperation()

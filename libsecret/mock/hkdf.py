@@ -18,8 +18,6 @@
 #	system libcryptopp.
 
 import hashlib, hmac
-import math
-from binascii import a2b_hex, b2a_hex
 
 class HKDF(object):
     def __init__(self, ikm, L, salt=None, info=None, digestmod = None):
@@ -50,19 +48,9 @@ class HKDF(object):
 
     #expand PRK
     def expand(self):
-        N = math.ceil(float(self.keylen)/self.hashlen)
         T = b""
         temp = b""
         i=0x01
-        '''while len(T)<2*self.keylen :
-            msg = temp
-            msg += self.info
-            msg += b2a_hex(chr(i))
-            h = hmac.new(self.prk, a2b_hex(msg), self.digest_cons)
-            temp = b2a_hex(h.digest())
-            i += 1
-            T += temp
-       '''
         while len(T)<self.keylen :
             msg = temp
             msg += self.info
@@ -80,5 +68,5 @@ def new(ikm, L, salt=None, info="", digestmod = None):
 
 def hkdf(ikm, length, salt=None, info=""):
 	hk = HKDF(ikm, length ,salt,info)
-	computedprk = hk.extract()
+	hk.extract()
 	return hk.expand()
