@@ -24,7 +24,7 @@ import hkdf
 import dbus
 import dbus.service
 import dbus.glib
-import gobject
+from gi.repository import GLib
 
 COLLECTION_PREFIX = "/org/freedesktop/secrets/collection/"
 
@@ -146,7 +146,7 @@ class SecretPrompt(dbus.service.Object):
 	def Prompt(self, window_id):
 		if self.action:
 			self.result = self.action()
-		gobject.timeout_add(self.delay * 1000, self._complete)
+		GLib.timeout_add(self.delay * 1000, self._complete)
 
 	@dbus.service.method('org.freedesktop.Secret.Prompt')
 	def Dismiss(self):
@@ -525,7 +525,7 @@ class SecretService(dbus.service.Object):
 		self.set_alias('session', collection)
 
 	def listen(self):
-		loop = gobject.MainLoop()
+		loop = GLib.MainLoop()
 		name = self.bus.get_unique_name()
 		if not name:
 			raise NameError("No unique name available")
