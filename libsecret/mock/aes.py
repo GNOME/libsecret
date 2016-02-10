@@ -18,13 +18,13 @@ import math
 def append_PKCS7_padding(s):
     """return s padded to a multiple of 16-bytes by PKCS7 padding"""
     numpads = 16 - (len(s)%16)
-    return s + numpads*chr(numpads)
+    return s + bytes([numpads] * numpads)
 
 def strip_PKCS7_padding(s):
     """return s stripped of PKCS7 padding"""
     if len(s)%16 or not s:
         raise ValueError("String of len %d can't be PCKS7-padded" % len(s))
-    numpads = ord(s[-1])
+    numpads = s[-1]
     if numpads > 16:
         raise ValueError("String ending with %r can't be PCKS7-padded" % s[-1])
     return s[:-numpads]
@@ -421,7 +421,7 @@ class AESModeOfOperation(object):
         while len(ar) < end - start:
             ar.append(0)
         while i < end:
-            ar[j] = ord(string[i])
+            ar[j] = string[i]
             j += 1
             i += 1
         return ar
@@ -523,7 +523,7 @@ class AESModeOfOperation(object):
         output = []
         plaintext = [0] * 16
         # the output plain text string
-        stringOut = ''
+        result = []
         # char firstRound
         firstRound = True
         if cipherIn != None:
@@ -549,7 +549,7 @@ class AESModeOfOperation(object):
                         else:
                             plaintext[i] = output[i] ^ ciphertext[i]
                     for k in range(end-start):
-                        stringOut += chr(plaintext[k])
+                        result.append(plaintext[k])
                     iput = ciphertext
                 elif mode == self.modeOfOperation["OFB"]:
                     if firstRound:
@@ -567,7 +567,7 @@ class AESModeOfOperation(object):
                         else:
                             plaintext[i] = output[i] ^ ciphertext[i]
                     for k in range(end-start):
-                        stringOut += chr(plaintext[k])
+                        result.append(plaintext[k])
                     iput = output
                 elif mode == self.modeOfOperation["CBC"]:
                     output = self.aes.decrypt(ciphertext, key, size)
@@ -579,12 +579,12 @@ class AESModeOfOperation(object):
                     firstRound = False
                     if originalsize is not None and originalsize < end:
                         for k in range(originalsize-start):
-                            stringOut += chr(plaintext[k])
+                            result.append(plaintext[k])
                     else:
                         for k in range(end-start):
-                            stringOut += chr(plaintext[k])
+                            result.append(plaintext[k])
                     iput = ciphertext
-        return stringOut
+        return bytes(result)
 
 
 def encryptData(key, data, mode=AESModeOfOperation.modeOfOperation["CBC"]):
@@ -640,7 +640,7 @@ def generateRandomKey(keysize):
     """
     if keysize not in (16, 24, 32):
         emsg = 'Invalid keysize, %s. Should be one of (16, 24, 32).'
-        raise ValueError, emsg % keysize
+        raise ValueError(emsg % keysize)
     return os.urandom(keysize)
 
 if __name__ == "__main__":
@@ -650,7 +650,7 @@ if __name__ == "__main__":
     iv = [103,35,148,239,76,213,47,118,255,222,123,176,106,134,98,92]
     mode, orig_len, ciph = moo.encrypt(cleartext, moo.modeOfOperation["CBC"],
             cypherkey, moo.aes.keySize["SIZE_128"], iv)
-    print 'm=%s, ol=%s (%s), ciph=%s' % (mode, orig_len, len(cleartext), ciph)
+    print('m=%s, ol=%s (%s), ciph=%s' % (mode, orig_len, len(cleartext), ciph))
     decr = moo.decrypt(ciph, orig_len, mode, cypherkey,
             moo.aes.keySize["SIZE_128"], iv)
-    print decr
+    print(decr)

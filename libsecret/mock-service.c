@@ -88,7 +88,7 @@ service_start (const gchar *mock_script,
 	gint output;
 
 	gchar *argv[] = {
-		"python", (gchar *)mock_script,
+		"python3", (gchar *)mock_script,
 		NULL
 	};
 

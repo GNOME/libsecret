@@ -17,9 +17,7 @@ import sys
 import time
 import unittest
 
-import aes
-import dh
-import hkdf
+from mock import aes, dh, hkdf
 
 import dbus
 import dbus.service
@@ -54,8 +52,7 @@ def next_identifier(prefix=''):
 	return "%s%d" % (prefix, unique_identifier)
 
 def encode_identifier(value):
-	return "".join([(c.isalpha() or c.isdigit()) and c or "_%02x" % ord(c) \
-	                       for c in value.encode('utf-8')])
+	return "".join([c.isalnum() and c or "_%02x" % ord(c) for c in value])
 
 def hex_encode(string):
 	return "".join([hex(ord(c))[2:].zfill(2) for c in string])
@@ -71,9 +68,9 @@ class PlainAlgorithm():
 		return (dbus.String("", variant_level=1), session)
 
 	def encrypt(self, key, data):
-		return ("", data)
+		return b"", data
 
-	def decrypt(self, param, data):
+	def decrypt(self, key, params, data):
 		if params == "":
 			raise InvalidArgs("invalid secret plain parameter")
 		return data
@@ -84,7 +81,7 @@ class AesAlgorithm():
 		if type (param) != dbus.ByteArray:
 			raise InvalidArgs("invalid argument passed to OpenSession")
 		privat, publi = dh.generate_pair()
-		peer = dh.bytes_to_number(param)
+		peer = int.from_bytes(param, 'big')
 		# print "mock publi: ", hex(publi)
 		# print " mock peer: ", hex(peer)
 		ikm = dh.derive_key(privat, peer)
@@ -95,21 +92,17 @@ class AesAlgorithm():
 		return (dbus.ByteArray(dh.number_to_bytes(publi), variant_level=1), session)
 
 	def encrypt(self, key, data):
-		key = map(ord, key)
 		data = aes.append_PKCS7_padding(data)
 		keysize = len(key)
-		iv = [ord(i) for i in os.urandom(16)]
+		iv = os.urandom(16)
 		mode = aes.AESModeOfOperation.modeOfOperation["CBC"]
 		moo = aes.AESModeOfOperation()
 		(mode, length, ciph) = moo.encrypt(data, mode, key, keysize, iv)
-		return ("".join([chr(i) for i in iv]),
-		        "".join([chr(i) for i in ciph]))
+		return iv, ciph
 
 	def decrypt(self, key, param, data):
-		key = map(ord, key)
 		keysize = len(key)
-		iv = map(ord, param[:16])
-		data = map(ord, data)
+		iv = param[:16]
 		moo = aes.AESModeOfOperation()
 		mode = aes.AESModeOfOperation.modeOfOperation["CBC"]
 		decr = moo.decrypt(data, None, mode, key, keysize, iv)
@@ -197,7 +190,7 @@ class SecretItem(dbus.service.Object):
 		self.collection = collection
 		self.identifier = identifier
 		self.label = label or "Unnamed item"
-		self.secret = secret
+		self.secret = secret.encode('ascii') if isinstance(secret, str) else secret
 		self.type = type or "org.freedesktop.Secret.Generic"
 		self.attributes = attributes
 		self.content_type = content_type
@@ -376,7 +369,7 @@ class SecretCollection(dbus.service.Object):
 		self.PropertiesChanged('org.freedesktop.Secret.Collection', { "Locked" : lock }, [])
 
 	def perform_delete(self):
-		for item in self.items.values():
+		for item in list(self.items.values()):
 			item.perform_delete()
 		del objects[self.path]
 		self.service.remove_collection(self)
@@ -529,8 +522,7 @@ class SecretService(dbus.service.Object):
 		name = self.bus.get_unique_name()
 		if not name:
 			raise NameError("No unique name available")
-		print name
-		sys.stdout.flush()
+		print(name, flush=True)
 		loop.run()
 
 	def add_session(self, session):
@@ -691,8 +683,8 @@ class SecretService(dbus.service.Object):
 def parse_options(args):
 	try:
 		opts, args = getopt.getopt(args, "", [])
-	except getopt.GetoptError, err:
-		print str(err)
+	except getopt.GetoptError as err:
+		print(str(err))
 		sys.exit(2)
 	for o, a in opts:
 		assert False, "unhandled option"

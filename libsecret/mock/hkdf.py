@@ -22,7 +22,7 @@ import math
 from binascii import a2b_hex, b2a_hex
 
 class HKDF(object):
-    def __init__(self, ikm, L, salt=None, info="", digestmod = None):
+    def __init__(self, ikm, L, salt=None, info=None, digestmod = None):
         self.ikm = ikm
         self.keylen = L
 
@@ -36,11 +36,11 @@ class HKDF(object):
         self.hashlen = len(self.digest_cons().digest())
 
         if salt is None:
-            self.salt = chr(0)*(self.hashlen)
+            self.salt = b'\x00' * (self.hashlen)
         else:
             self.salt = salt
 
-        self.info = info
+        self.info = info or b''
 
     #extract PRK
     def extract(self):
@@ -51,8 +51,8 @@ class HKDF(object):
     #expand PRK
     def expand(self):
         N = math.ceil(float(self.keylen)/self.hashlen)
-        T = ""
-        temp = ""
+        T = b""
+        temp = b""
         i=0x01
         '''while len(T)<2*self.keylen :
             msg = temp
@@ -66,7 +66,7 @@ class HKDF(object):
         while len(T)<self.keylen :
             msg = temp
             msg += self.info
-            msg += chr(i)
+            msg += bytes((i,))
             h = hmac.new(self.prk, msg, self.digest_cons)
             temp = h.digest()
             i += 1

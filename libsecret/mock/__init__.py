@@ -9,4 +9,5 @@
 # See the included COPYING file for more information.
 #
 
-from service import *
+from .service import SecretItem, SecretCollection, SecretService, SecretPrompt
+from .service import PlainAlgorithm, NotSupported
