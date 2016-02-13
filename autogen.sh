@@ -104,6 +104,12 @@ cd $ORIGDIR || exit $?
 if test -z "$NOCONFIGURE"; then
         $srcdir/configure --enable-maintainer-mode $AUTOGEN_CONFIGURE_ARGS "$@" || exit $?
 
-        echo 
+	# Put a redirect makefile here
+	if [ ! -f $srcdir/Makefile ]; then
+	    cat $srcdir/build/Makefile.redirect > $srcdir/Makefile
+	    printf "\nREDIRECT = %s\n" "$(realpath $ORIGDIR)" >> $srcdir/Makefile
+	fi
+
+        echo
         echo "Now type 'make' to compile $PROJECT."
 fi
