@@ -1299,7 +1299,7 @@ egg_secure_records (unsigned int *count)
 			if (records == NULL)
 				break;
 
-			/* Make sure this actualy accounts for all memory */
+			/* Make sure this actually accounts for all memory */
 			ASSERT (total == block->n_words);
 		}
 
