@@ -58,7 +58,7 @@
 	for lookup of items it's important that the string representations of
 	integers and booleans are always identical. Boolean values are stored
 	as the strings <literal>true</literal> and <literal>false</literal>.
-	Integer values are stored in decimal, with a preceeding negative sign
+	Integer values are stored in decimal, with a preceding negative sign
 	for negative integers. libsecret facilitates this using the
 	secret_attributes_build() and secret_attributes_buildv() functions.</para>
 

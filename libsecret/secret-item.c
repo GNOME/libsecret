@@ -1259,7 +1259,7 @@ secret_item_load_secret (SecretItem *self,
  * The newly loaded secret value can be accessed by calling
  * secret_item_get_secret().
  *
- * Returns: whether the secret item succesfully loaded or not
+ * Returns: whether the secret item successfully loaded or not
  */
 gboolean
 secret_item_load_secret_finish (SecretItem *self,
@@ -1292,7 +1292,7 @@ secret_item_load_secret_finish (SecretItem *self,
  * This function may block indefinetely. Use the asynchronous version
  * in user interface threads.
  *
- * Returns: whether the secret item succesfully loaded or not
+ * Returns: whether the secret item successfully loaded or not
  */
 gboolean
 secret_item_load_secret_sync (SecretItem *self,
@@ -1486,7 +1486,7 @@ secret_item_load_secrets (GList *items,
  *
  * Items that are locked will not have their secrets loaded.
  *
- * Returns: whether the operation succeded or not
+ * Returns: whether the operation succeeded or not
  */
 gboolean
 secret_item_load_secrets_finish (GAsyncResult *result,
@@ -1520,7 +1520,7 @@ secret_item_load_secrets_finish (GAsyncResult *result,
  *
  * Items that are locked will not have their secrets loaded.
  *
- * Returns: whether the operation succeded or not
+ * Returns: whether the operation succeeded or not
  */
 gboolean
 secret_item_load_secrets_sync (GList *items,
