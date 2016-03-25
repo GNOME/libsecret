@@ -1,3 +1,9 @@
+0.18.5
+ * Build fixes
+ * Port tests to Python 3 [#761834]
+ * Fix textual typos [#763143]
+ * Updated translations
+
 0.18.4
  * Multithreading fixes [#756766]
  * Fix memory leaks [#756766]
