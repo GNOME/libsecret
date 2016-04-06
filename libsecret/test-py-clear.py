@@ -14,6 +14,10 @@
 import sys
 import unittest
 
+import gi
+gi.require_version('MockService', '0')
+gi.require_version('Secret', '1')
+
 from gi.repository import MockService as Mock
 from gi.repository import Secret, GLib
 
