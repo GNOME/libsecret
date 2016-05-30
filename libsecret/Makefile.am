@@ -282,7 +282,7 @@ SUFFIXES = .vala .vala.o
 test-vala-lang.vala.o: libsecret/test-vala-lang.vala $(VALA_TESTS_VAPIS)
 	$(VALA_V) $(VALAC) --compile $(VALA_TESTS_FLAGS) $<
 test-vala-unstable.vala.o: libsecret/test-vala-unstable.vala $(VALA_TESTS_VAPIS)
-	$(VALA_V) $(VALAC) --compile $(VALA_TESTS_FLAGS) $<
+	$(VALA_V) $(VALAC) --compile --Xcc=-DSECRET_WITH_UNSTABLE=1 $(VALA_TESTS_FLAGS) $<
 
 test_vala_lang_SOURCES =
 test_vala_lang_LDADD = \
