@@ -2220,31 +2220,26 @@ secret_collection_for_alias_sync (SecretService *service,
 
 	collection_path = secret_service_read_alias_dbus_path_sync (service, alias,
 	                                                            cancellable, error);
+	/* No collection for this alias */
 	if (collection_path == NULL)
 		return NULL;
+	
+	collection = _secret_service_find_collection_instance (service,
+	                                                       collection_path);
 
-	/* No collection for this alias */
-	if (collection_path == NULL) {
-		collection = NULL;
+	if (collection != NULL) {
 
-	} else {
-		collection = _secret_service_find_collection_instance (service,
-		                                                       collection_path);
-
-		if (collection != NULL) {
-
-			/* Have a collection with all necessary flags */
-			if (!collection_ensure_for_flags_sync (collection, flags,
-			                                       cancellable, error)) {
-				g_object_unref (collection);
-				collection = NULL;
-			}
-
-		/* No collection loaded, but valid path, load */
-		} else {
-			collection = secret_collection_new_for_dbus_path_sync (service, collection_path,
-			                                                       flags, cancellable, error);
+		/* Have a collection with all necessary flags */
+		if (!collection_ensure_for_flags_sync (collection, flags,
+		                                       cancellable, error)) {
+			g_object_unref (collection);
+			collection = NULL;
 		}
+
+	/* No collection loaded, but valid path, load */
+	} else {
+		collection = secret_collection_new_for_dbus_path_sync (service, collection_path,
+			                                                       flags, cancellable, error);
 	}
 
 	g_free (collection_path);
