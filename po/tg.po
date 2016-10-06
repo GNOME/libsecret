@@ -28,7 +28,7 @@ msgid "Default keyring"
 msgstr "Ҳалқаи калидҳои пешфарз"
 
 #: ../libsecret/secret-session.c:244 ../libsecret/secret-session.c:281
-msgid "Couldn't communicate with the secret storage"
+msgid "Couldn’t communicate with the secret storage"
 msgstr "Бо захирагоҳи асрорҳо пайваст нашуд"
 
 #: ../tool/secret-tool.c:39

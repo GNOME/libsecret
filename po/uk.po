@@ -30,7 +30,7 @@ msgid "Default keyring"
 msgstr "Типова в'язка ключів"
 
 #: ../libsecret/secret-session.c:244 ../libsecret/secret-session.c:281
-msgid "Couldn't communicate with the secret storage"
+msgid "Couldn’t communicate with the secret storage"
 msgstr "Не вдалося зв'язатися зі сховищем таємних ключів"
 
 #: ../tool/secret-tool.c:39

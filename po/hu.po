@@ -30,7 +30,7 @@ msgid "Default keyring"
 msgstr "Alapértelmezett kulcstartó"
 
 #: ../libsecret/secret-session.c:244 ../libsecret/secret-session.c:281
-msgid "Couldn't communicate with the secret storage"
+msgid "Couldn’t communicate with the secret storage"
 msgstr "Nem lehet kommunikálni a titoktárral"
 
 #: ../tool/secret-tool.c:39

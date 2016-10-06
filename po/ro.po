@@ -31,7 +31,7 @@ msgid "Default keyring"
 msgstr "Inel de chei implicit"
 
 #: ../libsecret/secret-session.c:244 ../libsecret/secret-session.c:281
-msgid "Couldn't communicate with the secret storage"
+msgid "Couldn’t communicate with the secret storage"
 msgstr "Nu s-a putut comunica cu depozitul de secrete"
 
 #: ../tool/secret-tool.c:39

@@ -28,7 +28,7 @@ msgid "Default keyring"
 msgstr "دسته‌کلید پیش‌فرض"
 
 #: ../libsecret/secret-session.c:244 ../libsecret/secret-session.c:281
-msgid "Couldn't communicate with the secret storage"
+msgid "Couldn’t communicate with the secret storage"
 msgstr "امکان برقراری ارتباط با مخرن رمز‌ها نبود"
 
 #: ../tool/secret-tool.c:39

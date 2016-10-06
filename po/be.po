@@ -27,7 +27,7 @@ msgid "Default keyring"
 msgstr "Прадвызначаная вязка ключоў"
 
 #: ../libsecret/secret-session.c:244 ../libsecret/secret-session.c:281
-msgid "Couldn't communicate with the secret storage"
+msgid "Couldn’t communicate with the secret storage"
 msgstr "Не ўдалося звязацца з сакрэтным сховішчам"
 
 #: ../tool/secret-tool.c:39

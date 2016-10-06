@@ -30,7 +30,7 @@ msgid "Default keyring"
 msgstr "Связка ключей по умолчанию"
 
 #: ../libsecret/secret-session.c:244 ../libsecret/secret-session.c:281
-msgid "Couldn't communicate with the secret storage"
+msgid "Couldn’t communicate with the secret storage"
 msgstr "Не удалось связаться с хранилищем секретных ключей"
 
 #: ../tool/secret-tool.c:39

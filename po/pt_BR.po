@@ -29,7 +29,7 @@ msgid "Default keyring"
 msgstr "Chaveiro padrão"
 
 #: ../libsecret/secret-session.c:244 ../libsecret/secret-session.c:281
-msgid "Couldn't communicate with the secret storage"
+msgid "Couldn’t communicate with the secret storage"
 msgstr "Não foi possível comunicar com o armazenamento de segredos"
 
 #: ../tool/secret-tool.c:39

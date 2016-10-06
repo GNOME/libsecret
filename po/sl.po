@@ -34,7 +34,7 @@ msgstr "Privzeta zbirka ključev"
 
 #: ../libsecret/secret-session.c:244
 #: ../libsecret/secret-session.c:281
-msgid "Couldn't communicate with the secret storage"
+msgid "Couldn’t communicate with the secret storage"
 msgstr "Ni mogoče vzpostaviti povezave z skritimi shranjenimi predmeti"
 
 #: ../tool/secret-tool.c:39

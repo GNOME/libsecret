@@ -27,7 +27,7 @@ msgid "Default keyring"
 msgstr "預設鑰匙圈"
 
 #: ../libsecret/secret-session.c:244 ../libsecret/secret-session.c:281
-msgid "Couldn't communicate with the secret storage"
+msgid "Couldn’t communicate with the secret storage"
 msgstr "無法與機密儲存區連線"
 
 #: ../tool/secret-tool.c:39

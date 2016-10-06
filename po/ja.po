@@ -22,7 +22,7 @@ msgid "Received invalid secret from the secret storage"
 msgstr "シークレットのストレージから不正なシークレットを受け取りました"
 
 #: ../libsecret/secret-session.c:244 ../libsecret/secret-session.c:282
-msgid "Couldn't communicate with the secret storage"
+msgid "Couldn’t communicate with the secret storage"
 msgstr "シークレットのストレージと通信できませんでした"
 
 #: ../tool/secret-tool.c:37

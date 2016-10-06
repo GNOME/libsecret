@@ -28,7 +28,7 @@ msgid "Default keyring"
 msgstr "Depósito de claus predeterminau"
 
 #: ../libsecret/secret-session.c:244 ../libsecret/secret-session.c:281
-msgid "Couldn't communicate with the secret storage"
+msgid "Couldn’t communicate with the secret storage"
 msgstr "No se podió comunicar con l'almacén de secretos"
 
 #: ../tool/secret-tool.c:39

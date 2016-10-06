@@ -29,7 +29,7 @@ msgid "Default keyring"
 msgstr "ਮੂਲ ਕੀਰਿੰਗ"
 
 #: ../libsecret/secret-session.c:244 ../libsecret/secret-session.c:281
-msgid "Couldn't communicate with the secret storage"
+msgid "Couldn’t communicate with the secret storage"
 msgstr "ਗੁਪਤ ਸਟੋਰੇਜ਼ ਨਾਲ ਸੰਚਾਰ ਨਹੀਂ ਹੋ ਸਕਿਆ"
 
 #: ../tool/secret-tool.c:39

@@ -29,7 +29,7 @@ msgid "Default keyring"
 msgstr "സ്വതവേയുള്ള ചാവികൂട്ടം"
 
 #: ../libsecret/secret-session.c:244 ../libsecret/secret-session.c:281
-msgid "Couldn't communicate with the secret storage"
+msgid "Couldn’t communicate with the secret storage"
 msgstr "രഹസ്യസംഭരണിയുമായി ബന്ധപെടാനാകുന്നില്ല"
 
 #: ../tool/secret-tool.c:39

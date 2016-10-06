@@ -28,7 +28,7 @@ msgid "Default keyring"
 msgstr "Anel de chaves por omisión"
 
 #: ../libsecret/secret-session.c:244 ../libsecret/secret-session.c:281
-msgid "Couldn't communicate with the secret storage"
+msgid "Couldn’t communicate with the secret storage"
 msgstr "Non foi posíbel comunicarse co almacenamento de segredos"
 
 #: ../tool/secret-tool.c:39

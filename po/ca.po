@@ -28,7 +28,7 @@ msgid "Default keyring"
 msgstr "Anell de claus per defecte"
 
 #: ../libsecret/secret-session.c:244 ../libsecret/secret-session.c:281
-msgid "Couldn't communicate with the secret storage"
+msgid "Couldn’t communicate with the secret storage"
 msgstr "No s'ha pogut contactar amb el magatzem de secrets"
 
 #: ../tool/secret-tool.c:39

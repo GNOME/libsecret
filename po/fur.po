@@ -28,7 +28,7 @@ msgid "Default keyring"
 msgstr "Puarteclâfs predefinît"
 
 #: ../libsecret/secret-session.c:244 ../libsecret/secret-session.c:281
-msgid "Couldn't communicate with the secret storage"
+msgid "Couldn’t communicate with the secret storage"
 msgstr "Impussibil comunicâ cul dispositîf di archiviazion dai segrets"
 
 #: ../tool/secret-tool.c:39

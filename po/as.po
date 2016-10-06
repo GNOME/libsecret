@@ -29,7 +29,7 @@ msgid "Default keyring"
 msgstr "অবিকল্পিত কিৰিং"
 
 #: ../libsecret/secret-session.c:244 ../libsecret/secret-session.c:281
-msgid "Couldn't communicate with the secret storage"
+msgid "Couldn’t communicate with the secret storage"
 msgstr "গোপন সংৰক্ষণৰ সৈতে সংযোগ কৰিব পৰা নগল"
 
 #: ../tool/secret-tool.c:39

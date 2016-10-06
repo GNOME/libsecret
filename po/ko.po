@@ -27,7 +27,7 @@ msgid "Default keyring"
 msgstr "기본 키 모음"
 
 #: ../libsecret/secret-session.c:244 ../libsecret/secret-session.c:281
-msgid "Couldn't communicate with the secret storage"
+msgid "Couldn’t communicate with the secret storage"
 msgstr "비밀 저장 장치와 통신할 수 없습니다"
 
 #: ../tool/secret-tool.c:39

@@ -26,7 +26,7 @@ msgid "Default keyring"
 msgstr "Forvalgt nøkkelring"
 
 #: ../libsecret/secret-session.c:244 ../libsecret/secret-session.c:281
-msgid "Couldn't communicate with the secret storage"
+msgid "Couldn’t communicate with the secret storage"
 msgstr "Kunne ikke kommunisere med hemmelig lager"
 
 #: ../tool/secret-tool.c:39

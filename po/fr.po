@@ -29,7 +29,7 @@ msgid "Default keyring"
 msgstr "Trousseau de clés par défaut"
 
 #: ../libsecret/secret-session.c:244 ../libsecret/secret-session.c:281
-msgid "Couldn't communicate with the secret storage"
+msgid "Couldn’t communicate with the secret storage"
 msgstr "Impossible de communiquer avec le stockage de données confidentielles"
 
 #: ../tool/secret-tool.c:39

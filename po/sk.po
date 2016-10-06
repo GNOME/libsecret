@@ -29,7 +29,7 @@ msgid "Default keyring"
 msgstr "Predvolený zväzok kľúčov"
 
 #: ../libsecret/secret-session.c:244 ../libsecret/secret-session.c:281
-msgid "Couldn't communicate with the secret storage"
+msgid "Couldn’t communicate with the secret storage"
 msgstr "Nepodarilo sa komunikovať s úložiskom tajomstiev"
 
 # cmd desc

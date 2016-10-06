@@ -28,7 +28,7 @@ msgid "Default keyring"
 msgstr "Portachiavi predefinito"
 
 #: ../libsecret/secret-session.c:244 ../libsecret/secret-session.c:281
-msgid "Couldn't communicate with the secret storage"
+msgid "Couldn’t communicate with the secret storage"
 msgstr "Impossibile comunicare col dispositivo di archiviazione dei segreti"
 
 #: ../tool/secret-tool.c:39

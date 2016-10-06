@@ -28,7 +28,7 @@ msgid "Default keyring"
 msgstr "Standaard sleutelbos"
 
 #: ../libsecret/secret-session.c:244 ../libsecret/secret-session.c:281
-msgid "Couldn't communicate with the secret storage"
+msgid "Couldn’t communicate with the secret storage"
 msgstr "Communicatie met de geheimenopslag mislukt"
 
 #: ../tool/secret-tool.c:39

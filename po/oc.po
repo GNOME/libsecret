@@ -32,7 +32,7 @@ msgid "Default keyring"
 msgstr "Trossèl de claus per defaut"
 
 #: ../libsecret/secret-session.c:244 ../libsecret/secret-session.c:281
-msgid "Couldn't communicate with the secret storage"
+msgid "Couldn’t communicate with the secret storage"
 msgstr "Impossible de comunicar amb l'emmagazinatge de donadas confidencialas"
 
 #: ../tool/secret-tool.c:39

@@ -30,7 +30,7 @@ msgid "Default keyring"
 msgstr "Defaŭlta ŝlosilaro"
 
 #: ../libsecret/secret-session.c:244 ../libsecret/secret-session.c:281
-msgid "Couldn't communicate with the secret storage"
+msgid "Couldn’t communicate with the secret storage"
 msgstr "Ne eblis komuniki kun la sekret-konservejo"
 
 #: ../tool/secret-tool.c:39

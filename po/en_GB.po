@@ -28,8 +28,8 @@ msgid "Default keyring"
 msgstr "Default keyring"
 
 #: ../libsecret/secret-session.c:244 ../libsecret/secret-session.c:281
-msgid "Couldn't communicate with the secret storage"
-msgstr "Couldn't communicate with the secret storage"
+msgid "Couldn’t communicate with the secret storage"
+msgstr "Couldn’t communicate with the secret storage"
 
 #: ../tool/secret-tool.c:39
 msgid "the label for the new stored item"
