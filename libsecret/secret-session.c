@@ -241,7 +241,7 @@ on_service_open_session_plain (GObject *source,
 
 		} else {
 			g_simple_async_result_set_error (res, SECRET_ERROR, SECRET_ERROR_PROTOCOL,
-			                                 _("Couldn't communicate with the secret storage"));
+			                                 _("Couldn’t communicate with the secret storage"));
 		}
 
 		g_simple_async_result_complete (res);
@@ -278,7 +278,7 @@ on_service_open_session_aes (GObject *source,
 
 		} else {
 			g_simple_async_result_set_error (res, SECRET_ERROR, SECRET_ERROR_PROTOCOL,
-			                                 _("Couldn't communicate with the secret storage"));
+			                                 _("Couldn’t communicate with the secret storage"));
 		}
 
 		g_simple_async_result_complete (res);
