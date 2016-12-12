@@ -31,8 +31,9 @@ dist-hook:
 	fi
 
 upload-release: $(DIST_ARCHIVES)
-	scp $(DIST_ARCHIVES) master.gnome.org:
-	ssh master.gnome.org ftpadmin install $(DIST_ARCHIVES)
+	gpg --detach-sign --local-user 'stef@thewalter.net' $(DIST_ARCHIVES)
+	scp $(DIST_ARCHIVES) $(DIST_ARCHIVES).sig master.gnome.org:
+	ssh master.gnome.org ftpadmin install $(DIST_ARCHIVES) $(DIST_ARCHIVES).sig
 
 upload-docs:
 	rsync -Hvax docs/reference/libsecret/html/./ master.gnome.org:public_html/libsecret-docs/
