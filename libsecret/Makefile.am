@@ -263,6 +263,7 @@ VALA_TESTS_FLAGS = \
 	--Xcc=-I$(srcdir) \
 	--Xcc=-I$(builddir) \
 	--Xcc=-I$(srcdir)/libsecret \
+	-X -fPIC \
 	--vapidir=$(builddir) \
 	--pkg libsecret-@SECRET_MAJOR@ \
 	--pkg mock-service-0 \
