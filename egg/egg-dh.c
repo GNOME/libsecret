@@ -314,6 +314,7 @@ egg_dh_gen_secret (gcry_mpi_t peer, gcry_mpi_t priv,
 {
 	gcry_error_t gcry;
 	guchar *value;
+	gsize n_prime;
 	gsize n_value;
 	gcry_mpi_t k;
 	gint bits;
@@ -330,11 +331,17 @@ egg_dh_gen_secret (gcry_mpi_t peer, gcry_mpi_t priv,
 	gcry_mpi_powm (k, peer, priv, prime);
 
 	/* Write out the secret */
-	gcry = gcry_mpi_print (GCRYMPI_FMT_USG, NULL, 0, &n_value, k);
+	gcry = gcry_mpi_print (GCRYMPI_FMT_USG, NULL, 0, &n_prime, prime);
 	g_return_val_if_fail (gcry == 0, NULL);
-	value = egg_secure_alloc (n_value);
-	gcry = gcry_mpi_print (GCRYMPI_FMT_USG, value, n_value, &n_value, k);
+	value = egg_secure_alloc (n_prime);
+	gcry = gcry_mpi_print (GCRYMPI_FMT_USG, value, n_prime, &n_value, k);
 	g_return_val_if_fail (gcry == 0, NULL);
+
+	/* Pad the secret with zero bytes to match length of prime in bytes. */
+	if (n_value < n_prime) {
+		memmove (value + (n_prime - n_value), value, n_value);
+		memset (value, 0, (n_prime - n_value));
+	}
 
 #if DEBUG_DH_SECRET
 	g_printerr ("DH SECRET: ");
@@ -342,7 +349,7 @@ egg_dh_gen_secret (gcry_mpi_t peer, gcry_mpi_t priv,
 #endif
 	gcry_mpi_release (k);
 
-	*bytes = n_value;
+	*bytes = n_prime;
 
 #if DEBUG_DH_SECRET
 	gcry_mpi_scan (&k, GCRYMPI_FMT_USG, value, bytes, NULL);
