@@ -97,7 +97,7 @@ attributes_from_arguments (gchar **args)
 	GHashTable *attributes;
 
 	if (args == NULL || args[0] == NULL) {
-		g_printerr ("%s: must specfy attribute and value pairs\n", g_get_prgname ());
+		g_printerr ("%s: must specify attribute and value pairs\n", g_get_prgname ());
 		usage ();
 	}
 
@@ -105,7 +105,7 @@ attributes_from_arguments (gchar **args)
 
 	while (args[0] != NULL) {
 		if (args[1] == NULL) {
-			g_printerr ("%s: must specfy attributes and values in pairs\n", g_get_prgname ());
+			g_printerr ("%s: must specify attributes and values in pairs\n", g_get_prgname ());
 			usage ();
 		}
 
