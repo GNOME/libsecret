@@ -1,0 +1,57 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Gnome Nepali Translation Project\n"
+"Report-Msgid-Bugs-To: https://bugzilla.gnome.org/enter_bug.cgi?"
+"product=libsecret&keywords=I18N+L10N&component=General\n"
+"POT-Creation-Date: 2017-07-18 14:03+0000\n"
+"PO-Revision-Date: 2017-08-17 13:49+0545\n"
+"Language-Team: Nepali Translation Team <chautari@gmail.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 2.0.3\n"
+"Last-Translator: Pawan Chitrakar <chautari@gmail.com>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Language: ne_NP\n"
+
+#: ../libsecret/secret-item.c:1165
+#, c-format
+msgid "Received invalid secret from the secret storage"
+msgstr "गुप्त स्टोर देखि अमान्य गोप्य प्राप्त"
+
+#: ../libsecret/secret-methods.c:1055
+msgid "Default keyring"
+msgstr "पूर्वनिर्धारित keyring"
+
+#: ../libsecret/secret-session.c:244 ../libsecret/secret-session.c:281
+msgid "Couldn’t communicate with the secret storage"
+msgstr "गुप्त स्टोरसङ्ग कुराकानी गर्न सकेन"
+
+#: ../tool/secret-tool.c:39
+msgid "the label for the new stored item"
+msgstr "नयाँ भण्डार वस्तुको लागि लेबल"
+
+#: ../tool/secret-tool.c:41
+msgid "the collection in which to place the stored item"
+msgstr "सङ्ग्रह जसमा भण्डार वस्तु सङ्कलन राखिने"
+
+#: ../tool/secret-tool.c:43 ../tool/secret-tool.c:50 ../tool/secret-tool.c:437
+msgid "attribute value pairs of item to lookup"
+msgstr "खोजि गर्न वस्तुको विशेषता जोडी मान"
+
+#: ../tool/secret-tool.c:57
+msgid "attribute value pairs which match items to clear"
+msgstr "खाली  गर्न मेल भएको वस्तुको  विशेषता जोडी मान"
+
+#: ../tool/secret-tool.c:433
+msgid "return all results, instead of just first one"
+msgstr "पहिलो मात्र नभएर सबै परिणाम देखाउनुहोस्"
+
+#: ../tool/secret-tool.c:435
+msgid "unlock item results if necessary"
+msgstr "वस्तु परिणाम आवश्यक भए अनलक गर्नुहोस्"
