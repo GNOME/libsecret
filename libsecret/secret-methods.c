@@ -51,7 +51,7 @@ static void
 search_closure_free (gpointer data)
 {
 	SearchClosure *closure = data;
-	g_object_unref (closure->service);
+	g_clear_object (&closure->service);
 	g_clear_object (&closure->cancellable);
 	g_hash_table_unref (closure->items);
 	g_variant_unref (closure->attributes);
