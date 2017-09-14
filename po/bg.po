@@ -1,0 +1,54 @@
+# Bulgarian translation of libsecret po-file.
+# Copyright (C) 2017 Free Software Foundation, Inc.
+# This file is distributed under the same license as the libsecret package.
+# Alexander Shopov <ash@kambanaria.org>, 2017.
+msgid ""
+msgstr ""
+"Project-Id-Version: libsecret master\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2017-09-14 22:25+0200\n"
+"PO-Revision-Date: 2017-09-14 22:25+0200\n"
+"Last-Translator: Alexander Shopov <ash@kambanaria.org>\n"
+"Language-Team: Bulgarian <dict@fsa-bg.org>\n"
+"Language: bg\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: ../libsecret/secret-item.c:1165
+#, c-format
+msgid "Received invalid secret from the secret storage"
+msgstr "Получена е невалидна тайна от хранилището за тайни"
+
+#: ../libsecret/secret-methods.c:1055
+msgid "Default keyring"
+msgstr "Стандартен ключодържател"
+
+#: ../libsecret/secret-session.c:244 ../libsecret/secret-session.c:281
+msgid "Couldn’t communicate with the secret storage"
+msgstr "Няма връзка с хранилището за тайни"
+
+#: ../tool/secret-tool.c:39
+msgid "the label for the new stored item"
+msgstr "етикетът за новосъхраненият обект"
+
+#: ../tool/secret-tool.c:41
+msgid "the collection in which to place the stored item"
+msgstr "къде да се запази този обект"
+
+#: ../tool/secret-tool.c:43 ../tool/secret-tool.c:50 ../tool/secret-tool.c:437
+msgid "attribute value pairs of item to lookup"
+msgstr "двойки атрибут-стойност на търсения обект"
+
+#: ../tool/secret-tool.c:57
+msgid "attribute value pairs which match items to clear"
+msgstr "двойки атрибут-стойност, които ще бъдат изтрити"
+
+#: ../tool/secret-tool.c:433
+msgid "return all results, instead of just first one"
+msgstr "всички резултати, а не само първия"
+
+#: ../tool/secret-tool.c:435
+msgid "unlock item results if necessary"
+msgstr "отключване на обектите при необходимост"
