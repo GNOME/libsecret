@@ -37,6 +37,25 @@ extern const SecretSchema *  SECRET_SCHEMA_NOTE;
 
 extern const SecretSchema *  SECRET_SCHEMA_COMPAT_NETWORK;
 
+/**
+ * SecretSchemaType:
+ * @SECRET_SCHEMA_TYPE_NOTE: Personal passwords; see %SECRET_SCHEMA_NOTE
+ * @SECRET_SCHEMA_TYPE_COMPAT_NETWORK: Network passwords from older
+ *    libgnome-keyring storage; see %SECRET_SCHEMA_COMPAT_NETWORK
+ *
+ * Different types of schemas for storing secrets, intended for use with
+ * secret_get_schema().
+ *
+ * Since: 0.18.6
+ */
+typedef enum
+{
+	SECRET_SCHEMA_TYPE_NOTE,
+	SECRET_SCHEMA_TYPE_COMPAT_NETWORK,
+} SecretSchemaType;
+
+const SecretSchema *secret_get_schema (SecretSchemaType type);
+
 G_END_DECLS
 
 #endif /* __SECRET_SCHEMAS_H___ */

@@ -15,9 +15,10 @@
 #include "config.h"
 
 #include "secret-schema.h"
+#include "secret-schemas.h"
 
 /**
- * SECRET_SCHEMA_NOTE:
+ * SECRET_SCHEMA_NOTE: (skip)
  *
  * A predefined schema for personal passwords stored by the user in the
  * password manager. This schema has no attributes, and the items are not
@@ -39,7 +40,7 @@ static const SecretSchema note_schema = {
 const SecretSchema *  SECRET_SCHEMA_NOTE = &note_schema;
 
 /**
- * SECRET_SCHEMA_COMPAT_NETWORK:
+ * SECRET_SCHEMA_COMPAT_NETWORK: (skip)
  *
  * A predefined schema that is compatible with items stored via the
  * libgnome-keyring 'network password' functions. This is meant to be used by
@@ -85,3 +86,28 @@ static const SecretSchema network_schema = {
 };
 
 const SecretSchema *  SECRET_SCHEMA_COMPAT_NETWORK = &network_schema;
+
+/**
+ * secret_get_schema:
+ * @type: type of schema to get
+ *
+ * Get a secret storage schema of the given @type.
+ *
+ * C code may access the schemas (such as %SECRET_SCHEMA_NOTE) directly, but
+ * language bindings cannot, and must use this accessor.
+ *
+ * Returns: (transfer none): schema type
+ * Since: 0.18.6
+ */
+const SecretSchema *
+secret_get_schema (SecretSchemaType type)
+{
+	switch (type) {
+	case SECRET_SCHEMA_TYPE_NOTE:
+		return SECRET_SCHEMA_NOTE;
+	case SECRET_SCHEMA_TYPE_COMPAT_NETWORK:
+		return SECRET_SCHEMA_COMPAT_NETWORK;
+	default:
+		g_assert_not_reached ();
+	}
+}
