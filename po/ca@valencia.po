@@ -6,18 +6,19 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: libsecret master\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-10-13 21:53+0200\n"
+"Report-Msgid-Bugs-To: https://bugzilla.gnome.org/enter_bug.cgi?"
+"product=libsecret&keywords=I18N+L10N&component=General\n"
+"POT-Creation-Date: 2017-07-18 14:03+0000\n"
 "PO-Revision-Date: 2013-08-31 22:12+0200\n"
-"Last-Translator: Gil Forcada <gilforcada@guifi.net>\n"
+"Last-Translator: Xavi Ivars <xavi.ivars@gmail.com>\n"
 "Language-Team: Catalan <tradgnome@softcatala.org>\n"
-"Language: ca-XV\n"
+"Language: ca-valencia\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bits\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 
-#: ../libsecret/secret-item.c:1164
+#: ../libsecret/secret-item.c:1165
 #, c-format
 msgid "Received invalid secret from the secret storage"
 msgstr "S'ha rebut un secret no vàlid del magatzem de secrets"
