@@ -84,6 +84,8 @@ class AesAlgorithm():
 		# print "mock publi: ", hex(publi)
 		# print " mock peer: ", hex(peer)
 		ikm = dh.derive_key(privat, peer)
+		# Pad the secret with zero bytes to match length of prime in bytes.
+		ikm = b'\x00' * (128 - len(ikm)) + ikm
 		# print "  mock ikm: ", hex_encode(ikm)
 		key = hkdf.hkdf(ikm, 16)
 		# print "  mock key: ", hex_encode(key)
