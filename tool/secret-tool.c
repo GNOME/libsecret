@@ -68,7 +68,7 @@ usage (void)
 	g_printerr ("usage: secret-tool store --label='label' attribute value ...\n");
 	g_printerr ("       secret-tool lookup attribute value ...\n");
 	g_printerr ("       secret-tool clear attribute value ...\n");
-	g_printerr ("       secret-tool search [--all] [--details] attribute value ...\n");
+	g_printerr ("       secret-tool search [--all] [--unlock] attribute value ...\n");
 	exit (2);
 }
 
