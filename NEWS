@@ -17,8 +17,8 @@
  * Testing fixes
  * Documentation typo [#747654 ...]
  * Build fixes [#743444]
- * Updated transaltions
- * Accomodate libgcrypt 1.6+
+ * Updated translations
+ * Accommodate libgcrypt 1.6+
 
 0.18.1
  * Testing fix [#726909]

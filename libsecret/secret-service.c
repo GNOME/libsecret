@@ -41,7 +41,7 @@
  * object. If a new independent #SecretService object is required, use
  * secret_service_open().
  *
- * In order to securely transfer secrets to the Sercret Service, an session
+ * In order to securely transfer secrets to the Sercret Service, a session
  * is established. This session can be established while initializing a
  * #SecretService object by passing the %SECRET_SERVICE_OPEN_SESSION flag
  * to the secret_service_get() or secret_service_open() functions. In order to

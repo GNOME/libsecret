@@ -1289,7 +1289,7 @@ secret_item_load_secret_finish (SecretItem *self,
  * Each item has a single secret which might be a password or some
  * other secret binary value.
  *
- * This function may block indefinetely. Use the asynchronous version
+ * This function may block indefinitely. Use the asynchronous version
  * in user interface threads.
  *
  * Returns: whether the secret item successfully loaded or not
@@ -1413,7 +1413,7 @@ on_loads_secrets_session (GObject *source,
  * @callback: called when the operation completes
  * @user_data: data to pass to the callback
  *
- * Load the secret values for an secret items stored in the service.
+ * Load the secret values for a secret item stored in the service.
  *
  * The @items must all have the same SecretItem::service property.
  *
@@ -1511,7 +1511,7 @@ secret_item_load_secrets_finish (GAsyncResult *result,
  * @cancellable: optional cancellation object
  * @error: location to place an error on failure
  *
- * Load the secret values for an secret items stored in the service.
+ * Load the secret values for a secret item stored in the service.
  *
  * The @items must all have the same SecretItem::service property.
  *
@@ -1705,7 +1705,7 @@ secret_item_set_secret_finish (SecretItem *self,
  * Each item has a single secret which might be a password or some
  * other secret binary value.
  *
- * This function may block indefinetely. Use the asynchronous version
+ * This function may block indefinitely. Use the asynchronous version
  * in user interface threads.
  *
  * Returns: whether the change was successful or not
@@ -1876,7 +1876,7 @@ secret_item_set_attributes_finish (SecretItem *self,
  * Attributes are used to search for items. Attributes are not stored
  * or transferred securely by the secret service.
  *
- * This function may block indefinetely. Use the asynchronous version
+ * This function may block indefinitely. Use the asynchronous version
  * in user interface threads.
  *
  * Returns: whether the change was successful or not
@@ -1988,7 +1988,7 @@ secret_item_set_label_finish (SecretItem *self,
  *
  * Set the label of this item.
  *
- * This function may block indefinetely. Use the asynchronous version
+ * This function may block indefinitely. Use the asynchronous version
  * in user interface threads.
  *
  * Returns: whether the change was successful or not

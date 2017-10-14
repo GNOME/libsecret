@@ -1553,7 +1553,7 @@ collection_load_items_sync (SecretCollection *self,
  * If %SECRET_SEARCH_LOAD_SECRETS is set in @flags, then the items will have
  * their secret values loaded and available via secret_item_get_secret().
  *
- * This function may block indefinetely. Use the asynchronous version
+ * This function may block indefinitely. Use the asynchronous version
  * in user interface threads.
  *
  * Returns: (transfer full) (element-type Secret.Item):
@@ -1898,7 +1898,7 @@ secret_collection_set_label_finish (SecretCollection *self,
  *
  * Set the label of this collection.
  *
- * This function may block indefinetely. Use the asynchronous version
+ * This function may block indefinitely. Use the asynchronous version
  * in user interface threads.
  *
  * Returns: whether the change was successful or not

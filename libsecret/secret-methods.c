@@ -429,7 +429,7 @@ service_load_items_sync (SecretService *service,
  * are available via secret_item_get_secret(). If the load of a secret values
  * fail, then the
  *
- * This function may block indefinetely. Use the asynchronous version
+ * This function may block indefinitely. Use the asynchronous version
  * in user interface threads.
  *
  * Returns: (transfer full) (element-type Secret.Item):

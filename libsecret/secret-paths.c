@@ -220,7 +220,7 @@ secret_item_new_for_dbus_path (SecretService *service,
  * @result: the asynchronous result passed to the callback
  * @error: location to place an error on failure
  *
- * Finish asynchronous operation to get a new item proxy for an secret
+ * Finish asynchronous operation to get a new item proxy for a secret
  * item in the secret service.
  *
  * Stability: Unstable
@@ -423,7 +423,7 @@ secret_collection_search_for_dbus_paths_finish (SecretCollection *collection,
  * DBus object paths. The @attributes should be a table of string keys and
  * string values.
  *
- * This function may block indefinetely. Use the asynchronous version
+ * This function may block indefinitely. Use the asynchronous version
  * in user interface threads.
  *
  * DBus object paths of the items will be returned. If you would to have
@@ -614,7 +614,7 @@ secret_service_search_for_dbus_paths_finish (SecretService *self,
  * paths. All collections are searched. The @attributes should be a table of
  * string keys and string values.
  *
- * This function may block indefinetely. Use the asynchronous version
+ * This function may block indefinitely. Use the asynchronous version
  * in user interface threads.
  *
  * Matching items that are locked or unlocked, have their D-Bus paths placed
@@ -746,7 +746,7 @@ on_get_secrets_session (GObject *source,
  * @callback: called when the operation completes
  * @user_data: data to pass to the callback
  *
- * Get the secret value for an secret item stored in the service.
+ * Get the secret value for a secret item stored in the service.
  *
  * The item is represented by its D-Bus object path. If you already have a
  * #SecretItem proxy object, use use secret_item_get_secret() to more simply
@@ -829,7 +829,7 @@ secret_service_get_secret_for_dbus_path_finish (SecretService *self,
  * @cancellable: optional cancellation object
  * @error: location to place an error on failure
  *
- * Get the secret value for an secret item stored in the service.
+ * Get the secret value for a secret item stored in the service.
  *
  * The item is represented by its D-Bus object path. If you already have a
  * #SecretItem proxy object, use use secret_item_load_secret_sync() to more simply
@@ -883,7 +883,7 @@ secret_service_get_secret_for_dbus_path_sync (SecretService *self,
  * @callback: called when the operation completes
  * @user_data: data to pass to the callback
  *
- * Get the secret values for an secret items stored in the service.
+ * Get the secret values for a secret item stored in the service.
  *
  * The items are represented by their D-Bus object paths. If you already have
  * #SecretItem proxy objects, use use secret_item_load_secrets() to more simply
@@ -967,7 +967,7 @@ secret_service_get_secrets_for_dbus_paths_finish (SecretService *self,
  * @cancellable: optional cancellation object
  * @error: location to place an error on failure
  *
- * Get the secret values for an secret items stored in the service.
+ * Get the secret values for a secret item stored in the service.
  *
  * The items are represented by their D-Bus object paths. If you already have
  * #SecretItem proxy objects, use use secret_item_load_secrets_sync() to more
