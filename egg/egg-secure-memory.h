@@ -23,6 +23,7 @@
 #ifndef EGG_SECURE_MEMORY_H
 #define EGG_SECURE_MEMORY_H
 
+#include <glib.h>
 #include <stdlib.h>
 
 /* -------------------------------------------------------------------
