@@ -1,3 +1,13 @@
+0.18.6
+ * Fix shared key derivation between libsecret and gnome-keyring [#778357]
+ * Avoid run-time error when gnome-keyring is not responding [#787391]
+ * Enable cross compilation [#748111]
+ * Port build scripts to Python 3 [#687637]
+ * Build and test fixes [#767002, #777826, #734630, #768112]
+ * GI annotation fixes [#785034]
+ * Fix textual typos [#782206, ...]
+ * Updated translations
+
 0.18.5
  * Build fixes
  * Port tests to Python 3 [#761834]
