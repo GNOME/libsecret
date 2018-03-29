@@ -1344,6 +1344,7 @@ egg_secure_strndup_full (const char *tag,
 	len = length + 1;
 	res = (char *)egg_secure_alloc_full (tag, len, options);
 	memcpy (res, str, len);
+	res[length] = '\0';
 	return res;
 }
 
