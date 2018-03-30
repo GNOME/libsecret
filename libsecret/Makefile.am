@@ -89,10 +89,10 @@ temp-dbus-generated.c: $(DBUS_XML_DEFINITIONS) Makefile.am
 	$(AM_V_GEN) gdbus-codegen --interface-prefix org.freedesktop.Secret. \
 		--generate-c-code temp-dbus-generated --c-namespace SecretGen $<
 secret-dbus-generated.c: temp-dbus-generated.c Makefile.am
-	$(AM_V_GEN) sed -e $$'1i\\\n#define GLIB_DISABLE_DEPRECATION_WARNINGS' \
-		-e 's/secret_gen_/_secret_gen_/g' -e 's/type-/type/g' \
+	$(AM_V_GEN) { echo '#define GLIB_DISABLE_DEPRECATION_WARNINGS'; \
+		sed -e 's/secret_gen_/_secret_gen_/g' -e 's/type-/type/g' \
 		-e 's/temp-dbus-generated.h/secret-dbus-generated.h/g' \
-		temp-dbus-generated.c > secret-dbus-generated.c
+		temp-dbus-generated.c; } > secret-dbus-generated.c
 secret-dbus-generated.h: temp-dbus-generated.c Makefile.am
 	$(AM_V_GEN) sed -e 's/secret_gen_/_secret_gen_/g' -e 's/type-/type/g' \
 		temp-dbus-generated.h > secret-dbus-generated.h
