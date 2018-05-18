@@ -1745,12 +1745,12 @@ secret_item_set_secret_sync (SecretItem *self,
  * Gets the name of the schema that this item was stored with. This is also
  * available at the <literal>xdg:schema</literal> attribute.
  *
- * Returns: (transfer full): the schema name
+ * Returns: (nullable) (transfer full): the schema name
  */
 gchar *
 secret_item_get_schema_name (SecretItem *self)
 {
-	gchar *schema_name;
+	gchar *schema_name = NULL;
 	GVariant *variant;
 
 	g_return_val_if_fail (SECRET_IS_ITEM (self), NULL);
