@@ -1,0 +1,80 @@
+stages:
+  - build
+
+variables:
+  DEPENDENCIES_COMMON: dbus-x11 gcc gjs make python3-dbus python3-gobject redhat-rpm-config
+  DEPENDENCIES_COVERAGE: $DEPENDENCIES_COMMON lcov
+  DEPENDENCIES_ASAN: $DEPENDENCIES_COMMON libasan
+  DEPENDENCIES_UBSAN: $DEPENDENCIES_COMMON libubsan
+  BUILD_OPTS_COMMON: --disable-dependency-tracking
+  BUILD_OPTS_Werror: $BUILD_OPTS_COMMON --enable-strict
+  BUILD_OPTS_COVERAGE: $BUILD_OPTS_COMMON --enable-coverage
+  BUILD_OPTS_ASAN: "$BUILD_OPTS_COMMON CFLAGS=\\'-fsanitize=address -g -fno-common -U_FORTIFY_SOURCE\\' CXXFLAGS=\\'-fsanitize=address -g -fno-common -U_FORTIFY_SOURCE\\' LDFLAGS=\\'-fsanitize=address -g -fno-common -U_FORTIFY_SOURCE\\' LIBS=\\'-lasan -ldl -lpthread\\'"
+  BUILD_OPTS_UBSAN: "$BUILD_OPTS_COMMON CFLAGS=\'-fsanitize=undefined -g -fno-common -U_FORTIFY_SOURCE\' CXXFLAGS=\'-fsanitize=undefined -g -fno-common -U_FORTIFY_SOURCE\' LDFLAGS=\'-fsanitize=undefined -g -fno-common -U_FORTIFY_SOURCE\' LIBS=\'-lubsan -ldl -lpthread\'"
+
+.install_template: &install
+  before_script:
+    - dnf install -y 'dnf-command(builddep)'
+    - dnf builddep -y libsecret
+    - dnf install -y `eval echo $DEPENDENCIES`
+    - dbus-uuidgen --ensure
+
+.check_template: &check
+  script:
+    - ./autogen.sh `eval echo $BUILD_OPTS`
+    - make -j$(nproc) V=1
+    - eval `dbus-launch --sh-syntax`
+    - make -j$(nproc) V=1 check
+    - |
+      if test x"$COVERAGE" = xyes; then
+        make coverage
+      fi
+
+.distcheck_template: &distcheck
+  script:
+    - ./autogen.sh `eval echo $BUILD_OPTS`
+    - make -j$(nproc) V=1
+    - eval `dbus-launch --sh-syntax`
+    - make -j$(nproc) V=1 distcheck
+
+fedora:Werror:
+  image: fedora:rawhide
+  stage: build
+  variables:
+    DEPENDENCIES: "$DEPENDENCIES_COMMON"
+    BUILD_OPTS: "$BUILD_OPTS_Werror"
+  <<: *install
+  <<: *distcheck
+
+fedora:asan:
+  image: fedora:rawhide
+  stage: build
+  variables:
+    DEPENDENCIES: "$DEPENDENCIES_ASAN"
+    BUILD_OPTS: "$BUILD_OPTS_ASAN"
+  <<: *install
+  <<: *check
+
+fedora:ubsan:
+  image: fedora:rawhide
+  stage: build
+  variables:
+    DEPENDENCIES: "$DEPENDENCIES_UBSAN"
+    BUILD_OPTS: "$BUILD_OPTS_UBSAN"
+  <<: *install
+  <<: *check
+
+fedora:coverage:
+  image: fedora:rawhide
+  stage: build
+  variables:
+    DEPENDENCIES: "$DEPENDENCIES_COVERAGE"
+    BUILD_OPTS: "$BUILD_OPTS_COVERAGE"
+    COVERAGE: 'yes'
+  <<: *install
+  <<: *check
+  coverage: '/^\s+lines.+:\s+([\d.]+\%)\s+/'
+  artifacts:
+    name: "libsecrets-${CI_JOB_NAME}-${CI_COMMIT_REF_NAME}"
+    paths:
+      - build/coverage/
