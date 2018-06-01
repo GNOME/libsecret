@@ -1,0 +1,17 @@
+stages:
+  - test
+
+.test_template: &test
+  script:
+    - ./autogen.sh --enable-strict --disable-dependency-tracking
+    - make -j$(nproc)
+    - make -j$(nproc) check
+
+fedora:rawhide:
+    image: fedora:rawhide
+    stage: test
+    before_script:
+        - dnf install -y 'dnf-command(builddep)'
+        - dnf builddep -y libsecret
+        - dnf install -y gcc gcc-c++ make redhat-rpm-config python3-dbus
+    <<: *test
