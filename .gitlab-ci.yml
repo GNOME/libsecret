@@ -1,0 +1,17 @@
+stages:
+  - test
+
+.test_template: &test
+  script:
+    - ./autogen.sh --enable-strict --disable-dependency-tracking
+    - make -j$(nproc)
+    - make -j$(nproc) check
+
+fedora:latest:
+    image: fedora:latest
+    stage: test
+    before_script:
+        - dnf install -y 'dnf-command(builddep)'
+        - dnf builddep -y libsecret
+        - dnf install -y gcc make redhat-rpm-config
+    <<: *test
