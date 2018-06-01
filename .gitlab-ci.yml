@@ -1,0 +1,78 @@
+stages:
+  - build
+
+.install_template: &install
+  before_script:
+    - dnf install -y 'dnf-command(builddep)'
+    - dnf builddep -y libsecret
+    - dnf install -y $DEPENDENCIES
+    - dbus-uuidgen --ensure
+
+.check_template: &check
+  script:
+    - ./autogen.sh $BUILD_OPTS
+    - make -j$(nproc) V=1
+    - eval `dbus-launch --sh-syntax`
+    - make -j$(nproc) V=1 check
+    - |
+      if test x"$COVERAGE" = xyes; then
+        make coverage
+      fi
+
+.distcheck_template: &distcheck
+  script:
+    - ./autogen.sh $BUILD_OPTS
+    - make -j$(nproc) V=1
+    - eval `dbus-launch --sh-syntax`
+    - make -j$(nproc) V=1 distcheck
+
+# fedora:Werror:
+#   image: fedora:rawhide
+#   stage: build
+#   variables:
+#     DEPENDENCIES: "dbus-x11 gcc gjs make python3-dbus python3-gobject redhat-rpm-config"
+#     BUILD_OPTS: "--disable-dependency-tracking --enable-strict"
+#   <<: *install
+#   <<: *distcheck
+
+# fedora:asan:
+#   image: fedora:rawhide
+#   stage: build
+#   variables:
+#     DEPENDENCIES: "dbus-x11 gcc gjs make python3-dbus python3-gobject redhat-rpm-config libasan"
+#     BUILD_OPTS: "--disable-dependency-tracking CFLAGS='-fsanitize=address -g -fno-common -U_FORTIFY_SOURCE' CXXFLAGS='-fsanitize=address -g -fno-common -U_FORTIFY_SOURCE' LDFLAGS='-fsanitize=address -g -fno-common -U_FORTIFY_SOURCE'"
+#   <<: *install
+#   <<: *check
+
+fedora:ubsan:
+  image: fedora:rawhide
+  stage: build
+  variables:
+    DEPENDENCIES: "dbus-x11 gcc gjs make python3-dbus python3-gobject redhat-rpm-config libubsan"
+    BUILD_OPTS: "--disable-dependency-tracking CFLAGS='-fsanitize=undefined -g -fno-common -U_FORTIFY_SOURCE' CXXFLAGS='-fsanitize=undefined -g -fno-common -U_FORTIFY_SOURCE' LDFLAGS='-fsanitize=undefined -g -fno-common -U_FORTIFY_SOURCE' LIBS='-lubsan -ldl -lpthread'"
+  <<: *install
+  script:
+    - export BUILD_OPTS="$BUILD_OPTS"
+    - ./autogen.sh $BUILD_OPTS
+    - make -j$(nproc) V=1
+    - eval `dbus-launch --sh-syntax`
+    - make -j$(nproc) V=1 check
+    - |
+      if test x"$COVERAGE" = xyes; then
+        make coverage
+      fi
+
+# fedora:coverage:
+#   image: fedora:rawhide
+#   stage: build
+#   variables:
+#     DEPENDENCIES: "dbus-x11 gcc gjs make python3-dbus python3-gobject redhat-rpm-config lcov"
+#     BUILD_OPTS: "--disable-dependency-tracking --enable-coverage"
+#     COVERAGE: "yes"
+#   <<: *install
+#   <<: *check
+#   coverage: '/^\s+lines.+:\s+([\d.]+\%)\s+/'
+#   artifacts:
+#     name: "libsecrets-${CI_JOB_NAME}-${CI_COMMIT_REF_NAME}"
+#     paths:
+#       - build/coverage/
