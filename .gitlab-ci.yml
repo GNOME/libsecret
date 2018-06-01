@@ -1,0 +1,22 @@
+stages:
+  - build
+
+fedora:rawhide:
+    image: fedora:rawhide
+    stage: build
+    before_script:
+      - dnf install -y 'dnf-command(builddep)'
+      - dnf builddep -y libsecret
+      - dnf install -y dbus-x11 gcc gcc-c++ gjs lcov make python3-dbus python3-gobject redhat-rpm-config
+      - dbus-uuidgen --ensure
+    script:
+      - ./autogen.sh --enable-strict --disable-dependency-tracking
+      - make -j$(nproc)
+      - eval `dbus-launch --sh-syntax`
+      - make -j$(nproc) check
+      - make coverage
+    coverage: '/^\s+lines.+:\s+([\d.]+\%)\s+/'
+    artifacts:
+      name: "libsecrets-${CI_JOB_NAME}-${CI_COMMIT_REF_NAME}"
+      paths:
+        - build/coverage/
