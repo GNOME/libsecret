@@ -37,16 +37,6 @@ static const SecretSchema MOCK_SCHEMA = {
 	}
 };
 
-static const SecretSchema PRIME_SCHEMA = {
-	"org.mock.Prime",
-	SECRET_SCHEMA_NONE,
-	{
-		{ "number", SECRET_SCHEMA_ATTRIBUTE_INTEGER },
-		{ "string", SECRET_SCHEMA_ATTRIBUTE_STRING },
-		{ "prime", SECRET_SCHEMA_ATTRIBUTE_BOOLEAN },
-	}
-};
-
 static const SecretSchema NO_NAME_SCHEMA = {
 	"unused.Schema.Name",
 	SECRET_SCHEMA_DONT_MATCH_NAME,
