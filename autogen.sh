@@ -91,7 +91,8 @@ touch README INSTALL
 $ACLOCAL -I build/m4 $ACLOCAL_FLAGS || exit $?
 
 libtoolize --force || exit $?
-intltoolize --force --copy || exit $?
+
+autopoint --force || exit $?
 
 gtkdocize || exit $?
 
