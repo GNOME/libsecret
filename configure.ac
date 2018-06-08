@@ -13,8 +13,6 @@ GLIB_REQ=2.38.0
 GLIB_MIN=GLIB_VERSION_2_38
 GLIB_MAX=GLIB_VERSION_2_38
 
-INTLTOOL_REQ=0.35.0
-
 # Optional
 
 VALA_WANT=0.17.2.12
@@ -65,13 +63,17 @@ AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
 AM_PROG_LIBTOOL
-IT_PROG_INTLTOOL($INTLTOOL_REQ)
 PKG_PROG_PKG_CONFIG
+
+# --------------------------------------------------------------------
+# i18n
+
+AM_GNU_GETTEXT([external])
+AM_GNU_GETTEXT_VERSION([0.19.8])
 
 GETTEXT_PACKAGE=libsecret
 AC_SUBST([GETTEXT_PACKAGE])
 AC_DEFINE_UNQUOTED([GETTEXT_PACKAGE],["$GETTEXT_PACKAGE"],[The gettext domain name])
-AM_GLIB_GNU_GETTEXT
 
 # --------------------------------------------------------------------
 # Checks for functions
