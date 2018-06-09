@@ -43,6 +43,7 @@ class Driver:
         self.trs = open(args.trs_file, "w")
         self.color_tests = args.color_tests
         self.expect_failure = args.expect_failure
+        self.enable_hard_errors = args.enable_hard_errors
 
     def report(self, code, *args):
         CODES = {
@@ -92,7 +93,10 @@ class Driver:
             self.report("SKIP", *args)
 
     def report_error(self, description=""):
-        self.report("ERROR", "", description)
+        if self.enable_hard_errors:
+            self.report("ERROR", "", description)
+        else:
+            self.result_fail(description)
 
     def process(self, output):
         pass

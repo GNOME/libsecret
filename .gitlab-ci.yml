@@ -1,0 +1,76 @@
+stages:
+  - build
+  - deploy
+
+variables:
+  DEPENDENCIES: dbus-x11 gcc gjs make python3-dbus python3-gobject redhat-rpm-config
+
+fedora:Werror:
+  image: fedora:rawhide
+  stage: build
+  before_script:
+    - dnf install -y 'dnf-command(builddep)'
+    - dnf builddep -y libsecret
+    - dnf install -y $DEPENDENCIES
+    - dbus-uuidgen --ensure
+  script:
+    - ./autogen.sh --disable-dependency-tracking --enable-strict
+    - make -j$(nproc) V=1
+    - eval `dbus-launch --sh-syntax`
+    - make -j$(nproc) V=1 distcheck
+
+fedora:asan:
+  image: fedora:rawhide
+  stage: build
+  before_script:
+    - dnf install -y 'dnf-command(builddep)'
+    - dnf builddep -y libsecret
+    - dnf install -y $DEPENDENCIES libasan
+    - dbus-uuidgen --ensure
+  script:
+    - ./autogen.sh --disable-dependency-tracking CFLAGS='-fsanitize=address -g -fno-common -U_FORTIFY_SOURCE' CXXFLAGS='-fsanitize=address -g -fno-common -U_FORTIFY_SOURCE' LDFLAGS='-fsanitize=address -g -fno-common -U_FORTIFY_SOURCE' LIBS='-lasan -ldl -lpthread'
+    - make -j$(nproc) V=1
+    - eval `dbus-launch --sh-syntax`
+    - make -j$(nproc) V=1 DISABLE_HARD_ERRORS=1 XFAIL_TESTS="\$(JS_TESTS) \$(PY_TESTS)"
+
+fedora:ubsan:
+  image: fedora:rawhide
+  stage: build
+  before_script:
+    - dnf install -y 'dnf-command(builddep)'
+    - dnf builddep -y libsecret
+    - dnf install -y $DEPENDENCIES libubsan
+    - dbus-uuidgen --ensure
+  script:
+    - ./autogen.sh --disable-dependency-tracking CFLAGS='-fsanitize=undefined -g -fno-common -U_FORTIFY_SOURCE' CXXFLAGS='-fsanitize=undefined -g -fno-common -U_FORTIFY_SOURCE' LDFLAGS='-fsanitize=undefined -g -fno-common -U_FORTIFY_SOURCE' LIBS='-lubsan -ldl -lpthread'
+    - make -j$(nproc) V=1
+    - eval `dbus-launch --sh-syntax`
+    - make -j$(nproc) V=1 check
+
+fedora:coverage:
+  image: fedora:rawhide
+  stage: build
+  before_script:
+    - dnf install -y 'dnf-command(builddep)'
+    - dnf builddep -y libsecret
+    - dnf install -y $DEPENDENCIES lcov
+    - dbus-uuidgen --ensure
+  script:
+    - ./autogen.sh --disable-dependency-tracking --enable-coverage
+    - make -j$(nproc) V=1
+    - eval `dbus-launch --sh-syntax`
+    - make -j$(nproc) V=1 check
+    - make coverage
+  coverage: '/^\s+lines.+:\s+([\d.]+\%)\s+/'
+  artifacts:
+    name: "libsecret-${CI_JOB_NAME}-${CI_COMMIT_REF_NAME}"
+    paths:
+      - build/coverage/
+
+pages:
+  stage: deploy
+  script:
+    - mv build/coverage/ public/
+  artifacts:
+    paths:
+      - public
