@@ -612,12 +612,10 @@ service_encode_plain_secret (SecretSession *session,
 
 	child = g_variant_new_from_data (G_VARIANT_TYPE ("ay"), "", 0, TRUE, NULL, NULL);
 	g_variant_builder_add_value (builder, child);
-	g_variant_unref (child);
 
 	child = g_variant_new_from_data (G_VARIANT_TYPE ("ay"), secret, n_secret, TRUE,
 	                                 secret_value_unref, secret_value_ref (value));
 	g_variant_builder_add_value (builder, child);
-	g_variant_unref (child);
 
 	g_variant_builder_add (builder, "s", secret_value_get_content_type (value));
 	return TRUE;
