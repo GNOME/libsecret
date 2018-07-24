@@ -9,6 +9,7 @@ fedora:Werror:
   image: fedora:28
   stage: build
   before_script:
+    - dnf upgrade -y
     - dnf install -y 'dnf-command(builddep)'
     - dnf builddep -y libsecret
     - dnf install -y $DEPENDENCIES
@@ -23,6 +24,7 @@ fedora:asan:
   image: fedora:28
   stage: build
   before_script:
+    - dnf upgrade -y
     - dnf install -y 'dnf-command(builddep)'
     - dnf builddep -y libsecret
     - dnf install -y $DEPENDENCIES libasan
@@ -37,6 +39,7 @@ fedora:ubsan:
   image: fedora:28
   stage: build
   before_script:
+    - dnf upgrade -y
     - dnf install -y 'dnf-command(builddep)'
     - dnf builddep -y libsecret
     - dnf install -y $DEPENDENCIES libubsan
@@ -51,6 +54,7 @@ fedora:coverage:
   image: fedora:28
   stage: build
   before_script:
+    - dnf upgrade -y
     - dnf install -y 'dnf-command(builddep)'
     - dnf builddep -y libsecret
     - dnf install -y $DEPENDENCIES lcov
