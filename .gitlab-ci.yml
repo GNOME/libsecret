@@ -9,9 +9,9 @@ fedora:Werror:
   image: fedora:latest
   stage: build
   before_script:
+    - dnf install -y $DEPENDENCIES
     - dnf install -y 'dnf-command(builddep)'
     - dnf builddep -y libsecret
-    - dnf install -y $DEPENDENCIES
     - dbus-uuidgen --ensure
   script:
     - ./autogen.sh --disable-dependency-tracking --enable-strict
