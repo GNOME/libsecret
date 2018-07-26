@@ -6,9 +6,10 @@ variables:
   DEPENDENCIES: dbus-x11 gcc gjs make python3-dbus python3-gobject redhat-rpm-config
 
 fedora:Werror:
-  image: fedora:rawhide
+  image: fedora:28
   stage: build
   before_script:
+    - dnf upgrade -y
     - dnf install -y 'dnf-command(builddep)'
     - dnf builddep -y libsecret
     - dnf install -y $DEPENDENCIES
@@ -20,9 +21,10 @@ fedora:Werror:
     - make -j$(nproc) V=1 distcheck
 
 fedora:asan:
-  image: fedora:rawhide
+  image: fedora:28
   stage: build
   before_script:
+    - dnf upgrade -y
     - dnf install -y 'dnf-command(builddep)'
     - dnf builddep -y libsecret
     - dnf install -y $DEPENDENCIES libasan
@@ -34,9 +36,10 @@ fedora:asan:
     - make -j$(nproc) V=1 DISABLE_HARD_ERRORS=1 XFAIL_TESTS="\$(JS_TESTS) \$(PY_TESTS)" check
 
 fedora:ubsan:
-  image: fedora:rawhide
+  image: fedora:28
   stage: build
   before_script:
+    - dnf upgrade -y
     - dnf install -y 'dnf-command(builddep)'
     - dnf builddep -y libsecret
     - dnf install -y $DEPENDENCIES libubsan
@@ -48,9 +51,10 @@ fedora:ubsan:
     - make -j$(nproc) V=1 check
 
 fedora:coverage:
-  image: fedora:rawhide
+  image: fedora:28
   stage: build
   before_script:
+    - dnf upgrade -y
     - dnf install -y 'dnf-command(builddep)'
     - dnf builddep -y libsecret
     - dnf install -y $DEPENDENCIES lcov
