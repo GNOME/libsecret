@@ -1,4 +1,5 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3
+# This can also be run with Python 2.
 
 # Copyright (C) 2013 Red Hat, Inc.
 #
@@ -29,21 +30,58 @@
 #
 
 import argparse
+import fcntl
 import os
 import select
+import struct
 import subprocess
 import sys
+import termios
+import errno
+
+_PY3 = sys.version[0] >= '3'
+_str = _PY3 and str or unicode
+
+def out(data, stream=None, flush=False):
+    if not isinstance(data, bytes):
+        data = data.encode("UTF-8")
+    if not stream:
+        stream = _PY3 and sys.stdout.buffer or sys.stdout
+    while True:
+        try:
+            if data:
+                stream.write(data)
+            data = None
+            if flush:
+                stream.flush()
+            flush = False
+            break
+        except IOError as e:
+            if e.errno == errno.EAGAIN:
+                continue
+            raise
+
+def terminal_width():
+    try:
+        h, w, hp, wp = struct.unpack('HHHH',
+            fcntl.ioctl(1, termios.TIOCGWINSZ,
+            struct.pack('HHHH', 0, 0, 0, 0)))
+        return w
+    except IOError as e:
+        if e.errno != errno.ENOTTY:
+            sys.stderr.write("%i %s %s\n" % (e.errno, e.strerror, sys.exc_info()))
+        return sys.maxsize
 
 class Driver:
     def __init__(self, args):
         self.argv = args.command
         self.test_name = args.test_name
-        self.log = open(args.log_file, "w")
-        self.log.write("# %s\n" % " ".join(sys.argv))
-        self.trs = open(args.trs_file, "w")
+        self.log = open(args.log_file, "wb", 0)
+        self.log.write(("# %s\n" % " ".join(sys.argv)).encode("UTF-8"))
+        self.trs = open(args.trs_file, "w", 1)
         self.color_tests = args.color_tests
         self.expect_failure = args.expect_failure
-        self.enable_hard_errors = args.enable_hard_errors
+        self.width = terminal_width() - 9
 
     def report(self, code, *args):
         CODES = {
@@ -58,17 +96,18 @@ class Driver:
         # Print out to console
         if self.color_tests:
             if code in CODES:
-                sys.stdout.write(CODES[code])
-        sys.stdout.write(code)
+                out(CODES[code])
+        out(code)
         if self.color_tests:
-            sys.stdout.write('\x1b[m')
-        sys.stdout.write(": ")
-        sys.stdout.write(self.test_name)
-        sys.stdout.write(" ")
-        for arg in args:
-            sys.stdout.write(str(arg))
-        sys.stdout.write("\n")
-        sys.stdout.flush()
+            out('\x1b[m')
+        out(": ")
+        msg = "".join([ self.test_name + " " ] + list(map(_str, args)))
+        if code == "PASS" and len(msg) > self.width:
+            out(msg[:self.width])
+            out("...")
+        else:
+            out(msg)
+        out("\n", flush=True)
 
         # Book keeping
         if code in CODES:
@@ -93,10 +132,7 @@ class Driver:
             self.report("SKIP", *args)
 
     def report_error(self, description=""):
-        if self.enable_hard_errors:
-            self.report("ERROR", "", description)
-        else:
-            self.result_fail(description)
+        self.report("ERROR", "", description)
 
     def process(self, output):
         pass
@@ -104,31 +140,40 @@ class Driver:
     def execute(self):
         try:
             proc = subprocess.Popen(self.argv, close_fds=True,
+                                    stdin=subprocess.PIPE,
                                     stdout=subprocess.PIPE,
                                     stderr=subprocess.PIPE)
         except OSError as ex:
             self.report_error("Couldn't run %s: %s" % (self.argv[0], str(ex)))
             return
 
+        proc.stdin.close()
         outf = proc.stdout.fileno()
         errf = proc.stderr.fileno()
         rset = [outf, errf]
         while len(rset) > 0:
             ret = select.select(rset, [], [], 10)
             if outf in ret[0]:
-                data = os.read(outf, 1024).decode("utf-8")
-                if data == "":
+                data = os.read(outf, 1024)
+                if data == b"":
                     rset.remove(outf)
                 self.log.write(data)
                 self.process(data)
             if errf in ret[0]:
-                data = os.read(errf, 1024).decode("utf-8")
-                if data == "":
+                data = os.read(errf, 1024)
+                if data == b"":
                     rset.remove(errf)
                 self.log.write(data)
-                sys.stderr.write(data)
+                stream = _PY3 and sys.stderr.buffer or sys.stderr
+                out(data, stream=stream, flush=True)
 
         proc.wait()
+
+        # Make sure the test didn't change blocking output
+        assert fcntl.fcntl(0, fcntl.F_GETFL) & os.O_NONBLOCK == 0
+        assert fcntl.fcntl(1, fcntl.F_GETFL) & os.O_NONBLOCK == 0
+        assert fcntl.fcntl(2, fcntl.F_GETFL) & os.O_NONBLOCK == 0
+
         return proc.returncode
 
 
@@ -141,6 +186,7 @@ class TapDriver(Driver):
         self.late_plan = False
         self.errored = False
         self.bail_out = False
+        self.skip_all_reason = None
 
     def report(self, code, num, *args):
         if num:
@@ -166,21 +212,30 @@ class TapDriver(Driver):
             return
         description = description.lstrip()
 
-        # Special case if description starts with this, then skip
-        if description.lower().startswith("# skip"):
+        # Parse out a directive from description, if any
+        (description, unused, directive) = description.partition("#")
+
+        # Special case if directive starts with this, then skip
+        if directive.lstrip().lower().startswith("skip"):
             self.result_skip(num, description)
         elif ok:
             self.result_pass(num, description)
         else:
             self.result_fail(num, description)
 
-    def consume_test_plan(self, first, last):
+    def consume_test_plan(self, line):
         # Only one test plan is supported
         if self.test_plan:
             self.report_error("Get a second TAP test plan")
             return
 
+        if line.lower().startswith('1..0 # skip'):
+            self.skip_all_reason = line[5:].strip()
+            self.bail_out = True
+            return
+
         try:
+            (first, unused, last) = line.partition("..")
             first = int(first)
             last = int(last)
         except ValueError:
@@ -196,7 +251,7 @@ class TapDriver(Driver):
 
     def process(self, output):
         if output:
-            self.output += output
+            self.output += output.decode("UTF-8")
         elif self.output:
             self.output += "\n"
         (ready, unused, self.output) = self.output.rpartition("\n")
@@ -206,8 +261,7 @@ class TapDriver(Driver):
             elif line.startswith("not ok "):
                 self.consume_test_line(False, line[7:])
             elif line and line[0].isdigit() and ".." in line:
-                (first, unused, last) = line.partition("..")
-                self.consume_test_plan(first, last)
+                self.consume_test_plan(line)
             elif line.lower().startswith("bail out!"):
                 self.consume_bail_out(line)
 
@@ -216,6 +270,13 @@ class TapDriver(Driver):
 
         failed = False
         skipped = True
+
+        if self.skip_all_reason is not None:
+            self.result_skip("skipping:", self.skip_all_reason)
+            self.trs.write(":global-test-result: SKIP\n")
+            self.trs.write(":test-global-result: SKIP\n")
+            self.trs.write(":recheck: no\n")
+            return 0
 
         # Basic collation of results
         for (num, code) in self.reported.items():
@@ -226,9 +287,12 @@ class TapDriver(Driver):
             if code != "SKIP":
                 skipped = False
 
-        if not self.errored and returncode:
-            self.report_error("process failed: %d" % returncode)
-            self.errored = True
+        if not self.errored:
+            if returncode == 77:
+                skipped = True
+            elif returncode:
+                self.report_error("process failed: %d" % returncode)
+                self.errored = True
 
         # Check the plan
         if not self.errored:
@@ -328,7 +392,7 @@ class YesNoAction(argparse.Action):
 def main(argv):
     parser = argparse.ArgumentParser(description='Automake TAP driver')
     parser.add_argument('--format', metavar='FORMAT', choices=[ "simple", "tap" ],
-                        default="simple", help='The type of test to drive')
+                        default="tap", help='The type of test to drive')
     parser.add_argument('--missing', metavar="TOOL", nargs='?',
                         help="Force the test to skip due to missing tool")
     parser.add_argument('--test-name', metavar='NAME',

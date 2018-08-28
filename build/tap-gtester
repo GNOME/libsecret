@@ -1,4 +1,5 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3
+# This can also be run with Python 2.
 
 # Copyright (C) 2014 Red Hat, Inc.
 #
@@ -30,8 +31,18 @@
 import argparse
 import os
 import select
+import signal
 import subprocess
 import sys
+
+# Yes, it's dumb, but strsignal is not exposed in python
+# In addition signal numbers varify heavily from arch to arch
+def strsignal(sig):
+    for name in dir(signal):
+        if name.startswith("SIG") and sig == getattr(signal, name):
+            return name
+    return str(sig)
+
 
 class NullCompiler:
     def __init__(self, command):
@@ -42,7 +53,7 @@ class NullCompiler:
 
     def process(self, proc):
         while True:
-            line = proc.stdout.readline().decode("utf-8")
+            line = proc.stdout.readline()
             if not line:
                 break
             self.input(line)
@@ -74,10 +85,13 @@ class GTestCompiler(NullCompiler):
                self.test_remaining.remove(self.test_name)
                self.test_num += 1
            elif cmd == "result":
-               if data == "OK":
-                   print("ok %d %s" % (self.test_num, self.test_name))
-               if data == "FAIL":
-                   print("not ok %d %s", (self.test_num, self.test_name))
+               if self.test_name:
+                   if data == "OK":
+                       print("ok %d %s" % (self.test_num, self.test_name))
+                   if data == "FAIL":
+                       print("not ok %d %s" % (self.test_num, self.test_name))
+                   if data == "SKIP":
+                       print("ok %d %s # skip" % (self.test_num, self.test_name))
                self.test_name = None
            elif cmd == "skipping":
                if "/subprocess" not in data:
@@ -95,7 +109,7 @@ class GTestCompiler(NullCompiler):
 
     def run(self, proc, output=""):
         # Complete retrieval of the list of tests
-        output += proc.stdout.read().decode("utf-8")
+        output += proc.stdout.read()
         proc.wait()
         if proc.returncode:
             sys.stderr.write("tap-gtester: listing GTest tests failed: %d\n" % proc.returncode)
@@ -111,10 +125,14 @@ class GTestCompiler(NullCompiler):
         print("1..%d" % len(self.test_remaining))
 
         # First try to run all the tests in a batch
-        proc = subprocess.Popen(self.command + ["--verbose" ], close_fds=True, stdout=subprocess.PIPE)
+        proc = subprocess.Popen(self.command + ["--verbose" ], close_fds=True,
+                                stdout=subprocess.PIPE, universal_newlines=True)
         result = self.process(proc)
         if result == 0:
             return 0
+
+        if result < 0:
+            sys.stderr.write("%s terminated with %s\n" % (self.command[0], strsignal(-result)))
 
         # Now pick up any stragglers due to failures
         while True:
@@ -128,7 +146,8 @@ class GTestCompiler(NullCompiler):
                 break
 
             proc = subprocess.Popen(self.command + ["--verbose", "-p", self.test_remaining[0]],
-                                    close_fds=True, stdout=subprocess.PIPE)
+                                    close_fds=True, stdout=subprocess.PIPE,
+                                    universal_newlines=True)
             result = self.process(proc)
 
             # The various exit codes and signals we continue for
@@ -138,32 +157,41 @@ class GTestCompiler(NullCompiler):
         return result
 
 def main(argv):
-    parser = argparse.ArgumentParser(description='Automake TAP compiler')
+    parser = argparse.ArgumentParser(description='Automake TAP compiler',
+                                     usage="tap-gtester [--format FORMAT] command ...")
     parser.add_argument('--format', metavar='FORMAT', choices=[ "auto", "gtest", "tap" ],
                         default="auto", help='The input format to compile')
     parser.add_argument('--verbose', action='store_true',
                         default=True, help='Verbose mode (ignored)')
-    parser.add_argument('command', nargs='+', help="A test command to run")
+    parser.add_argument('command', nargs=argparse.REMAINDER, help="A test command to run")
     args = parser.parse_args(argv[1:])
 
     output = None
     format = args.format
     cmd = args.command
+    if not cmd:
+        sys.stderr.write("tap-gtester: specify a command to run\n")
+        return 2
+    if cmd[0] == '--':
+        cmd.pop(0)
+
     proc = None
 
     os.environ['HARNESS_ACTIVE'] = '1'
 
     if format in ["auto", "gtest"]:
         list_cmd = cmd + ["-l", "--verbose"]
-        proc = subprocess.Popen(list_cmd, close_fds=True, stdout=subprocess.PIPE)
-        output = proc.stdout.readline().decode("utf-8")
+        proc = subprocess.Popen(list_cmd, close_fds=True, stdout=subprocess.PIPE,
+                                universal_newlines=True)
+        output = proc.stdout.readline()
         # Smell whether we're dealing with GTest list output from first line
         if "random seed" in output or "GTest" in output or output.startswith("/"):
             format = "gtest"
         else:
             format = "tap"
     else:
-        proc = subprocess.Popen(cmd, close_fds=True, stdout=subprocess.PIPE)
+        proc = subprocess.Popen(cmd, close_fds=True, stdout=subprocess.PIPE,
+                                universal_newlines=True)
 
     if format == "gtest":
         compiler = GTestCompiler(cmd)
