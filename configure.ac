@@ -43,7 +43,8 @@ SECRET_AGE=0
 # -----------------------------------------------------------------------------
 
 AC_CONFIG_MACRO_DIR([build/m4])
-AC_CONFIG_AUX_DIR([build])
+AC_CONFIG_AUX_DIR([build/litter])
+AC_REQUIRE_AUX_FILE([tap-driver.sh])
 AM_INIT_AUTOMAKE([1.11 dist-xz no-dist-gzip tar-ustar foreign -Wno-portability subdir-objects])
 AM_SANITY_CHECK
 AC_CONFIG_HEADERS(config.h)
