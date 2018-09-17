@@ -744,12 +744,149 @@ secret_service_async_initable_iface (GAsyncInitableIface *iface)
 	iface->init_finish = secret_service_async_initable_init_finish;
 }
 
+typedef struct {
+	GDBusConnection *connection;
+	gchar *handle;
+	guint response_id;
+	gchar *name;
+	GMainLoop *loop;
+} CallbackData;
+
+static void
+free_callback_data (CallbackData *cbdata)
+{
+	if (cbdata->connection)
+		g_object_unref (cbdata->connection);
+
+	g_free (cbdata->handle);
+	g_free (cbdata->name);
+
+	if (cbdata->loop)
+		g_main_loop_unref (cbdata->loop);
+}
+
+static void
+secrets_response (GDBusConnection *connection,
+		  const gchar *sender_name,
+		  const gchar *object_path,
+		  const gchar *interface_name,
+		  const gchar *signal_name,
+		  GVariant *parameters,
+		  gpointer user_data)
+{
+	CallbackData *cbdata = user_data;
+	guint32 response;
+	GVariant *options;
+
+	g_variant_get (parameters, "(u@a{sv})", &response, &options);
+
+	if (response == 0) {
+		const char *name = NULL;
+
+		if (!g_variant_lookup (options, "name", "&s", &name)) {
+			g_debug ("couldn't extract name from response");
+		} else {
+			cbdata->name = g_strdup (name);
+		}
+	}
+}
+
+static const gchar *
+get_default_bus_name_from_portal (void)
+{
+	CallbackData *cbdata;
+	GVariantBuilder opt_builder;
+	GVariant *ret;
+        gchar *token;
+        gchar *sender;
+	gchar *handle;
+	gchar *name;
+	GError *error = NULL;
+	gint i;
+
+        cbdata = g_new (CallbackData, 1);
+
+	cbdata->connection = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, &error);
+	if (cbdata->connection == NULL) {
+		g_debug ("couldn't connect to session bus: %s", error->message);
+		g_error_free (error);
+		return NULL;
+	}
+
+        token = g_strdup_printf ("app%d", g_random_int_range (0, G_MAXINT));
+        sender = g_strdup (g_dbus_connection_get_unique_name (cbdata->connection) + 1);
+        for (i = 0; sender[i]; i++)
+                if (sender[i] == '.')
+                        sender[i] = '_';
+
+	cbdata->loop = g_main_loop_new (NULL, FALSE);
+        cbdata->handle = g_strdup_printf ("/org/fredesktop/portal/desktop/request/%s/%s", sender, token);
+	g_free (sender);
+        cbdata->response_id =
+                g_dbus_connection_signal_subscribe (cbdata->connection,
+                                                    "org.freedesktop.portal.Desktop",
+                                                    "org.freedesktop.portal.Request",
+                                                    "Response",
+                                                    cbdata->handle,
+                                                    NULL,
+                                                    G_DBUS_SIGNAL_FLAGS_NO_MATCH_RULE,
+                                                    secrets_response,
+                                                    cbdata, NULL);
+
+	g_variant_builder_init (&opt_builder, G_VARIANT_TYPE ("a{sv}"));
+        g_variant_builder_add (&opt_builder, "{sv}", "handle_token", g_variant_new_take_string (token));
+
+        ret = g_dbus_connection_call_sync (cbdata->connection,
+                                           "org.freedesktop.portal.Desktop",
+                                           "/org/freedesktop/portal/desktop",
+                                           "org.freedesktop.portal.Secrets",
+                                           "GetService",
+                                           g_variant_new ("(sa{sv})", "", &opt_builder),
+                                           G_VARIANT_TYPE ("(o)"),
+                                           G_DBUS_CALL_FLAGS_NONE,
+                                           G_MAXINT,
+                                           NULL,
+                                           &error);
+
+        if (!ret) {
+                g_debug ("couldn't talk to Secrets portal: %s", error->message);
+                free_callback_data (cbdata);
+                return NULL;
+        }
+
+        g_variant_get (ret, "(&o)", &handle);
+
+        if (strcmp (cbdata->handle, handle) != 0) {
+                g_free (cbdata->handle);
+                cbdata->handle = g_strdup (handle);
+                g_dbus_connection_signal_unsubscribe (cbdata->connection, cbdata->response_id);
+                cbdata->response_id =
+                        g_dbus_connection_signal_subscribe (cbdata->connection,
+                                                            "org.freedesktop.portal.Desktop",
+                                                            "org.freedesktop.portal.Request",
+                                                            "Response",
+                                                            handle,
+                                                            NULL,
+                                                            G_DBUS_SIGNAL_FLAGS_NO_MATCH_RULE,
+                                                            secrets_response,
+                                                            cbdata, NULL);
+        }
+
+	g_main_loop_run (cbdata->loop);
+
+	name = g_steal_pointer (&cbdata->name);
+	free_callback_data (cbdata);
+	return name;
+}
+
 static const gchar *
 get_default_bus_name (void)
 {
 	const gchar *bus_name;
 
 	bus_name = g_getenv ("SECRET_SERVICE_BUS_NAME");
+	if (bus_name == NULL)
+		bus_name = get_default_bus_name_from_portal ();
 	if (bus_name == NULL)
 		bus_name = SECRET_SERVICE_BUS_NAME;
 
