@@ -3,7 +3,7 @@ stages:
   - deploy
 
 variables:
-  DEPENDENCIES: dbus-x11 gcc gjs make python3-dbus python3-gobject redhat-rpm-config
+  DEPENDENCIES: dbus-x11 gcc gjs json-glib-devel make python3-dbus python3-gobject redhat-rpm-config
 
 fedora:Werror:
   image: fedora:28
