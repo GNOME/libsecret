@@ -6,6 +6,7 @@ EXTRA_DIST += egg/egg-testing.h
 if WITH_GCRYPT
 ENCRYPTION_SRCS = egg/egg-dh.c egg/egg-dh.h
 ENCRYPTION_SRCS += egg/egg-hkdf.c egg/egg-hkdf.h
+ENCRYPTION_SRCS += egg/egg-jwe.c egg/egg-jwe.h
 ENCRYPTION_SRCS += egg/egg-libgcrypt.c egg/egg-libgcrypt.h
 else
 ENCRYPTION_SRCS =
@@ -21,6 +22,7 @@ libegg_la_SOURCES = \
 egg_LIBS =  \
 	libegg.la \
 	$(LIBGCRYPT_LIBS) \
+	$(JSON_GLIB_LIBS) \
 	$(GLIB_LIBS)
 
 egg_TESTS = \
@@ -38,10 +40,13 @@ test_secmem_SOURCES = egg/test-secmem.c
 test_secmem_LDADD = $(egg_LIBS)
 
 if WITH_GCRYPT
-egg_TESTS += test-hkdf test-dh
+egg_TESTS += test-hkdf test-dh test-jwe
 
 test_hkdf_SOURCES = egg/test-hkdf.c
 test_hkdf_LDADD = $(egg_LIBS)
+
+test_jwe_SOURCES = egg/test-jwe.c
+test_jwe_LDADD = $(egg_LIBS)
 
 test_dh_SOURCES = egg/test-dh.c
 test_dh_LDADD = $(egg_LIBS)
