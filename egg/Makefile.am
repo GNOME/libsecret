@@ -12,6 +12,7 @@ ENCRYPTION_SRCS =
 endif
 
 libegg_la_SOURCES = \
+	egg/egg-base64.c egg/egg-base64.h \
 	egg/egg-hex.c egg/egg-hex.h \
 	egg/egg-secure-memory.c egg/egg-secure-memory.h \
 	egg/egg-testing.c egg/egg-testing.h \
@@ -23,8 +24,12 @@ egg_LIBS =  \
 	$(GLIB_LIBS)
 
 egg_TESTS = \
+	test-base64 \
 	test-hex \
 	test-secmem
+
+test_base64_SOURCES = egg/test-base64.c
+test_base64_LDADD = $(egg_LIBS)
 
 test_hex_SOURCES = egg/test-hex.c
 test_hex_LDADD = $(egg_LIBS)
