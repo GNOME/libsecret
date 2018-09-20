@@ -160,6 +160,12 @@ fi
 AM_CONDITIONAL(WITH_GCRYPT, test "$enable_gcrypt" = "yes")
 
 # --------------------------------------------------------------------
+# json-glib
+PKG_CHECK_MODULES(JSON_GLIB, json-glib-1.0)
+LIBS="$LIBS $JSON_GLIB_LIBS"
+CFLAGS="$CFLAGS $JSON_GLIB_CFLAGS"
+
+# --------------------------------------------------------------------
 # Compilation options
 
 if test "$GCC" = "yes"; then
