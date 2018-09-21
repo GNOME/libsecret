@@ -56,4 +56,12 @@ void       egg_test_wait_idle                  (void);
 
 gint       egg_tests_run_with_loop             (void);
 
+void       egg_tests_copy_scratch_file         (const gchar *directory,
+                                                const gchar *file_to_copy);
+
+gchar *    egg_tests_create_scratch_directory  (const gchar *file_to_copy,
+                                                ...) G_GNUC_NULL_TERMINATED;
+
+void       egg_tests_remove_scratch_directory  (const gchar *directory);
+
 #endif /* EGG_DH_H_ */
