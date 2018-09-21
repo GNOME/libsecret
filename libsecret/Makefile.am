@@ -50,6 +50,10 @@ libsecret_PRIVATE = \
 	libsecret/secret-util.c \
 	$(NULL)
 
+if WITH_GCRYPT
+libsecret_PRIVATE += libsecret/secret-storage.c libsecret/secret-storage.h
+endif
+
 libsecret_@SECRET_MAJOR@_la_SOURCES = \
 	$(libsecret_PUBLIC) \
 	$(libsecret_PRIVATE) \
@@ -138,7 +142,7 @@ libsecret-$(SECRET_MAJOR).deps: Makefile.am
 vapi_DATA += \
 	libsecret-@SECRET_MAJOR@.vapi \
 	libsecret-@SECRET_MAJOR@.deps
-	
+
 endif # ENABLE_VAPIGEN
 endif # HAVE_INTROSPECTION
 
@@ -229,6 +233,12 @@ test_service_LDADD = $(libsecret_LIBS)
 
 test_session_SOURCES = libsecret/test-session.c
 test_session_LDADD = $(libsecret_LIBS)
+
+if WITH_GCRYPT
+C_TESTS += test-storage
+test_storage_SOURCES = libsecret/test-storage.c
+test_storage_LDADD = $(libsecret_LIBS)
+endif
 
 test_value_SOURCES = libsecret/test-value.c
 test_value_LDADD = $(libsecret_LIBS)
