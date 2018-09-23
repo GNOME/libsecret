@@ -36,6 +36,15 @@ typedef struct _SecretStorageClass   SecretStorageClass;
 
 GType        secret_storage_get_type      (void) G_GNUC_CONST;
 
+void         secret_storage_get_default   (int                  io_priority,
+                                           GCancellable        *cancellable,
+                                           GAsyncReadyCallback  callback,
+                                           gpointer             user_data);
+
+SecretStorage *secret_storage_get_default_finish
+                                          (GAsyncResult        *result,
+                                           GError             **error);
+
 void         secret_storage_store         (SecretStorage       *self,
                                            const SecretSchema  *schema,
                                            GHashTable          *attributes,
