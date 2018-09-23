@@ -17,6 +17,7 @@
 #include "secret-attributes.h"
 #include "secret-password.h"
 #include "secret-private.h"
+#include "secret-storage.h"
 #include "secret-value.h"
 
 #include <egg/egg-secure-memory.h>
@@ -41,6 +42,27 @@
  *
  * Stability: Stable
  */
+
+static gboolean
+_secret_password_use_storage (void)
+{
+	static gboolean flatpak_info_read;
+	static gboolean in_flatpak;
+	const gchar *envvar;
+
+	if (flatpak_info_read)
+		return in_flatpak;
+
+	flatpak_info_read = TRUE;
+	if (g_file_test ("/.flatpak-info", G_FILE_TEST_EXISTS))
+		in_flatpak = TRUE;
+
+	if (in_flatpak)
+		return TRUE;
+
+	envvar = g_getenv ("SECRET_STORAGE_PASSWORD");
+	return envvar && *envvar != '\0';
+}
 
 /**
  * secret_password_store: (skip)
@@ -149,8 +171,12 @@ secret_password_storev (const SecretSchema *schema,
 
 	value = secret_value_new (password, -1, "text/plain");
 
-	secret_service_store (NULL, schema, attributes, collection,
-	                      label, value, cancellable, callback, user_data);
+	if (_secret_password_use_storage ())
+		secret_storage_store (NULL, schema, attributes, collection,
+				      label, value, cancellable, callback, user_data);
+	else
+		secret_service_store (NULL, schema, attributes, collection,
+				      label, value, cancellable, callback, user_data);
 
 	secret_value_unref (value);
 }
@@ -169,7 +195,10 @@ secret_password_store_finish (GAsyncResult *result,
                               GError **error)
 {
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
-	return secret_service_store_finish (NULL, result, error);
+	if (_secret_password_use_storage ())
+		return secret_storage_store_finish (NULL, result, error);
+	else
+		return secret_service_store_finish (NULL, result, error);
 }
 
 /**
@@ -377,8 +406,12 @@ secret_password_lookupv (const SecretSchema *schema,
 	if (!_secret_attributes_validate (schema, attributes, G_STRFUNC, TRUE))
 		return;
 
-	secret_service_lookup (NULL, schema, attributes,
-	                       cancellable, callback, user_data);
+	if (_secret_password_use_storage ())
+		secret_storage_lookup (NULL, schema, attributes,
+				       cancellable, callback, user_data);
+	else
+		secret_service_lookup (NULL, schema, attributes,
+				       cancellable, callback, user_data);
 }
 
 /**
@@ -399,7 +432,10 @@ secret_password_lookup_nonpageable_finish (GAsyncResult *result,
 
 	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 
-	value = secret_service_lookup_finish (NULL, result, error);
+	if (_secret_password_use_storage ())
+		value = secret_storage_lookup_finish (NULL, result, error);
+	else
+		value = secret_service_lookup_finish (NULL, result, error);
 	if (value == NULL)
 		return NULL;
 
@@ -424,7 +460,10 @@ secret_password_lookup_finish (GAsyncResult *result,
 
 	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 
-	value = secret_service_lookup_finish (NULL, result, error);
+	if (_secret_password_use_storage ())
+		value = secret_storage_lookup_finish (NULL, result, error);
+	else
+		value = secret_service_lookup_finish (NULL, result, error);
 	if (value == NULL)
 		return NULL;
 
@@ -719,8 +758,12 @@ secret_password_clearv (const SecretSchema *schema,
 	if (!_secret_attributes_validate (schema, attributes, G_STRFUNC, TRUE))
 		return;
 
-	secret_service_clear (NULL, schema, attributes,
-	                      cancellable, callback, user_data);
+	if (_secret_password_use_storage ())
+		secret_storage_clear (NULL, schema, attributes,
+				      cancellable, callback, user_data);
+	else
+		secret_service_clear (NULL, schema, attributes,
+				      cancellable, callback, user_data);
 }
 
 /**
@@ -738,7 +781,10 @@ secret_password_clear_finish (GAsyncResult *result,
                               GError **error)
 {
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
-	return secret_service_clear_finish (NULL, result, error);
+	if (_secret_password_use_storage ())
+		return secret_storage_clear_finish (NULL, result, error);
+	else
+		return secret_service_clear_finish (NULL, result, error);
 }
 
 /**
