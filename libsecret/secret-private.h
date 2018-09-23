@@ -210,6 +210,8 @@ const SecretSchema * _secret_schema_ref_if_nonstatic          (const SecretSchem
 
 void                 _secret_schema_unref_if_nonstatic        (const SecretSchema *schema);
 
+void                 _secret_storage_reset_default            (void);
+
 G_END_DECLS
 
 #endif /* __SECRET_PRIVATE_H___ */

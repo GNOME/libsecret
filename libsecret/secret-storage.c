@@ -371,6 +371,14 @@ secret_storage_get_default_finish (GAsyncResult  *result,
 	return g_task_propagate_pointer (G_TASK (result), error);
 }
 
+void
+_secret_storage_reset_default (void)
+{
+	G_LOCK (storage_instance);
+	g_clear_object (&storage_instance);
+	G_UNLOCK (storage_instance);
+}
+
 static void
 on_replace_contents (GObject *source_object,
 		     GAsyncResult *result,
