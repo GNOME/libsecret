@@ -48,6 +48,7 @@ static const SecretSchema NO_NAME_SCHEMA = {
 
 typedef struct {
 	GPid pid;
+	gchar *directory;
 } Test;
 
 static void
@@ -67,6 +68,31 @@ teardown (Test *test,
 {
 	secret_service_disconnect ();
 	mock_service_stop ();
+}
+
+static void
+setup_storage (Test *test,
+	       gconstpointer data)
+{
+	gchar *path;
+
+	_secret_storage_reset_default ();
+
+	test->directory = egg_tests_create_scratch_directory (SRCDIR "/libsecret/store2.jwe", NULL);
+	path = g_build_filename (test->directory, "store2.jwe", NULL);
+	g_setenv ("SECRET_STORAGE_PATH", path, TRUE);
+	g_free (path);
+	g_setenv ("SECRET_STORAGE_PASSWORD", "12345", TRUE);
+}
+
+static void
+teardown_storage (Test *test,
+		  gconstpointer unused)
+{
+	egg_tests_remove_scratch_directory (test->directory);
+	g_free (test->directory);
+	g_unsetenv ("SECRET_STORAGE_PATH");
+	g_unsetenv ("SECRET_STORAGE_PASSWORD");
 }
 
 static void
@@ -380,6 +406,10 @@ main (int argc, char **argv)
 	g_test_add ("/password/delete-sync", Test, "mock-service-delete.py", setup, test_delete_sync, teardown);
 	g_test_add ("/password/delete-async", Test, "mock-service-delete.py", setup, test_delete_async, teardown);
 	g_test_add ("/password/clear-no-name", Test, "mock-service-delete.py", setup, test_clear_no_name, teardown);
+
+	g_test_add ("/password/storage/lookup-sync", Test, NULL, setup_storage, test_lookup_sync, teardown_storage);
+	g_test_add ("/password/storage/store-sync", Test, NULL, setup_storage, test_store_sync, teardown_storage);
+	g_test_add ("/password/storage/delete-sync", Test, NULL, setup_storage, test_delete_sync, teardown_storage);
 
 	g_test_add_func ("/password/free-null", test_password_free_null);
 
