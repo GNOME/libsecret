@@ -374,4 +374,5 @@ EXTRA_DIST += \
 	$(JS_TESTS) \
 	$(PY_TESTS) \
 	libsecret/store1.jwe \
+	libsecret/store2.jwe \
 	$(NULL)
