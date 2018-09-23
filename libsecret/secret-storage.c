@@ -577,6 +577,72 @@ on_store_default_collection (GObject *source_object,
 	g_object_unref (task);
 }
 
+typedef struct {
+	SecretSchema *schema;
+	GHashTable *attributes;
+	gchar *collection;
+	gchar *label;
+	SecretValue *value;
+} StorageClosure;
+
+static void
+storage_closure_free (StorageClosure *closure)
+{
+	g_clear_pointer (&closure->schema, secret_schema_unref);
+	g_clear_pointer (&closure->attributes, g_hash_table_unref);
+	g_clear_pointer (&closure->collection, g_free);
+	g_clear_pointer (&closure->label, g_free);
+	g_clear_pointer (&closure->value, secret_value_unref);
+	g_free (closure);
+}
+
+static void
+on_store (GObject *source_object,
+	  GAsyncResult *result,
+	  gpointer user_data)
+{
+	SecretStorage *self = SECRET_STORAGE (source_object);
+	GTask *task = G_TASK (user_data);
+	GError *error = NULL;
+
+	if (!secret_storage_store_finish (self, result, &error)) {
+		g_task_return_error (task, error);
+		g_object_unref (task);
+		return;
+	}
+
+	g_task_return_boolean (task, TRUE);
+	g_object_unref (task);
+}
+
+static void
+on_get_default_store (GObject *source_object,
+		      GAsyncResult *result,
+		      gpointer user_data)
+{
+	SecretStorage *storage;
+	GTask *task = G_TASK (user_data);
+	StorageClosure *closure = g_task_get_task_data (task);
+	GError *error = NULL;
+
+	storage = secret_storage_get_default_finish (result, &error);
+	if (!storage) {
+		g_task_return_error (task, error);
+		g_object_unref (task);
+		return;
+	}
+
+	secret_storage_store (storage,
+			      closure->schema,
+			      closure->attributes,
+			      closure->collection,
+			      closure->label,
+			      closure->value,
+			      g_task_get_cancellable (task),
+			      on_store,
+			      task);
+}
+
 void
 secret_storage_store (SecretStorage       *self,
                       const SecretSchema  *schema,
@@ -596,13 +662,28 @@ secret_storage_store (SecretStorage       *self,
 	gchar *encoded;
 	GTask *task;
 
-	g_return_if_fail (SECRET_IS_STORAGE (self));
+	g_return_if_fail (self == NULL || SECRET_IS_STORAGE (self));
 	g_return_if_fail (attributes != NULL);
 	g_return_if_fail (label != NULL);
 	g_return_if_fail (value != NULL);
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
 	task = g_task_new (self, cancellable, callback, user_data);
+
+	if (self == NULL) {
+		StorageClosure *closure = g_new0 (StorageClosure, 1);
+		closure->schema = secret_schema_ref ((SecretSchema *) schema);
+		closure->attributes = g_hash_table_ref (attributes);
+		closure->collection = g_strdup (collection);
+		closure->label = g_strdup (label);
+		closure->value = secret_value_ref (value);
+		g_task_set_task_data (task, closure,
+				      (GDestroyNotify) storage_closure_free);
+		secret_storage_get_default (G_PRIORITY_DEFAULT,
+					    cancellable,
+					    on_get_default_store,
+					    task);
+	}
 
 	/* Warnings raised already */
 	if (schema != NULL &&
@@ -705,6 +786,55 @@ json_to_secret_value (JsonNode *node)
 	return secret_value_new_full ((gchar *) value, n_value, content_type, g_free);
 }
 
+static void
+on_lookup (GObject *source_object,
+	   GAsyncResult *result,
+	   gpointer user_data)
+{
+	SecretStorage *self = SECRET_STORAGE (source_object);
+	GTask *task = G_TASK (user_data);
+	SecretValue *value;
+	GError *error = NULL;
+
+	value = secret_storage_lookup_finish (self, result, &error);
+	if (error) {
+		g_task_return_error (task, error);
+		g_object_unref (task);
+		return;
+	}
+
+	if (value)
+		g_task_return_pointer (task, value, secret_value_unref);
+	else
+		g_task_return_pointer (task, NULL, NULL);
+	g_object_unref (task);
+}
+
+static void
+on_get_default_lookup (GObject *source_object,
+		       GAsyncResult *result,
+		       gpointer user_data)
+{
+	SecretStorage *storage;
+	GTask *task = G_TASK (user_data);
+	StorageClosure *closure = g_task_get_task_data (task);
+	GError *error = NULL;
+
+	storage = secret_storage_get_default_finish (result, &error);
+	if (!storage) {
+		g_task_return_error (task, error);
+		g_object_unref (task);
+		return;
+	}
+
+	secret_storage_lookup (storage,
+			       closure->schema,
+			       closure->attributes,
+			       g_task_get_cancellable (task),
+			       on_lookup,
+			       task);
+}
+
 void
 secret_storage_lookup (SecretStorage *self,
                        const SecretSchema *schema,
@@ -717,11 +847,23 @@ secret_storage_lookup (SecretStorage *self,
 	const gchar *schema_name = NULL;
 	GTask *task;
 
-	g_return_if_fail (SECRET_IS_STORAGE (self));
+	g_return_if_fail (self == NULL || SECRET_IS_STORAGE (self));
 	g_return_if_fail (attributes != NULL);
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
 	task = g_task_new (self, cancellable, callback, user_data);
+
+	if (self == NULL) {
+		StorageClosure *closure = g_new0 (StorageClosure, 1);
+		closure->schema = secret_schema_ref ((SecretSchema *) schema);
+		closure->attributes = g_hash_table_ref (attributes);
+		g_task_set_task_data (task, closure,
+				      (GDestroyNotify) storage_closure_free);
+		secret_storage_get_default (G_PRIORITY_DEFAULT,
+					    cancellable,
+					    on_get_default_lookup,
+					    task);
+	}
 
 	/* Warnings raised already */
 	if (schema != NULL &&
@@ -774,6 +916,50 @@ secret_storage_lookup_finish (SecretStorage *self,
 	return g_task_propagate_pointer (G_TASK (result), error);
 }
 
+static void
+on_clear (GObject *source_object,
+	  GAsyncResult *result,
+	  gpointer user_data)
+{
+	SecretStorage *self = SECRET_STORAGE (source_object);
+	GTask *task = G_TASK (user_data);
+	GError *error = NULL;
+
+	if (!secret_storage_clear_finish (self, result, &error)) {
+		g_task_return_error (task, error);
+		g_object_unref (task);
+		return;
+	}
+
+	g_task_return_boolean (task, TRUE);
+	g_object_unref (task);
+}
+
+static void
+on_get_default_clear (GObject *source_object,
+		      GAsyncResult *result,
+		      gpointer user_data)
+{
+	SecretStorage *storage;
+	GTask *task = G_TASK (user_data);
+	StorageClosure *closure = g_task_get_task_data (task);
+	GError *error = NULL;
+
+	storage = secret_storage_get_default_finish (result, &error);
+	if (!storage) {
+		g_task_return_error (task, error);
+		g_object_unref (task);
+		return;
+	}
+
+	secret_storage_clear (storage,
+			      closure->schema,
+			      closure->attributes,
+			      g_task_get_cancellable (task),
+			      on_clear,
+			      task);
+}
+
 void
 secret_storage_clear (SecretStorage *self,
                       const SecretSchema *schema,
@@ -785,11 +971,23 @@ secret_storage_clear (SecretStorage *self,
 	const gchar *schema_name = NULL;
 	GTask *task;
 
-	g_return_if_fail (SECRET_STORAGE (self));
+	g_return_if_fail (self == NULL || SECRET_STORAGE (self));
 	g_return_if_fail (attributes != NULL);
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
 	task = g_task_new (self, cancellable, callback, user_data);
+
+	if (self == NULL) {
+		StorageClosure *closure = g_new0 (StorageClosure, 1);
+		closure->schema = secret_schema_ref ((SecretSchema *) schema);
+		closure->attributes = g_hash_table_ref (attributes);
+		g_task_set_task_data (task, closure,
+				      (GDestroyNotify) storage_closure_free);
+		secret_storage_get_default (G_PRIORITY_DEFAULT,
+					    cancellable,
+					    on_get_default_clear,
+					    task);
+	}
 
 	/* Warnings raised already */
 	if (schema != NULL &&
