@@ -262,6 +262,101 @@ secret_storage_async_initable_iface_init (GAsyncInitableIface *iface)
 	iface->init_finish = secret_storage_init_finish;
 }
 
+G_LOCK_DEFINE (storage_instance);
+static gpointer storage_instance = NULL;
+
+static void
+on_new_async (GObject      *source_object,
+              GAsyncResult *result,
+              gpointer      user_data)
+{
+	GAsyncInitable *initable = G_ASYNC_INITABLE (source_object);
+	GTask *task = G_TASK (user_data);
+	GObject *instance;
+	GError *error = NULL;
+
+	instance = g_async_initable_new_finish (initable, result, &error);
+	if (!instance) {
+		g_task_return_error (task, error);
+		g_object_unref (task);
+		return;
+	}
+
+	G_LOCK (storage_instance);
+	storage_instance = instance;
+	G_UNLOCK (storage_instance);
+
+	g_task_return_pointer (task, instance, NULL);
+	g_object_unref (task);
+}
+
+void
+secret_storage_get_default (int                  io_priority,
+			    GCancellable        *cancellable,
+			    GAsyncReadyCallback  callback,
+			    gpointer             user_data)
+{
+	SecretStorage *instance = NULL;
+	const gchar *envvar;
+	const gchar *password;
+	GFile *file;
+	GTask *task;
+
+	task = g_task_new (NULL, cancellable, callback, user_data);
+
+	G_LOCK (storage_instance);
+	if (storage_instance != NULL)
+		instance = g_object_ref (storage_instance);
+	G_UNLOCK (storage_instance);
+
+	if (instance != NULL) {
+		g_task_return_pointer (task, instance, g_object_unref);
+		g_object_unref (task);
+		return;
+	}
+
+	envvar = g_getenv ("SECRET_STORAGE_PASSWORD");
+	if (!envvar || *envvar == '\0') {
+		g_task_return_new_error (task,
+					 G_IO_ERROR,
+					 G_IO_ERROR_INVALID_ARGUMENT,
+					 "storage password is not set");
+		g_object_unref (task);
+		return;
+	}
+	password = envvar;
+
+	envvar = g_getenv ("SECRET_STORAGE_PATH");
+	if (!envvar || *envvar == '\0') {
+		gchar *path;
+
+		path = g_build_filename (g_get_user_data_dir (), "keyrings",
+					 "default.jwe", NULL);
+		file = g_file_new_for_path (path);
+		g_free (path);
+	} else {
+		file = g_file_new_for_path (envvar);
+	}
+
+	g_async_initable_new_async (SECRET_TYPE_STORAGE,
+				    io_priority,
+				    cancellable,
+				    on_new_async,
+				    task,
+				    "password", password,
+				    "file", file,
+				    NULL);
+}
+
+SecretStorage *
+secret_storage_get_default_finish (GAsyncResult  *result,
+                                   GError       **error)
+{
+	g_return_val_if_fail (g_task_is_valid (result, NULL), NULL);
+
+	return g_task_propagate_pointer (G_TASK (result), error);
+}
+
 static void
 on_replace_contents (GObject *source_object,
 		     GAsyncResult *result,
