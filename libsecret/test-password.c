@@ -355,6 +355,90 @@ test_clear_no_name (Test *test,
 }
 
 static void
+free_attributes (gpointer data,
+                 gpointer user_data)
+{
+        g_hash_table_unref ((GHashTable *)data);
+}
+
+static void
+test_search_sync (Test *test,
+                  gconstpointer used)
+{
+        GList *items;
+        GError *error = NULL;
+
+        items = secret_password_search_sync (&MOCK_SCHEMA, SECRET_SEARCH_ALL,
+					     NULL, &error,
+                                             "even", FALSE,
+                                             "string", "one",
+                                             "number", 1,
+                                             NULL);
+
+        g_assert_no_error (error);
+        g_assert_cmpint (g_list_length (items), ==, 1);
+
+        g_list_foreach (items, free_attributes, NULL);
+        g_list_free (items);
+}
+
+static void
+test_search_async (Test *test,
+                   gconstpointer used)
+{
+        GAsyncResult *result = NULL;
+        GError *error = NULL;
+        GList *items;
+
+        secret_password_search (&MOCK_SCHEMA, SECRET_SEARCH_ALL,
+				NULL, on_complete_get_result, &result,
+                                "even", FALSE,
+                                "string", "one",
+                                "number", 1,
+                                NULL);
+        g_assert (result == NULL);
+
+        egg_test_wait ();
+
+        items = secret_password_search_finish (result, &error);
+        g_assert_no_error (error);
+        g_object_unref (result);
+
+        g_assert_cmpint (g_list_length (items), ==, 1);
+
+        g_list_foreach (items, free_attributes, NULL);
+        g_list_free (items);
+}
+
+static void
+test_search_no_name (Test *test,
+                     gconstpointer used)
+{
+        GError *error = NULL;
+        GList *items;
+
+        /* should return null, because nothing with mock schema and 5 */
+        items = secret_password_search_sync (&MOCK_SCHEMA, SECRET_SEARCH_ALL,
+					     NULL, &error,
+                                             "number", 5,
+                                             NULL);
+        g_assert_no_error (error);
+        g_assert (items == NULL);
+
+        /* should return an item, because we have a prime schema with 5, and flags not to match name */
+        items = secret_password_search_sync (&NO_NAME_SCHEMA, SECRET_SEARCH_ALL,
+					     NULL, &error,
+                                             "number", 5,
+                                             NULL);
+
+        g_assert_no_error (error);
+        g_assert_cmpint (g_list_length (items), ==, 1);
+
+        g_list_foreach (items, free_attributes, NULL);
+        g_list_free (items);
+}
+
+static void
 test_password_free_null (void)
 {
 	secret_password_free (NULL);
@@ -380,6 +464,10 @@ main (int argc, char **argv)
 	g_test_add ("/password/delete-sync", Test, "mock-service-delete.py", setup, test_delete_sync, teardown);
 	g_test_add ("/password/delete-async", Test, "mock-service-delete.py", setup, test_delete_async, teardown);
 	g_test_add ("/password/clear-no-name", Test, "mock-service-delete.py", setup, test_clear_no_name, teardown);
+
+	g_test_add ("/password/search-sync", Test, "mock-service-normal.py", setup, test_search_sync, teardown);
+	g_test_add ("/password/search-async", Test, "mock-service-normal.py", setup, test_search_async, teardown);
+	g_test_add ("/password/search-no-name", Test, "mock-service-normal.py", setup, test_search_no_name, teardown);
 
 	g_test_add_func ("/password/free-null", test_password_free_null);
 

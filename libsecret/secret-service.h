@@ -35,13 +35,6 @@ typedef enum {
 	SECRET_SERVICE_LOAD_COLLECTIONS = 1 << 2,
 } SecretServiceFlags;
 
-typedef enum {
-	SECRET_SEARCH_NONE = 0,
-	SECRET_SEARCH_ALL = 1 << 1,
-	SECRET_SEARCH_UNLOCK = 1 << 2,
-	SECRET_SEARCH_LOAD_SECRETS = 1 << 3,
-} SecretSearchFlags;
-
 #define SECRET_TYPE_SERVICE            (secret_service_get_type ())
 #define SECRET_SERVICE(inst)           (G_TYPE_CHECK_INSTANCE_CAST ((inst), SECRET_TYPE_SERVICE, SecretService))
 #define SECRET_SERVICE_CLASS(class)    (G_TYPE_CHECK_CLASS_CAST ((class), SECRET_TYPE_SERVICE, SecretServiceClass))
