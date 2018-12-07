@@ -126,35 +126,6 @@ gboolean    secret_password_clearv_sync                (const SecretSchema *sche
                                                         GCancellable *cancellable,
                                                         GError **error);
 
-void        secret_password_search                     (const SecretSchema *schema,
-                                                        SecretSearchFlags flags,
-                                                        GCancellable *cancellable,
-                                                        GAsyncReadyCallback callback,
-                                                        gpointer user_data,
-                                                        ...) G_GNUC_NULL_TERMINATED;
-
-void        secret_password_searchv                    (const SecretSchema *schema,
-                                                        GHashTable *attributes,
-                                                        SecretSearchFlags flags,
-                                                        GCancellable *cancellable,
-                                                        GAsyncReadyCallback callback,
-                                                        gpointer user_data);
-
-GList *     secret_password_search_sync                (const SecretSchema *schema,
-                                                        SecretSearchFlags flags,
-                                                        GCancellable *cancellable,
-                                                        GError **error,
-                                                        ...) G_GNUC_NULL_TERMINATED;
-
-GList *     secret_password_searchv_sync               (const SecretSchema *schema,
-                                                        GHashTable *attributes,
-                                                        SecretSearchFlags flags,
-                                                        GCancellable *cancellable,
-                                                        GError **error);
-
-GList *     secret_password_search_finish              (GAsyncResult *result,
-                                                        GError **error);
-
 void        secret_password_free                       (gchar *password);
 
 void        secret_password_wipe                       (gchar *password);
