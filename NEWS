@@ -1,3 +1,11 @@
+0.18.7
+ * Migrate from intltool to gettext [!2]
+ * Fix uninitialized memory returned by secret_item_get_schema_name() [#15]
+ * secret-session: Avoid double-free in service_encode_plain_secret()
+ * Port tap script to Python 3 [!4]
+ * Build and test fixes [#734630]
+ * Updated translations
+
 0.18.6
  * Fix shared key derivation between libsecret and gnome-keyring [#778357]
  * Avoid run-time error when gnome-keyring is not responding [#787391]
