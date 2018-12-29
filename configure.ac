@@ -1,7 +1,7 @@
 AC_PREREQ(2.63)
 
 AC_INIT([libsecret],[0.18.6],
-        [http://bugzilla.gnome.org/enter_bug.cgi?product=libsecret],
+        [https://gitlab.gnome.org/GNOME/libsecret/issues/],
         [libsecret])
 
 dnl ****************************************************************************
