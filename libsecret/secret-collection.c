@@ -571,18 +571,6 @@ secret_collection_initable_iface (GInitableIface *iface)
 	iface->init = secret_collection_initable_init;
 }
 
-typedef struct {
-	GCancellable *cancellable;
-} InitClosure;
-
-static void
-init_closure_free (gpointer data)
-{
-	InitClosure *closure = data;
-	g_clear_object (&closure->cancellable);
-	g_slice_free (InitClosure, closure);
-}
-
 static void
 on_ensure_items (GObject *source,
                  GAsyncResult *result,
@@ -625,7 +613,7 @@ on_init_service (GObject *source,
 {
 	GSimpleAsyncResult *async = G_SIMPLE_ASYNC_RESULT (user_data);
 	SecretCollection *self = SECRET_COLLECTION (g_async_result_get_source_object (user_data));
-	InitClosure *init = g_simple_async_result_get_op_res_gpointer (async);
+	/* InitClosure *init = g_simple_async_result_get_op_res_gpointer (async); */
 	SecretService *service;
 	GError *error = NULL;
 
@@ -651,7 +639,7 @@ on_init_base (GObject *source,
 {
 	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
 	SecretCollection *self = SECRET_COLLECTION (source);
-	InitClosure *init = g_simple_async_result_get_op_res_gpointer (res);
+	/* InitClosure *init = g_simple_async_result_get_op_res_gpointer (res); */
 	GDBusProxy *proxy = G_DBUS_PROXY (self);
 	GError *error = NULL;
 
@@ -685,21 +673,15 @@ secret_collection_async_initable_init_async (GAsyncInitable *initable,
                                              GAsyncReadyCallback callback,
                                              gpointer user_data)
 {
-	GSimpleAsyncResult *res;
-	InitClosure *closure;
+	g_autoptr(GTask) res = NULL;
 
-	res = g_simple_async_result_new (G_OBJECT (initable), callback, user_data,
-	                                 secret_collection_async_initable_init_async);
-	closure = g_slice_new0 (InitClosure);
-	closure->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
-	g_simple_async_result_set_op_res_gpointer (res, closure, init_closure_free);
+	res = g_task_new (G_OBJECT (initable), cancellable, callback, user_data);
 
-	secret_collection_async_initable_parent_iface->init_async (initable, io_priority,
+	secret_collection_async_initable_parent_iface->init_async (initable,
+	                                                           io_priority,
 	                                                           cancellable,
 	                                                           on_init_base,
-	                                                           g_object_ref (res));
-
-	g_object_unref (res);
+	                                                           g_steal_pointer (&res));
 }
 
 static gboolean
@@ -709,11 +691,13 @@ secret_collection_async_initable_init_finish (GAsyncInitable *initable,
 {
 	SecretCollection *self = SECRET_COLLECTION (initable);
 
-	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (initable),
-	                      secret_collection_async_initable_init_async), FALSE);
+	g_return_val_if_fail (g_task_is_valid (result, G_OBJECT (initable)), FALSE);
 
-	if (_secret_util_propagate_error (G_SIMPLE_ASYNC_RESULT (result), error))
+	if (error && *error) {
+		_secret_util_strip_remote_error (error);
+		g_task_return_error (G_TASK (result), g_steal_pointer (&error));
 		return FALSE;
+	}
 
 	self->pv->constructing = FALSE;
 	return TRUE;
