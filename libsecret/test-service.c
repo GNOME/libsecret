@@ -600,9 +600,6 @@ main (int argc, char **argv)
 {
 	g_test_init (&argc, &argv, NULL);
 	g_set_prgname ("test-service");
-#if !GLIB_CHECK_VERSION(2,35,0)
-	g_type_init ();
-#endif
 
 	g_test_add ("/service/get-sync", Test, "mock-service-normal.py", setup_mock, test_get_sync, teardown_mock);
 	g_test_add ("/service/get-async", Test, "mock-service-normal.py", setup_mock, test_get_async, teardown_mock);
