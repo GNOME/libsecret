@@ -304,6 +304,8 @@ gboolean             secret_service_set_alias_sync                (SecretService
                                                                    GCancellable *cancellable,
                                                                    GError **error);
 
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (SecretService, g_object_unref);
+
 G_END_DECLS
 
 #endif /* __SECRET_SERVICE_H___ */
