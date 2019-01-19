@@ -173,6 +173,8 @@ guint64             secret_collection_get_created              (SecretCollection
 
 guint64             secret_collection_get_modified             (SecretCollection *self);
 
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (SecretCollection, g_object_unref);
+
 G_END_DECLS
 
 #endif /* __SECRET_COLLECTION_H___ */
