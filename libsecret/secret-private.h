@@ -56,6 +56,8 @@ SecretSync *         _secret_sync_new                         (void);
 
 void                 _secret_sync_free                        (gpointer data);
 
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (SecretSync, _secret_sync_free)
+
 void                 _secret_sync_on_result                   (GObject *source,
                                                                GAsyncResult *result,
                                                                gpointer user_data);
@@ -184,6 +186,8 @@ gchar *              _secret_value_unref_to_password          (SecretValue *valu
 gchar *              _secret_value_unref_to_string            (SecretValue *value);
 
 void                 _secret_session_free                     (gpointer data);
+
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (SecretSession, _secret_session_free)
 
 const gchar *        _secret_session_get_algorithms           (SecretSession *session);
 

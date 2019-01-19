@@ -72,6 +72,8 @@ void              secret_schema_unref              (SecretSchema *schema);
 
 GType             secret_schema_attribute_get_type (void) G_GNUC_CONST;
 
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (SecretSchema, g_object_unref);
+
 G_END_DECLS
 
 #endif /* __SECRET_SCHEMA_H___ */
