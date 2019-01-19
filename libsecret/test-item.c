@@ -859,9 +859,6 @@ main (int argc, char **argv)
 {
 	g_test_init (&argc, &argv, NULL);
 	g_set_prgname ("test-item");
-#if !GLIB_CHECK_VERSION(2,35,0)
-	g_type_init ();
-#endif
 
 	g_test_add ("/item/new-sync", Test, "mock-service-normal.py", setup, test_new_sync, teardown);
 	g_test_add ("/item/new-async", Test, "mock-service-normal.py", setup, test_new_async, teardown);

@@ -491,10 +491,6 @@ main (int argc,
 	textdomain (GETTEXT_PACKAGE);
 #endif
 
-#if !GLIB_CHECK_VERSION(2,35,0)
-	g_type_init ();
-#endif
-
 	if (argc < 2)
 		usage();
 

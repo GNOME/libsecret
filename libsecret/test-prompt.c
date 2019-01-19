@@ -404,9 +404,6 @@ main (int argc, char **argv)
 {
 	g_test_init (&argc, &argv, NULL);
 	g_set_prgname ("test-prompt");
-#if !GLIB_CHECK_VERSION(2,35,0)
-	g_type_init ();
-#endif
 
 	/* Suppress these messages in tests */
 	g_log_set_handler (G_LOG_DOMAIN, G_LOG_LEVEL_MESSAGE | G_LOG_LEVEL_INFO | G_LOG_LEVEL_DEBUG,
