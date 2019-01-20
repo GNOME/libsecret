@@ -51,7 +51,7 @@ SecretValue *       secret_value_ref               (SecretValue *value);
 
 void                secret_value_unref             (gpointer value);
 
-G_DEFINE_AUTOPTR_CLEANUP_FUNC (SecretValue, secret_value_unref);
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (SecretValue, secret_value_unref)
 
 G_END_DECLS
 

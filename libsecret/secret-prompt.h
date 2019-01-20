@@ -75,7 +75,7 @@ GVariant *          secret_prompt_perform_finish            (SecretPrompt *self,
                                                              GAsyncResult *result,
                                                              GError **error);
 
-G_DEFINE_AUTOPTR_CLEANUP_FUNC (SecretPrompt, g_object_unref);
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (SecretPrompt, g_object_unref)
 
 G_END_DECLS
 

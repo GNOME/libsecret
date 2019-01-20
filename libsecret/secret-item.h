@@ -191,7 +191,7 @@ guint64             secret_item_get_created                (SecretItem *self);
 
 guint64             secret_item_get_modified               (SecretItem *self);
 
-G_DEFINE_AUTOPTR_CLEANUP_FUNC (SecretItem, g_object_unref);
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (SecretItem, g_object_unref)
 
 G_END_DECLS
 
