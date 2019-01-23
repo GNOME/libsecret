@@ -59,19 +59,17 @@ struct _SecretPromptPrivate {
 	gint prompted;
 };
 
-G_DEFINE_TYPE (SecretPrompt, secret_prompt, G_TYPE_DBUS_PROXY);
+G_DEFINE_TYPE_WITH_PRIVATE (SecretPrompt, secret_prompt, G_TYPE_DBUS_PROXY);
 
 static void
 secret_prompt_init (SecretPrompt *self)
 {
-	self->pv = G_TYPE_INSTANCE_GET_PRIVATE (self, SECRET_TYPE_PROMPT,
-	                                        SecretPromptPrivate);
+	self->pv = secret_prompt_get_instance_private (self);
 }
 
 static void
 secret_prompt_class_init (SecretPromptClass *klass)
 {
-	g_type_class_add_private (klass, sizeof (SecretPromptPrivate));
 }
 
 typedef struct {

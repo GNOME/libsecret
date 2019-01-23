@@ -119,6 +119,7 @@ static void   secret_collection_initable_iface         (GInitableIface *iface);
 static void   secret_collection_async_initable_iface   (GAsyncInitableIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (SecretCollection, secret_collection, G_TYPE_DBUS_PROXY,
+                         G_ADD_PRIVATE (SecretCollection)
                          G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE, secret_collection_initable_iface);
                          G_IMPLEMENT_INTERFACE (G_TYPE_ASYNC_INITABLE, secret_collection_async_initable_iface);
 );
@@ -133,8 +134,7 @@ items_table_new (void)
 static void
 secret_collection_init (SecretCollection *self)
 {
-	self->pv = G_TYPE_INSTANCE_GET_PRIVATE (self, SECRET_TYPE_COLLECTION,
-	                                        SecretCollectionPrivate);
+	self->pv = secret_collection_get_instance_private (self);
 
 	g_mutex_init (&self->pv->mutex);
 	self->pv->cancellable = g_cancellable_new ();
@@ -503,8 +503,6 @@ secret_collection_class_init (SecretCollectionClass *klass)
 	g_object_class_install_property (gobject_class, PROP_MODIFIED,
 	            g_param_spec_uint64 ("modified", "Modified", "Item modified date",
 	                                 0UL, G_MAXUINT64, 0UL, G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
-
-	g_type_class_add_private (gobject_class, sizeof (SecretCollectionPrivate));
 }
 
 static gboolean
