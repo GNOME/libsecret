@@ -140,6 +140,7 @@ static void   secret_service_initable_iface         (GInitableIface *iface);
 static void   secret_service_async_initable_iface   (GAsyncInitableIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (SecretService, secret_service, G_TYPE_DBUS_PROXY,
+                         G_ADD_PRIVATE (SecretService)
                          G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE, secret_service_initable_iface);
                          G_IMPLEMENT_INTERFACE (G_TYPE_ASYNC_INITABLE, secret_service_async_initable_iface);
 );
@@ -225,8 +226,7 @@ service_cache_instance (SecretService *instance)
 static void
 secret_service_init (SecretService *self)
 {
-	self->pv = G_TYPE_INSTANCE_GET_PRIVATE (self, SECRET_TYPE_SERVICE,
-	                                        SecretServicePrivate);
+	self->pv = secret_service_get_instance_private (self);
 
 	g_mutex_init (&self->pv->mutex);
 	self->pv->cancellable = g_cancellable_new ();
@@ -556,8 +556,6 @@ secret_service_class_init (SecretServiceClass *klass)
 	g_object_class_install_property (object_class, PROP_COLLECTIONS,
 	             g_param_spec_boxed ("collections", "Collections", "Secret Service Collections",
 	                                 _secret_list_get_type (), G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
-
-	g_type_class_add_private (klass, sizeof (SecretServicePrivate));
 
 	/* Initialize this error domain, registers dbus errors */
 	_secret_error_quark = secret_error_get_quark ();

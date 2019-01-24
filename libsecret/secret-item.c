@@ -114,6 +114,7 @@ static void   secret_item_initable_iface         (GInitableIface *iface);
 static void   secret_item_async_initable_iface   (GAsyncInitableIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (SecretItem, secret_item, G_TYPE_DBUS_PROXY,
+                         G_ADD_PRIVATE (SecretItem)
                          G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE, secret_item_initable_iface);
                          G_IMPLEMENT_INTERFACE (G_TYPE_ASYNC_INITABLE, secret_item_async_initable_iface);
 );
@@ -121,7 +122,7 @@ G_DEFINE_TYPE_WITH_CODE (SecretItem, secret_item, G_TYPE_DBUS_PROXY,
 static void
 secret_item_init (SecretItem *self)
 {
-	self->pv = G_TYPE_INSTANCE_GET_PRIVATE (self, SECRET_TYPE_ITEM, SecretItemPrivate);
+	self->pv = secret_item_get_instance_private (self);
 	g_mutex_init (&self->pv->mutex);
 }
 
@@ -403,8 +404,6 @@ secret_item_class_init (SecretItemClass *klass)
 	g_object_class_install_property (gobject_class, PROP_MODIFIED,
 	            g_param_spec_uint64 ("modified", "Modified", "Item modified date",
 	                                 0UL, G_MAXUINT64, 0UL, G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
-
-	g_type_class_add_private (gobject_class, sizeof (SecretItemPrivate));
 }
 
 typedef struct {
