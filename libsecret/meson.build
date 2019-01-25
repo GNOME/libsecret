@@ -108,6 +108,7 @@ libsecret_gir = gnome.generate_gir(libsecret,
   nsversion: api_version_major,
   export_packages: 'libsecret-@0@'.format(api_version_major),
   includes: [ 'GObject-2.0', 'Gio-2.0' ],
+  header: 'libsecret/secret.h',
   extra_args: [ '-D SECRET_COMPILATION'],
   install: true,
 )
