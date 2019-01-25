@@ -3,10 +3,10 @@ stages:
   - deploy
 
 variables:
-  DEPENDENCIES: dbus-x11 gcc gjs make python3-dbus python3-gobject redhat-rpm-config
+  DEPENDENCIES: dbus-x11 gcc gjs meson python3-dbus python3-gobject redhat-rpm-config
 
 fedora:Werror:
-  image: fedora:28
+  image: fedora:latest
   stage: build
   before_script:
     - dnf upgrade -y
@@ -15,13 +15,13 @@ fedora:Werror:
     - dnf install -y $DEPENDENCIES
     - dbus-uuidgen --ensure
   script:
-    - ./autogen.sh --disable-dependency-tracking --enable-strict
-    - make -j$(nproc) V=1
+    - meson . _build
+    - ninja -j$(nproc) -C _build -v
     - eval `dbus-launch --sh-syntax`
-    - make -j$(nproc) V=1 distcheck
+    - ninja -j$(nproc) -C _build test
 
 fedora:asan:
-  image: fedora:28
+  image: fedora:latest
   stage: build
   before_script:
     - dnf upgrade -y
@@ -30,13 +30,13 @@ fedora:asan:
     - dnf install -y $DEPENDENCIES libasan
     - dbus-uuidgen --ensure
   script:
-    - ./autogen.sh --disable-dependency-tracking CFLAGS='-fsanitize=address -g -fno-common -U_FORTIFY_SOURCE' CXXFLAGS='-fsanitize=address -g -fno-common -U_FORTIFY_SOURCE' LDFLAGS='-fsanitize=address -g -fno-common -U_FORTIFY_SOURCE' LIBS='-lasan -ldl -lpthread'
-    - make -j$(nproc) V=1
+    - meson . _build -Dc_args='-fsanitize=address -g -fno-common -U_FORTIFY_SOURCE' -Dcpp_args='-fsanitize=address -g -fno-common -U_FORTIFY_SOURCE' -Dc_link_args='-fsanitize=address -g -fno-common -U_FORTIFY_SOURCE -lasan -ldl -lpthread'
+    - ninja -j$(nproc) -C _build -v
     - eval `dbus-launch --sh-syntax`
-    - make -j$(nproc) V=1 DISABLE_HARD_ERRORS=1 XFAIL_TESTS="\$(JS_TESTS) \$(PY_TESTS)" check
+    - ninja -j$(nproc) -C _build test
 
 fedora:ubsan:
-  image: fedora:28
+  image: fedora:latest
   stage: build
   before_script:
     - dnf upgrade -y
@@ -45,13 +45,13 @@ fedora:ubsan:
     - dnf install -y $DEPENDENCIES libubsan
     - dbus-uuidgen --ensure
   script:
-    - ./autogen.sh --disable-dependency-tracking CFLAGS='-fsanitize=undefined -g -fno-common -U_FORTIFY_SOURCE' CXXFLAGS='-fsanitize=undefined -g -fno-common -U_FORTIFY_SOURCE' LDFLAGS='-fsanitize=undefined -g -fno-common -U_FORTIFY_SOURCE' LIBS='-lubsan -ldl -lpthread'
-    - make -j$(nproc) V=1
+    - meson . _build -Dc_args='-fsanitize=undefined -g -fno-common -U_FORTIFY_SOURCE' -Dcpp_args='-fsanitize=undefined -g -fno-common -U_FORTIFY_SOURCE' -Dc_link_args='-fsanitize=undefined -g -fno-common -U_FORTIFY_SOURCE -lubsan -ldl -lpthread'
+    - ninja -j$(nproc) -C _build -v
     - eval `dbus-launch --sh-syntax`
-    - make -j$(nproc) V=1 check
+    - ninja -j$(nproc) -C _build test
 
 fedora:coverage:
-  image: fedora:28
+  image: fedora:latest
   stage: build
   before_script:
     - dnf upgrade -y
@@ -60,21 +60,21 @@ fedora:coverage:
     - dnf install -y $DEPENDENCIES lcov
     - dbus-uuidgen --ensure
   script:
-    - ./autogen.sh --disable-dependency-tracking --enable-coverage
-    - make -j$(nproc) V=1
+    - meson . _build -Db_coverage=true
+    - ninja -j$(nproc) -C _build -v
     - eval `dbus-launch --sh-syntax`
-    - make -j$(nproc) V=1 check
-    - make coverage
+    - ninja -j$(nproc) -C _build test
+    - ninja -j$(nproc) -C _build coverage-html
   coverage: '/^\s+lines.+:\s+([\d.]+\%)\s+/'
   artifacts:
     name: "libsecret-${CI_JOB_NAME}-${CI_COMMIT_REF_NAME}"
     paths:
-      - build/coverage/
+      - _build/meson-logs/coveragereport/
 
 pages:
   stage: deploy
   script:
-    - mv build/coverage/ public/
+    - mv _build/meson-logs/coveragereport/ public/
   artifacts:
     paths:
       - public
