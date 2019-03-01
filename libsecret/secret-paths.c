@@ -2268,8 +2268,8 @@ secret_service_read_alias_dbus_path (SecretService *self,
  *
  * Stability: Unstable
  *
- * Returns: (transfer full): the collection dbus object path, or %NULL if
- *          none assigned to the alias
+ * Returns: (transfer full) (nullable): the collection dbus object path,
+ *          or %NULL if none assigned to the alias
  */
 gchar *
 secret_service_read_alias_dbus_path_finish (SecretService *self,
@@ -2311,8 +2311,8 @@ secret_service_read_alias_dbus_path_finish (SecretService *self,
  *
  * Stability: Unstable
  *
- * Returns: (transfer full): the collection dbus object path, or %NULL if
- *          none assigned to the alias
+ * Returns: (transfer full) (nullable): the collection dbus object path,
+ *          or %NULL if none assigned to the alias
  */
 gchar *
 secret_service_read_alias_dbus_path_sync (SecretService *self,
@@ -2491,8 +2491,8 @@ secret_service_set_alias_to_dbus_path_sync (SecretService *self,
  *
  * Stability: Unstable
  *
- * Returns: (transfer full): %NULL if the prompt was dismissed or an error occurred,
- *          a variant result if the prompt was successful
+ * Returns: (transfer full) (nullable): %NULL if the prompt was dismissed or an
+ *          error occurred, a variant result if the prompt was successful
  */
 GVariant *
 secret_service_prompt_at_dbus_path_sync (SecretService *self,
@@ -2569,8 +2569,8 @@ secret_service_prompt_at_dbus_path (SecretService *self,
  *
  * Stability: Unstable
  *
- * Returns: (transfer full): %NULL if the prompt was dismissed or an error occurred,
- *          a variant result if the prompt was successful
+ * Returns: (transfer full) (nullable): %NULL if the prompt was dismissed or an
+ *          error occurred, a variant result if the prompt was successful
  */
 GVariant *
 secret_service_prompt_at_dbus_path_finish (SecretService *self,
