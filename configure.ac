@@ -1,6 +1,6 @@
 AC_PREREQ(2.63)
 
-AC_INIT([libsecret],[0.18.7],
+AC_INIT([libsecret],[0.18.8],
         [https://gitlab.gnome.org/GNOME/libsecret/issues/],
         [libsecret])
 

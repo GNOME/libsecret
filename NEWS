@@ -1,3 +1,12 @@
+0.18.8
+ * Add support for g_autoptr() to our types [!11]
+ * Remove deprecated g_type_class_add_private() [!14]
+ * Bump GLib dependency (2.44+)
+ * Add meson build support [!9]
+ * Fix vapi generation [!15, ...]
+ * Build fixes [!12, !13]
+ * Updated translations
+
 0.18.7
  * Migrate from intltool to gettext [!2]
  * Fix uninitialized memory returned by secret_item_get_schema_name() [#15]
