@@ -138,7 +138,7 @@ libsecret-$(SECRET_MAJOR).deps: Makefile.am
 vapi_DATA += \
 	libsecret-@SECRET_MAJOR@.vapi \
 	libsecret-@SECRET_MAJOR@.deps
-	
+
 endif # ENABLE_VAPIGEN
 endif # HAVE_INTROSPECTION
 
