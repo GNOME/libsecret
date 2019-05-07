@@ -24,9 +24,13 @@ inc_HEADERS = \
 	libsecret/secret-enum-types.h \
 	$(NULL)
 
+libsecret_BUILT_ENUMS = \
+	libsecret/secret-enum-types.c libsecret/secret-enum-types.h \
+	$(NULL)
+
 libsecret_BUILT = \
 	secret-dbus-generated.c secret-dbus-generated.h \
-	libsecret/secret-enum-types.c libsecret/secret-enum-types.h \
+	$(libsecret_BUILT_ENUMS) \
 	$(NULL)
 
 libsecret_PUBLIC = \
@@ -117,7 +121,7 @@ Secret_@SECRET_MAJOR@_gir_EXPORT_PACKAGES = libsecret-@SECRET_MAJOR@
 Secret_@SECRET_MAJOR@_gir_INCLUDES = GObject-2.0 Gio-2.0
 Secret_@SECRET_MAJOR@_gir_LIBS = libsecret-@SECRET_MAJOR@.la
 Secret_@SECRET_MAJOR@_gir_CFLAGS = -I$(srcdir) -I$(builddir) -DSECRET_COMPILATION
-Secret_@SECRET_MAJOR@_gir_FILES = $(libsecret_PUBLIC)
+Secret_@SECRET_MAJOR@_gir_FILES = $(libsecret_PUBLIC) $(libsecret_BUILT_ENUMS)
 Secret_@SECRET_MAJOR@_gir_SCANNERFLAGS = --c-include "libsecret/secret.h"
 
 gir_DATA += Secret-@SECRET_MAJOR@.gir
