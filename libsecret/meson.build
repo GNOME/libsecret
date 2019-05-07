@@ -101,6 +101,7 @@ libsecret_gir_sources = [
   'secret-value.c',
   'secret-value.h',
 ]
+libsecret_gir_sources += _enums_generated
 
 libsecret_gir = gnome.generate_gir(libsecret,
   sources: libsecret_gir_sources,
