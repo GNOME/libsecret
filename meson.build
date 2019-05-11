@@ -45,17 +45,20 @@ glib_deps = [
 ]
 if with_gcrypt
   min_libgcrypt_version = '1.2.2'
-  libgcrypt_config = find_program('libgcrypt-config')
-  libgcrypt_version = run_command(libgcrypt_config, '--version').stdout().strip()
-  if (libgcrypt_version.version_compare('>' + libgcrypt_version))
-    error('@0@ requires at least gcrypt version @1@, but version found is @2@'
-            .format(meson.project_name(), min_libgcrypt_version, libgcrypt_version))
+  gcrypt_dep = dependency('libgcrypt', version: '>=' + min_libgcrypt_version, required: false)
+  if not gcrypt_dep.found()
+    libgcrypt_config = find_program('libgcrypt-config')
+    libgcrypt_version = run_command(libgcrypt_config, '--version').stdout().strip()
+    if (libgcrypt_version.version_compare('>' + libgcrypt_version))
+      error('@0@ requires at least gcrypt version @1@, but version found is @2@'
+              .format(meson.project_name(), min_libgcrypt_version, libgcrypt_version))
+    endif
+    message('gcrypt version: @0@'.format(libgcrypt_version))
+    gcrypt_dep = declare_dependency(
+      link_args: run_command(libgcrypt_config, '--libs').stdout().strip().split(),
+      compile_args: run_command(libgcrypt_config, '--cflags').stdout().strip().split(),
+    )
   endif
-  message('gcrypt version: @0@'.format(libgcrypt_version))
-  gcrypt_dep = declare_dependency(
-    link_args: run_command(libgcrypt_config, '--libs').stdout().strip().split(),
-    compile_args: run_command(libgcrypt_config, '--cflags').stdout().strip().split(),
-  )
 endif
 
 # Libraries
