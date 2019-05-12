@@ -4,18 +4,19 @@ libegg_sources = [
   'egg-testing.c',
 ]
 
+libegg_deps = [
+  glib_deps,
+]
+
 if with_gcrypt
   libegg_sources += [
     'egg-dh.c',
     'egg-hkdf.c',
     'egg-libgcrypt.c',
   ]
-endif
 
-libegg_deps = [
-  glib_deps,
-  gcrypt_dep,
-]
+  libegg_deps += gcrypt_dep
+endif
 
 libegg = static_library('egg',
   libegg_sources,
