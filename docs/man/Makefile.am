@@ -12,4 +12,6 @@ secret-tool.1: docs/man/secret-tool.xml
 man_MANS += \
 	secret-tool.1
 
-EXTRA_DIST += docs/man/secret-tool.xml
+EXTRA_DIST +=
+	docs/man/secret-tool.xml \
+	meson.build
