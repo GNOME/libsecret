@@ -66,8 +66,8 @@ on_complete_get_result (GObject *source,
                         gpointer user_data)
 {
 	GAsyncResult **ret = user_data;
-	g_assert (ret != NULL);
-	g_assert (*ret == NULL);
+	g_assert_nonnull (ret);
+	g_assert_null (*ret);
 	*ret = g_object_ref (result);
 	egg_test_wait_stop ();
 }
@@ -90,19 +90,19 @@ test_get_sync (Test *test,
 	g_assert_no_error (error);
 	g_object_add_weak_pointer (G_OBJECT (service2), (gpointer *)&service2);
 
-	g_assert (SECRET_IS_SERVICE (service1));
-	g_assert (service1 == service2);
+	g_assert_true (SECRET_IS_SERVICE (service1));
+	g_assert_true (service1 == service2);
 
 	g_object_unref (service1);
-	g_assert (G_IS_OBJECT (service1));
+	g_assert_true (G_IS_OBJECT (service1));
 
 	g_object_unref (service2);
 	secret_service_disconnect ();
-	g_assert (service2 == NULL);
+	g_assert_null (service2);
 
 	/* Services were disconnected, so this should create a new one */
 	service3 = secret_service_get_sync (SECRET_SERVICE_NONE, NULL, &error);
-	g_assert (SECRET_IS_SERVICE (service3));
+	g_assert_true (SECRET_IS_SERVICE (service3));
 	g_assert_no_error (error);
 	g_object_add_weak_pointer (G_OBJECT (service3), (gpointer *)&service3);
 
@@ -112,7 +112,7 @@ test_get_sync (Test *test,
 	g_usleep (G_USEC_PER_SEC);
 
 	secret_service_disconnect ();
-	g_assert (service3 == NULL);
+	g_assert_null (service3);
 }
 
 static void
@@ -128,33 +128,33 @@ test_get_async (Test *test,
 	/* Both these sohuld point to the same thing */
 
 	secret_service_get (SECRET_SERVICE_NONE, NULL, on_complete_get_result, &result);
-	g_assert (result == NULL);
+	g_assert_null (result);
 	egg_test_wait ();
 	service1 = secret_service_get_finish (result, &error);
 	g_assert_no_error (error);
 	g_clear_object (&result);
 
 	secret_service_get (SECRET_SERVICE_NONE, NULL, on_complete_get_result, &result);
-	g_assert (result == NULL);
+	g_assert_null (result);
 	egg_test_wait ();
 	service2 = secret_service_get_finish (result, &error);
 	g_assert_no_error (error);
 	g_clear_object (&result);
 	g_object_add_weak_pointer (G_OBJECT (service2), (gpointer *)&service2);
 
-	g_assert (SECRET_IS_SERVICE (service1));
-	g_assert (service1 == service2);
+	g_assert_true (SECRET_IS_SERVICE (service1));
+	g_assert_true (service1 == service2);
 
 	g_object_unref (service1);
-	g_assert (G_IS_OBJECT (service1));
+	g_assert_true (G_IS_OBJECT (service1));
 
 	g_object_unref (service2);
 	secret_service_disconnect ();
-	g_assert (service2 == NULL);
+	g_assert_null (service2);
 
 	/* Services were unreffed, so this should create a new one */
 	secret_service_get (SECRET_SERVICE_NONE, NULL, on_complete_get_result, &result);
-	g_assert (result == NULL);
+	g_assert_null (result);
 	egg_test_wait ();
 	service3 = secret_service_get_finish (result, &error);
 	g_assert_no_error (error);
@@ -163,7 +163,7 @@ test_get_async (Test *test,
 
 	g_object_unref (service3);
 	secret_service_disconnect ();
-	g_assert (service3 == NULL);
+	g_assert_null (service3);
 }
 
 static void
@@ -185,12 +185,12 @@ test_get_more_sync (Test *test,
 	service2 = secret_service_get_sync (SECRET_SERVICE_LOAD_COLLECTIONS, NULL, &error);
 	g_assert_no_error (error);
 
-	g_assert (SECRET_IS_SERVICE (service));
-	g_assert (service == service2);
+	g_assert_true (SECRET_IS_SERVICE (service));
+	g_assert_true (service == service2);
 
 	g_assert_cmpuint (secret_service_get_flags (service), ==, SECRET_SERVICE_LOAD_COLLECTIONS);
 	collections = secret_service_get_collections (service);
-	g_assert (collections != NULL);
+	g_assert_nonnull (collections);
 	g_list_free_full (collections, g_object_unref);
 
 	g_object_unref (service2);
@@ -200,13 +200,13 @@ test_get_more_sync (Test *test,
 
 	g_assert_cmpuint (secret_service_get_flags (service), ==, SECRET_SERVICE_OPEN_SESSION | SECRET_SERVICE_LOAD_COLLECTIONS);
 	path = secret_service_get_session_dbus_path (service);
-	g_assert (path != NULL);
+	g_assert_nonnull (path);
 
 	g_object_unref (service2);
 
 	g_object_unref (service);
 	secret_service_disconnect ();
-	g_assert (service == NULL);
+	g_assert_null (service);
 }
 
 static void
@@ -220,7 +220,7 @@ test_get_more_async (Test *test,
 	GList *collections;
 
 	secret_service_get (SECRET_SERVICE_LOAD_COLLECTIONS | SECRET_SERVICE_OPEN_SESSION, NULL, on_complete_get_result, &result);
-	g_assert (result == NULL);
+	g_assert_null (result);
 
 	egg_test_wait ();
 
@@ -232,20 +232,20 @@ test_get_more_async (Test *test,
 
 	g_assert_cmpuint (secret_service_get_flags (service), ==, SECRET_SERVICE_OPEN_SESSION | SECRET_SERVICE_LOAD_COLLECTIONS);
 	path = secret_service_get_session_dbus_path (service);
-	g_assert (path != NULL);
+	g_assert_nonnull (path);
 
 	collections = secret_service_get_collections (service);
-	g_assert (collections != NULL);
+	g_assert_nonnull (collections);
 	g_list_free_full (collections, g_object_unref);
 
 	g_object_unref (service);
 	secret_service_disconnect ();
-	g_assert (service == NULL);
+	g_assert_null (service);
 
 	/* Now get a session with just collections */
 
 	secret_service_get (SECRET_SERVICE_LOAD_COLLECTIONS, NULL, on_complete_get_result, &result);
-	g_assert (result == NULL);
+	g_assert_null (result);
 
 	egg_test_wait ();
 
@@ -256,15 +256,15 @@ test_get_more_async (Test *test,
 
 	g_assert_cmpuint (secret_service_get_flags (service), ==, SECRET_SERVICE_LOAD_COLLECTIONS);
 	path = secret_service_get_session_dbus_path (service);
-	g_assert (path == NULL);
+	g_assert_null (path);
 
 	collections = secret_service_get_collections (service);
-	g_assert (collections != NULL);
+	g_assert_nonnull (collections);
 	g_list_free_full (collections, g_object_unref);
 
 	g_object_unref (service);
 	secret_service_disconnect ();
-	g_assert (service == NULL);
+	g_assert_null (service);
 }
 
 static void
@@ -287,15 +287,15 @@ test_open_sync (Test *test,
 	g_assert_no_error (error);
 	g_object_add_weak_pointer (G_OBJECT (service2), (gpointer *)&service2);
 
-	g_assert (SECRET_IS_SERVICE (service1));
-	g_assert (SECRET_IS_SERVICE (service2));
-	g_assert (service1 != service2);
+	g_assert_true (SECRET_IS_SERVICE (service1));
+	g_assert_true (SECRET_IS_SERVICE (service2));
+	g_assert_true (service1 != service2);
 
 	g_object_unref (service1);
-	g_assert (service1 == NULL);
+	g_assert_null (service1);
 
 	g_object_unref (service2);
-	g_assert (service2 == NULL);
+	g_assert_null (service2);
 }
 
 static void
@@ -311,7 +311,7 @@ test_open_async (Test *test,
 
 	secret_service_open (SECRET_TYPE_SERVICE, NULL, SECRET_SERVICE_NONE,
 	                     NULL, on_complete_get_result, &result);
-	g_assert (result == NULL);
+	g_assert_null (result);
 	egg_test_wait ();
 	service1 = secret_service_open_finish (result, &error);
 	g_assert_no_error (error);
@@ -320,22 +320,22 @@ test_open_async (Test *test,
 
 	secret_service_open (SECRET_TYPE_SERVICE, NULL, SECRET_SERVICE_NONE, NULL,
 	                     on_complete_get_result, &result);
-	g_assert (result == NULL);
+	g_assert_null (result);
 	egg_test_wait ();
 	service2 = secret_service_open_finish (result, &error);
 	g_assert_no_error (error);
 	g_clear_object (&result);
 	g_object_add_weak_pointer (G_OBJECT (service2), (gpointer *)&service2);
 
-	g_assert (SECRET_IS_SERVICE (service1));
-	g_assert (SECRET_IS_SERVICE (service2));
-	g_assert (service1 != service2);
+	g_assert_true (SECRET_IS_SERVICE (service1));
+	g_assert_true (SECRET_IS_SERVICE (service2));
+	g_assert_true (service1 != service2);
 
 	g_object_unref (service1);
-	g_assert (service1 == NULL);
+	g_assert_null (service1);
 
 	g_object_unref (service2);
-	g_assert (service2 == NULL);
+	g_assert_null (service2);
 }
 
 static void
@@ -350,44 +350,44 @@ test_open_more_sync (Test *test,
 	service = secret_service_open_sync (SECRET_TYPE_SERVICE, NULL, SECRET_SERVICE_NONE,
 	                                    NULL, &error);
 	g_assert_no_error (error);
-	g_assert (SECRET_IS_SERVICE (service));
+	g_assert_true (SECRET_IS_SERVICE (service));
 	g_object_add_weak_pointer (G_OBJECT (service), (gpointer *)&service);
 
 	g_assert_cmpuint (secret_service_get_flags (service), ==, SECRET_SERVICE_NONE);
-	g_assert (secret_service_get_collections (service) == NULL);
-	g_assert (secret_service_get_session_dbus_path (service) == NULL);
+	g_assert_null (secret_service_get_collections (service));
+	g_assert_null (secret_service_get_session_dbus_path (service));
 
 	g_object_unref (service);
-	g_assert (service == NULL);
+	g_assert_null (service);
 
 	service = secret_service_open_sync (SECRET_TYPE_SERVICE, NULL,
 	                                    SECRET_SERVICE_LOAD_COLLECTIONS, NULL, &error);
 	g_assert_no_error (error);
-	g_assert (SECRET_IS_SERVICE (service));
+	g_assert_true (SECRET_IS_SERVICE (service));
 	g_object_add_weak_pointer (G_OBJECT (service), (gpointer *)&service);
 
 	g_assert_cmpuint (secret_service_get_flags (service), ==, SECRET_SERVICE_LOAD_COLLECTIONS);
 	collections = secret_service_get_collections (service);
-	g_assert (collections != NULL);
+	g_assert_nonnull (collections);
 	g_list_free_full (collections, g_object_unref);
-	g_assert (secret_service_get_session_dbus_path (service) == NULL);
+	g_assert_null (secret_service_get_session_dbus_path (service));
 
 	g_object_unref (service);
-	g_assert (service == NULL);
+	g_assert_null (service);
 
 	service = secret_service_open_sync (SECRET_TYPE_SERVICE, NULL,
 	                                    SECRET_SERVICE_OPEN_SESSION, NULL, &error);
 	g_assert_no_error (error);
-	g_assert (SECRET_IS_SERVICE (service));
+	g_assert_true (SECRET_IS_SERVICE (service));
 	g_object_add_weak_pointer (G_OBJECT (service), (gpointer *)&service);
 
 	g_assert_cmpuint (secret_service_get_flags (service), ==, SECRET_SERVICE_OPEN_SESSION);
-	g_assert (secret_service_get_collections (service) == NULL);
+	g_assert_null (secret_service_get_collections (service));
 	path = secret_service_get_session_dbus_path (service);
-	g_assert (path != NULL);
+	g_assert_nonnull (path);
 
 	g_object_unref (service);
-	g_assert (service == NULL);
+	g_assert_null (service);
 }
 
 static void
@@ -402,7 +402,7 @@ test_open_more_async (Test *test,
 
 	secret_service_open (SECRET_TYPE_SERVICE, NULL,
 	                     SECRET_SERVICE_LOAD_COLLECTIONS | SECRET_SERVICE_OPEN_SESSION, NULL, on_complete_get_result, &result);
-	g_assert (result == NULL);
+	g_assert_null (result);
 
 	egg_test_wait ();
 
@@ -414,20 +414,20 @@ test_open_more_async (Test *test,
 
 	g_assert_cmpuint (secret_service_get_flags (service), ==, SECRET_SERVICE_OPEN_SESSION | SECRET_SERVICE_LOAD_COLLECTIONS);
 	path = secret_service_get_session_dbus_path (service);
-	g_assert (path != NULL);
+	g_assert_nonnull (path);
 
 	collections = secret_service_get_collections (service);
-	g_assert (collections != NULL);
+	g_assert_nonnull (collections);
 	g_list_free_full (collections, g_object_unref);
 
 	g_object_unref (service);
-	g_assert (service == NULL);
+	g_assert_null (service);
 
 	/* Now get a session with just collections */
 
 	secret_service_open (SECRET_TYPE_SERVICE, NULL, SECRET_SERVICE_LOAD_COLLECTIONS,
 	                     NULL, on_complete_get_result, &result);
-	g_assert (result == NULL);
+	g_assert_null (result);
 
 	egg_test_wait ();
 
@@ -438,14 +438,14 @@ test_open_more_async (Test *test,
 
 	g_assert_cmpuint (secret_service_get_flags (service), ==, SECRET_SERVICE_LOAD_COLLECTIONS);
 	path = secret_service_get_session_dbus_path (service);
-	g_assert (path == NULL);
+	g_assert_null (path);
 
 	collections = secret_service_get_collections (service);
-	g_assert (collections != NULL);
+	g_assert_nonnull (collections);
 	g_list_free_full (collections, g_object_unref);
 
 	g_object_unref (service);
-	g_assert (service == NULL);
+	g_assert_null (service);
 }
 
 static void
@@ -459,22 +459,22 @@ test_connect_async (Test *test,
 
 	/* Passing false, not session */
 	secret_service_get (SECRET_SERVICE_NONE, NULL, on_complete_get_result, &result);
-	g_assert (result == NULL);
+	g_assert_null (result);
 
 	egg_test_wait ();
 
 	service = secret_service_get_finish (result, &error);
-	g_assert (SECRET_IS_SERVICE (service));
+	g_assert_true (SECRET_IS_SERVICE (service));
 	g_assert_no_error (error);
 	g_object_unref (result);
 	g_object_add_weak_pointer (G_OBJECT (service), (gpointer *)&service);
 
 	path = secret_service_get_session_dbus_path (service);
-	g_assert (path == NULL);
+	g_assert_null (path);
 
 	g_object_unref (service);
 	secret_service_disconnect ();
-	g_assert (service == NULL);
+	g_assert_null (service);
 }
 
 static void
@@ -488,22 +488,22 @@ test_connect_ensure_async (Test *test,
 
 	/* Passing true, ensures session is established */
 	secret_service_get (SECRET_SERVICE_OPEN_SESSION, NULL, on_complete_get_result, &result);
-	g_assert (result == NULL);
+	g_assert_null (result);
 
 	egg_test_wait ();
 
 	service = secret_service_get_finish (result, &error);
 	g_assert_no_error (error);
-	g_assert (SECRET_IS_SERVICE (service));
+	g_assert_true (SECRET_IS_SERVICE (service));
 	g_object_unref (result);
 	g_object_add_weak_pointer (G_OBJECT (service), (gpointer *)&service);
 
 	path = secret_service_get_session_dbus_path (service);
-	g_assert (path != NULL);
+	g_assert_nonnull (path);
 
 	g_object_unref (service);
 	secret_service_disconnect ();
-	g_assert (service == NULL);
+	g_assert_null (service);
 }
 
 static void
@@ -519,7 +519,7 @@ test_ensure_sync (Test *test,
 	service = secret_service_open_sync (SECRET_TYPE_SERVICE, NULL,
 	                                    SECRET_SERVICE_NONE, NULL, &error);
 	g_assert_no_error (error);
-	g_assert (service != NULL);
+	g_assert_nonnull (service);
 	g_object_add_weak_pointer (G_OBJECT (service), (gpointer *)&service);
 
 	flags = secret_service_get_flags (service);
@@ -527,20 +527,20 @@ test_ensure_sync (Test *test,
 
 	ret = secret_service_load_collections_sync (service, NULL, &error);
 	g_assert_no_error (error);
-	g_assert (ret == TRUE);
+	g_assert_true (ret);
 
 	g_object_get (service, "flags", &flags, NULL);
 	g_assert_cmpuint (flags, ==, SECRET_SERVICE_LOAD_COLLECTIONS);
 
 	ret = secret_service_ensure_session_sync (service, NULL, &error);
 	g_assert_no_error (error);
-	g_assert (ret == TRUE);
+	g_assert_true (ret);
 
 	flags = secret_service_get_flags (service);
 	g_assert_cmpuint (flags, ==, SECRET_SERVICE_OPEN_SESSION | SECRET_SERVICE_LOAD_COLLECTIONS);
 
 	g_object_unref (service);
-	g_assert (service == NULL);
+	g_assert_null (service);
 }
 
 static void
@@ -557,19 +557,19 @@ test_ensure_async (Test *test,
 	service = secret_service_open_sync (SECRET_TYPE_SERVICE, NULL,
 	                                    SECRET_SERVICE_NONE, NULL, &error);
 	g_assert_no_error (error);
-	g_assert (service != NULL);
+	g_assert_nonnull (service);
 
 	flags = secret_service_get_flags (service);
 	g_assert_cmpuint (flags, ==, SECRET_SERVICE_NONE);
 
 	secret_service_load_collections (service, NULL, on_complete_get_result, &result);
-	g_assert (result == NULL);
+	g_assert_null (result);
 
 	egg_test_wait ();
 
 	ret = secret_service_load_collections_finish (service, result, &error);
 	g_assert_no_error (error);
-	g_assert (ret == TRUE);
+	g_assert_true (ret);
 	g_object_unref (result);
 	result = NULL;
 
@@ -577,13 +577,13 @@ test_ensure_async (Test *test,
 	g_assert_cmpuint (flags, ==, SECRET_SERVICE_LOAD_COLLECTIONS);
 
 	secret_service_ensure_session (service, NULL, on_complete_get_result, &result);
-	g_assert (result == NULL);
+	g_assert_null (result);
 
 	egg_test_wait ();
 
 	ret = secret_service_ensure_session_finish (service, result, &error);
 	g_assert_no_error (error);
-	g_assert (ret == TRUE);
+	g_assert_true (ret);
 	g_object_unref (result);
 	result = NULL;
 	g_object_add_weak_pointer (G_OBJECT (service), (gpointer *)&service);
@@ -592,7 +592,7 @@ test_ensure_async (Test *test,
 	g_assert_cmpuint (flags, ==, SECRET_SERVICE_OPEN_SESSION | SECRET_SERVICE_LOAD_COLLECTIONS);
 
 	g_object_unref (service);
-	g_assert (service == NULL);
+	g_assert_null (service);
 }
 
 int

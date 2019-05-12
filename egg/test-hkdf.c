@@ -65,7 +65,7 @@ test_hkdf_test_case_1 (void)
 	                        salt, sizeof (salt),
 	                        info, sizeof (info),
 	                        buffer, sizeof (buffer));
-	g_assert (ret);
+	g_assert_true (ret);
 	egg_assert_cmpmem (buffer, sizeof (buffer), ==, okm, sizeof (okm));
 }
 
@@ -128,7 +128,7 @@ test_hkdf_test_case_2 (void)
 	                        salt, sizeof (salt),
 	                        info, sizeof (info),
 	                        buffer, sizeof (buffer));
-	g_assert (ret);
+	g_assert_true (ret);
 	egg_assert_cmpmem (buffer, sizeof (buffer), ==, okm, sizeof (okm));
 }
 
@@ -161,7 +161,7 @@ test_hkdf_test_case_3 (void)
 	                        salt, sizeof (salt),
 	                        info, sizeof (info),
 	                        buffer, sizeof (buffer));
-	g_assert (ret);
+	g_assert_true (ret);
 	egg_assert_cmpmem (buffer, sizeof (buffer), ==, okm, sizeof (okm));
 }
 
@@ -195,7 +195,7 @@ test_hkdf_test_case_4 (void)
 	                        salt, sizeof (salt),
 	                        info, sizeof (info),
 	                        buffer, sizeof (buffer));
-	g_assert (ret);
+	g_assert_true (ret);
 	egg_assert_cmpmem (buffer, sizeof (buffer), ==, okm, sizeof (okm));
 }
 
@@ -258,7 +258,7 @@ test_hkdf_test_case_5 (void)
 	                        salt, sizeof (salt),
 	                        info, sizeof (info),
 	                        buffer, sizeof (buffer));
-	g_assert (ret);
+	g_assert_true (ret);
 	egg_assert_cmpmem (buffer, sizeof (buffer), ==, okm, sizeof (okm));
 }
 
@@ -291,7 +291,7 @@ test_hkdf_test_case_6 (void)
 	                        salt, sizeof (salt),
 	                        info, sizeof (info),
 	                        buffer, sizeof (buffer));
-	g_assert (ret);
+	g_assert_true (ret);
 	egg_assert_cmpmem (buffer, sizeof (buffer), ==, okm, sizeof (okm));
 }
 
@@ -323,7 +323,7 @@ test_hkdf_test_case_7 (void)
 	                        salt, sizeof (salt),
 	                        info, sizeof (info),
 	                        buffer, sizeof (buffer));
-	g_assert (ret);
+	g_assert_true (ret);
 	egg_assert_cmpmem (buffer, sizeof (buffer), ==, okm, sizeof (okm));
 }
 

@@ -65,7 +65,7 @@ teardown (Test *test,
 {
 	g_object_unref (test->service);
 	secret_service_disconnect ();
-	g_assert (test->service == NULL);
+	g_assert_null (test->service);
 
 	mock_service_stop ();
 }
@@ -76,8 +76,8 @@ on_async_result (GObject *source,
                  gpointer user_data)
 {
 	GAsyncResult **ret = user_data;
-	g_assert (ret != NULL);
-	g_assert (*ret == NULL);
+	g_assert_nonnull (ret);
+	g_assert_null (*ret);
 	*ret = g_object_ref (result);
 	egg_test_wait_stop ();
 }
@@ -88,8 +88,8 @@ on_notify_stop (GObject *obj,
                 gpointer user_data)
 {
 	guint *sigs = user_data;
-	g_assert (sigs != NULL);
-	g_assert (*sigs > 0);
+	g_assert_nonnull (sigs);
+	g_assert_true (*sigs > 0);
 	if (--(*sigs) == 0)
 		egg_test_wait_stop ();
 }
@@ -120,7 +120,7 @@ test_new_sync_noexist (Test *test,
 
 	item = secret_item_new_for_dbus_path_sync (test->service, item_path, SECRET_ITEM_NONE, NULL, &error);
 	g_assert_error (error, G_DBUS_ERROR, G_DBUS_ERROR_UNKNOWN_METHOD);
-	g_assert (item == NULL);
+	g_assert_null (item);
 	g_clear_error (&error);
 }
 
@@ -135,7 +135,7 @@ test_new_async (Test *test,
 
 	secret_item_new_for_dbus_path (test->service, item_path, SECRET_ITEM_NONE,
 	                               NULL, on_async_result, &result);
-	g_assert (result == NULL);
+	g_assert_null (result);
 
 	egg_test_wait ();
 
@@ -159,13 +159,13 @@ test_new_async_noexist (Test *test,
 
 	secret_item_new_for_dbus_path (test->service, item_path, SECRET_ITEM_NONE,
 	                               NULL, on_async_result, &result);
-	g_assert (result == NULL);
+	g_assert_null (result);
 
 	egg_test_wait ();
 
 	item = secret_item_new_for_dbus_path_finish (result, &error);
 	g_assert_error (error, G_DBUS_ERROR, G_DBUS_ERROR_UNKNOWN_METHOD);
-	g_assert (item == NULL);
+	g_assert_null (item);
 	g_clear_error (&error);
 	g_object_unref (result);
 }
@@ -203,12 +203,12 @@ test_create_sync (Test *test,
 	g_object_unref (collection);
 	secret_value_unref (value);
 
-	g_assert (g_str_has_prefix (g_dbus_proxy_get_object_path (G_DBUS_PROXY (item)), collection_path));
+	g_assert_true (g_str_has_prefix (g_dbus_proxy_get_object_path (G_DBUS_PROXY (item)), collection_path));
 	g_assert_cmpstr_free (secret_item_get_label (item), ==, "Tunnel");
-	g_assert (secret_item_get_locked (item) == FALSE);
+	g_assert_false (secret_item_get_locked (item));
 
 	g_object_unref (item);
-	g_assert (item == NULL);
+	g_assert_null (item);
 }
 
 static void
@@ -249,12 +249,12 @@ test_create_async (Test *test,
 	g_object_unref (result);
 	g_object_add_weak_pointer (G_OBJECT (item), (gpointer *)&item);
 
-	g_assert (g_str_has_prefix (g_dbus_proxy_get_object_path (G_DBUS_PROXY (item)), collection_path));
+	g_assert_true (g_str_has_prefix (g_dbus_proxy_get_object_path (G_DBUS_PROXY (item)), collection_path));
 	g_assert_cmpstr_free (secret_item_get_label (item), ==, "Tunnel");
-	g_assert (secret_item_get_locked (item) == FALSE);
+	g_assert_false (secret_item_get_locked (item));
 
 	g_object_unref (item);
-	g_assert (item == NULL);
+	g_assert_null (item);
 }
 
 static void
@@ -274,7 +274,7 @@ test_properties (Test *test,
 	item = secret_item_new_for_dbus_path_sync (test->service, item_path, SECRET_ITEM_NONE, NULL, &error);
 	g_assert_no_error (error);
 
-	g_assert (secret_item_get_locked (item) == FALSE);
+	g_assert_false (secret_item_get_locked (item));
 	g_assert_cmpuint (secret_item_get_created (item), <=, time (NULL));
 	g_assert_cmpuint (secret_item_get_modified (item), <=, time (NULL));
 
@@ -298,7 +298,7 @@ test_properties (Test *test,
 	              "service", &service,
 	              NULL);
 
-	g_assert (locked == FALSE);
+	g_assert_false (locked);
 	g_assert_cmpuint (created, <=, time (NULL));
 	g_assert_cmpuint (modified, <=, time (NULL));
 
@@ -311,7 +311,7 @@ test_properties (Test *test,
 	g_assert_cmpuint (g_hash_table_size (attributes), ==, 4);
 	g_hash_table_unref (attributes);
 
-	g_assert (service == test->service);
+	g_assert_true (service == test->service);
 	g_object_unref (service);
 
 	g_object_unref (item);
@@ -336,7 +336,7 @@ test_set_label_sync (Test *test,
 
 	ret = secret_item_set_label_sync (item, "Another label", NULL, &error);
 	g_assert_no_error (error);
-	g_assert (ret == TRUE);
+	g_assert_true (ret);
 
 	label = secret_item_get_label (item);
 	g_assert_cmpstr (label, ==, "Another label");
@@ -364,13 +364,13 @@ test_set_label_async (Test *test,
 	g_free (label);
 
 	secret_item_set_label (item, "Another label", NULL, on_async_result, &result);
-	g_assert (result == NULL);
+	g_assert_null (result);
 
 	egg_test_wait ();
 
 	ret = secret_item_set_label_finish (item, result, &error);
 	g_assert_no_error (error);
-	g_assert (ret == TRUE);
+	g_assert_true (ret);
 	g_object_unref (result);
 
 	label = secret_item_get_label (item);
@@ -392,7 +392,7 @@ test_set_label_prop (Test *test,
 	gchar *label;
 
 	secret_item_new_for_dbus_path (test->service, item_path, SECRET_ITEM_NONE, NULL, on_async_result, &result);
-	g_assert (result == NULL);
+	g_assert_null (result);
 	egg_test_wait ();
 	item = secret_item_new_for_dbus_path_finish (result, &error);
 	g_assert_no_error (error);
@@ -451,7 +451,7 @@ test_set_attributes_sync (Test *test,
 	ret = secret_item_set_attributes_sync (item, &MOCK_SCHEMA, attributes, NULL, &error);
 	g_hash_table_unref (attributes);
 	g_assert_no_error (error);
-	g_assert (ret == TRUE);
+	g_assert_true (ret);
 
 	attributes = secret_item_get_attributes (item);
 	g_assert_cmpstr (g_hash_table_lookup (attributes, "string"), ==, "five");
@@ -498,14 +498,14 @@ test_set_attributes_async (Test *test,
 	g_hash_table_insert (attributes, "string", "five");
 	g_hash_table_insert (attributes, "number", "5");
 	secret_item_set_attributes (item, &MOCK_SCHEMA, attributes, NULL, on_async_result, &result);
-	g_assert (result == NULL);
+	g_assert_null (result);
 	g_hash_table_unref (attributes);
 
 	egg_test_wait ();
 
 	ret = secret_item_set_attributes_finish (item, result, &error);
 	g_assert_no_error (error);
-	g_assert (ret == TRUE);
+	g_assert_true (ret);
 	g_object_unref (result);
 
 	attributes = secret_item_get_attributes (item);
@@ -534,7 +534,7 @@ test_set_attributes_prop (Test *test,
 	guint sigs = 2;
 
 	secret_item_new_for_dbus_path (test->service, item_path, SECRET_ITEM_NONE, NULL, on_async_result, &result);
-	g_assert (result == NULL);
+	g_assert_null (result);
 	egg_test_wait ();
 	item = secret_item_new_for_dbus_path_finish (result, &error);
 	g_assert_no_error (error);
@@ -587,14 +587,14 @@ test_load_secret_sync (Test *test,
 	g_assert_no_error (error);
 
 	value = secret_item_get_secret (item);
-	g_assert (value == NULL);
+	g_assert_null (value);
 
 	ret = secret_item_load_secret_sync (item, NULL, &error);
 	g_assert_no_error (error);
-	g_assert (ret == TRUE);
+	g_assert_true (ret);
 
 	value = secret_item_get_secret (item);
-	g_assert (value != NULL);
+	g_assert_nonnull (value);
 
 	data = secret_value_get (value, &length);
 	egg_assert_cmpmem (data, length, ==, "111", 3);
@@ -621,20 +621,20 @@ test_load_secret_async (Test *test,
 	g_assert_no_error (error);
 
 	value = secret_item_get_secret (item);
-	g_assert (value == NULL);
+	g_assert_null (value);
 
 	secret_item_load_secret (item, NULL, on_async_result, &result);
-	g_assert (result == NULL);
+	g_assert_null (result);
 
 	egg_test_wait ();
 
 	ret = secret_item_load_secret_finish (item, result, &error);
 	g_assert_no_error (error);
-	g_assert (ret == TRUE);
+	g_assert_true (ret);
 	g_object_unref (result);
 
 	value = secret_item_get_secret (item);
-	g_assert (value != NULL);
+	g_assert_nonnull (value);
 
 	data = secret_value_get (value, &length);
 	egg_assert_cmpmem (data, length, ==, "111", 3);
@@ -664,19 +664,19 @@ test_set_secret_sync (Test *test,
 
 	ret = secret_item_set_secret_sync (item, value, NULL, &error);
 	g_assert_no_error (error);
-	g_assert (ret == TRUE);
+	g_assert_true (ret);
 
 	check = secret_item_get_secret (item);
-	g_assert (check == value);
+	g_assert_true (check == value);
 	secret_value_unref (check);
 	secret_value_unref (value);
 
 	ret = secret_item_load_secret_sync (item, NULL, &error);
 	g_assert_no_error (error);
-	g_assert (ret == TRUE);
+	g_assert_true (ret);
 
 	value = secret_item_get_secret (item);
-	g_assert (value != NULL);
+	g_assert_nonnull (value);
 
 	data = secret_value_get (value, &length);
 	egg_assert_cmpmem (data, length, ==, "Sinking", 7);
@@ -712,24 +712,24 @@ test_secrets_sync (Test *test,
 
 	ret = secret_item_load_secrets_sync (items, NULL, &error);
 	g_assert_no_error (error);
-	g_assert (ret == TRUE);
+	g_assert_true (ret);
 
 	value = secret_item_get_secret (item_one);
-	g_assert (value != NULL);
+	g_assert_nonnull (value);
 	password = secret_value_get (value, &length);
 	g_assert_cmpuint (length, ==, 3);
 	g_assert_cmpstr (password, ==, "111");
 	secret_value_unref (value);
 
 	value = secret_item_get_secret (item_two);
-	g_assert (value != NULL);
+	g_assert_nonnull (value);
 	password = secret_value_get (value, &length);
 	g_assert_cmpuint (length, ==, 3);
 	g_assert_cmpstr (password, ==, "222");
 	secret_value_unref (value);
 
 	value = secret_item_get_secret (item_three);
-	g_assert (value == NULL);
+	g_assert_null (value);
 
 	g_list_free_full (items, g_object_unref);
 }
@@ -767,31 +767,31 @@ test_secrets_async (Test *test,
 
 	secret_item_load_secrets (items, NULL,
 	                          on_async_result, &result);
-	g_assert (result == NULL);
+	g_assert_null (result);
 
 	egg_test_wait ();
 
 	ret = secret_item_load_secrets_finish (result, &error);
 	g_assert_no_error (error);
 	g_object_unref (result);
-	g_assert (ret == TRUE);
+	g_assert_true (ret);
 
 	value = secret_item_get_secret (item_one);
-	g_assert (value != NULL);
+	g_assert_nonnull (value);
 	password = secret_value_get (value, &length);
 	g_assert_cmpuint (length, ==, 3);
 	g_assert_cmpstr (password, ==, "111");
 	secret_value_unref (value);
 
 	value = secret_item_get_secret (item_two);
-	g_assert (value != NULL);
+	g_assert_nonnull (value);
 	password = secret_value_get (value, &length);
 	g_assert_cmpuint (length, ==, 3);
 	g_assert_cmpstr (password, ==, "222");
 	secret_value_unref (value);
 
 	value = secret_item_get_secret (item_three);
-	g_assert (value == NULL);
+	g_assert_null (value);
 
 	g_object_unref (item_one);
 	g_object_unref (item_two);
@@ -813,13 +813,13 @@ test_delete_sync (Test *test,
 
 	ret = secret_item_delete_sync (item, NULL, &error);
 	g_assert_no_error (error);
-	g_assert (ret == TRUE);
+	g_assert_true (ret);
 
 	g_object_unref (item);
 
 	item = secret_item_new_for_dbus_path_sync (test->service, item_path, SECRET_ITEM_NONE, NULL, &error);
 	g_assert_error (error, G_DBUS_ERROR, G_DBUS_ERROR_UNKNOWN_METHOD);
-	g_assert (item == NULL);
+	g_assert_null (item);
 	g_clear_error (&error);
 }
 
@@ -837,20 +837,20 @@ test_delete_async (Test *test,
 	g_assert_no_error (error);
 
 	secret_item_delete (item, NULL, on_async_result, &result);
-	g_assert (result == NULL);
+	g_assert_null (result);
 
 	egg_test_wait ();
 
 	ret = secret_item_delete_finish (item, result, &error);
 	g_assert_no_error (error);
-	g_assert (ret == TRUE);
+	g_assert_true (ret);
 
 	g_object_unref (result);
 	g_object_unref (item);
 
 	item = secret_item_new_for_dbus_path_sync (test->service, item_path, SECRET_ITEM_NONE, NULL, &error);
 	g_assert_error (error, G_DBUS_ERROR, G_DBUS_ERROR_UNKNOWN_METHOD);
-	g_assert (item == NULL);
+	g_assert_null (item);
 	g_clear_error (&error);
 }
 

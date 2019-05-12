@@ -71,7 +71,7 @@ test_new_full (void)
 	g_assert_cmpuint (length, ==, 4);
 
 	/* No copy done here */
-	g_assert (secret_value_get (value, NULL) == data);
+	g_assert_true (secret_value_get (value, NULL) == data);
 
 	secret_value_unref (value);
 }
@@ -89,7 +89,7 @@ test_new_full_terminated (void)
 	g_assert_cmpuint (length, ==, 4);
 
 	/* No copy done here */
-	g_assert (secret_value_get (value, NULL) == data);
+	g_assert_true (secret_value_get (value, NULL) == data);
 
 	secret_value_unref (value);
 }
@@ -102,14 +102,14 @@ test_new_empty (void)
 	gsize length;
 
 	value = secret_value_new (NULL, 0, "text/plain");
-	g_assert (value != NULL);
+	g_assert_nonnull (value);
 	password = secret_value_get (value, &length);
 	g_assert_cmpuint (length, ==, 0);
 	g_assert_cmpstr (password, ==, "");
 	secret_value_unref (value);
 
 	value = secret_value_new ("", 0, "text/plain");
-	g_assert (value != NULL);
+	g_assert_nonnull (value);
 	password = secret_value_get (value, &length);
 	g_assert_cmpuint (length, ==, 0);
 	g_assert_cmpstr (password, ==, "");

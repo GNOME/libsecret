@@ -64,7 +64,7 @@ teardown (Test *test,
 {
 	g_object_unref (test->service);
 	secret_service_disconnect ();
-	g_assert (test->service == NULL);
+	g_assert_null (test->service);
 
 	mock_service_stop ();
 }
@@ -75,8 +75,8 @@ on_async_result (GObject *source,
                  gpointer user_data)
 {
 	GAsyncResult **ret = user_data;
-	g_assert (ret != NULL);
-	g_assert (*ret == NULL);
+	g_assert_nonnull (ret);
+	g_assert_null (*ret);
 	*ret = g_object_ref (result);
 	egg_test_wait_stop ();
 }
@@ -87,8 +87,8 @@ on_notify_stop (GObject *obj,
                 gpointer user_data)
 {
 	guint *sigs = user_data;
-	g_assert (sigs != NULL);
-	g_assert (*sigs > 0);
+	g_assert_nonnull (sigs);
+	g_assert_true (*sigs > 0);
 	if (--(*sigs) == 0)
 		egg_test_wait_stop ();
 }
@@ -109,7 +109,7 @@ test_new_sync (Test *test,
 	g_assert_cmpstr (g_dbus_proxy_get_object_path (G_DBUS_PROXY (collection)), ==, collection_path);
 
 	g_object_unref (collection);
-	g_assert (collection == NULL);
+	g_assert_null (collection);
 }
 
 static void
@@ -123,7 +123,7 @@ test_new_async (Test *test,
 
 	secret_collection_new_for_dbus_path (test->service, collection_path,
 	                                     SECRET_COLLECTION_NONE, NULL, on_async_result, &result);
-	g_assert (result == NULL);
+	g_assert_null (result);
 
 	egg_test_wait ();
 
@@ -135,7 +135,7 @@ test_new_async (Test *test,
 	g_assert_cmpstr (g_dbus_proxy_get_object_path (G_DBUS_PROXY (collection)), ==, collection_path);
 
 	g_object_unref (collection);
-	g_assert (collection == NULL);
+	g_assert_null (collection);
 }
 
 static void
@@ -149,7 +149,7 @@ test_new_sync_noexist (Test *test,
 	collection = secret_collection_new_for_dbus_path_sync (test->service, collection_path,
 	                                                       SECRET_COLLECTION_NONE, NULL, &error);
 	g_assert_error (error, G_DBUS_ERROR, G_DBUS_ERROR_UNKNOWN_METHOD);
-	g_assert (collection == NULL);
+	g_assert_null (collection);
 	g_clear_error (&error);
 }
 
@@ -164,13 +164,13 @@ test_new_async_noexist (Test *test,
 
 	secret_collection_new_for_dbus_path (test->service, collection_path,
 	                                     SECRET_COLLECTION_NONE, NULL, on_async_result, &result);
-	g_assert (result == NULL);
+	g_assert_null (result);
 
 	egg_test_wait ();
 
 	collection = secret_collection_new_for_dbus_path_finish (result, &error);
 	g_assert_error (error, G_DBUS_ERROR, G_DBUS_ERROR_UNKNOWN_METHOD);
-	g_assert (collection == NULL);
+	g_assert_null (collection);
 	g_clear_error (&error);
 	g_object_unref (result);
 }
@@ -191,13 +191,13 @@ test_for_alias_sync (Test *test,
 	collection_path = g_dbus_proxy_get_object_path (G_DBUS_PROXY (collection));
 	g_assert_cmpstr (collection_path, ==, "/org/freedesktop/secrets/collection/english");
 	g_assert_cmpuint (secret_collection_get_flags (collection), ==, SECRET_COLLECTION_NONE);
-	g_assert (secret_collection_get_items (collection) == NULL);
+	g_assert_null (secret_collection_get_items (collection));
 	g_object_unref (collection);
 
 	collection = secret_collection_for_alias_sync (test->service, "unknown",
 	                                               SECRET_COLLECTION_NONE, NULL, &error);
 	g_assert_no_error (error);
-	g_assert (collection == NULL);
+	g_assert_null (collection);
 }
 
 static void
@@ -212,7 +212,7 @@ test_for_alias_async (Test *test,
 	secret_collection_for_alias (test->service, "default",
 	                             SECRET_COLLECTION_NONE,
 	                             NULL, on_async_result, &result);
-	g_assert (result == NULL);
+	g_assert_null (result);
 	egg_test_wait ();
 
 	collection = secret_collection_for_alias_finish (result, &error);
@@ -222,19 +222,19 @@ test_for_alias_async (Test *test,
 	collection_path = g_dbus_proxy_get_object_path (G_DBUS_PROXY (collection));
 	g_assert_cmpstr (collection_path, ==, "/org/freedesktop/secrets/collection/english");
 	g_assert_cmpuint (secret_collection_get_flags (collection), ==, SECRET_COLLECTION_NONE);
-	g_assert (secret_collection_get_items (collection) == NULL);
+	g_assert_null (secret_collection_get_items (collection));
 	g_object_unref (collection);
 	result = NULL;
 
 	secret_collection_for_alias (test->service, "unknown",
 	                             SECRET_COLLECTION_NONE,
 	                             NULL, on_async_result, &result);
-	g_assert (result == NULL);
+	g_assert_null (result);
 	egg_test_wait ();
 
 	collection = secret_collection_for_alias_finish (result, &error);
 	g_assert_no_error (error);
-	g_assert (collection == NULL);
+	g_assert_null (collection);
 	g_object_unref (result);
 }
 
@@ -256,7 +256,7 @@ test_for_alias_load_sync (Test *test,
 	g_assert_cmpstr (collection_path, ==, "/org/freedesktop/secrets/collection/english");
 	g_assert_cmpuint (secret_collection_get_flags (collection), ==, SECRET_COLLECTION_LOAD_ITEMS);
 	items = secret_collection_get_items (collection);
-	g_assert (items != NULL);
+	g_assert_nonnull (items);
 	g_list_free_full (items, g_object_unref);
 	g_object_unref (collection);
 }
@@ -274,7 +274,7 @@ test_for_alias_load_async (Test *test,
 	secret_collection_for_alias (test->service, "default",
 	                             SECRET_COLLECTION_LOAD_ITEMS,
 	                             NULL, on_async_result, &result);
-	g_assert (result == NULL);
+	g_assert_null (result);
 	egg_test_wait ();
 
 	collection = secret_collection_for_alias_finish (result, &error);
@@ -285,7 +285,7 @@ test_for_alias_load_async (Test *test,
 	g_assert_cmpstr (collection_path, ==, "/org/freedesktop/secrets/collection/english");
 	g_assert_cmpuint (secret_collection_get_flags (collection), ==, SECRET_COLLECTION_LOAD_ITEMS);
 	items = secret_collection_get_items (collection);
-	g_assert (items != NULL);
+	g_assert_nonnull (items);
 	g_list_free_full (items, g_object_unref);
 	g_object_unref (collection);
 	result = NULL;
@@ -304,12 +304,12 @@ test_create_sync (Test *test,
 	g_assert_no_error (error);
 	g_object_add_weak_pointer (G_OBJECT (collection), (gpointer *)&collection);
 
-	g_assert (g_str_has_prefix (g_dbus_proxy_get_object_path (G_DBUS_PROXY (collection)), "/org/freedesktop/secrets/collection"));
+	g_assert_true (g_str_has_prefix (g_dbus_proxy_get_object_path (G_DBUS_PROXY (collection)), "/org/freedesktop/secrets/collection"));
 	g_assert_cmpstr_free (secret_collection_get_label (collection), ==, "Train");
-	g_assert (secret_collection_get_locked (collection) == FALSE);
+	g_assert_false (secret_collection_get_locked (collection));
 
 	g_object_unref (collection);
-	g_assert (collection == NULL);
+	g_assert_null (collection);
 }
 
 static void
@@ -323,7 +323,7 @@ test_create_async (Test *test,
 	secret_collection_create (test->service, "Train", NULL,
 	                          SECRET_COLLECTION_CREATE_NONE,
 	                          NULL, on_async_result, &result);
-	g_assert (result == NULL);
+	g_assert_null (result);
 
 	egg_test_wait ();
 
@@ -332,12 +332,12 @@ test_create_async (Test *test,
 	g_object_unref (result);
 	g_object_add_weak_pointer (G_OBJECT (collection), (gpointer *)&collection);
 
-	g_assert (g_str_has_prefix (g_dbus_proxy_get_object_path (G_DBUS_PROXY (collection)), "/org/freedesktop/secrets/collection"));
+	g_assert_true (g_str_has_prefix (g_dbus_proxy_get_object_path (G_DBUS_PROXY (collection)), "/org/freedesktop/secrets/collection"));
 	g_assert_cmpstr_free (secret_collection_get_label (collection), ==, "Train");
-	g_assert (secret_collection_get_locked (collection) == FALSE);
+	g_assert_false (secret_collection_get_locked (collection));
 
 	g_object_unref (collection);
-	g_assert (collection == NULL);
+	g_assert_null (collection);
 }
 
 static void
@@ -357,7 +357,7 @@ test_properties (Test *test,
 	                                                       SECRET_COLLECTION_NONE, NULL, &error);
 	g_assert_no_error (error);
 
-	g_assert (secret_collection_get_locked (collection) == FALSE);
+	g_assert_false (secret_collection_get_locked (collection));
 	g_assert_cmpuint (secret_collection_get_created (collection), <=, time (NULL));
 	g_assert_cmpuint (secret_collection_get_modified (collection), <=, time (NULL));
 
@@ -373,14 +373,14 @@ test_properties (Test *test,
 	              "service", &service,
 	              NULL);
 
-	g_assert (locked == FALSE);
+	g_assert_false (locked);
 	g_assert_cmpuint (created, <=, time (NULL));
 	g_assert_cmpuint (modified, <=, time (NULL));
 
 	g_assert_cmpstr (label, ==, "Collection One");
 	g_free (label);
 
-	g_assert (service == test->service);
+	g_assert_true (service == test->service);
 	g_object_unref (service);
 
 	g_object_unref (collection);
@@ -409,7 +409,7 @@ check_items_equal (GList *items,
 	for (l = items; l != NULL; l = g_list_next (l)) {
 		path = g_dbus_proxy_get_object_path (l->data);
 		have_item = g_hash_table_remove (paths, path);
-		g_assert (have_item);
+		g_assert_true (have_item);
 	}
 
 	g_hash_table_destroy (paths);
@@ -484,7 +484,7 @@ test_items_empty_async (Test *test,
 	secret_collection_new_for_dbus_path (test->service, collection_path,
 	                                     SECRET_COLLECTION_LOAD_ITEMS,
 	                                     NULL, on_async_result, &result);
-	g_assert (result == NULL);
+	g_assert_null (result);
 
 	egg_test_wait ();
 
@@ -523,7 +523,7 @@ test_set_label_sync (Test *test,
 
 	ret = secret_collection_set_label_sync (collection, "Another label", NULL, &error);
 	g_assert_no_error (error);
-	g_assert (ret == TRUE);
+	g_assert_true (ret);
 
 	label = secret_collection_get_label (collection);
 	g_assert_cmpstr (label, ==, "Another label");
@@ -552,13 +552,13 @@ test_set_label_async (Test *test,
 	g_free (label);
 
 	secret_collection_set_label (collection, "Another label", NULL, on_async_result, &result);
-	g_assert (result == NULL);
+	g_assert_null (result);
 
 	egg_test_wait ();
 
 	ret = secret_collection_set_label_finish (collection, result, &error);
 	g_assert_no_error (error);
-	g_assert (ret == TRUE);
+	g_assert_true (ret);
 	g_object_unref (result);
 
 	label = secret_collection_get_label (collection);
@@ -581,7 +581,7 @@ test_set_label_prop (Test *test,
 
 	secret_collection_new_for_dbus_path (test->service, collection_path, SECRET_COLLECTION_NONE,
 	                                     NULL, on_async_result, &result);
-	g_assert (result == NULL);
+	g_assert_null (result);
 	egg_test_wait ();
 	collection = secret_collection_new_for_dbus_path_finish (result, &error);
 	g_assert_no_error (error);
@@ -619,14 +619,14 @@ test_delete_sync (Test *test,
 
 	ret = secret_collection_delete_sync (collection, NULL, &error);
 	g_assert_no_error (error);
-	g_assert (ret == TRUE);
+	g_assert_true (ret);
 
 	g_object_unref (collection);
 
 	collection = secret_collection_new_for_dbus_path_sync (test->service, collection_path,
 	                                                       SECRET_COLLECTION_NONE, NULL, &error);
 	g_assert_error (error, G_DBUS_ERROR, G_DBUS_ERROR_UNKNOWN_METHOD);
-	g_assert (collection == NULL);
+	g_assert_null (collection);
 	g_clear_error (&error);
 }
 
@@ -645,21 +645,21 @@ test_delete_async (Test *test,
 	g_assert_no_error (error);
 
 	secret_collection_delete (collection, NULL, on_async_result, &result);
-	g_assert (result == NULL);
+	g_assert_null (result);
 
 	egg_test_wait ();
 
 	ret = secret_collection_delete_finish (collection, result, &error);
 	g_assert_no_error (error);
 	g_object_unref (result);
-	g_assert (ret == TRUE);
+	g_assert_true (ret);
 
 	g_object_unref (collection);
 
 	collection = secret_collection_new_for_dbus_path_sync (test->service, collection_path,
 	                                                       SECRET_COLLECTION_NONE, NULL, &error);
 	g_assert_error (error, G_DBUS_ERROR, G_DBUS_ERROR_UNKNOWN_METHOD);
-	g_assert (collection == NULL);
+	g_assert_null (collection);
 	g_clear_error(&error);
 }
 
@@ -685,10 +685,10 @@ test_search_sync (Test *test,
 	g_assert_no_error (error);
 	g_hash_table_unref (attributes);
 
-	g_assert (items != NULL);
+	g_assert_nonnull (items);
 	g_assert_cmpstr (g_dbus_proxy_get_object_path (items->data), ==, "/org/freedesktop/secrets/collection/english/1");
 
-	g_assert (items->next == NULL);
+	g_assert_null (items->next);
 	g_list_free_full (items, g_object_unref);
 
 	g_object_unref (collection);
@@ -716,19 +716,19 @@ test_search_async (Test *test,
 	                          SECRET_SEARCH_NONE, NULL,
 	                          on_async_result, &result);
 	g_hash_table_unref (attributes);
-	g_assert (result == NULL);
+	g_assert_null (result);
 
 	egg_test_wait ();
 
-	g_assert (G_IS_ASYNC_RESULT (result));
+	g_assert_true (G_IS_ASYNC_RESULT (result));
 	items = secret_collection_search_finish (collection, result, &error);
 	g_assert_no_error (error);
 	g_object_unref (result);
 
-	g_assert (items != NULL);
+	g_assert_nonnull (items);
 	g_assert_cmpstr (g_dbus_proxy_get_object_path (items->data), ==, "/org/freedesktop/secrets/collection/english/1");
 
-	g_assert (items->next == NULL);
+	g_assert_null (items->next);
 	g_list_free_full (items, g_object_unref);
 
 	g_object_unref (collection);
@@ -767,19 +767,19 @@ test_search_all_sync (Test *test,
 
 	items = g_list_sort (items, sort_by_object_path);
 
-	g_assert (items != NULL);
+	g_assert_nonnull (items);
 	g_assert_cmpstr (g_dbus_proxy_get_object_path (items->data), ==, "/org/freedesktop/secrets/collection/english/1");
-	g_assert (secret_item_get_secret (items->data) == NULL);
+	g_assert_null (secret_item_get_secret (items->data));
 
-	g_assert (items->next != NULL);
+	g_assert_nonnull (items->next);
 	g_assert_cmpstr (g_dbus_proxy_get_object_path (items->next->data), ==, "/org/freedesktop/secrets/collection/english/2");
-	g_assert (secret_item_get_secret (items->next->data) == NULL);
+	g_assert_null (secret_item_get_secret (items->next->data));
 
-	g_assert (items->next->next != NULL);
+	g_assert_nonnull (items->next->next);
 	g_assert_cmpstr (g_dbus_proxy_get_object_path (items->next->next->data), ==, "/org/freedesktop/secrets/collection/english/3");
-	g_assert (secret_item_get_secret (items->next->next->data) == NULL);
+	g_assert_null (secret_item_get_secret (items->next->next->data));
 
-	g_assert (items->next->next->next == NULL);
+	g_assert_null (items->next->next->next);
 	g_list_free_full (items, g_object_unref);
 
 	g_object_unref (collection);
@@ -806,30 +806,30 @@ test_search_all_async (Test *test,
 	                          SECRET_SEARCH_ALL, NULL,
 	                          on_async_result, &result);
 	g_hash_table_unref (attributes);
-	g_assert (result == NULL);
+	g_assert_null (result);
 
 	egg_test_wait ();
 
-	g_assert (G_IS_ASYNC_RESULT (result));
+	g_assert_true (G_IS_ASYNC_RESULT (result));
 	items = secret_collection_search_finish (collection, result, &error);
 	g_assert_no_error (error);
 	g_object_unref (result);
 
 	items = g_list_sort (items, sort_by_object_path);
 
-	g_assert (items != NULL);
+	g_assert_nonnull (items);
 	g_assert_cmpstr (g_dbus_proxy_get_object_path (items->data), ==, "/org/freedesktop/secrets/collection/english/1");
-	g_assert (secret_item_get_secret (items->data) == NULL);
+	g_assert_null (secret_item_get_secret (items->data));
 
-	g_assert (items->next != NULL);
+	g_assert_nonnull (items->next);
 	g_assert_cmpstr (g_dbus_proxy_get_object_path (items->next->data), ==, "/org/freedesktop/secrets/collection/english/2");
-	g_assert (secret_item_get_secret (items->next->data) == NULL);
+	g_assert_null (secret_item_get_secret (items->next->data));
 
-	g_assert (items->next->next != NULL);
+	g_assert_nonnull (items->next->next);
 	g_assert_cmpstr (g_dbus_proxy_get_object_path (items->next->next->data), ==, "/org/freedesktop/secrets/collection/english/3");
-	g_assert (secret_item_get_secret (items->next->next->data) == NULL);
+	g_assert_null (secret_item_get_secret (items->next->next->data));
 
-	g_assert (items->next->next->next == NULL);
+	g_assert_null (items->next->next->next);
 	g_list_free_full (items, g_object_unref);
 
 	g_object_unref (collection);
@@ -857,12 +857,12 @@ test_search_unlock_sync (Test *test,
 	g_assert_no_error (error);
 	g_hash_table_unref (attributes);
 
-	g_assert (items != NULL);
+	g_assert_nonnull (items);
 	g_assert_cmpstr (g_dbus_proxy_get_object_path (items->data), ==, "/org/freedesktop/secrets/collection/spanish/10");
-	g_assert (secret_item_get_locked (items->data) == FALSE);
-	g_assert (secret_item_get_secret (items->data) == NULL);
+	g_assert_false (secret_item_get_locked (items->data));
+	g_assert_null (secret_item_get_secret (items->data));
 
-	g_assert (items->next == NULL);
+	g_assert_null (items->next);
 	g_list_free_full (items, g_object_unref);
 
 	g_object_unref (collection);
@@ -890,21 +890,21 @@ test_search_unlock_async (Test *test,
 	                          SECRET_SEARCH_UNLOCK, NULL,
 	                          on_async_result, &result);
 	g_hash_table_unref (attributes);
-	g_assert (result == NULL);
+	g_assert_null (result);
 
 	egg_test_wait ();
 
-	g_assert (G_IS_ASYNC_RESULT (result));
+	g_assert_true (G_IS_ASYNC_RESULT (result));
 	items = secret_collection_search_finish (collection, result, &error);
 	g_assert_no_error (error);
 	g_object_unref (result);
 
-	g_assert (items != NULL);
+	g_assert_nonnull (items);
 	g_assert_cmpstr (g_dbus_proxy_get_object_path (items->data), ==, "/org/freedesktop/secrets/collection/spanish/10");
-	g_assert (secret_item_get_locked (items->data) == FALSE);
-	g_assert (secret_item_get_secret (items->data) == NULL);
+	g_assert_false (secret_item_get_locked (items->data));
+	g_assert_null (secret_item_get_secret (items->data));
 
-	g_assert (items->next == NULL);
+	g_assert_null (items->next);
 	g_list_free_full (items, g_object_unref);
 
 	g_object_unref (collection);
@@ -934,14 +934,14 @@ test_search_secrets_sync (Test *test,
 	g_assert_no_error (error);
 	g_hash_table_unref (attributes);
 
-	g_assert (items != NULL);
+	g_assert_nonnull (items);
 	g_assert_cmpstr (g_dbus_proxy_get_object_path (items->data), ==, "/org/freedesktop/secrets/collection/english/1");
-	g_assert (secret_item_get_locked (items->data) == FALSE);
+	g_assert_false (secret_item_get_locked (items->data));
 	value = secret_item_get_secret (items->data);
-	g_assert (value != NULL);
+	g_assert_nonnull (value);
 	secret_value_unref (value);
 
-	g_assert (items->next == NULL);
+	g_assert_null (items->next);
 	g_list_free_full (items, g_object_unref);
 
 	g_object_unref (collection);
@@ -970,23 +970,23 @@ test_search_secrets_async (Test *test,
 	                          SECRET_SEARCH_LOAD_SECRETS, NULL,
 	                          on_async_result, &result);
 	g_hash_table_unref (attributes);
-	g_assert (result == NULL);
+	g_assert_null (result);
 
 	egg_test_wait ();
 
-	g_assert (G_IS_ASYNC_RESULT (result));
+	g_assert_true (G_IS_ASYNC_RESULT (result));
 	items = secret_collection_search_finish (collection, result, &error);
 	g_assert_no_error (error);
 	g_object_unref (result);
 
-	g_assert (items != NULL);
+	g_assert_nonnull (items);
 	g_assert_cmpstr (g_dbus_proxy_get_object_path (items->data), ==, "/org/freedesktop/secrets/collection/english/1");
-	g_assert (secret_item_get_locked (items->data) == FALSE);
+	g_assert_false (secret_item_get_locked (items->data));
 	value = secret_item_get_secret (items->data);
-	g_assert (value != NULL);
+	g_assert_nonnull (value);
 	secret_value_unref (value);
 
-	g_assert (items->next == NULL);
+	g_assert_null (items->next);
 	g_list_free_full (items, g_object_unref);
 
 	g_object_unref (collection);

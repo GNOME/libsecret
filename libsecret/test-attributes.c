@@ -65,7 +65,7 @@ test_build_unknown (void)
 		                                      "string", "four",
 		                                      "even", TRUE,
 		                                      NULL);
-		g_assert (attributes == NULL);
+		g_assert_null (attributes);
 		return;
 	}
 
@@ -85,7 +85,7 @@ test_build_null_string (void)
 		                                      "string", NULL,
 		                                      "even", TRUE,
 		                                      NULL);
-		g_assert (attributes == NULL);
+		g_assert_null (attributes);
 		return;
 	}
 
@@ -105,7 +105,7 @@ test_build_non_utf8_string (void)
 		                                      "string", "\xfftest",
 		                                      "even", TRUE,
 		                                      NULL);
-		g_assert (attributes == NULL);
+		g_assert_null (attributes);
 		return;
 	}
 
@@ -123,7 +123,7 @@ test_build_bad_type (void)
 		attributes = secret_attributes_build (&MOCK_SCHEMA,
 		                                      "bad-type", "test",
 		                                      NULL);
-		g_assert (attributes == NULL);
+		g_assert_null (attributes);
 		return;
 	}
 
@@ -144,7 +144,7 @@ test_validate_schema (void)
 	g_hash_table_replace (attributes, "xdg:schema", "org.mock.Schema");
 
 	ret = _secret_attributes_validate (&MOCK_SCHEMA, attributes, G_STRFUNC, TRUE);
-	g_assert (ret == TRUE);
+	g_assert_true (ret);
 
 	g_hash_table_unref (attributes);
 }
@@ -162,7 +162,7 @@ test_validate_schema_bad (void)
 		g_hash_table_replace (attributes, "xdg:schema", "mismatched.Schema");
 
 		ret = _secret_attributes_validate (&MOCK_SCHEMA, attributes, G_STRFUNC, TRUE);
-		g_assert (ret == FALSE);
+		g_assert_false (ret);
 
 		g_hash_table_unref (attributes);
 		return;
@@ -183,7 +183,7 @@ test_validate_libgnomekeyring (void)
 	g_hash_table_replace (attributes, "gkr:compat", "blah-dee-blah");
 
 	ret = _secret_attributes_validate (&MOCK_SCHEMA, attributes, G_STRFUNC, TRUE);
-	g_assert (ret == TRUE);
+	g_assert_true (ret);
 
 	g_hash_table_unref (attributes);
 }

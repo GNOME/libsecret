@@ -38,7 +38,7 @@ test_encode (void)
 	gchar *hex;
 
 	hex = egg_hex_encode (TEST_DATA, sizeof (TEST_DATA));
-	g_assert (hex);
+	g_assert_nonnull (hex);
 	g_assert_cmpstr (hex, ==, TEST_HEX);
 
 	g_free (hex);
@@ -51,14 +51,14 @@ test_encode_spaces (void)
 
 	/* Encode without spaces */
 	hex = egg_hex_encode_full (TEST_DATA, sizeof (TEST_DATA), TRUE, 0, 0);
-	g_assert (hex);
+	g_assert_nonnull (hex);
 	g_assert_cmpstr (hex, ==, TEST_HEX);
 
 	g_free (hex);
 
 	/* Encode with spaces */
 	hex = egg_hex_encode_full (TEST_DATA, sizeof (TEST_DATA), TRUE, "  ", 1);
-	g_assert (hex);
+	g_assert_nonnull (hex);
 	g_assert_cmpstr (hex, ==, TEST_HEX_DELIM);
 
 	g_free (hex);
@@ -71,22 +71,22 @@ test_decode (void)
 	gsize n_data;
 
 	data = egg_hex_decode (TEST_HEX, -1, &n_data);
-	g_assert (data);
-	g_assert (n_data == sizeof (TEST_DATA));
-	g_assert (memcmp (data, TEST_DATA, n_data) == 0);
+	g_assert_nonnull (data);
+	g_assert_cmpuint (n_data, ==, sizeof (TEST_DATA));
+	g_assert_true (memcmp (data, TEST_DATA, n_data) == 0);
 	g_free (data);
 
 	/* Nothing in, empty out */
 	data = egg_hex_decode ("AB", 0, &n_data);
-	g_assert (data);
-	g_assert (n_data == 0);
+	g_assert_nonnull (data);
+	g_assert_cmpuint (n_data, ==, 0);
 	g_free (data);
 
 	/* Delimited*/
 	data = egg_hex_decode_full (TEST_HEX_DELIM, -1, "  ", 1, &n_data);
-	g_assert (data);
-	g_assert (n_data == sizeof (TEST_DATA));
-	g_assert (memcmp (data, TEST_DATA, n_data) == 0);
+	g_assert_nonnull (data);
+	g_assert_cmpuint (n_data, ==, sizeof (TEST_DATA));
+	g_assert_true (memcmp (data, TEST_DATA, n_data) == 0);
 	g_free (data);
 }
 
@@ -98,15 +98,15 @@ test_decode_fail (void)
 
 	/* Invalid input, null out */
 	data = egg_hex_decode ("AB", 1, &n_data);
-	g_assert (!data);
+	g_assert_null (data);
 
 	/* Bad characters, null out */
 	data = egg_hex_decode ("ABXX", -1, &n_data);
-	g_assert (!data);
+	g_assert_null (data);
 
 	/* Not Delimited, null out*/
 	data = egg_hex_decode_full ("ABABAB", -1, ":", 1, &n_data);
-	g_assert (!data);
+	g_assert_null (data);
 }
 
 int

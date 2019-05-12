@@ -54,7 +54,7 @@ teardown (Test *test,
 {
 	g_object_unref (test->service);
 	secret_service_disconnect ();
-	g_assert (test->service == NULL);
+	g_assert_null (test->service);
 
 	mock_service_stop ();
 }
@@ -65,8 +65,8 @@ on_async_result (GObject *source,
                  gpointer user_data)
 {
 	GAsyncResult **ret = user_data;
-	g_assert (ret != NULL);
-	g_assert (*ret == NULL);
+	g_assert_nonnull (ret);
+	g_assert_null (*ret);
 	*ret = g_object_ref (result);
 	egg_test_wait_stop ();
 }
@@ -96,7 +96,7 @@ test_perform_sync (Test *test,
 
 	retval = secret_prompt_perform_sync (prompt, NULL, NULL, NULL, &error);
 	g_assert_no_error (error);
-	g_assert (retval != NULL);
+	g_assert_nonnull (retval);
 	g_variant_unref (retval);
 	g_object_add_weak_pointer (G_OBJECT (prompt), (gpointer *)&prompt);
 
@@ -104,7 +104,7 @@ test_perform_sync (Test *test,
 	g_source_remove (increment_id);
 
 	g_object_unref (prompt);
-	g_assert (prompt == NULL);
+	g_assert_null (prompt);
 }
 
 static void
@@ -124,7 +124,7 @@ test_perform_run (Test *test,
 
 	retval = secret_prompt_run (prompt, 0, NULL, NULL, &error);
 	g_assert_no_error (error);
-	g_assert (retval != NULL);
+	g_assert_nonnull (retval);
 	g_variant_unref (retval);
 	g_object_add_weak_pointer (G_OBJECT (prompt), (gpointer *)&prompt);
 
@@ -135,7 +135,7 @@ test_perform_run (Test *test,
 	egg_test_wait_idle ();
 
 	g_object_unref (prompt);
-	g_assert (prompt == NULL);
+	g_assert_null (prompt);
 }
 
 static void
@@ -151,13 +151,13 @@ test_perform_async (Test *test,
 	g_object_add_weak_pointer (G_OBJECT (prompt), (gpointer *)&prompt);
 
 	secret_prompt_perform (prompt, 0, NULL, NULL, on_async_result, &result);
-	g_assert (result == NULL);
+	g_assert_null (result);
 
 	egg_test_wait ();
 
 	retval = secret_prompt_perform_finish (prompt, result, &error);
 	g_assert_no_error (error);
-	g_assert (retval != NULL);
+	g_assert_nonnull (retval);
 	g_variant_unref (retval);
 	g_object_unref (result);
 
@@ -165,7 +165,7 @@ test_perform_async (Test *test,
 	egg_test_wait_idle ();
 
 	g_object_unref (prompt);
-	g_assert (prompt == NULL);
+	g_assert_null (prompt);
 }
 
 static void
@@ -183,7 +183,7 @@ test_perform_cancel (Test *test,
 
 	cancellable = g_cancellable_new ();
 	secret_prompt_perform (prompt, 0, NULL, cancellable, on_async_result, &result);
-	g_assert (result == NULL);
+	g_assert_null (result);
 
 	g_cancellable_cancel (cancellable);
 	g_object_unref (cancellable);
@@ -192,7 +192,7 @@ test_perform_cancel (Test *test,
 
 	retval = secret_prompt_perform_finish (prompt, result, &error);
 	g_assert_no_error (error);
-	g_assert (retval != NULL);
+	g_assert_nonnull (retval);
 	g_variant_unref (retval);
 
 	g_object_unref (result);
@@ -201,7 +201,7 @@ test_perform_cancel (Test *test,
 	/* Due to GDBus threading races */
 	egg_test_wait_until (100);
 
-	g_assert (prompt == NULL);
+	g_assert_null (prompt);
 }
 
 static void
@@ -217,11 +217,11 @@ test_perform_fail (Test *test,
 
 	retval = secret_prompt_perform_sync (prompt, NULL, NULL, NULL, &error);
 	g_assert_error (error, G_DBUS_ERROR, G_DBUS_ERROR_NOT_SUPPORTED);
-	g_assert (retval == NULL);
+	g_assert_null (retval);
 	g_clear_error (&error);
 
 	g_object_unref (prompt);
-	g_assert (prompt == NULL);
+	g_assert_null (prompt);
 }
 
 static void
@@ -237,10 +237,10 @@ test_perform_vanish (Test *test,
 
 	retval = secret_prompt_perform_sync (prompt, NULL, NULL, NULL, &error);
 	g_assert_no_error (error);
-	g_assert (retval == NULL);
+	g_assert_null (retval);
 
 	g_object_unref (prompt);
-	g_assert (prompt == NULL);
+	g_assert_null (prompt);
 }
 
 static void
@@ -256,12 +256,12 @@ test_prompt_result (Test *test,
 
 	retval = secret_prompt_perform_sync (prompt, 0, NULL, G_VARIANT_TYPE_STRING, &error);
 	g_assert_no_error (error);
-	g_assert (retval != NULL);
+	g_assert_nonnull (retval);
 	g_assert_cmpstr (g_variant_get_string (retval, NULL), ==, "Special Result");
 	g_variant_unref (retval);
 
 	g_object_unref (prompt);
-	g_assert (prompt == NULL);
+	g_assert_null (prompt);
 }
 
 static void
@@ -277,12 +277,12 @@ test_prompt_window_id (Test *test,
 
 	retval = secret_prompt_perform_sync (prompt, "555", NULL, G_VARIANT_TYPE_STRING, &error);
 	g_assert_no_error (error);
-	g_assert (retval != NULL);
+	g_assert_nonnull (retval);
 	g_assert_cmpstr (g_variant_get_string (retval, NULL), ==, "555");
 	g_variant_unref (retval);
 
 	g_object_unref (prompt);
-	g_assert (prompt == NULL);
+	g_assert_null (prompt);
 }
 
 static void
@@ -298,11 +298,11 @@ test_service_sync (Test *test,
 
 	retval = secret_service_prompt_sync (test->service, prompt, NULL, NULL, &error);
 	g_assert_no_error (error);
-	g_assert (retval != NULL);
+	g_assert_nonnull (retval);
 	g_variant_unref (retval);
 
 	g_object_unref (prompt);
-	g_assert (prompt == NULL);
+	g_assert_null (prompt);
 }
 
 static void
@@ -318,13 +318,13 @@ test_service_async (Test *test,
 	g_object_add_weak_pointer (G_OBJECT (prompt), (gpointer *)&prompt);
 
 	secret_service_prompt (test->service, prompt, NULL, NULL, on_async_result, &result);
-	g_assert (result == NULL);
+	g_assert_null (result);
 
 	egg_test_wait ();
 
 	retval = secret_service_prompt_finish (test->service, result, &error);
 	g_assert_no_error (error);
-	g_assert (retval != NULL);
+	g_assert_nonnull (retval);
 	g_variant_unref (retval);
 	g_object_unref (result);
 
@@ -332,7 +332,7 @@ test_service_async (Test *test,
 	egg_test_wait_idle ();
 
 	g_object_unref (prompt);
-	g_assert (prompt == NULL);
+	g_assert_null (prompt);
 }
 
 static void
@@ -348,13 +348,13 @@ test_service_fail (Test *test,
 	g_object_add_weak_pointer (G_OBJECT (prompt), (gpointer *)&prompt);
 
 	secret_service_prompt (test->service, prompt, NULL, NULL, on_async_result, &result);
-	g_assert (result == NULL);
+	g_assert_null (result);
 
 	egg_test_wait ();
 
 	retval = secret_service_prompt_finish (test->service, result, &error);
 	g_assert_error (error, G_DBUS_ERROR, G_DBUS_ERROR_NOT_SUPPORTED);
-	g_assert (retval == NULL);
+	g_assert_null (retval);
 	g_object_unref (result);
 	g_clear_error (&error);
 
@@ -362,7 +362,7 @@ test_service_fail (Test *test,
 	egg_test_wait_idle ();
 
 	g_object_unref (prompt);
-	g_assert (prompt == NULL);
+	g_assert_null (prompt);
 }
 
 static void
@@ -377,14 +377,14 @@ test_service_path (Test *test,
 	prompt = _secret_prompt_instance (test->service, "/org/freedesktop/secrets/prompts/simple");
 
 	secret_service_prompt (test->service, prompt, NULL, NULL, on_async_result, &result);
-	g_assert (result == NULL);
+	g_assert_null (result);
 
 	g_object_unref (prompt);
 	egg_test_wait ();
 
 	retval = secret_service_prompt_finish (test->service, result, &error);
 	g_assert_no_error (error);
-	g_assert (retval != NULL);
+	g_assert_nonnull (retval);
 	g_variant_unref (retval);
 	g_object_unref (result);
 
