@@ -51,19 +51,19 @@ test_perform (void)
 
 	/* Generate secrets */
 	ret = egg_dh_gen_pair (p, g, 0, &X1, &x1);
-	g_assert (ret);
+	g_assert_true (ret);
 	ret = egg_dh_gen_pair (p, g, 0, &X2, &x2);
-	g_assert (ret);
+	g_assert_true (ret);
 
 	/* Calculate keys */
 	k1 = egg_dh_gen_secret (X2, x1, p, &n1);
-	g_assert (k1);
+	g_assert_nonnull (k1);
 	k2 = egg_dh_gen_secret (X1, x2, p, &n2);
-	g_assert (k2);
+	g_assert_nonnull (k2);
 
 	/* Keys must be the same */
 	egg_assert_cmpsize (n1, ==, n2);
-	g_assert (memcmp (k1, k2, n1) == 0);
+	g_assert_true (memcmp (k1, k2, n1) == 0);
 
 	gcry_mpi_release (p);
 	gcry_mpi_release (g);
@@ -84,12 +84,12 @@ test_short_pair (void)
 
 	/* Load up the parameters */
 	ret = egg_dh_default_params ("ietf-ike-grp-modp-1024", &p, &g);
-	g_assert (ret);
+	g_assert_true (ret);
 	g_assert_cmpuint (gcry_mpi_get_nbits (p), ==, 1024);
 
 	/* Generate secrets */
 	ret = egg_dh_gen_pair (p, g, 512, &X1, &x1);
-	g_assert (ret);
+	g_assert_true (ret);
 	g_assert_cmpuint (gcry_mpi_get_nbits (x1), <=, 512);
 
 	gcry_mpi_release (p);
@@ -108,25 +108,25 @@ check_dh_default (const gchar *name, guint bits)
 	gcry_error_t gcry;
 
 	ret = egg_dh_default_params (name, &p, &g);
-	g_assert (ret);
+	g_assert_true (ret);
 	g_assert_cmpint (gcry_mpi_get_nbits (p), ==, bits);
 	g_assert_cmpint (gcry_mpi_get_nbits (g), <, gcry_mpi_get_nbits (p));
 
 	ret = egg_dh_default_params_raw (name, &prime, &n_prime, &base, &n_base);
-	g_assert (ret);
-	g_assert (prime != NULL);
+	g_assert_true (ret);
+	g_assert_nonnull (prime != NULL);
 	egg_assert_cmpsize (n_prime, >, 0);
-	g_assert (base != NULL);
+	g_assert_nonnull (base != NULL);
 	egg_assert_cmpsize (n_base, >, 0);
 
 	gcry = gcry_mpi_scan (&check, GCRYMPI_FMT_USG, prime, n_prime, NULL);
-	g_assert (gcry == 0);
-	g_assert (gcry_mpi_cmp (check, p) == 0);
+	g_assert_true (gcry == 0);
+	g_assert_true (gcry_mpi_cmp (check, p) == 0);
 	gcry_mpi_release (check);
 
 	gcry = gcry_mpi_scan (&check, GCRYMPI_FMT_USG, base, n_base, NULL);
-	g_assert (gcry == 0);
-	g_assert (gcry_mpi_cmp (check, g) == 0);
+	g_assert_true (gcry == 0);
+	g_assert_true (gcry_mpi_cmp (check, g) == 0);
 	gcry_mpi_release (check);
 
 	gcry_mpi_release (p);
@@ -182,7 +182,7 @@ test_default_bad (void)
 	gcry_mpi_t p, g;
 
 	ret = egg_dh_default_params ("bad-name", &p, &g);
-	g_assert (!ret);
+	g_assert_false (ret);
 }
 
 int

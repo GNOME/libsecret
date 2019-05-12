@@ -47,7 +47,7 @@ egg_test_escape_data (const guchar *data,
 	gsize i;
 	guchar j;
 
-	g_assert (data != NULL);
+	g_assert_nonnull (data);
 
 	result = g_string_sized_new (n_data * 2 + 1);
 	for (i = 0; i < n_data; ++i) {
@@ -94,14 +94,14 @@ static gboolean (*wait_until_impl) (int timeout);
 void
 egg_test_wait_stop (void)
 {
-	g_assert (wait_stop_impl != NULL);
+	g_assert_nonnull (wait_stop_impl);
 	(wait_stop_impl) ();
 }
 
 gboolean
 egg_test_wait_until (int timeout)
 {
-	g_assert (wait_until_impl != NULL);
+	g_assert_nonnull (wait_until_impl);
 	return (wait_until_impl) (timeout);
 }
 
@@ -110,7 +110,7 @@ egg_test_wait_idle (void)
 {
 	GMainContext *context;
 
-	g_assert (wait_until_impl != NULL);
+	g_assert_nonnull (wait_until_impl);
 
 	context = g_main_context_get_thread_default ();
 	while (g_main_context_iteration (context, FALSE));
@@ -121,7 +121,7 @@ static GMainLoop *wait_loop = NULL;
 static void
 loop_wait_stop (void)
 {
-	g_assert (wait_loop != NULL);
+	g_assert_nonnull (wait_loop);
 	g_main_loop_quit (wait_loop);
 }
 
@@ -131,7 +131,7 @@ on_loop_wait_timeout (gpointer data)
 	gboolean *timed_out = data;
 	*timed_out = TRUE;
 
-	g_assert (wait_loop != NULL);
+	g_assert_nonnull (wait_loop);
 	g_main_loop_quit (wait_loop);
 
 	return TRUE; /* we remove this source later */
@@ -143,7 +143,7 @@ loop_wait_until (int timeout)
 	gboolean timed_out = FALSE;
 	guint source;
 
-	g_assert (wait_loop == NULL);
+	g_assert_null (wait_loop);
 	wait_loop = g_main_loop_new (g_main_context_get_thread_default (), FALSE);
 
 	source = g_timeout_add (timeout, on_loop_wait_timeout, &timed_out);

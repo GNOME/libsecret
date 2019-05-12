@@ -48,7 +48,7 @@ gchar *    egg_test_escape_data                (const guchar *data,
 
 void       egg_test_wait_stop                  (void);
 
-#define    egg_test_wait()                     g_assert (egg_test_wait_until (20000) != FALSE)
+#define    egg_test_wait()                     g_assert_true (egg_test_wait_until (20000))
 
 gboolean   egg_test_wait_until                 (int timeout);
 
