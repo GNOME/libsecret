@@ -5,3 +5,5 @@ secret_tool_SOURCES = \
 
 secret_tool_LDADD = \
 	libsecret-@SECRET_MAJOR@.la
+
+EXTRA_DIST += meson.build

@@ -172,6 +172,9 @@ CLEANFILES = \
 
 EXTRA_DIST = \
 	COPYING.TESTS \
+	meson.build \
+	meson_options.txt \
+	po/meson.build \
 	build/valgrind \
 	build/tap-gtester \
 	build/tap-driver \

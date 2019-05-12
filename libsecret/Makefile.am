@@ -365,6 +365,7 @@ EXTRA_DIST += \
 	libsecret/mock-service-normal.py \
 	libsecret/mock-service-only-plain.py \
 	libsecret/mock-service-prompt.py \
+	meson.build \
 	$(JS_TESTS) \
 	$(PY_TESTS) \
 	$(NULL)
