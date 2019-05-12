@@ -1,7 +1,9 @@
 noinst_LTLIBRARIES += \
 	libegg.la
 
-EXTRA_DIST += egg/egg-testing.h
+EXTRA_DIST += \
+	egg/egg-testing.h \
+	meson.build
 
 if WITH_GCRYPT
 ENCRYPTION_SRCS = egg/egg-dh.c egg/egg-dh.h
