@@ -78,6 +78,7 @@ if with_gcrypt
 endif
 conf.set('WITH_DEBUG', enable_debug)
 conf.set('_DEBUG', enable_debug)
+conf.set('HAVE_MLOCK', meson.get_compiler('c').has_function('mlock'))
 configure_file(output: 'config.h', configuration: conf)
 
 # Subfolders
