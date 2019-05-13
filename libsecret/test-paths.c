@@ -83,7 +83,7 @@ teardown (Test *test,
 
 	g_object_unref (test->service);
 	secret_service_disconnect ();
-	g_assert (test->service == NULL);
+	g_assert_null (test->service);
 
 	teardown_mock (test, unused);
 }
@@ -94,8 +94,8 @@ on_complete_get_result (GObject *source,
                         gpointer user_data)
 {
 	GAsyncResult **ret = user_data;
-	g_assert (ret != NULL);
-	g_assert (*ret == NULL);
+	g_assert_nonnull (ret);
+	g_assert_null (*ret);
 	*ret = g_object_ref (result);
 	egg_test_wait_stop ();
 }
@@ -116,12 +116,12 @@ test_search_paths_sync (Test *test,
 	ret = secret_service_search_for_dbus_paths_sync (test->service, &MOCK_SCHEMA, attributes, NULL,
 	                                                 &unlocked, &locked, &error);
 	g_assert_no_error (error);
-	g_assert (ret == TRUE);
+	g_assert_true (ret);
 
-	g_assert (locked);
+	g_assert_nonnull (locked);
 	g_assert_cmpstr (locked[0], ==, "/org/freedesktop/secrets/collection/spanish/10");
 
-	g_assert (unlocked);
+	g_assert_nonnull (unlocked);
 	g_assert_cmpstr (unlocked[0], ==, "/org/freedesktop/secrets/collection/english/1");
 
 	g_strfreev (unlocked);
@@ -148,17 +148,17 @@ test_search_paths_async (Test *test,
 	                                      on_complete_get_result, &result);
 	egg_test_wait ();
 
-	g_assert (G_IS_ASYNC_RESULT (result));
+	g_assert_true (G_IS_ASYNC_RESULT (result));
 	ret = secret_service_search_for_dbus_paths_finish (test->service, result,
 	                                                        &unlocked, &locked,
 	                                                        &error);
 	g_assert_no_error (error);
-	g_assert (ret == TRUE);
+	g_assert_true (ret);
 
-	g_assert (locked);
+	g_assert_nonnull (locked);
 	g_assert_cmpstr (locked[0], ==, "/org/freedesktop/secrets/collection/spanish/10");
 
-	g_assert (unlocked);
+	g_assert_nonnull (unlocked);
 	g_assert_cmpstr (unlocked[0], ==, "/org/freedesktop/secrets/collection/english/1");
 
 	g_strfreev (unlocked);
@@ -184,33 +184,33 @@ test_search_paths_nulls (Test *test,
 	ret = secret_service_search_for_dbus_paths_sync (test->service, &MOCK_SCHEMA, attributes, NULL,
 	                                             &paths, NULL, &error);
 	g_assert_no_error (error);
-	g_assert (ret == TRUE);
-	g_assert (paths != NULL);
+	g_assert_true (ret);
+	g_assert_nonnull (paths);
 	g_assert_cmpstr (paths[0], ==, "/org/freedesktop/secrets/collection/english/1");
 	g_strfreev (paths);
 
 	ret = secret_service_search_for_dbus_paths_sync (test->service, &MOCK_SCHEMA, attributes, NULL,
 	                                                 NULL, &paths, &error);
 	g_assert_no_error (error);
-	g_assert (ret == TRUE);
-	g_assert (paths != NULL);
+	g_assert_true (ret);
+	g_assert_nonnull (paths);
 	g_assert_cmpstr (paths[0], ==, "/org/freedesktop/secrets/collection/spanish/10");
 	g_strfreev (paths);
 
 	ret = secret_service_search_for_dbus_paths_sync (test->service, &MOCK_SCHEMA, attributes, NULL,
 	                                                 NULL, NULL, &error);
 	g_assert_no_error (error);
-	g_assert (ret == TRUE);
+	g_assert_true (ret);
 
 	secret_service_search_for_dbus_paths (test->service, &MOCK_SCHEMA, attributes, NULL,
 	                                      on_complete_get_result, &result);
 	egg_test_wait ();
-	g_assert (G_IS_ASYNC_RESULT (result));
+	g_assert_true (G_IS_ASYNC_RESULT (result));
 	ret = secret_service_search_for_dbus_paths_finish (test->service, result,
 	                                                   &paths, NULL, &error);
 	g_assert_no_error (error);
-	g_assert (ret == TRUE);
-	g_assert (paths != NULL);
+	g_assert_true (ret);
+	g_assert_nonnull (paths);
 	g_assert_cmpstr (paths[0], ==, "/org/freedesktop/secrets/collection/english/1");
 	g_strfreev (paths);
 	g_clear_object (&result);
@@ -218,12 +218,12 @@ test_search_paths_nulls (Test *test,
 	secret_service_search_for_dbus_paths (test->service, &MOCK_SCHEMA, attributes, NULL,
 	                                      on_complete_get_result, &result);
 	egg_test_wait ();
-	g_assert (G_IS_ASYNC_RESULT (result));
+	g_assert_true (G_IS_ASYNC_RESULT (result));
 	ret = secret_service_search_for_dbus_paths_finish (test->service, result,
 	                                                   NULL, &paths, &error);
 	g_assert_no_error (error);
-	g_assert (ret == TRUE);
-	g_assert (paths != NULL);
+	g_assert_true (ret);
+	g_assert_nonnull (paths);
 	g_assert_cmpstr (paths[0], ==, "/org/freedesktop/secrets/collection/spanish/10");
 	g_strfreev (paths);
 	g_clear_object (&result);
@@ -231,11 +231,11 @@ test_search_paths_nulls (Test *test,
 	secret_service_search_for_dbus_paths (test->service, &MOCK_SCHEMA, attributes, NULL,
 	                                      on_complete_get_result, &result);
 	egg_test_wait ();
-	g_assert (G_IS_ASYNC_RESULT (result));
+	g_assert_true (G_IS_ASYNC_RESULT (result));
 	ret = secret_service_search_for_dbus_paths_finish (test->service, result,
 	                                                   NULL, NULL, &error);
 	g_assert_no_error (error);
-	g_assert (ret == TRUE);
+	g_assert_true (ret);
 	g_clear_object (&result);
 
 	g_hash_table_unref (attributes);
@@ -254,7 +254,7 @@ test_secret_for_path_sync (Test *test,
 	path = "/org/freedesktop/secrets/collection/english/1";
 	value = secret_service_get_secret_for_dbus_path_sync (test->service, path, NULL, &error);
 	g_assert_no_error (error);
-	g_assert (value != NULL);
+	g_assert_nonnull (value);
 
 	password = secret_value_get (value, &length);
 	g_assert_cmpuint (length, ==, 3);
@@ -280,12 +280,12 @@ test_secret_for_path_async (Test *test,
 	path = "/org/freedesktop/secrets/collection/english/1";
 	secret_service_get_secret_for_dbus_path (test->service, path, NULL,
 	                                         on_complete_get_result, &result);
-	g_assert (result == NULL);
+	g_assert_null (result);
 	egg_test_wait ();
 
 	value = secret_service_get_secret_for_dbus_path_finish (test->service, result, &error);
 	g_assert_no_error (error);
-	g_assert (value != NULL);
+	g_assert_nonnull (value);
 	g_object_unref (result);
 
 	password = secret_value_get (value, &length);
@@ -322,17 +322,17 @@ test_secrets_for_paths_sync (Test *test,
 	values = secret_service_get_secrets_for_dbus_paths_sync (test->service, paths, NULL, &error);
 	g_assert_no_error (error);
 
-	g_assert (values != NULL);
+	g_assert_nonnull (values);
 	g_assert_cmpuint (g_hash_table_size (values), ==, 2);
 
 	value = g_hash_table_lookup (values, path_item_one);
-	g_assert (value != NULL);
+	g_assert_nonnull (value);
 	password = secret_value_get (value, &length);
 	g_assert_cmpuint (length, ==, 3);
 	g_assert_cmpstr (password, ==, "111");
 
 	value = g_hash_table_lookup (values, path_item_two);
-	g_assert (value != NULL);
+	g_assert_nonnull (value);
 	password = secret_value_get (value, &length);
 	g_assert_cmpuint (length, ==, 3);
 	g_assert_cmpstr (password, ==, "222");
@@ -364,24 +364,24 @@ test_secrets_for_paths_async (Test *test,
 
 	secret_service_get_secrets_for_dbus_paths (test->service, paths, NULL,
 	                                           on_complete_get_result, &result);
-	g_assert (result == NULL);
+	g_assert_null (result);
 	egg_test_wait ();
 
 	values = secret_service_get_secrets_for_dbus_paths_finish (test->service, result, &error);
 	g_assert_no_error (error);
 	g_object_unref (result);
 
-	g_assert (values != NULL);
+	g_assert_nonnull (values);
 	g_assert_cmpuint (g_hash_table_size (values), ==, 2);
 
 	value = g_hash_table_lookup (values, path_item_one);
-	g_assert (value != NULL);
+	g_assert_nonnull (value);
 	password = secret_value_get (value, &length);
 	g_assert_cmpuint (length, ==, 3);
 	g_assert_cmpstr (password, ==, "111");
 
 	value = g_hash_table_lookup (values, path_item_two);
-	g_assert (value != NULL);
+	g_assert_nonnull (value);
 	password = secret_value_get (value, &length);
 	g_assert_cmpuint (length, ==, 3);
 	g_assert_cmpstr (password, ==, "222");
@@ -400,7 +400,7 @@ test_delete_for_path_sync (Test *test,
 
 	ret = secret_service_delete_item_dbus_path_sync (test->service, path_item_one, NULL, &error);
 	g_assert_no_error (error);
-	g_assert (ret == TRUE);
+	g_assert_true (ret);
 }
 
 static void
@@ -414,7 +414,7 @@ test_delete_for_path_sync_prompt (Test *test,
 
 	ret = secret_service_delete_item_dbus_path_sync (test->service, path_item_one, NULL, &error);
 	g_assert_no_error (error);
-	g_assert (ret == TRUE);
+	g_assert_true (ret);
 }
 
 static void
@@ -433,11 +433,11 @@ test_lock_paths_sync (Test *test,
 
 	ret = secret_service_lock_dbus_paths_sync (test->service, paths, NULL, &locked, &error);
 	g_assert_no_error (error);
-	g_assert (ret == TRUE);
+	g_assert_true (ret);
 
-	g_assert (locked != NULL);
+	g_assert_nonnull (locked);
 	g_assert_cmpstr (locked[0], ==, collection_path);
-	g_assert (locked[1] == NULL);
+	g_assert_null (locked[1]);
 	g_strfreev (locked);
 }
 
@@ -457,11 +457,11 @@ test_lock_prompt_sync (Test *test,
 
 	ret = secret_service_lock_dbus_paths_sync (test->service, paths, NULL, &locked, &error);
 	g_assert_no_error (error);
-	g_assert (ret == TRUE);
+	g_assert_true (ret);
 
-	g_assert (locked != NULL);
+	g_assert_nonnull (locked);
 	g_assert_cmpstr (locked[0], ==, collection_path);
-	g_assert (locked[1] == NULL);
+	g_assert_null (locked[1]);
 	g_strfreev (locked);
 }
 
@@ -481,11 +481,11 @@ test_unlock_paths_sync (Test *test,
 
 	ret = secret_service_unlock_dbus_paths_sync (test->service, paths, NULL, &unlocked, &error);
 	g_assert_no_error (error);
-	g_assert (ret == TRUE);
+	g_assert_true (ret);
 
-	g_assert (unlocked != NULL);
+	g_assert_nonnull (unlocked);
 	g_assert_cmpstr (unlocked[0], ==, collection_path);
-	g_assert (unlocked[1] == NULL);
+	g_assert_null (unlocked[1]);
 	g_strfreev (unlocked);
 }
 
@@ -505,11 +505,11 @@ test_unlock_prompt_sync (Test *test,
 
 	ret = secret_service_unlock_dbus_paths_sync (test->service, paths, NULL, &unlocked, &error);
 	g_assert_no_error (error);
-	g_assert (ret == TRUE);
+	g_assert_true (ret);
 
-	g_assert (unlocked != NULL);
+	g_assert_nonnull (unlocked);
 	g_assert_cmpstr (unlocked[0], ==, collection_path);
-	g_assert (unlocked[1] == NULL);
+	g_assert_null (unlocked[1]);
 	g_strfreev (unlocked);
 }
 
@@ -533,8 +533,8 @@ test_collection_sync (Test *test,
 	g_hash_table_unref (properties);
 
 	g_assert_no_error (error);
-	g_assert (path != NULL);
-	g_assert (g_str_has_prefix (path, "/org/freedesktop/secrets/collection/"));
+	g_assert_nonnull (path);
+	g_assert_true (g_str_has_prefix (path, "/org/freedesktop/secrets/collection/"));
 
 	g_free (path);
 }
@@ -558,7 +558,7 @@ test_collection_async (Test *test,
 	                                            NULL, on_complete_get_result, &result);
 
 	g_hash_table_unref (properties);
-	g_assert (result == NULL);
+	g_assert_null (result);
 
 	egg_test_wait ();
 
@@ -566,8 +566,8 @@ test_collection_async (Test *test,
 	g_object_unref (result);
 
 	g_assert_no_error (error);
-	g_assert (path != NULL);
-	g_assert (g_str_has_prefix (path, "/org/freedesktop/secrets/collection/"));
+	g_assert_nonnull (path);
+	g_assert_true (g_str_has_prefix (path, "/org/freedesktop/secrets/collection/"));
 
 	g_free (path);
 }
@@ -607,8 +607,8 @@ test_item_sync (Test *test,
 	g_hash_table_unref (properties);
 
 	g_assert_no_error (error);
-	g_assert (path != NULL);
-	g_assert (g_str_has_prefix (path, collection_path));
+	g_assert_nonnull (path);
+	g_assert_true (g_str_has_prefix (path, collection_path));
 
 	g_free (path);
 }
@@ -645,7 +645,7 @@ test_item_async (Test *test,
 	                                      properties, value, SECRET_ITEM_CREATE_NONE,
 	                                      NULL, on_complete_get_result, &result);
 
-	g_assert (result == NULL);
+	g_assert_null (result);
 	secret_value_unref (value);
 	g_hash_table_unref (properties);
 
@@ -655,8 +655,8 @@ test_item_async (Test *test,
 	g_object_unref (result);
 
 	g_assert_no_error (error);
-	g_assert (path != NULL);
-	g_assert (g_str_has_prefix (path, collection_path));
+	g_assert_nonnull (path);
+	g_assert_true (g_str_has_prefix (path, collection_path));
 
 	g_free (path);
 }
@@ -671,11 +671,11 @@ test_set_alias_path (Test *test,
 
 	path = secret_service_read_alias_dbus_path_sync (test->service, "blah", NULL, &error);
 	g_assert_no_error (error);
-	g_assert (path == NULL);
+	g_assert_null (path);
 
 	ret = secret_service_set_alias_to_dbus_path_sync (test->service, "blah", "/org/freedesktop/secrets/collection/english", NULL, &error);
 	g_assert_no_error (error);
-	g_assert (ret == TRUE);
+	g_assert_true (ret);
 
 	path = secret_service_read_alias_dbus_path_sync (test->service, "blah", NULL, &error);
 	g_assert_no_error (error);
@@ -684,11 +684,11 @@ test_set_alias_path (Test *test,
 
 	ret = secret_service_set_alias_to_dbus_path_sync (test->service, "blah", NULL, NULL, &error);
 	g_assert_no_error (error);
-	g_assert (ret == TRUE);
+	g_assert_true (ret);
 
 	path = secret_service_read_alias_dbus_path_sync (test->service, "blah", NULL, &error);
 	g_assert_no_error (error);
-	g_assert (path == NULL);
+	g_assert_null (path);
 }
 
 static void
@@ -706,12 +706,12 @@ test_encode_decode_secret (Test *test,
 	g_assert_no_error (error);
 
 	variant = secret_service_encode_dbus_secret (test->service, value);
-	g_assert (variant != NULL);
+	g_assert_nonnull (variant);
 	g_assert_cmpstr (g_variant_get_type_string (variant), ==, "(oayays)");
 	secret_value_unref (value);
 
 	decoded = secret_service_decode_dbus_secret (test->service, variant);
-	g_assert (variant != NULL);
+	g_assert_nonnull (variant);
 	g_variant_unref (variant);
 
 	g_assert_cmpstr (secret_value_get_text (decoded), ==, "zerogjuggs");

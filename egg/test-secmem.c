@@ -71,13 +71,13 @@ test_alloc_free (void)
 	gboolean ret;
 
 	p = egg_secure_alloc_full ("tests", 512, 0);
-	g_assert (p != NULL);
+	g_assert_nonnull (p);
 	g_assert_cmpint (G_MAXSIZE, ==, find_non_zero (p, 512));
 
 	memset (p, 0x67, 512);
 
 	ret = egg_secure_check (p);
-	g_assert (ret == TRUE);
+	g_assert_true (ret);
 
 	egg_secure_free_full (p, 0);
 }
@@ -89,12 +89,12 @@ test_realloc_across (void)
 
 	/* Tiny allocation */
 	p = egg_secure_realloc_full ("tests", NULL, 1088, 0);
-	g_assert (p != NULL);
+	g_assert_nonnull (p);
 	g_assert_cmpint (G_MAXSIZE, ==, find_non_zero (p, 1088));
 
 	/* Reallocate to a large one, will have to have changed blocks */
 	p2 = egg_secure_realloc_full ("tests", p, 16200, 0);
-	g_assert (p2 != NULL);
+	g_assert_nonnull (p2);
 	g_assert_cmpint (G_MAXSIZE, ==, find_non_zero (p2, 16200));
 
 	egg_secure_free (p2);
@@ -107,19 +107,19 @@ test_alloc_two (void)
 	gboolean ret;
 
 	p2 = egg_secure_alloc_full ("tests", 4, 0);
-	g_assert (p2 != NULL);
+	g_assert_nonnull (p2);
 	g_assert_cmpint (G_MAXSIZE, ==, find_non_zero (p2, 4));
 
 	memset (p2, 0x67, 4);
 
 	p = egg_secure_alloc_full ("tests", 16200, 0);
-	g_assert (p != NULL);
+	g_assert_nonnull (p);
 	g_assert_cmpint (G_MAXSIZE, ==, find_non_zero (p, 16200));
 
 	memset (p, 0x67, 16200);
 
 	ret = egg_secure_check (p);
-	g_assert (ret == TRUE);
+	g_assert_true (ret);
 
 	egg_secure_free_full (p2, 0);
 	egg_secure_free_full (p, 0);
@@ -135,19 +135,19 @@ test_realloc (void)
 	len = strlen (str) + 1;
 
 	p = egg_secure_realloc_full ("tests", NULL, len, 0);
-	g_assert (p != NULL);
+	g_assert_nonnull (p);
 	g_assert_cmpint (G_MAXSIZE, ==, find_non_zero (p, len));
 
 	strcpy ((gchar*)p, str);
 
 	p2 = egg_secure_realloc_full ("tests", p, 512, 0);
-	g_assert (p2 != NULL);
+	g_assert_nonnull (p2);
 	g_assert_cmpint (G_MAXSIZE, ==, find_non_zero (((gchar*)p2) + len, 512 - len));
 
-	g_assert (strcmp (p2, str) == 0);
+	g_assert_cmpstr (p2, ==, str);
 
 	p = egg_secure_realloc_full ("tests", p2, 0, 0);
-	g_assert (p == NULL);
+	g_assert_null (p);
 }
 
 static void
@@ -181,24 +181,24 @@ test_multialloc (void)
 		case 0: /* Allocate some memory */
 			size = g_random_int_range (1, 16384);
 			data = egg_secure_alloc (size);
-			g_assert (data != NULL);
+			g_assert_nonnull (data);
 			memset (data, 0xCAFEBABE, size);
 			g_ptr_array_add (memory, data);
 			break;
 		case 1: /* Reallocate some memory */
 			index = g_random_int_range (0, memory->len);
 			data = g_ptr_array_index (memory, index);
-			g_assert (data != NULL);
+			g_assert_nonnull (data);
 			size = g_random_int_range (1, 16384);
 			data = egg_secure_realloc (data, size);
-			g_assert (data != NULL);
+			g_assert_nonnull (data);
 			memset (data, 0xCAFEBABE, size);
 			g_ptr_array_index (memory, index) = data;
 			break;
 		case 2: /* Free some memory */
 			index = g_random_int_range (0, memory->len);
 			data = g_ptr_array_remove_index_fast (memory, index);
-			g_assert (data != NULL);
+			g_assert_nonnull (data);
 			egg_secure_free (data);
 			break;
 		default:
@@ -211,7 +211,7 @@ test_multialloc (void)
 			break;
 	}
 
-	g_assert (memory->len == 0);
+	g_assert_true (memory->len == 0);
 	g_ptr_array_free (memory, TRUE);
 
 	egg_secure_warnings = 1;
@@ -223,12 +223,12 @@ test_clear (void)
 	gpointer p;
 
 	p = egg_secure_alloc_full ("tests", 188, 0);
-	g_assert (p != NULL);
+	g_assert_nonnull (p);
 	memset (p, 0x89, 188);
-	g_assert (memchr (p, 0x89, 188) == p);
+	g_assert_true (memchr (p, 0x89, 188) == p);
 
 	egg_secure_clear (p, 188);
-	g_assert (memchr (p, 0x89, 188) == NULL);
+	g_assert_null (memchr (p, 0x89, 188));
 
 	egg_secure_free_full (p, 0);
 }
@@ -239,13 +239,13 @@ test_strclear (void)
 	gchar *str;
 
 	str = egg_secure_strdup ("secret");
-	g_assert (str != NULL);
+	g_assert_nonnull (str);
 	g_assert_cmpuint (strlen (str), ==, 6);
-	g_assert (strchr (str, 't') == str + 5);
+	g_assert_true (strchr (str, 't') == str + 5);
 
 	egg_secure_strclear (str);
 	g_assert_cmpuint (strlen (str), ==, 6);
-	g_assert (strchr (str, 't') == NULL);
+	g_assert_null (strchr (str, 't'));
 
 	egg_secure_free_full (str, 0);
 }
