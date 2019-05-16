@@ -206,7 +206,6 @@ response_open_session_plain (SecretSession *session,
 }
 
 typedef struct {
-	GCancellable *cancellable;
 	SecretSession *session;
 } OpenSessionClosure;
 
@@ -215,7 +214,6 @@ open_session_closure_free (gpointer data)
 {
 	OpenSessionClosure *closure = data;
 	g_assert (closure);
-	g_clear_object (&closure->cancellable);
 	_secret_session_free (closure->session);
 	g_free (closure);
 }
@@ -225,8 +223,8 @@ on_service_open_session_plain (GObject *source,
                                GAsyncResult *result,
                                gpointer user_data)
 {
-	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
-	OpenSessionClosure *closure = g_simple_async_result_get_op_res_gpointer (res);
+	GTask *task = G_TASK (user_data);
+	OpenSessionClosure *closure = g_task_get_task_data (task);
 	SecretService *service = SECRET_SERVICE (source);
 	GError *error = NULL;
 	GVariant *response;
@@ -238,21 +236,20 @@ on_service_open_session_plain (GObject *source,
 		if (response_open_session_plain (closure->session, response)) {
 			_secret_service_take_session (service, closure->session);
 			closure->session = NULL;
+			g_task_return_boolean (task, TRUE);
 
 		} else {
-			g_simple_async_result_set_error (res, SECRET_ERROR, SECRET_ERROR_PROTOCOL,
-			                                 _("Couldn’t communicate with the secret storage"));
+			g_task_return_new_error (task, SECRET_ERROR, SECRET_ERROR_PROTOCOL,
+			                         _("Couldn’t communicate with the secret storage"));
 		}
 
-		g_simple_async_result_complete (res);
 		g_variant_unref (response);
 
 	} else {
-		g_simple_async_result_take_error (res, error);
-		g_simple_async_result_complete (res);
+		g_task_return_error (task, g_steal_pointer (&error));
 	}
 
-	g_object_unref (res);
+	g_object_unref (task);
 }
 
 #ifdef WITH_GCRYPT
@@ -262,8 +259,8 @@ on_service_open_session_aes (GObject *source,
                              GAsyncResult *result,
                              gpointer user_data)
 {
-	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
-	OpenSessionClosure * closure = g_simple_async_result_get_op_res_gpointer (res);
+	GTask *task = G_TASK (user_data);
+	OpenSessionClosure * closure = g_task_get_task_data (task);
 	SecretService *service = SECRET_SERVICE (source);
 	GError *error = NULL;
 	GVariant *response;
@@ -275,13 +272,13 @@ on_service_open_session_aes (GObject *source,
 		if (response_open_session_aes (closure->session, response)) {
 			_secret_service_take_session (service, closure->session);
 			closure->session = NULL;
+			g_task_return_boolean (task, TRUE);
 
 		} else {
-			g_simple_async_result_set_error (res, SECRET_ERROR, SECRET_ERROR_PROTOCOL,
-			                                 _("Couldn’t communicate with the secret storage"));
+			g_task_return_new_error (task, SECRET_ERROR, SECRET_ERROR_PROTOCOL,
+			                         _("Couldn’t communicate with the secret storage"));
 		}
 
-		g_simple_async_result_complete (res);
 		g_variant_unref (response);
 
 	} else {
@@ -290,18 +287,18 @@ on_service_open_session_aes (GObject *source,
 			g_dbus_proxy_call (G_DBUS_PROXY (source), "OpenSession",
 			                   request_open_session_plain (closure->session),
 			                   G_DBUS_CALL_FLAGS_NONE, -1,
-			                   closure->cancellable, on_service_open_session_plain,
-			                   g_object_ref (res));
+			                   g_task_get_cancellable (task),
+			                   on_service_open_session_plain,
+			                   g_object_ref (task));
 			g_error_free (error);
 
 		/* Other errors result in a failure */
 		} else {
-			g_simple_async_result_take_error (res, error);
-			g_simple_async_result_complete (res);
+			g_task_return_error (task, g_steal_pointer (&error));
 		}
 	}
 
-	g_object_unref (res);
+	g_object_unref (task);
 }
 
 #endif /* WITH_GCRYPT */
@@ -313,15 +310,14 @@ _secret_session_open (SecretService *service,
                       GAsyncReadyCallback callback,
                       gpointer user_data)
 {
-	GSimpleAsyncResult *res;
+	GTask *task;
 	OpenSessionClosure *closure;
 
-	res = g_simple_async_result_new (G_OBJECT (service), callback, user_data,
-	                                 _secret_session_open);
+	task = g_task_new (service, cancellable, callback, user_data);
+	g_task_set_source_tag (task, _secret_session_open);
 	closure = g_new (OpenSessionClosure, 1);
-	closure->cancellable = cancellable ? g_object_ref (cancellable) : cancellable;
 	closure->session = g_new0 (SecretSession, 1);
-	g_simple_async_result_set_op_res_gpointer (res, closure, open_session_closure_free);
+	g_task_set_task_data (task, closure, open_session_closure_free);
 
 	g_dbus_proxy_call (G_DBUS_PROXY (service), "OpenSession",
 #ifdef WITH_GCRYPT
@@ -333,17 +329,19 @@ _secret_session_open (SecretService *service,
 	                   G_DBUS_CALL_FLAGS_NONE, -1,
 	                   cancellable, on_service_open_session_plain,
 #endif
-	                   g_object_ref (res));
+	                   g_object_ref (task));
 
-	g_object_unref (res);
+	g_object_unref (task);
 }
 
 gboolean
 _secret_session_open_finish (GAsyncResult *result,
                               GError **error)
 {
-	if (_secret_util_propagate_error (G_SIMPLE_ASYNC_RESULT (result), error))
+	if (!g_task_propagate_boolean (G_TASK (result), error)) {
+		_secret_util_strip_remote_error (error);
 		return FALSE;
+	}
 
 	return TRUE;
 }
