@@ -214,8 +214,8 @@ on_get_properties (GObject *source,
                    GAsyncResult *result,
                    gpointer user_data)
 {
-	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
-	GDBusProxy *proxy = G_DBUS_PROXY (g_async_result_get_source_object (user_data));
+	GTask *task = G_TASK (user_data);
+	GDBusProxy *proxy = G_DBUS_PROXY (g_task_get_source_object (task));
 	GError *error = NULL;
 	GVariant *retval;
 
@@ -223,15 +223,14 @@ on_get_properties (GObject *source,
 
 	if (error == NULL) {
 		process_get_all_reply (proxy, retval);
+		g_task_return_boolean (task, TRUE);
 	} else {
-		g_simple_async_result_take_error (res, error);
+		g_task_return_error (task, g_steal_pointer (&error));
 	}
 	if (retval != NULL)
 		g_variant_unref (retval);
 
-	g_simple_async_result_complete (res);
-	g_object_unref (proxy);
-	g_object_unref (res);
+	g_clear_object (&task);
 }
 
 void
@@ -241,11 +240,12 @@ _secret_util_get_properties (GDBusProxy *proxy,
                              GAsyncReadyCallback callback,
                              gpointer user_data)
 {
-	GSimpleAsyncResult *res;
+	GTask *task;
 
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
-	res = g_simple_async_result_new (G_OBJECT (proxy), callback, user_data, result_tag);
+	task = g_task_new (proxy, cancellable, callback, user_data);
+	g_task_set_source_tag (task, result_tag);
 
 	g_dbus_connection_call (g_dbus_proxy_get_connection (proxy),
 	                        g_dbus_proxy_get_name (proxy),
@@ -255,9 +255,9 @@ _secret_util_get_properties (GDBusProxy *proxy,
 	                        G_VARIANT_TYPE ("(a{sv})"),
 	                        G_DBUS_CALL_FLAGS_NONE, -1,
 	                        cancellable, on_get_properties,
-	                        g_object_ref (res));
+	                        g_steal_pointer (&task));
 
-	g_object_unref (res);
+	g_clear_object (&task);
 }
 
 gboolean
@@ -266,15 +266,14 @@ _secret_util_get_properties_finish (GDBusProxy *proxy,
                                     GAsyncResult *result,
                                     GError **error)
 {
-	GSimpleAsyncResult *res;
-
-	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (proxy), result_tag), FALSE);
+	g_return_val_if_fail (g_task_is_valid (result, proxy), FALSE);
+	g_return_val_if_fail (g_task_get_source_tag (G_TASK (result)) == result_tag, FALSE);
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
-	res = G_SIMPLE_ASYNC_RESULT (result);
-
-	if (_secret_util_propagate_error (res, error))
+	if (!g_task_propagate_boolean (G_TASK (result), error)) {
+		_secret_util_strip_remote_error (error);
 		return FALSE;
+	}
 
 	return TRUE;
 }
@@ -299,27 +298,29 @@ on_set_property (GObject *source,
                  GAsyncResult *result,
                  gpointer user_data)
 {
-	GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
-	SetClosure *closure = g_simple_async_result_get_op_res_gpointer (res);
-	GDBusProxy *proxy = G_DBUS_PROXY (g_async_result_get_source_object (user_data));
+	GTask *task = G_TASK (user_data);
+	SetClosure *closure = g_task_get_task_data (task);
+	GDBusProxy *proxy = G_DBUS_PROXY (g_task_get_source_object (user_data));
 	GError *error = NULL;
 	GVariant *retval;
+	gboolean success = FALSE;
 
 	retval = g_dbus_connection_call_finish (G_DBUS_CONNECTION (source),
 	                                        result, &error);
 	if (error != NULL) {
-		g_simple_async_result_take_error (res, error);
+		g_task_return_error (task, g_steal_pointer (&error));
+	} else {
+		success = (retval != NULL);
+
+		if (success) {
+			g_dbus_proxy_set_cached_property (proxy, closure->property, closure->value);
+			g_variant_unref (retval);
+		}
+
+		g_task_return_boolean (task, success);
 	}
-	if (retval != NULL)
-		g_variant_unref (retval);
 
-	closure->result = retval != NULL;
-	if (closure->result)
-		g_dbus_proxy_set_cached_property (proxy, closure->property, closure->value);
-
-	g_simple_async_result_complete (res);
-	g_object_unref (proxy);
-	g_object_unref (res);
+	g_clear_object (&task);
 }
 
 void
@@ -331,16 +332,17 @@ _secret_util_set_property (GDBusProxy *proxy,
                            GAsyncReadyCallback callback,
                            gpointer user_data)
 {
-	GSimpleAsyncResult *res;
+	GTask *task;
 	SetClosure *closure;
 
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
-	res = g_simple_async_result_new (G_OBJECT (proxy), callback, user_data, result_tag);
+	task = g_task_new (proxy, cancellable, callback, user_data);
+	g_task_set_source_tag (task, result_tag);
 	closure = g_slice_new0 (SetClosure);
 	closure->property = g_strdup (property);
 	closure->value = g_variant_ref_sink (value);
-	g_simple_async_result_set_op_res_gpointer (res, closure, set_closure_free);
+	g_task_set_task_data (task, closure, set_closure_free);
 
 	g_dbus_connection_call (g_dbus_proxy_get_connection (proxy),
 	                        g_dbus_proxy_get_name (proxy),
@@ -354,9 +356,9 @@ _secret_util_set_property (GDBusProxy *proxy,
 	                        G_VARIANT_TYPE ("()"),
 	                        G_DBUS_CALL_FLAGS_NO_AUTO_START, -1,
 	                        cancellable, on_set_property,
-	                        g_object_ref (res));
+	                        g_steal_pointer (&task));
 
-	g_object_unref (res);
+	g_clear_object (&task);
 }
 
 gboolean
@@ -365,19 +367,16 @@ _secret_util_set_property_finish (GDBusProxy *proxy,
                                   GAsyncResult *result,
                                   GError **error)
 {
-	GSimpleAsyncResult *res;
-	SetClosure *closure;
-
-	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (proxy), result_tag), FALSE);
+	g_return_val_if_fail (g_task_is_valid (result, proxy), FALSE);
+	g_return_val_if_fail (g_task_get_source_tag (G_TASK (result)) == result_tag, FALSE);
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
-	res = G_SIMPLE_ASYNC_RESULT (result);
-
-	if (_secret_util_propagate_error (res, error))
+	if (!g_task_propagate_boolean (G_TASK (result), error)) {
+		_secret_util_strip_remote_error (error);
 		return FALSE;
+	}
 
-	closure = g_simple_async_result_get_op_res_gpointer (res);
-	return closure->result;
+	return TRUE;
 }
 
 gboolean
