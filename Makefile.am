@@ -171,6 +171,7 @@ CLEANFILES = \
 	valgrind-suppressions
 
 EXTRA_DIST = \
+	README.md \
 	COPYING.TESTS \
 	meson_options.txt \
 	meson.build \
