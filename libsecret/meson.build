@@ -31,6 +31,19 @@ libsecret_headers = [
   'secret-value.h',
 ]
 
+version_numbers = meson.project_version().split('.')
+version_major = version_numbers[0].to_int()
+version_minor = version_numbers[1].to_int()
+version_micro = version_numbers[2].to_int()
+version_h_conf = configuration_data()
+version_h_conf.set('SECRET_MAJOR_VERSION', version_major)
+version_h_conf.set('SECRET_MINOR_VERSION', version_minor)
+version_h_conf.set('SECRET_MICRO_VERSION', version_micro)
+version_h = configure_file(input: 'secret-version.h.in',
+                           output: 'secret-version.h',
+                           configuration: version_h_conf)
+libsecret_headers += version_h
+
 _dbus_generated = gnome.gdbus_codegen('secret-dbus-generated',
   sources: 'org.freedesktop.Secrets.xml',
   interface_prefix: 'org.freedesktop.Secret.',
@@ -101,6 +114,7 @@ libsecret_gir_sources = [
   'secret-value.c',
   'secret-value.h',
 ]
+libsecret_gir_sources += version_h
 libsecret_gir_sources += _enums_generated
 
 libsecret_gir = gnome.generate_gir(libsecret,
