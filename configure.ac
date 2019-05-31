@@ -1,8 +1,17 @@
 AC_PREREQ(2.63)
 
-AC_INIT([libsecret],[0.18.8],
+m4_define([libsecret_major_version], 0)
+m4_define([libsecret_minor_version], 18)
+m4_define([libsecret_micro_version], 8)
+m4_define([libsecret_version],
+          [libsecret_major_version.libsecret_minor_version.libsecret_micro_version])
+AC_INIT([libsecret],[libsecret_version],
         [https://gitlab.gnome.org/GNOME/libsecret/issues/],
         [libsecret])
+
+AC_SUBST(SECRET_MAJOR_VERSION, libsecret_major_version)
+AC_SUBST(SECRET_MINOR_VERSION, libsecret_minor_version)
+AC_SUBST(SECRET_MICRO_VERSION, libsecret_micro_version)
 
 dnl ****************************************************************************
 dnl Dependency versions
@@ -281,6 +290,7 @@ AC_CONFIG_FILES([
 	po/Makefile
 	libsecret/libsecret.pc
 	libsecret/libsecret-unstable.pc
+	libsecret/secret-version.h
 ])
 AC_OUTPUT
 

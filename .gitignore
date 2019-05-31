@@ -73,6 +73,7 @@ stamp*
 
 /libsecret/*-dbus-generated.[ch]
 /libsecret/secret-enum-types.[ch]
+/libsecret/secret-version.h
 /libsecret/tests/test-*
 /libsecret/tests/*.metadata
 !/libsecret/tests/test-*.c
