@@ -189,3 +189,59 @@ foreach _test : test_names
 
   test(_test, test_bin)
 endforeach
+
+libmock_service_sources = [
+  'mock-service.c',
+  'mock-service.h'
+]
+
+libmock_service = shared_library('mock-service',
+  libmock_service_sources,
+  dependencies: glib_deps,
+  c_args: mock_cflags,
+  include_directories: config_h_dir,
+)
+
+mock_service_gir = gnome.generate_gir(libmock_service,
+  sources: libmock_service_sources,
+  namespace: 'MockService',
+  nsversion: '0',
+  export_packages: 'mock-service-0',
+  includes: [ 'GObject-2.0', 'Gio-2.0' ],
+  header: 'libsecret/mock-service.h',
+  install: true
+)
+
+test_env = environment()
+test_env.set('LD_LIBRARY_PATH', meson.current_build_dir())
+test_env.set('GI_TYPELIB_PATH', meson.current_build_dir())
+
+if gjs.found()
+  js_test_names = [
+    'test-js-lookup',
+    'test-js-clear',
+    'test-js-store'
+  ]
+  foreach _test : js_test_names
+    test(_test, gjs,
+	 args: [join_paths(meson.current_source_dir(),
+			   '@0@.js'.format(_test))],
+	 env: test_env,
+	 dependencies: mock_service_gir)
+  endforeach
+endif
+
+if python3.found()
+  py_test_names = [
+    'test-py-lookup',
+    'test-py-clear',
+    'test-py-store'
+  ]
+  foreach _test : py_test_names
+    test(_test, python3,
+	 args: [join_paths(meson.current_source_dir(),
+			   '@0@.py'.format(_test))],
+	 env: test_env,
+	 dependencies: mock_service_gir)
+  endforeach
+endif

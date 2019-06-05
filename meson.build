@@ -64,6 +64,10 @@ endif
 # Libraries
 math = meson.get_compiler('c').find_library('m')
 
+# Programs
+gjs = find_program('gjs')
+python3 = import('python').find_installation()
+
 # Configuration
 conf = configuration_data()
 conf.set_quoted('GETTEXT_PACKAGE', meson.project_name())
