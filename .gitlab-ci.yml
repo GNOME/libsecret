@@ -6,7 +6,7 @@ variables:
   DEPENDENCIES: dbus-x11 gcc gjs make python3-dbus python3-gobject redhat-rpm-config
 
 fedora:Werror:
-  image: fedora:28
+  image: fedora:latest
   stage: build
   before_script:
     - dnf upgrade -y
@@ -21,7 +21,7 @@ fedora:Werror:
     - make -j$(nproc) V=1 distcheck
 
 fedora:asan:
-  image: fedora:28
+  image: fedora:latest
   stage: build
   before_script:
     - dnf upgrade -y
@@ -36,7 +36,7 @@ fedora:asan:
     - make -j$(nproc) V=1 DISABLE_HARD_ERRORS=1 XFAIL_TESTS="\$(JS_TESTS) \$(PY_TESTS)" check
 
 fedora:ubsan:
-  image: fedora:28
+  image: fedora:latest
   stage: build
   before_script:
     - dnf upgrade -y
@@ -51,7 +51,7 @@ fedora:ubsan:
     - make -j$(nproc) V=1 check
 
 fedora:coverage:
-  image: fedora:28
+  image: fedora:latest
   stage: build
   before_script:
     - dnf upgrade -y
