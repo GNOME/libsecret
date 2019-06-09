@@ -66,6 +66,8 @@ fedora:coverage:
     name: "libsecret-${CI_JOB_NAME}-${CI_COMMIT_REF_NAME}"
     paths:
       - _build/meson-logs/coveragereport/
+  # https://github.com/linux-test-project/lcov/issues/58
+  allow_failure: true
 
 pages:
   stage: deploy
