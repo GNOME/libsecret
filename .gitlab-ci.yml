@@ -72,7 +72,8 @@ fedora:coverage:
 pages:
   stage: deploy
   script:
-    - test -d _build/meson-logs/coveragereport/ && mv _build/meson-logs/coveragereport/ public/ || true
+    - mv _build/meson-logs/coveragereport/ public/
   artifacts:
     paths:
       - public
+  when: on_success
