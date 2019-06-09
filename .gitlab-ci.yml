@@ -72,7 +72,10 @@ fedora:coverage:
 pages:
   stage: deploy
   script:
-    - test -d _build/meson-logs/coveragereport/ && mv _build/meson-logs/coveragereport/ public/ || true
+    - mv _build/meson-logs/coveragereport/ public/
   artifacts:
+    when: on_success
     paths:
       - public
+  # https://github.com/linux-test-project/lcov/issues/58
+  allow_failure: true
