@@ -40,6 +40,7 @@
 #endif
 
 #include <libsecret/secret-paths.h>
+#include <libsecret/secret-retrievable.h>
 
 #endif /* SECRET_WITH_UNSTABLE || SECRET_API_SUBJECT_TO_CHANGE */
 
