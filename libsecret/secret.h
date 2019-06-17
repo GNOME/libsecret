@@ -25,6 +25,7 @@
 #include <libsecret/secret-item.h>
 #include <libsecret/secret-password.h>
 #include <libsecret/secret-prompt.h>
+#include <libsecret/secret-retrievable.h>
 #include <libsecret/secret-schema.h>
 #include <libsecret/secret-schemas.h>
 #include <libsecret/secret-service.h>
