@@ -17,6 +17,7 @@
 #include "secret-attributes.h"
 #include "secret-password.h"
 #include "secret-private.h"
+#include "secret-retrievable.h"
 #include "secret-value.h"
 
 #include <egg/egg-secure-memory.h>
@@ -842,6 +843,222 @@ secret_password_clearv_sync (const SecretSchema *schema,
 	_secret_sync_free (sync);
 
 	return result;
+}
+
+/**
+ * secret_password_search: (skip)
+ * @schema: the schema for the attributes
+ * @flags: search option flags
+ * @cancellable: optional cancellation object
+ * @callback: called when the operation completes
+ * @user_data: data to be passed to the callback
+ * @...: the attribute keys and values, terminated with %NULL
+ *
+ * Search for items in the secret service.
+ *
+ * The variable argument list should contain pairs of a) The attribute name as
+ * a null-terminated string, followed by b) attribute value, either a character
+ * string, an int number, or a gboolean value, as defined in the password
+ * @schema. The list of attribtues should be terminated with a %NULL.
+ *
+ * This method will return immediately and complete asynchronously.
+ *
+ * Stability: Unstable
+ */
+void
+secret_password_search (const SecretSchema *schema,
+                        SecretSearchFlags flags,
+                        GCancellable *cancellable,
+                        GAsyncReadyCallback callback,
+                        gpointer user_data,
+                        ...)
+{
+        GHashTable *attributes;
+        va_list va;
+
+        g_return_if_fail (schema != NULL);
+        g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+        va_start (va, user_data);
+        attributes = secret_attributes_buildv (schema, va);
+        va_end (va);
+
+        /* Precondition failed, already warned */
+        if (!attributes)
+                return;
+
+        secret_password_searchv (schema, attributes, flags, cancellable,
+                                 callback, user_data);
+
+        g_hash_table_unref (attributes);
+}
+
+/**
+ * secret_password_searchv: (rename-to secret_password_search)
+ * @schema: the schema for attributes
+ * @attributes: (element-type utf8 utf8): the attribute keys and values
+ * @flags: search option flags
+ * @cancellable: optional cancellation object
+ * @callback: called when the operation completes
+ * @user_data: data to be passed to the callback
+ *
+ * Search for items in the secret service.
+ *
+ * The @attributes should be a set of key and value string pairs.
+ *
+ * This method will return immediately and complete asynchronously.
+ *
+ * Stability: Unstable
+ */
+void
+secret_password_searchv (const SecretSchema *schema,
+                         GHashTable *attributes,
+                         SecretSearchFlags flags,
+                         GCancellable *cancellable,
+                         GAsyncReadyCallback callback,
+                         gpointer user_data)
+{
+        g_return_if_fail (schema != NULL);
+        g_return_if_fail (attributes != NULL);
+        g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+        /* Warnings raised already */
+        if (!_secret_attributes_validate (schema, attributes, G_STRFUNC, TRUE))
+                return;
+
+        secret_service_search (NULL, schema, attributes, flags,
+                               cancellable, callback, user_data);
+}
+
+/**
+ * secret_password_search_finish:
+ * @result: the asynchronous result passed to the callback
+ * @error: location to place an error on failure
+ *
+ * Finish an asynchronous operation to search for items in the secret service.
+ *
+ * Stability: Unstable
+ *
+ * Returns: (transfer full) (element-type Secret.Retrievable): a list of #SecretRetrievable containing attributes of the matched items
+ */
+GList *
+secret_password_search_finish (GAsyncResult *result,
+                               GError **error)
+{
+        g_return_val_if_fail (error == NULL || *error == NULL, NULL);
+
+        return secret_service_search_finish (NULL, result, error);
+}
+
+/**
+ * secret_password_search_sync: (skip)
+ * @schema: the schema for the attributes
+ * @flags: search option flags
+ * @cancellable: optional cancellation object
+ * @error: location to place an error on failure
+ * @...: the attribute keys and values, terminated with %NULL
+ *
+ * Search for items in the secret service.
+ *
+ * The variable argument list should contain pairs of a) The attribute name as
+ * a null-terminated string, followed by b) attribute value, either a character
+ * string, an int number, or a gboolean value, as defined in the password
+ * @schema. The list of attributes should be terminated with a %NULL.
+ *
+ * If no secret is found then %NULL is returned.
+ *
+ * This method may block indefinitely and should not be used in user interface
+ * threads.
+ *
+ * Stability: Unstable
+ *
+ * Returns: (transfer full) (element-type Secret.Retrievable): a list of #SecretRetrievable containing attributes of the matched items
+ */
+GList *
+secret_password_search_sync (const SecretSchema *schema,
+                             SecretSearchFlags flags,
+                             GCancellable *cancellable,
+                             GError **error,
+                             ...)
+{
+        GHashTable *attributes;
+        GList *items;
+        va_list va;
+
+        g_return_val_if_fail (schema != NULL, NULL);
+        g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
+        g_return_val_if_fail (error == NULL || *error == NULL, NULL);
+
+        va_start (va, error);
+        attributes = secret_attributes_buildv (schema, va);
+        va_end (va);
+
+        /* Precondition failed, already warned */
+        if (!attributes)
+                return NULL;
+
+        items = secret_password_searchv_sync (schema, attributes, flags,
+                                              cancellable, error);
+
+        g_hash_table_unref (attributes);
+
+        return items;
+}
+
+/**
+ * secret_password_searchv_sync: (rename-to secret_password_search_sync)
+ * @schema: the schema for attributes
+ * @attributes: (element-type utf8 utf8): the attribute keys and values
+ * @flags: search option flags
+ * @cancellable: optional cancellation object
+ * @error: location to place an error on failure
+ *
+ * Search for items in the secret service.
+ *
+ * The @attributes should be a set of key and value string pairs.
+ *
+ * If no secret is found then %NULL is returned.
+ *
+ * This method may block indefinitely and should not be used in user interface
+ * threads.
+ *
+ * Stability: Unstable
+ *
+ * Returns: (transfer full) (element-type Secret.Retrievable): a list of #SecretRetrievable containing attributes of the matched items
+ */
+GList *
+secret_password_searchv_sync (const SecretSchema *schema,
+                              GHashTable *attributes,
+                              SecretSearchFlags flags,
+                              GCancellable *cancellable,
+                              GError **error)
+{
+        SecretSync *sync;
+        GList *items;
+
+        g_return_val_if_fail (schema != NULL, NULL);
+        g_return_val_if_fail (attributes != NULL, NULL);
+        g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
+        g_return_val_if_fail (error == NULL || *error == NULL, NULL);
+
+        /* Warnings raised already */
+        if (!_secret_attributes_validate (schema, attributes, G_STRFUNC, TRUE))
+                return NULL;
+
+        sync = _secret_sync_new ();
+        g_main_context_push_thread_default (sync->context);
+
+        secret_password_searchv (schema, attributes, flags, cancellable,
+                                 _secret_sync_on_result, sync);
+
+        g_main_loop_run (sync->loop);
+
+        items = secret_password_search_finish (sync->result, error);
+
+        g_main_context_pop_thread_default (sync->context);
+        _secret_sync_free (sync);
+
+        return items;
 }
 
 /**
