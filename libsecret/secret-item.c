@@ -19,6 +19,7 @@
 #include "secret-item.h"
 #include "secret-paths.h"
 #include "secret-private.h"
+#include "secret-retrievable.h"
 #include "secret-service.h"
 #include "secret-types.h"
 #include "secret-value.h"
@@ -105,9 +106,13 @@ struct _SecretItemPrivate {
 	gint disposed;
 };
 
+static SecretRetrievableInterface *secret_item_retrievable_parent_iface = NULL;
+
 static GInitableIface *secret_item_initable_parent_iface = NULL;
 
 static GAsyncInitableIface *secret_item_async_initable_parent_iface = NULL;
+
+static void   secret_item_retrievable_iface      (SecretRetrievableInterface *iface);
 
 static void   secret_item_initable_iface         (GInitableIface *iface);
 
@@ -115,6 +120,7 @@ static void   secret_item_async_initable_iface   (GAsyncInitableIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (SecretItem, secret_item, G_TYPE_DBUS_PROXY,
                          G_ADD_PRIVATE (SecretItem)
+			 G_IMPLEMENT_INTERFACE (SECRET_TYPE_RETRIEVABLE, secret_item_retrievable_iface);
                          G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE, secret_item_initable_iface);
                          G_IMPLEMENT_INTERFACE (G_TYPE_ASYNC_INITABLE, secret_item_async_initable_iface);
 );
@@ -355,9 +361,7 @@ secret_item_class_init (SecretItemClass *klass)
 	 * The attributes set on this item. Attributes are used to locate an
 	 * item. They are not guaranteed to be stored or transferred securely.
 	 */
-	g_object_class_install_property (gobject_class, PROP_ATTRIBUTES,
-	             g_param_spec_boxed ("attributes", "Attributes", "Item attributes",
-	                                 G_TYPE_HASH_TABLE, G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+	g_object_class_override_property (gobject_class, PROP_ATTRIBUTES, "attributes");
 
 	/**
 	 * SecretItem:label:
@@ -368,9 +372,7 @@ secret_item_class_init (SecretItemClass *klass)
 	 * set asynchronously. To properly track the changing of the label use the
 	 * secret_item_set_label() function.
 	 */
-	g_object_class_install_property (gobject_class, PROP_LABEL,
-	            g_param_spec_string ("label", "Label", "Item label",
-	                                 NULL, G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+	g_object_class_override_property (gobject_class, PROP_LABEL, "label");
 
 	/**
 	 * SecretItem:locked:
@@ -391,9 +393,7 @@ secret_item_class_init (SecretItemClass *klass)
 	 * The date and time (in seconds since the UNIX epoch) that this
 	 * item was created.
 	 */
-	g_object_class_install_property (gobject_class, PROP_CREATED,
-	            g_param_spec_uint64 ("created", "Created", "Item creation date",
-	                                 0UL, G_MAXUINT64, 0UL, G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+	g_object_class_override_property (gobject_class, PROP_CREATED, "created");
 
 	/**
 	 * SecretItem:modified:
@@ -401,9 +401,7 @@ secret_item_class_init (SecretItemClass *klass)
 	 * The date and time (in seconds since the UNIX epoch) that this
 	 * item was last modified.
 	 */
-	g_object_class_install_property (gobject_class, PROP_MODIFIED,
-	            g_param_spec_uint64 ("modified", "Modified", "Item modified date",
-	                                 0UL, G_MAXUINT64, 0UL, G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+	g_object_class_override_property (gobject_class, PROP_MODIFIED, "modified");
 }
 
 typedef struct {
@@ -1318,6 +1316,55 @@ secret_item_load_secret_sync (SecretItem *self,
 	_secret_sync_free (sync);
 
 	return result;
+}
+
+static void
+on_retrieve_load (GObject *source_object,
+		  GAsyncResult *res,
+		  gpointer user_data)
+{
+	SecretItem *self = SECRET_ITEM (source_object);
+	GTask *task = G_TASK (user_data);
+	GError *error = NULL;
+
+	if (secret_item_load_secret_finish (self, res, &error)) {
+		g_task_return_pointer (task,
+				       secret_item_get_secret (self),
+				       secret_value_unref);
+		g_object_unref (task);
+	} else {
+		g_task_return_error (task, error);
+		g_object_unref (task);
+	}
+}
+
+static void
+secret_item_retrieve_secret (SecretRetrievable *self,
+			     GCancellable *cancellable,
+			     GAsyncReadyCallback callback,
+			     gpointer user_data)
+{
+	GTask *task = g_task_new (self, cancellable, callback, user_data);
+
+	secret_item_load_secret (SECRET_ITEM (self), cancellable, on_retrieve_load, task);
+}
+
+static SecretValue *
+secret_item_retrieve_secret_finish (SecretRetrievable *self,
+				    GAsyncResult *result,
+				    GError **error)
+{
+	g_return_val_if_fail (g_task_is_valid (result, self), NULL);
+
+	return g_task_propagate_pointer (G_TASK (result), error);
+}
+
+static void
+secret_item_retrievable_iface (SecretRetrievableInterface *iface)
+{
+	secret_item_retrievable_parent_iface = g_type_interface_peek_parent (iface);
+	iface->retrieve_secret = secret_item_retrieve_secret;
+	iface->retrieve_secret_finish = secret_item_retrieve_secret_finish;
 }
 
 typedef struct {
