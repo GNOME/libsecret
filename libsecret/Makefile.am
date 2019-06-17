@@ -12,6 +12,7 @@ libsecret_HEADS = \
 	libsecret/secret-password.h \
 	libsecret/secret-paths.h \
 	libsecret/secret-prompt.h \
+	libsecret/secret-retrievable.h \
 	libsecret/secret-schema.h \
 	libsecret/secret-schemas.h \
 	libsecret/secret-service.h \
@@ -42,6 +43,7 @@ libsecret_PUBLIC = \
 	libsecret/secret-methods.c \
 	libsecret/secret-password.h libsecret/secret-password.c \
 	libsecret/secret-prompt.h libsecret/secret-prompt.c \
+	libsecret/secret-retrievable.h libsecret/secret-retrievable.c \
 	libsecret/secret-schema.h libsecret/secret-schema.c \
 	libsecret/secret-schemas.h libsecret/secret-schemas.c \
 	libsecret/secret-service.h libsecret/secret-service.c \
