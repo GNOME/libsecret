@@ -256,12 +256,56 @@ is_password_value (SecretValue *value)
 	return FALSE;
 }
 
+/**
+ * secret_value_unref_to_password:
+ * @value: the value
+ * @length: the length of the secret
+ *
+ * Unreference a #SecretValue and steal the secret data in
+ * #SecretValue as nonpageable memory.
+ *
+ * Returns: (transfer full): a new password string stored in nonpageable memory
+ *          which must be freed with secret_password_free() when done
+ *
+ * Since: 0.19.0
+ */
 gchar *
-_secret_value_unref_to_password (SecretValue *value)
+secret_value_unref_to_password (SecretValue *value,
+				gsize *length)
 {
 	SecretValue *val = value;
 	gchar *result;
 
+	g_return_val_if_fail (value != NULL, NULL);
+
+	if (g_atomic_int_dec_and_test (&val->refs)) {
+		if (val->destroy == egg_secure_free) {
+			result = val->secret;
+			if (length)
+				*length = val->length;
+
+		} else {
+			result = egg_secure_strndup (val->secret, val->length);
+			if (val->destroy)
+				(val->destroy) (val->secret);
+			if (length)
+				*length = val->length;
+		}
+		g_free (val->content_type);
+		g_slice_free (SecretValue, val);
+
+	} else {
+		result = egg_secure_strndup (val->secret, val->length);
+		if (length)
+			*length = val->length;
+	}
+
+	return result;
+}
+
+gchar *
+_secret_value_unref_to_password (SecretValue *value)
+{
 	g_return_val_if_fail (value != NULL, NULL);
 
 	if (!is_password_value (value)) {
@@ -269,23 +313,7 @@ _secret_value_unref_to_password (SecretValue *value)
 		return NULL;
 	}
 
-	if (g_atomic_int_dec_and_test (&val->refs)) {
-		if (val->destroy == egg_secure_free) {
-			result = val->secret;
-
-		} else {
-			result = egg_secure_strndup (val->secret, val->length);
-			if (val->destroy)
-				(val->destroy) (val->secret);
-		}
-		g_free (val->content_type);
-		g_slice_free (SecretValue, val);
-
-	} else {
-		result = egg_secure_strndup (val->secret, val->length);
-	}
-
-	return result;
+	return secret_value_unref_to_password (value, NULL);
 }
 
 gchar *
