@@ -408,6 +408,25 @@ secret_password_lookup_nonpageable_finish (GAsyncResult *result,
 }
 
 /**
+ * secret_password_lookup_binary_finish: (skip)
+ * @result: the asynchronous result passed to the callback
+ * @error: location to place an error on failure
+ *
+ * Finish an asynchronous operation to lookup a password in the secret service.
+ *
+ * Returns: (transfer full): a newly allocated #SecretValue, which should be
+ *          released with secret_value_unref(), or %NULL if no secret found
+ */
+SecretValue *
+secret_password_lookup_binary_finish (GAsyncResult *result,
+				      GError **error)
+{
+	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
+
+	return secret_service_lookup_finish (NULL, result, error);
+}
+
+/**
  * secret_password_lookup_finish:
  * @result: the asynchronous result passed to the callback
  * @error: location to place an error on failure
@@ -587,6 +606,111 @@ secret_password_lookupv_nonpageable_sync (const SecretSchema *schema,
 	_secret_sync_free (sync);
 
 	return password;
+}
+
+/**
+ * secret_password_lookup_binary_sync: (skip)
+ * @schema: the schema for the attributes
+ * @cancellable: optional cancellation object
+ * @error: location to place an error on failure
+ * @...: the attribute keys and values, terminated with %NULL
+ *
+ * Lookup a password in the secret service.
+ *
+ * The variable argument list should contain pairs of a) The attribute name as
+ * a null-terminated string, followed by b) attribute value, either a character
+ * string, an int number, or a gboolean value, as defined in the password
+ * @schema. The list of attribtues should be terminated with a %NULL.
+ *
+ * If no secret is found then %NULL is returned.
+ *
+ * This method may block indefinitely and should not be used in user interface
+ * threads.
+ *
+ * Returns: (transfer full): a newly allocated #SecretValue, which should be
+ *          released with secret_value_unref(), or %NULL if no secret found
+ */
+SecretValue *
+secret_password_lookup_binary_sync (const SecretSchema *schema,
+				    GCancellable *cancellable,
+				    GError **error,
+				    ...)
+{
+	GHashTable *attributes;
+	SecretValue *value;
+	va_list va;
+
+	g_return_val_if_fail (schema != NULL, NULL);
+	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
+	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
+
+	va_start (va, error);
+	attributes = secret_attributes_buildv (schema, va);
+	va_end (va);
+
+	/* Precondition failed, already warned */
+	if (!attributes)
+		return NULL;
+
+	value = secret_password_lookupv_binary_sync (schema, attributes,
+						     cancellable, error);
+
+	g_hash_table_unref (attributes);
+
+	return value;
+}
+
+/**
+ * secret_password_lookupv_binary_sync: (skip)
+ * @schema: the schema for attributes
+ * @attributes: (element-type utf8 utf8): the attribute keys and values
+ * @cancellable: optional cancellation object
+ * @error: location to place an error on failure
+ *
+ * Lookup a password in the secret service.
+ *
+ * The @attributes should be a set of key and value string pairs.
+ *
+ * If no secret is found then %NULL is returned.
+ *
+ * This method may block indefinitely and should not be used in user interface
+ * threads.
+ *
+ * Returns: (transfer full): a newly allocated #SecretValue, which should be
+ *          released with secret_value_unref(), or %NULL if no secret found
+ */
+SecretValue *
+secret_password_lookupv_binary_sync (const SecretSchema *schema,
+				     GHashTable *attributes,
+				     GCancellable *cancellable,
+				     GError **error)
+{
+	SecretSync *sync;
+	SecretValue *value;
+
+	g_return_val_if_fail (schema != NULL, NULL);
+	g_return_val_if_fail (attributes != NULL, NULL);
+	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
+	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
+
+	/* Warnings raised already */
+	if (!_secret_attributes_validate (schema, attributes, G_STRFUNC, TRUE))
+		return FALSE;
+
+	sync = _secret_sync_new ();
+	g_main_context_push_thread_default (sync->context);
+
+	secret_password_lookupv (schema, attributes, cancellable,
+	                         _secret_sync_on_result, sync);
+
+	g_main_loop_run (sync->loop);
+
+	value = secret_password_lookup_binary_finish (sync->result, error);
+
+	g_main_context_pop_thread_default (sync->context);
+	_secret_sync_free (sync);
+
+	return value;
 }
 
 /**
