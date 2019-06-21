@@ -45,6 +45,24 @@ void         secret_password_storev                    (const SecretSchema *sche
                                                         GAsyncReadyCallback callback,
                                                         gpointer user_data);
 
+void         secret_password_store_binary              (const SecretSchema *schema,
+							const gchar *collection,
+							const gchar *label,
+							SecretValue *value,
+							GCancellable *cancellable,
+							GAsyncReadyCallback callback,
+							gpointer user_data,
+							...);
+
+void         secret_password_storev_binary             (const SecretSchema *schema,
+							GHashTable *attributes,
+							const gchar *collection,
+							const gchar *label,
+							SecretValue *value,
+							GCancellable *cancellable,
+							GAsyncReadyCallback callback,
+							gpointer user_data);
+
 gboolean     secret_password_store_finish              (GAsyncResult *result,
                                                         GError **error);
 
@@ -63,6 +81,22 @@ gboolean     secret_password_storev_sync               (const SecretSchema *sche
                                                         const gchar *password,
                                                         GCancellable *cancellable,
                                                         GError **error);
+
+gboolean     secret_password_store_binary_sync         (const SecretSchema *schema,
+							const gchar *collection,
+							const gchar *label,
+							SecretValue *value,
+							GCancellable *cancellable,
+							GError **error,
+							...);
+
+gboolean     secret_password_storev_binary_sync        (const SecretSchema *schema,
+							GHashTable *attributes,
+							const gchar *collection,
+							const gchar *label,
+							SecretValue *value,
+							GCancellable *cancellable,
+							GError **error);
 
 void         secret_password_lookup                    (const SecretSchema *schema,
                                                         GCancellable *cancellable,
