@@ -157,6 +157,98 @@ secret_password_storev (const SecretSchema *schema,
 }
 
 /**
+ * secret_password_store_binary: (skip)
+ * @schema: the schema for attributes
+ * @collection: (allow-none): a collection alias, or D-Bus object path of the collection where to store the secret
+ * @label: label for the secret
+ * @value: a #SecretValue
+ * @cancellable: optional cancellation object
+ * @callback: called when the operation completes
+ * @user_data: data to be passed to the callback
+ * @...: the attribute keys and values, terminated with %NULL
+ *
+ * Store a password in the secret service.
+ *
+ * This is similar to secret_password_store(), but takes a
+ * #SecretValue as the argument instead of a null-terminated password.
+ *
+ * This method will return immediately and complete asynchronously.
+ */
+void
+secret_password_store_binary (const SecretSchema *schema,
+			      const gchar *collection,
+			      const gchar *label,
+			      SecretValue *value,
+			      GCancellable *cancellable,
+			      GAsyncReadyCallback callback,
+			      gpointer user_data,
+			      ...)
+{
+	GHashTable *attributes;
+	va_list va;
+
+	g_return_if_fail (schema != NULL);
+	g_return_if_fail (label != NULL);
+	g_return_if_fail (value != NULL);
+	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+	va_start (va, user_data);
+	attributes = secret_attributes_buildv (schema, va);
+	va_end (va);
+
+	/* Precondition failed, already warned */
+	if (!attributes)
+		return;
+
+	secret_password_storev_binary (schema, attributes, collection, label, value,
+				       cancellable, callback, user_data);
+
+	g_hash_table_unref (attributes);
+}
+
+/**
+ * secret_password_storev_binary: (rename-to secret_password_store_binary)
+ * @schema: the schema for attributes
+ * @attributes: (element-type utf8 utf8): the attribute keys and values
+ * @collection: (allow-none): a collection alias, or D-Bus object path of the collection where to store the secret
+ * @label: label for the secret
+ * @value: a #SecretValue
+ * @cancellable: optional cancellation object
+ * @callback: called when the operation completes
+ * @user_data: data to be passed to the callback
+ *
+ * Store a password in the secret service.
+ *
+ * This is similar to secret_password_storev(), but takes a
+ * #SecretValue as the argument instead of a null-terminated password.
+ *
+ * This method will return immediately and complete asynchronously.
+ */
+void
+secret_password_storev_binary (const SecretSchema *schema,
+			       GHashTable *attributes,
+			       const gchar *collection,
+			       const gchar *label,
+			       SecretValue *value,
+			       GCancellable *cancellable,
+			       GAsyncReadyCallback callback,
+			       gpointer user_data)
+{
+	g_return_if_fail (schema != NULL);
+	g_return_if_fail (label != NULL);
+	g_return_if_fail (value != NULL);
+	g_return_if_fail (attributes != NULL);
+	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+	/* Warnings raised already */
+	if (!_secret_attributes_validate (schema, attributes, G_STRFUNC, FALSE))
+		return;
+
+	secret_service_store (NULL, schema, attributes, collection,
+	                      label, value, cancellable, callback, user_data);
+}
+
+/**
  * secret_password_store_finish:
  * @result: the asynchronous result passed to the callback
  * @error: location to place an error on failure
@@ -290,6 +382,119 @@ secret_password_storev_sync (const SecretSchema *schema,
 
 	secret_password_storev (schema, attributes, collection, label, password,
 	                        cancellable, _secret_sync_on_result, sync);
+
+	g_main_loop_run (sync->loop);
+
+	ret = secret_password_store_finish (sync->result, error);
+
+	g_main_context_pop_thread_default (sync->context);
+	_secret_sync_free (sync);
+
+	return ret;
+}
+
+/**
+ * secret_password_store_binary_sync:
+ * @schema: the schema for attributes
+ * @collection: (allow-none): a collection alias, or D-Bus object path of the collection where to store the secret
+ * @label: label for the secret
+ * @value: a #SecretValue
+ * @cancellable: optional cancellation object
+ * @error: location to place an error on failure
+ * @...: the attribute keys and values, terminated with %NULL
+ *
+ * Store a password in the secret service.
+ *
+ * This is similar to secret_password_store_sync(), but takes a
+ * #SecretValue as the argument instead of a null terminated password.
+ *
+ * This method may block indefinitely and should not be used in user interface
+ * threads.
+ *
+ * Returns: whether the storage was successful or not
+ */
+gboolean
+secret_password_store_binary_sync (const SecretSchema *schema,
+				   const gchar *collection,
+				   const gchar *label,
+				   SecretValue *value,
+				   GCancellable *cancellable,
+				   GError **error,
+				   ...)
+{
+	GHashTable *attributes;
+	va_list va;
+	gboolean ret;
+
+	g_return_val_if_fail (schema != NULL, FALSE);
+	g_return_val_if_fail (label != NULL, FALSE);
+	g_return_val_if_fail (value != NULL, FALSE);
+	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), FALSE);
+	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+
+	va_start (va, error);
+	attributes = secret_attributes_buildv (schema, va);
+	va_end (va);
+
+	/* Precondition failed, already warned */
+	if (!attributes)
+		return FALSE;
+
+	ret = secret_password_storev_binary_sync (schema, attributes, collection,
+						  label, value, cancellable, error);
+
+	g_hash_table_unref (attributes);
+	return ret;
+}
+
+/**
+ * secret_password_storev_binary_sync: (rename-to secret_password_store_binary_sync)
+ * @schema: the schema for attributes
+ * @attributes: (element-type utf8 utf8): the attribute keys and values
+ * @collection: (allow-none): a collection alias, or D-Bus object path of the collection where to store the secret
+ * @label: label for the secret
+ * @value: a #SecretValue
+ * @cancellable: optional cancellation object
+ * @error: location to place an error on failure
+ *
+ * Store a password in the secret service.
+ *
+ * This is similar to secret_password_storev_sync(), but takes a
+ * #SecretValue as the argument instead of a null-terminated passwords.
+ *
+ * This method may block indefinitely and should not be used in user interface
+ * threads.
+ *
+ * Returns: whether the storage was successful or not
+ */
+gboolean
+secret_password_storev_binary_sync (const SecretSchema *schema,
+				    GHashTable *attributes,
+				    const gchar *collection,
+				    const gchar *label,
+				    SecretValue *value,
+				    GCancellable *cancellable,
+				    GError **error)
+{
+	SecretSync *sync;
+	gboolean ret;
+
+	g_return_val_if_fail (schema != NULL, FALSE);
+	g_return_val_if_fail (label != NULL, FALSE);
+	g_return_val_if_fail (value != NULL, FALSE);
+	g_return_val_if_fail (attributes != NULL, FALSE);
+	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), FALSE);
+	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+
+	/* Warnings raised already */
+	if (!_secret_attributes_validate (schema, attributes, G_STRFUNC, FALSE))
+		return FALSE;
+
+	sync = _secret_sync_new ();
+	g_main_context_push_thread_default (sync->context);
+
+	secret_password_storev_binary (schema, attributes, collection, label, value,
+				       cancellable, _secret_sync_on_result, sync);
 
 	g_main_loop_run (sync->loop);
 
