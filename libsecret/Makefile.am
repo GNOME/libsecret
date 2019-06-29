@@ -7,6 +7,7 @@ incdir = $(includedir)/libsecret-@SECRET_MAJOR@/libsecret
 libsecret_HEADS = \
 	libsecret/secret.h \
 	libsecret/secret-attributes.h \
+	libsecret/secret-backend.h \
 	libsecret/secret-collection.h \
 	libsecret/secret-item.h \
 	libsecret/secret-password.h \
@@ -38,6 +39,7 @@ libsecret_BUILT = \
 
 libsecret_PUBLIC = \
 	libsecret/secret-attributes.h libsecret/secret-attributes.c \
+	libsecret/secret-backend.h libsecret/secret-backend.c \
 	libsecret/secret-collection.h libsecret/secret-collection.c \
 	libsecret/secret-item.h libsecret/secret-item.c \
 	libsecret/secret-methods.c \
