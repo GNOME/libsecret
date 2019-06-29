@@ -14,6 +14,8 @@
 
 #include "config.h"
 
+#undef G_DISABLE_ASSERT
+
 #include "secret-password.h"
 #include "secret-paths.h"
 #include "secret-private.h"

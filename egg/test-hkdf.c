@@ -22,6 +22,8 @@
 
 #include "config.h"
 
+#undef G_DISABLE_ASSERT
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -31,6 +33,8 @@
 #include "egg/egg-testing.h"
 
 #include <gcrypt.h>
+
+#undef G_DISABLE_ASSERT
 
 EGG_SECURE_DEFINE_GLIB_GLOBALS ();
 

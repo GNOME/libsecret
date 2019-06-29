@@ -15,6 +15,8 @@
 
 #include "config.h"
 
+#undef G_DISABLE_ASSERT
+
 #include "secret-collection.h"
 #include "secret-item.h"
 #include "secret-service.h"

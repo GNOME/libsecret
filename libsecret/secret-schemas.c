@@ -110,4 +110,5 @@ secret_get_schema (SecretSchemaType type)
 	default:
 		g_assert_not_reached ();
 	}
+	g_return_val_if_reached (NULL);
 }

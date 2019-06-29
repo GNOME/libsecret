@@ -13,6 +13,8 @@
 
 #include "config.h"
 
+#undef G_DISABLE_ASSERT
+
 #include "secret-attributes.h"
 #include "secret-collection.h"
 #include "secret-item.h"

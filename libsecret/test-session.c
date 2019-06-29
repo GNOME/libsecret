@@ -13,6 +13,8 @@
 
 #include "config.h"
 
+#undef G_DISABLE_ASSERT
+
 #include "secret-item.h"
 #include "secret-service.h"
 #include "secret-paths.h"
