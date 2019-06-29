@@ -22,6 +22,8 @@
 
 #include "config.h"
 
+#undef G_DISABLE_ASSERT
+
 #include "egg/egg-secure-memory.h"
 
 #include <glib.h>

@@ -22,6 +22,8 @@
 
 #include "config.h"
 
+#undef G_DISABLE_ASSERT
+
 #include "egg/egg-hex.h"
 
 #include <stdlib.h>
