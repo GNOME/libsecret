@@ -2,6 +2,7 @@ installed_headers_subdir = join_paths('libsecret-@0@'.format(api_version_major),
 
 libsecret_sources = [
   'secret-attributes.c',
+  'secret-backend.c',
   'secret-collection.c',
   'secret-item.c',
   'secret-methods.c',
@@ -20,6 +21,7 @@ libsecret_sources = [
 libsecret_headers = [
   'secret.h',
   'secret-attributes.h',
+  'secret-backend.h',
   'secret-collection.h',
   'secret-item.h',
   'secret-password.h',
