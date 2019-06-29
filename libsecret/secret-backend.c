@@ -115,15 +115,18 @@ backend_get_instance (void)
 static GType
 backend_get_impl_type (void)
 {
-	const gchar *envvar = g_getenv ("SECRET_BACKEND");
+	const gchar *envvar;
 	const gchar *extension_name;
 	GIOExtension *e;
 	GIOExtensionPoint *ep;
 
+	envvar = g_getenv ("SECRET_BACKEND");
 	if (envvar == NULL || *envvar == '\0')
 		extension_name = "service";
 	else
 		extension_name = envvar;
+
+	g_type_ensure (secret_service_get_type ());
 
 	ep = g_io_extension_point_lookup (SECRET_BACKEND_EXTENSION_POINT_NAME);
 	e = g_io_extension_point_get_extension_by_name (ep, extension_name);
