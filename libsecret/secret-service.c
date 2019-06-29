@@ -15,6 +15,7 @@
 
 #include "config.h"
 
+#include "secret-backend.h"
 #include "secret-collection.h"
 #include "secret-dbus-generated.h"
 #include "secret-item.h"
@@ -135,14 +136,24 @@ static GInitableIface *secret_service_initable_parent_iface = NULL;
 
 static GAsyncInitableIface *secret_service_async_initable_parent_iface = NULL;
 
+static SecretBackendInterface *secret_service_backend_parent_iface = NULL;
+
 static void   secret_service_initable_iface         (GInitableIface *iface);
 
 static void   secret_service_async_initable_iface   (GAsyncInitableIface *iface);
+
+static void   secret_service_backend_iface          (SecretBackendInterface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (SecretService, secret_service, G_TYPE_DBUS_PROXY,
                          G_ADD_PRIVATE (SecretService)
                          G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE, secret_service_initable_iface);
                          G_IMPLEMENT_INTERFACE (G_TYPE_ASYNC_INITABLE, secret_service_async_initable_iface);
+			 G_IMPLEMENT_INTERFACE (SECRET_TYPE_BACKEND, secret_service_backend_iface);
+			 _secret_backend_ensure_extension_point ();
+			 g_io_extension_point_implement (SECRET_BACKEND_EXTENSION_POINT_NAME,
+                                                         g_define_type_id,
+                                                         "service",
+                                                         0)
 );
 
 static SecretService *
@@ -571,10 +582,7 @@ secret_service_class_init (SecretServiceClass *klass)
 	 * A set of flags describing which parts of the secret service have
 	 * been initialized.
 	 */
-	g_object_class_install_property (object_class, PROP_FLAGS,
-	             g_param_spec_flags ("flags", "Flags", "Service flags",
-	                                 secret_service_flags_get_type (), SECRET_SERVICE_NONE,
-	                                 G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS));
+	g_object_class_override_property (object_class, PROP_FLAGS, "flags");
 
 	/**
 	 * SecretService:collections:
@@ -776,6 +784,21 @@ secret_service_async_initable_iface (GAsyncInitableIface *iface)
 
 	iface->init_async = secret_service_async_initable_init_async;
 	iface->init_finish = secret_service_async_initable_init_finish;
+}
+
+static void
+secret_service_backend_iface (SecretBackendInterface *iface)
+{
+	secret_service_backend_parent_iface = g_type_interface_peek_parent (iface);
+
+	iface->store = secret_service_store;
+	iface->store_finish = secret_service_store_finish;
+	iface->lookup = secret_service_lookup;
+	iface->lookup_finish = secret_service_lookup_finish;
+	iface->clear = secret_service_clear;
+	iface->clear_finish = secret_service_clear_finish;
+	iface->search = secret_service_search;
+	iface->search_finish = secret_service_search_finish;
 }
 
 /**
