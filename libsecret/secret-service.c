@@ -509,6 +509,38 @@ secret_service_real_get_item_gtype (SecretService *self)
 	return klass->item_gtype;
 }
 
+static const gchar *
+get_default_bus_name (void)
+{
+	const gchar *bus_name;
+
+	bus_name = g_getenv ("SECRET_SERVICE_BUS_NAME");
+	if (bus_name == NULL)
+		bus_name = SECRET_SERVICE_BUS_NAME;
+
+	return bus_name;
+}
+
+static GObject *
+secret_service_constructor (GType type,
+                            guint n_construct_properties,
+                            GObjectConstructParam *construct_properties)
+{
+	GObject *object;
+
+	object = G_OBJECT_CLASS (secret_service_parent_class)->
+		constructor (type, n_construct_properties, construct_properties);
+	g_object_set (object,
+		      "g-flags", G_DBUS_PROXY_FLAGS_NONE,
+		      "g-interface-info", _secret_gen_service_interface_info (),
+		      "g-name", get_default_bus_name (),
+		      "g-bus-type", G_BUS_TYPE_SESSION,
+		      "g-object-path", SECRET_SERVICE_PATH,
+		      "g-interface-name", SECRET_SERVICE_INTERFACE,
+		      NULL);
+	return object;
+}
+
 static void
 secret_service_class_init (SecretServiceClass *klass)
 {
@@ -519,6 +551,7 @@ secret_service_class_init (SecretServiceClass *klass)
 	object_class->set_property = secret_service_set_property;
 	object_class->dispose = secret_service_dispose;
 	object_class->finalize = secret_service_finalize;
+	object_class->constructor = secret_service_constructor;
 
 	proxy_class->g_properties_changed = secret_service_properties_changed;
 	proxy_class->g_signal = secret_service_signal;
@@ -745,18 +778,6 @@ secret_service_async_initable_iface (GAsyncInitableIface *iface)
 	iface->init_finish = secret_service_async_initable_init_finish;
 }
 
-static const gchar *
-get_default_bus_name (void)
-{
-	const gchar *bus_name;
-
-	bus_name = g_getenv ("SECRET_SERVICE_BUS_NAME");
-	if (bus_name == NULL)
-		bus_name = SECRET_SERVICE_BUS_NAME;
-
-	return bus_name;
-}
-
 /**
  * secret_service_get:
  * @flags: flags for which service functionality to ensure is initialized
@@ -788,13 +809,7 @@ secret_service_get (SecretServiceFlags flags,
 	if (service == NULL) {
 		g_async_initable_new_async (SECRET_TYPE_SERVICE, G_PRIORITY_DEFAULT,
 		                            cancellable, callback, user_data,
-		                            "g-flags", G_DBUS_PROXY_FLAGS_NONE,
-		                            "g-interface-info", _secret_gen_service_interface_info (),
-		                            "g-name", get_default_bus_name (),
-		                            "g-bus-type", G_BUS_TYPE_SESSION,
-		                            "g-object-path", SECRET_SERVICE_PATH,
-		                            "g-interface-name", SECRET_SERVICE_INTERFACE,
-		                            "flags", flags,
+					    "flags", flags,
 		                            NULL);
 
 	/* Just have to ensure that the service matches flags */
@@ -890,12 +905,6 @@ secret_service_get_sync (SecretServiceFlags flags,
 
 	if (service == NULL) {
 		service = g_initable_new (SECRET_TYPE_SERVICE, cancellable, error,
-		                          "g-flags", G_DBUS_PROXY_FLAGS_NONE,
-		                          "g-interface-info", _secret_gen_service_interface_info (),
-		                          "g-name", get_default_bus_name (),
-		                          "g-bus-type", G_BUS_TYPE_SESSION,
-		                          "g-object-path", SECRET_SERVICE_PATH,
-		                          "g-interface-name", SECRET_SERVICE_INTERFACE,
 		                          "flags", flags,
 		                          NULL);
 
@@ -970,12 +979,6 @@ secret_service_open (GType service_gtype,
 
 	g_async_initable_new_async (service_gtype, G_PRIORITY_DEFAULT,
 	                            cancellable, callback, user_data,
-	                            "g-flags", G_DBUS_PROXY_FLAGS_NONE,
-	                            "g-interface-info", _secret_gen_service_interface_info (),
-	                            "g-name", service_bus_name,
-	                            "g-bus-type", G_BUS_TYPE_SESSION,
-	                            "g-object-path", SECRET_SERVICE_PATH,
-	                            "g-interface-name", SECRET_SERVICE_INTERFACE,
 	                            "flags", flags,
 	                            NULL);
 }
@@ -1052,12 +1055,6 @@ secret_service_open_sync (GType service_gtype,
 		service_bus_name = get_default_bus_name ();
 
 	return g_initable_new (service_gtype, cancellable, error,
-	                       "g-flags", G_DBUS_PROXY_FLAGS_NONE,
-	                       "g-interface-info", _secret_gen_service_interface_info (),
-	                       "g-name", service_bus_name,
-	                       "g-bus-type", G_BUS_TYPE_SESSION,
-	                       "g-object-path", SECRET_SERVICE_PATH,
-	                       "g-interface-name", SECRET_SERVICE_INTERFACE,
 	                       "flags", flags,
 	                       NULL);
 }
