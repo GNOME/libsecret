@@ -17,6 +17,8 @@
 #include "secret-backend.h"
 #include "secret-private.h"
 
+#include "libsecret/secret-enum-types.h"
+
 /**
  * SECTION:secret-backend
  * @title: SecretBackend
@@ -74,9 +76,9 @@ secret_backend_default_init (SecretBackendInterface *iface)
 	 * been initialized.
 	 */
 	g_object_interface_install_property (iface,
-	             g_param_spec_flags ("flags", "Flags", "Service flags",
-	                                 secret_service_flags_get_type (), SECRET_SERVICE_NONE,
-	                                 G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS));
+		     g_param_spec_flags ("flags", "Flags", "Service flags",
+					 secret_service_flags_get_type (), SECRET_SERVICE_NONE,
+					 G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS));
 }
 
 void
@@ -92,4 +94,143 @@ _secret_backend_ensure_extension_point (void)
 	g_io_extension_point_set_required_type (ep, SECRET_TYPE_BACKEND);
 
 	registered = TRUE;
+}
+
+G_LOCK_DEFINE (backend_instance);
+static gpointer backend_instance = NULL;
+
+static SecretBackend *
+backend_get_instance (void)
+{
+	SecretBackend *instance = NULL;
+
+	G_LOCK (backend_instance);
+	if (backend_instance != NULL)
+		instance = g_object_ref (backend_instance);
+	G_UNLOCK (backend_instance);
+
+	return instance;
+}
+
+static GType
+backend_get_impl_type (void)
+{
+	const gchar *envvar = g_getenv ("SECRET_BACKEND");
+	const gchar *extension_name;
+	GIOExtension *e;
+	GIOExtensionPoint *ep;
+
+	if (envvar == NULL || *envvar == '\0')
+		extension_name = "service";
+
+	ep = g_io_extension_point_lookup (SECRET_BACKEND_EXTENSION_POINT_NAME);
+	e = g_io_extension_point_get_extension_by_name (ep, extension_name);
+	if (e == NULL) {
+		g_warning ("Backend extension \"%s\" from SECRET_BACKEND_EXTENSION_POINT_NAME environment variable not found.", extension_name);
+		return G_TYPE_NONE;
+	}
+
+	return g_io_extension_get_type (e);
+}
+
+static void
+on_ensure_for_flags (GObject *source_object,
+		     GAsyncResult *res,
+		     gpointer user_data)
+{
+	SecretBackendInterface *iface;
+	SecretBackend *backend = SECRET_BACKEND (source_object);
+	GTask *task = G_TASK (user_data);
+	GError *error = NULL;
+
+	iface = SECRET_BACKEND_GET_IFACE (self);
+	g_return_if_fail (iface->ensure_for_flags_finish != NULL);
+
+	if (!iface->ensure_for_flags_finish (backend, result, &error)) {
+		g_task_return_error (task, error);
+		g_object_unref (task);
+		return;
+	}
+
+	g_task_return_boolean (task, TRUE);
+	g_object_unref (task);
+}
+
+void
+secret_backend_get (SecretBackendFlags flags,
+		    GCancellable *cancellable,
+		    GAsyncReadyCallback callback,
+		    gpointer user_data)
+{
+	SecretBackend *backend = NULL;
+	SecretBackendInterface *iface;
+	GTask *task;
+	InitClosure *closure;
+
+	backend = backend_get_instance ();
+
+	/* Create a whole new backend */
+	if (backend == NULL) {
+		GType impl_type = backend_get_impl_type ();
+		g_return_if_fail (g_type_is_a (impl_type, G_TYPE_ASYNC_INITABLE));
+		g_async_initable_new_async (impl_type,
+					    G_PRIORITY_DEFAULT,
+					    cancellable, callback, user_data,
+					    "flags", flags,
+					    NULL);
+
+	/* Just have to ensure that the backend matches flags */
+	} else {
+		iface = SECRET_BACKEND_GET_IFACE (self);
+		g_return_if_fail (iface->ensure_for_flags != NULL);
+
+		task = g_task_new (backend, cancellable, callback, usear_data);
+		g_task_set_source_tag (task, secret_backend_get);
+		iface->ensure_for_flags (backend, flags, cancellable,
+					 on_ensure_for_flags, task);
+
+		g_object_unref (backend);
+		g_object_unref (task);
+	}
+}
+
+SecretBackend *
+secret_backend_get_finish (GAsyncResult *result,
+			   GError **error)
+{
+	GTask *task;
+	GObject *backend = NULL;
+	GObject *source_object;
+
+	g_return_val_if_fail (G_IS_ASYNC_RESULT (result), NULL);
+	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
+
+	task = G_TASK (result);
+	source_object = g_task_get_source_object (task);
+
+	g_return_val_if_fail (g_task_is_valid (result, source_object), NULL);
+
+	/* Just ensuring that the backend matches flags */
+	if (g_task_get_source_tag (task) == secret_backend_get) {
+		if (g_task_had_error (task)) {
+			g_task_propagate_pointer (task, error);
+		} else {
+			backend = g_object_ref (source_object);
+		}
+
+	/* Creating a whole new backend */
+	} else {
+		backend = g_async_initable_new_finish (G_ASYNC_INITABLE (source_object), result, error);
+		if (backend) {
+			G_LOCK (backend_instance);
+			if (backend_instance == NULL)
+				backend_instance = instance;
+			G_UNLOCK (backend_instance);
+		}
+	}
+
+	if (backend == NULL)
+		return NULL;
+
+	return SECRET_BACKEND (backend);
 }
