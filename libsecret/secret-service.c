@@ -708,7 +708,12 @@ secret_service_initable_init (GInitable *initable,
 		return FALSE;
 
 	self = SECRET_SERVICE (initable);
-	return service_ensure_for_flags_sync (self, self->pv->init_flags, cancellable, error);
+	if (!service_ensure_for_flags_sync (self, self->pv->init_flags,
+					    cancellable, error))
+		return FALSE;
+
+	service_cache_instance (self);
+	return TRUE;
 }
 
 static void
@@ -774,6 +779,7 @@ secret_service_async_initable_init_finish (GAsyncInitable *initable,
 		return FALSE;
 	}
 
+	service_cache_instance (SECRET_SERVICE (initable));
 	return TRUE;
 }
 
@@ -1030,8 +1036,6 @@ secret_service_get_finish (GAsyncResult *result,
 	/* Creating a whole new service */
 	} else {
 		service = g_async_initable_new_finish (G_ASYNC_INITABLE (source_object), result, error);
-		if (service)
-			service_cache_instance (SECRET_SERVICE (service));
 	}
 
 	if (service == NULL)
@@ -1071,10 +1075,6 @@ secret_service_get_sync (SecretServiceFlags flags,
 		service = g_initable_new (SECRET_TYPE_SERVICE, cancellable, error,
 		                          "flags", flags,
 		                          NULL);
-
-		if (service != NULL)
-			service_cache_instance (service);
-
 	} else {
 		if (!service_ensure_for_flags_sync (service, flags, cancellable, error)) {
 			g_object_unref (service);
