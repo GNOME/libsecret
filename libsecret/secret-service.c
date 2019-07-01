@@ -191,6 +191,8 @@ service_uncache_instance (SecretService *which)
 	if (watch != 0)
 		g_bus_unwatch_name (watch);
 
+	_secret_backend_uncache_instance ();
+
 	return matched;
 }
 
