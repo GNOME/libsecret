@@ -97,6 +97,8 @@ struct _SecretBackendInterface
 
 void           _secret_backend_ensure_extension_point
                                          (void);
+void           _secret_backend_uncache_instance
+                                         (void);
 
 void           secret_backend_get        (SecretBackendFlags flags,
                                           GCancellable *cancellable,
