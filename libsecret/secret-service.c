@@ -183,6 +183,8 @@ service_uncache_instance (SecretService *which)
 		watch = service_watch;
 		service_watch = 0;
 		matched = TRUE;
+		if (instance != NULL)
+			_secret_backend_uncache_instance ();
 	}
 	G_UNLOCK (service_instance);
 

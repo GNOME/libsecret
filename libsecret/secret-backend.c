@@ -112,6 +112,20 @@ backend_get_instance (void)
 	return instance;
 }
 
+void
+_secret_backend_uncache_instance (void)
+{
+	SecretBackend *instance = NULL;
+
+	G_LOCK (backend_instance);
+	instance = backend_instance;
+	backend_instance = NULL;
+	G_UNLOCK (backend_instance);
+
+	if (instance != NULL)
+		g_object_unref (instance);
+}
+
 static GType
 backend_get_impl_type (void)
 {
