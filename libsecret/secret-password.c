@@ -18,6 +18,7 @@
 #include "secret-password.h"
 #include "secret-private.h"
 #include "secret-retrievable.h"
+#include "secret-backend.h"
 #include "secret-value.h"
 
 #include <egg/egg-secure-memory.h>
@@ -102,6 +103,77 @@ secret_password_store (const SecretSchema *schema,
 	g_hash_table_unref (attributes);
 }
 
+typedef struct {
+	const SecretSchema *schema;
+	GHashTable *attributes;
+	gchar *collection;
+	gchar *label;
+	SecretValue *value;
+} StoreClosure;
+
+static void
+store_closure_free (gpointer data)
+{
+	StoreClosure *store = data;
+	_secret_schema_unref_if_nonstatic (store->schema);
+	g_hash_table_unref (store->attributes);
+	g_free (store->collection);
+	g_free (store->label);
+	secret_value_unref (store->value);
+	g_slice_free (StoreClosure, store);
+}
+
+static void
+on_store (GObject *source,
+	  GAsyncResult *result,
+	  gpointer user_data)
+{
+	GTask *task = G_TASK (user_data);
+	SecretBackend *backend = SECRET_BACKEND (source);
+	SecretBackendInterface *iface;
+	GError *error = NULL;
+
+	iface = SECRET_BACKEND_GET_IFACE (backend);
+	g_return_if_fail (iface->store_finish != NULL);
+
+	if (!iface->store_finish (backend, result, &error)) {
+		g_task_return_error (task, error);
+		g_object_unref (task);
+		return;
+	}
+
+	g_task_return_boolean (task, TRUE);
+	g_object_unref (task);
+}
+
+static void
+on_store_backend (GObject *source,
+                  GAsyncResult *result,
+                  gpointer user_data)
+{
+	GTask *task = G_TASK (user_data);
+	StoreClosure *store = g_task_get_task_data (task);
+	SecretBackend *backend;
+	SecretBackendInterface *iface;
+	GError *error = NULL;
+
+	backend = secret_backend_get_finish (result, &error);
+	if (backend == NULL) {
+		g_task_return_error (task, error);
+		g_object_unref (task);
+		return;
+	}
+
+	iface = SECRET_BACKEND_GET_IFACE (backend);
+	g_return_if_fail (iface->store != NULL);
+
+	iface->store (backend, store->schema, store->attributes,
+		      store->collection, store->label, store->value,
+		      g_task_get_cancellable (task),
+		      on_store,
+		      task);
+}
+
 /**
  * secret_password_storev: (rename-to secret_password_store)
  * @schema: the schema for attributes
@@ -136,7 +208,8 @@ secret_password_storev (const SecretSchema *schema,
                         GAsyncReadyCallback callback,
                         gpointer user_data)
 {
-	SecretValue *value;
+	StoreClosure *store;
+	GTask *task;
 
 	g_return_if_fail (schema != NULL);
 	g_return_if_fail (label != NULL);
@@ -148,12 +221,18 @@ secret_password_storev (const SecretSchema *schema,
 	if (!_secret_attributes_validate (schema, attributes, G_STRFUNC, FALSE))
 		return;
 
-	value = secret_value_new (password, -1, "text/plain");
+	task = g_task_new (NULL, cancellable, callback, user_data);
+	store = g_slice_new0 (StoreClosure);
+	store->schema = _secret_schema_ref_if_nonstatic (schema);
+	store->attributes = g_hash_table_ref (attributes);
+	store->collection = g_strdup (collection);
+	store->label = g_strdup (label);
+	store->value = secret_value_new (password, -1, "text/plain");
+	g_task_set_task_data (task, store, store_closure_free);
 
-	secret_service_store (NULL, schema, attributes, collection,
-	                      label, value, cancellable, callback, user_data);
-
-	secret_value_unref (value);
+	secret_backend_get (SECRET_BACKEND_OPEN_SESSION,
+			    cancellable,
+			    on_store_backend, task);
 }
 
 /**
@@ -234,6 +313,9 @@ secret_password_storev_binary (const SecretSchema *schema,
 			       GAsyncReadyCallback callback,
 			       gpointer user_data)
 {
+	StoreClosure *store;
+	GTask *task;
+
 	g_return_if_fail (schema != NULL);
 	g_return_if_fail (label != NULL);
 	g_return_if_fail (value != NULL);
@@ -244,8 +326,18 @@ secret_password_storev_binary (const SecretSchema *schema,
 	if (!_secret_attributes_validate (schema, attributes, G_STRFUNC, FALSE))
 		return;
 
-	secret_service_store (NULL, schema, attributes, collection,
-	                      label, value, cancellable, callback, user_data);
+	task = g_task_new (NULL, cancellable, callback, user_data);
+	store = g_slice_new0 (StoreClosure);
+	store->schema = _secret_schema_ref_if_nonstatic (schema);
+	store->attributes = g_hash_table_ref (attributes);
+	store->collection = g_strdup (collection);
+	store->label = g_strdup (label);
+	store->value = secret_value_ref (value);
+	g_task_set_task_data (task, store, store_closure_free);
+
+	secret_backend_get (SECRET_BACKEND_OPEN_SESSION,
+			    cancellable,
+			    on_store_backend, task);
 }
 
 /**
@@ -262,7 +354,9 @@ secret_password_store_finish (GAsyncResult *result,
                               GError **error)
 {
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
-	return secret_service_store_finish (NULL, result, error);
+	g_return_val_if_fail (g_task_is_valid (result, NULL), FALSE);
+
+	return g_task_propagate_boolean (G_TASK (result), error);
 }
 
 /**
@@ -552,6 +646,75 @@ secret_password_lookup (const SecretSchema *schema,
 	g_hash_table_unref (attributes);
 }
 
+typedef struct {
+	const SecretSchema *schema;
+	GHashTable *attributes;
+} LookupClosure;
+
+static void
+lookup_closure_free (gpointer data)
+{
+	LookupClosure *closure = data;
+	_secret_schema_unref_if_nonstatic (closure->schema);
+	g_hash_table_unref (closure->attributes);
+	g_slice_free (LookupClosure, closure);
+}
+
+static void
+on_lookup (GObject *source,
+	   GAsyncResult *result,
+	   gpointer user_data)
+{
+	GTask *task = G_TASK (user_data);
+	SecretBackend *backend = SECRET_BACKEND (source);
+	SecretBackendInterface *iface;
+	SecretValue *value;
+	GError *error = NULL;
+
+	iface = SECRET_BACKEND_GET_IFACE (backend);
+	g_return_if_fail (iface->store_finish != NULL);
+
+	value = iface->lookup_finish (backend, result, &error);
+	if (error) {
+		g_task_return_error (task, error);
+		g_object_unref (task);
+		return;
+	}
+
+	if (value)
+		g_task_return_pointer (task, value, secret_value_unref);
+	else
+		g_task_return_pointer (task, NULL, NULL);
+	g_object_unref (task);
+}
+
+static void
+on_lookup_backend (GObject *source,
+		   GAsyncResult *result,
+		   gpointer user_data)
+{
+	GTask *task = G_TASK (user_data);
+	LookupClosure *lookup = g_task_get_task_data (task);
+	SecretBackend *backend;
+	SecretBackendInterface *iface;
+	GError *error = NULL;
+
+	backend = secret_backend_get_finish (result, &error);
+	if (backend == NULL) {
+		g_task_return_error (task, error);
+		g_object_unref (task);
+		return;
+	}
+
+	iface = SECRET_BACKEND_GET_IFACE (backend);
+	g_return_if_fail (iface->store != NULL);
+
+	iface->lookup (backend, lookup->schema, lookup->attributes,
+		       g_task_get_cancellable (task),
+		       on_lookup,
+		       task);
+}
+
 /**
  * secret_password_lookupv: (rename-to secret_password_lookup)
  * @schema: the schema for attributes
@@ -575,6 +738,9 @@ secret_password_lookupv (const SecretSchema *schema,
                          GAsyncReadyCallback callback,
                          gpointer user_data)
 {
+	LookupClosure *lookup;
+	GTask *task;
+
 	g_return_if_fail (schema != NULL);
 	g_return_if_fail (attributes != NULL);
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
@@ -583,8 +749,15 @@ secret_password_lookupv (const SecretSchema *schema,
 	if (!_secret_attributes_validate (schema, attributes, G_STRFUNC, TRUE))
 		return;
 
-	secret_service_lookup (NULL, schema, attributes,
-	                       cancellable, callback, user_data);
+	task = g_task_new (NULL, cancellable, callback, user_data);
+	lookup = g_slice_new0 (LookupClosure);
+	lookup->schema = _secret_schema_ref_if_nonstatic (schema);
+	lookup->attributes = g_hash_table_ref (attributes);
+	g_task_set_task_data (task, lookup, lookup_closure_free);
+
+	secret_backend_get (SECRET_BACKEND_OPEN_SESSION,
+			    cancellable,
+			    on_lookup_backend, task);
 }
 
 /**
@@ -604,8 +777,9 @@ secret_password_lookup_nonpageable_finish (GAsyncResult *result,
 	SecretValue *value;
 
 	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
+	g_return_val_if_fail (g_task_is_valid (result, NULL), NULL);
 
-	value = secret_service_lookup_finish (NULL, result, error);
+	value = g_task_propagate_pointer (G_TASK (result), error);
 	if (value == NULL)
 		return NULL;
 
@@ -627,8 +801,9 @@ secret_password_lookup_binary_finish (GAsyncResult *result,
 				      GError **error)
 {
 	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
+	g_return_val_if_fail (g_task_is_valid (result, NULL), NULL);
 
-	return secret_service_lookup_finish (NULL, result, error);
+	return g_task_propagate_pointer (G_TASK (result), error);
 }
 
 /**
@@ -648,8 +823,9 @@ secret_password_lookup_finish (GAsyncResult *result,
 	SecretValue *value;
 
 	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
+	g_return_val_if_fail (g_task_is_valid (result, NULL), NULL);
 
-	value = secret_service_lookup_finish (NULL, result, error);
+	value = g_task_propagate_pointer (G_TASK (result), error);
 	if (value == NULL)
 		return NULL;
 
@@ -1012,6 +1188,72 @@ secret_password_clear (const SecretSchema *schema,
 	g_hash_table_unref (attributes);
 }
 
+typedef struct {
+	const SecretSchema *schema;
+	GHashTable *attributes;
+} ClearClosure;
+
+static void
+clear_closure_free (gpointer data)
+{
+	ClearClosure *closure = data;
+	_secret_schema_unref_if_nonstatic (closure->schema);
+	g_hash_table_unref (closure->attributes);
+	g_slice_free (ClearClosure, closure);
+}
+
+static void
+on_clear (GObject *source,
+	  GAsyncResult *result,
+	  gpointer user_data)
+{
+	GTask *task = G_TASK (user_data);
+	SecretBackend *backend = SECRET_BACKEND (source);
+	SecretBackendInterface *iface;
+	GError *error = NULL;
+
+	iface = SECRET_BACKEND_GET_IFACE (backend);
+	g_return_if_fail (iface->clear_finish != NULL);
+
+	if (!iface->clear_finish (backend, result, &error)) {
+		if (error)
+			g_task_return_error (task, error);
+		else
+			g_task_return_boolean (task, FALSE);
+		g_object_unref (task);
+		return;
+	}
+
+	g_task_return_boolean (task, TRUE);
+	g_object_unref (task);
+}
+
+static void
+on_clear_backend (GObject *source,
+		  GAsyncResult *result,
+		  gpointer user_data)
+{
+	GTask *task = G_TASK (user_data);
+	ClearClosure *clear = g_task_get_task_data (task);
+	SecretBackend *backend;
+	SecretBackendInterface *iface;
+	GError *error = NULL;
+
+	backend = secret_backend_get_finish (result, &error);
+	if (backend == NULL) {
+		g_task_return_error (task, error);
+		g_object_unref (task);
+		return;
+	}
+
+	iface = SECRET_BACKEND_GET_IFACE (backend);
+	g_return_if_fail (iface->clear != NULL);
+
+	iface->clear (backend, clear->schema, clear->attributes,
+		      g_task_get_cancellable (task),
+		      on_clear,
+		      task);
+}
 
 /**
  * secret_password_clearv: (rename-to secret_password_clear)
@@ -1036,6 +1278,9 @@ secret_password_clearv (const SecretSchema *schema,
                         GAsyncReadyCallback callback,
                         gpointer user_data)
 {
+	ClearClosure *clear;
+	GTask *task;
+
 	g_return_if_fail (schema != NULL);
 	g_return_if_fail (attributes != NULL);
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
@@ -1044,8 +1289,15 @@ secret_password_clearv (const SecretSchema *schema,
 	if (!_secret_attributes_validate (schema, attributes, G_STRFUNC, TRUE))
 		return;
 
-	secret_service_clear (NULL, schema, attributes,
-	                      cancellable, callback, user_data);
+	task = g_task_new (NULL, cancellable, callback, user_data);
+	clear = g_slice_new0 (ClearClosure);
+	clear->schema = _secret_schema_ref_if_nonstatic (schema);
+	clear->attributes = g_hash_table_ref (attributes);
+	g_task_set_task_data (task, clear, clear_closure_free);
+
+	secret_backend_get (SECRET_SERVICE_NONE,
+			    cancellable,
+			    on_clear_backend, task);
 }
 
 /**
@@ -1063,7 +1315,9 @@ secret_password_clear_finish (GAsyncResult *result,
                               GError **error)
 {
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
-	return secret_service_clear_finish (NULL, result, error);
+	g_return_val_if_fail (g_task_is_valid (result, NULL), FALSE);
+
+	return g_task_propagate_boolean (G_TASK (result), error);
 }
 
 /**
@@ -1217,6 +1471,80 @@ secret_password_search (const SecretSchema *schema,
         g_hash_table_unref (attributes);
 }
 
+typedef struct {
+	const SecretSchema *schema;
+	GHashTable *attributes;
+	SecretSearchFlags flags;
+} SearchClosure;
+
+static void
+search_closure_free (gpointer data)
+{
+	SearchClosure *closure = data;
+	_secret_schema_unref_if_nonstatic (closure->schema);
+	g_hash_table_unref (closure->attributes);
+	g_slice_free (SearchClosure, closure);
+}
+
+static void
+object_list_free (gpointer data)
+{
+	GList *list = data;
+	g_list_free_full (list, g_object_unref);
+}
+
+static void
+on_search (GObject *source,
+	   GAsyncResult *result,
+	   gpointer user_data)
+{
+	GTask *task = G_TASK (user_data);
+	SecretBackend *backend = SECRET_BACKEND (source);
+	SecretBackendInterface *iface;
+	GError *error = NULL;
+	GList *items;
+
+	iface = SECRET_BACKEND_GET_IFACE (backend);
+	g_return_if_fail (iface->search_finish != NULL);
+
+	items = iface->search_finish (backend, result, &error);
+	if (error) {
+		g_task_return_error (task, error);
+		g_object_unref (task);
+		return;
+	}
+
+	g_task_return_pointer (task, items, object_list_free);
+}
+
+static void
+on_search_backend (GObject *source,
+		   GAsyncResult *result,
+		   gpointer user_data)
+{
+	GTask *task = G_TASK (user_data);
+	SearchClosure *search = g_task_get_task_data (task);
+	SecretBackend *backend;
+	SecretBackendInterface *iface;
+	GError *error = NULL;
+
+	backend = secret_backend_get_finish (result, &error);
+	if (backend == NULL) {
+		g_task_return_error (task, error);
+		g_object_unref (task);
+		return;
+	}
+
+	iface = SECRET_BACKEND_GET_IFACE (backend);
+	g_return_if_fail (iface->search != NULL);
+
+	iface->search (backend,
+		       search->schema, search->attributes, search->flags,
+		       g_task_get_cancellable (task),
+		       on_search,
+		       task);
+}
+
 /**
  * secret_password_searchv: (rename-to secret_password_search)
  * @schema: the schema for attributes
@@ -1242,6 +1570,9 @@ secret_password_searchv (const SecretSchema *schema,
                          GAsyncReadyCallback callback,
                          gpointer user_data)
 {
+	SearchClosure *search;
+	GTask *task;
+
         g_return_if_fail (schema != NULL);
         g_return_if_fail (attributes != NULL);
         g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
@@ -1250,8 +1581,16 @@ secret_password_searchv (const SecretSchema *schema,
         if (!_secret_attributes_validate (schema, attributes, G_STRFUNC, TRUE))
                 return;
 
-        secret_service_search (NULL, schema, attributes, flags,
-                               cancellable, callback, user_data);
+	task = g_task_new (NULL, cancellable, callback, user_data);
+	search = g_slice_new0 (SearchClosure);
+	search->schema = _secret_schema_ref_if_nonstatic (schema);
+	search->attributes = g_hash_table_ref (attributes);
+	search->flags = flags;
+	g_task_set_task_data (task, search, search_closure_free);
+
+        secret_backend_get (SECRET_SERVICE_NONE,
+			    cancellable,
+			    on_search_backend, task);
 }
 
 /**
@@ -1270,8 +1609,9 @@ secret_password_search_finish (GAsyncResult *result,
                                GError **error)
 {
         g_return_val_if_fail (error == NULL || *error == NULL, NULL);
+        g_return_val_if_fail (g_task_is_valid (result, NULL), NULL);
 
-        return secret_service_search_finish (NULL, result, error);
+        return g_task_propagate_pointer (G_TASK (result), error);
 }
 
 /**
