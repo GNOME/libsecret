@@ -104,7 +104,7 @@ secret_password_store (const SecretSchema *schema,
 
 /**
  * secret_password_storev: (rename-to secret_password_store)
- * @schema: the schema for attributes
+ * @schema: (nullable): the schema for attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
  * @collection: (allow-none): a collection alias, or D-Bus object path of the collection where to store the secret
  * @label: label for the secret
@@ -138,14 +138,13 @@ secret_password_storev (const SecretSchema *schema,
 {
 	SecretValue *value;
 
-	g_return_if_fail (schema != NULL);
 	g_return_if_fail (label != NULL);
 	g_return_if_fail (password != NULL);
 	g_return_if_fail (attributes != NULL);
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
 	/* Warnings raised already */
-	if (!_secret_attributes_validate (schema, attributes, G_STRFUNC, FALSE))
+	if (schema != NULL && !_secret_attributes_validate (schema, attributes, G_STRFUNC, FALSE))
 		return;
 
 	value = secret_value_new (password, -1, "text/plain");
@@ -208,7 +207,7 @@ secret_password_store_binary (const SecretSchema *schema,
 
 /**
  * secret_password_storev_binary: (rename-to secret_password_store_binary)
- * @schema: the schema for attributes
+ * @schema: (nullable): the schema for attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
  * @collection: (allow-none): a collection alias, or D-Bus object path of the collection where to store the secret
  * @label: label for the secret
@@ -234,14 +233,13 @@ secret_password_storev_binary (const SecretSchema *schema,
 			       GAsyncReadyCallback callback,
 			       gpointer user_data)
 {
-	g_return_if_fail (schema != NULL);
 	g_return_if_fail (label != NULL);
 	g_return_if_fail (value != NULL);
 	g_return_if_fail (attributes != NULL);
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
 	/* Warnings raised already */
-	if (!_secret_attributes_validate (schema, attributes, G_STRFUNC, FALSE))
+	if (schema != NULL && !_secret_attributes_validate (schema, attributes, G_STRFUNC, FALSE))
 		return;
 
 	secret_service_store (NULL, schema, attributes, collection,
@@ -330,7 +328,7 @@ secret_password_store_sync (const SecretSchema *schema,
 
 /**
  * secret_password_storev_sync: (rename-to secret_password_store_sync)
- * @schema: the schema for attributes
+ * @schema: (nullable): the schema for attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
  * @collection: (allow-none): a collection alias, or D-Bus object path of the collection where to store the secret
  * @label: label for the secret
@@ -366,7 +364,6 @@ secret_password_storev_sync (const SecretSchema *schema,
 	SecretSync *sync;
 	gboolean ret;
 
-	g_return_val_if_fail (schema != NULL, FALSE);
 	g_return_val_if_fail (label != NULL, FALSE);
 	g_return_val_if_fail (password != NULL, FALSE);
 	g_return_val_if_fail (attributes != NULL, FALSE);
@@ -374,7 +371,7 @@ secret_password_storev_sync (const SecretSchema *schema,
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
 	/* Warnings raised already */
-	if (!_secret_attributes_validate (schema, attributes, G_STRFUNC, FALSE))
+	if (schema != NULL && !_secret_attributes_validate (schema, attributes, G_STRFUNC, FALSE))
 		return FALSE;
 
 	sync = _secret_sync_new ();
@@ -449,7 +446,7 @@ secret_password_store_binary_sync (const SecretSchema *schema,
 
 /**
  * secret_password_storev_binary_sync: (rename-to secret_password_store_binary_sync)
- * @schema: the schema for attributes
+ * @schema: (nullable): the schema for attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
  * @collection: (allow-none): a collection alias, or D-Bus object path of the collection where to store the secret
  * @label: label for the secret
@@ -479,7 +476,6 @@ secret_password_storev_binary_sync (const SecretSchema *schema,
 	SecretSync *sync;
 	gboolean ret;
 
-	g_return_val_if_fail (schema != NULL, FALSE);
 	g_return_val_if_fail (label != NULL, FALSE);
 	g_return_val_if_fail (value != NULL, FALSE);
 	g_return_val_if_fail (attributes != NULL, FALSE);
@@ -487,7 +483,7 @@ secret_password_storev_binary_sync (const SecretSchema *schema,
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
 	/* Warnings raised already */
-	if (!_secret_attributes_validate (schema, attributes, G_STRFUNC, FALSE))
+	if (schema != NULL && !_secret_attributes_validate (schema, attributes, G_STRFUNC, FALSE))
 		return FALSE;
 
 	sync = _secret_sync_new ();
@@ -554,7 +550,7 @@ secret_password_lookup (const SecretSchema *schema,
 
 /**
  * secret_password_lookupv: (rename-to secret_password_lookup)
- * @schema: the schema for attributes
+ * @schema: (nullable): the schema for attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
  * @cancellable: optional cancellation object
  * @callback: called when the operation completes
@@ -575,12 +571,11 @@ secret_password_lookupv (const SecretSchema *schema,
                          GAsyncReadyCallback callback,
                          gpointer user_data)
 {
-	g_return_if_fail (schema != NULL);
 	g_return_if_fail (attributes != NULL);
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
 	/* Warnings raised already */
-	if (!_secret_attributes_validate (schema, attributes, G_STRFUNC, TRUE))
+	if (schema != NULL && !_secret_attributes_validate (schema, attributes, G_STRFUNC, TRUE))
 		return;
 
 	secret_service_lookup (NULL, schema, attributes,
@@ -762,7 +757,7 @@ secret_password_lookup_nonpageable_sync (const SecretSchema *schema,
 
 /**
  * secret_password_lookupv_nonpageable_sync: (skip)
- * @schema: the schema for attributes
+ * @schema: (nullable): the schema for attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
  * @cancellable: optional cancellation object
  * @error: location to place an error on failure
@@ -788,13 +783,12 @@ secret_password_lookupv_nonpageable_sync (const SecretSchema *schema,
 	SecretSync *sync;
 	gchar *password;
 
-	g_return_val_if_fail (schema != NULL, NULL);
 	g_return_val_if_fail (attributes != NULL, NULL);
 	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
 	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 
 	/* Warnings raised already */
-	if (!_secret_attributes_validate (schema, attributes, G_STRFUNC, TRUE))
+	if (schema != NULL && !_secret_attributes_validate (schema, attributes, G_STRFUNC, TRUE))
 		return FALSE;
 
 	sync = _secret_sync_new ();
@@ -863,7 +857,7 @@ secret_password_lookup_binary_sync (const SecretSchema *schema,
 
 /**
  * secret_password_lookupv_binary_sync: (skip)
- * @schema: the schema for attributes
+ * @schema: (nullable): the schema for attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
  * @cancellable: optional cancellation object
  * @error: location to place an error on failure
@@ -888,13 +882,12 @@ secret_password_lookupv_binary_sync (const SecretSchema *schema,
 	SecretSync *sync;
 	SecretValue *value;
 
-	g_return_val_if_fail (schema != NULL, NULL);
 	g_return_val_if_fail (attributes != NULL, NULL);
 	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
 	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 
 	/* Warnings raised already */
-	if (!_secret_attributes_validate (schema, attributes, G_STRFUNC, TRUE))
+	if (schema != NULL && !_secret_attributes_validate (schema, attributes, G_STRFUNC, TRUE))
 		return FALSE;
 
 	sync = _secret_sync_new ();
@@ -915,7 +908,7 @@ secret_password_lookupv_binary_sync (const SecretSchema *schema,
 
 /**
  * secret_password_lookupv_sync: (rename-to secret_password_lookup_sync)
- * @schema: the schema for attributes
+ * @schema: (nullable): the schema for attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
  * @cancellable: optional cancellation object
  * @error: location to place an error on failure
@@ -941,13 +934,12 @@ secret_password_lookupv_sync (const SecretSchema *schema,
 	SecretSync *sync;
 	gchar *string;
 
-	g_return_val_if_fail (schema != NULL, NULL);
 	g_return_val_if_fail (attributes != NULL, NULL);
 	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
 	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 
 	/* Warnings raised already */
-	if (!_secret_attributes_validate (schema, attributes, G_STRFUNC, TRUE))
+	if (schema != NULL && !_secret_attributes_validate (schema, attributes, G_STRFUNC, TRUE))
 		return FALSE;
 
 	sync = _secret_sync_new ();
@@ -1015,7 +1007,7 @@ secret_password_clear (const SecretSchema *schema,
 
 /**
  * secret_password_clearv: (rename-to secret_password_clear)
- * @schema: the schema for the attributes
+ * @schema: (nullable): the schema for the attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
  * @cancellable: optional cancellation object
  * @callback: called when the operation completes
@@ -1036,12 +1028,11 @@ secret_password_clearv (const SecretSchema *schema,
                         GAsyncReadyCallback callback,
                         gpointer user_data)
 {
-	g_return_if_fail (schema != NULL);
 	g_return_if_fail (attributes != NULL);
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
 	/* Warnings raised already */
-	if (!_secret_attributes_validate (schema, attributes, G_STRFUNC, TRUE))
+	if (schema != NULL && !_secret_attributes_validate (schema, attributes, G_STRFUNC, TRUE))
 		return;
 
 	secret_service_clear (NULL, schema, attributes,
@@ -1119,7 +1110,7 @@ secret_password_clear_sync (const SecretSchema* schema,
 
 /**
  * secret_password_clearv_sync: (rename-to secret_password_clear_sync)
- * @schema: the schema for the attributes
+ * @schema: (nullable): the schema for the attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
  * @cancellable: optional cancellation object
  * @error: location to place an error on failure
@@ -1144,13 +1135,12 @@ secret_password_clearv_sync (const SecretSchema *schema,
 	SecretSync *sync;
 	gboolean result;
 
-	g_return_val_if_fail (schema != NULL, FALSE);
 	g_return_val_if_fail (attributes != NULL, FALSE);
 	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), FALSE);
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
 	/* Warnings raised already */
-	if (!_secret_attributes_validate (schema, attributes, G_STRFUNC, TRUE))
+	if (schema != NULL && !_secret_attributes_validate (schema, attributes, G_STRFUNC, TRUE))
 		return FALSE;
 
 	sync = _secret_sync_new ();
@@ -1219,7 +1209,7 @@ secret_password_search (const SecretSchema *schema,
 
 /**
  * secret_password_searchv: (rename-to secret_password_search)
- * @schema: the schema for attributes
+ * @schema: (nullable): the schema for attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
  * @flags: search option flags
  * @cancellable: optional cancellation object
@@ -1242,12 +1232,11 @@ secret_password_searchv (const SecretSchema *schema,
                          GAsyncReadyCallback callback,
                          gpointer user_data)
 {
-        g_return_if_fail (schema != NULL);
         g_return_if_fail (attributes != NULL);
         g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
         /* Warnings raised already */
-        if (!_secret_attributes_validate (schema, attributes, G_STRFUNC, TRUE))
+        if (schema != NULL && !_secret_attributes_validate (schema, attributes, G_STRFUNC, TRUE))
                 return;
 
         secret_service_search (NULL, schema, attributes, flags,
@@ -1333,7 +1322,7 @@ secret_password_search_sync (const SecretSchema *schema,
 
 /**
  * secret_password_searchv_sync: (rename-to secret_password_search_sync)
- * @schema: the schema for attributes
+ * @schema: (nullable): the schema for attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
  * @flags: search option flags
  * @cancellable: optional cancellation object
@@ -1363,13 +1352,12 @@ secret_password_searchv_sync (const SecretSchema *schema,
         SecretSync *sync;
         GList *items;
 
-        g_return_val_if_fail (schema != NULL, NULL);
         g_return_val_if_fail (attributes != NULL, NULL);
         g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
         g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 
         /* Warnings raised already */
-        if (!_secret_attributes_validate (schema, attributes, G_STRFUNC, TRUE))
+        if (schema != NULL && !_secret_attributes_validate (schema, attributes, G_STRFUNC, TRUE))
                 return NULL;
 
         sync = _secret_sync_new ();
