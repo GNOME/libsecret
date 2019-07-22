@@ -16,7 +16,7 @@
 
 #include "libsecret/secret-item.h"
 #include "libsecret/secret-password.h"
-#include "libsecret/secret-service.h"
+#include "libsecret/secret-retrievable.h"
 #include "libsecret/secret-value.h"
 
 #include <glib/gi18n.h>
@@ -122,8 +122,8 @@ secret_tool_action_clear (int argc,
 {
 	GError *error = NULL;
 	GOptionContext *context;
-	SecretService *service;
 	GHashTable *attributes;
+	gboolean ret;
 
 	context = g_option_context_new ("attribute value ...");
 	g_option_context_add_main_entries (context, CLEAR_OPTIONS, GETTEXT_PACKAGE);
@@ -137,14 +137,11 @@ secret_tool_action_clear (int argc,
 	attributes = attributes_from_arguments (attribute_args);
 	g_strfreev (attribute_args);
 
-	service = secret_service_get_sync (SECRET_SERVICE_NONE, NULL, &error);
-	if (error == NULL)
-		secret_service_clear_sync (service, NULL, attributes, NULL, &error);
+	ret = secret_password_clearv_sync (NULL, attributes, NULL, &error);
 
-	g_object_unref (service);
 	g_hash_table_unref (attributes);
 
-	if (error != NULL) {
+	if (!ret) {
 		g_printerr ("%s: %s\n", g_get_prgname (), error->message);
 		return 1;
 	}
@@ -197,7 +194,6 @@ secret_tool_action_lookup (int argc,
 {
 	GError *error = NULL;
 	GOptionContext *context;
-	SecretService *service;
 	GHashTable *attributes;
 	SecretValue *value = NULL;
 
@@ -213,11 +209,8 @@ secret_tool_action_lookup (int argc,
 	attributes = attributes_from_arguments (attribute_args);
 	g_strfreev (attribute_args);
 
-	service = secret_service_get_sync (SECRET_SERVICE_NONE, NULL, &error);
-	if (error == NULL)
-		value = secret_service_lookup_sync (service, NULL, attributes, NULL, &error);
+	value = secret_password_lookupv_binary_sync (NULL, attributes, NULL, &error);
 
-	g_object_unref (service);
 	g_hash_table_unref (attributes);
 
 	if (error != NULL) {
@@ -285,10 +278,10 @@ secret_tool_action_store (int argc,
 {
 	GError *error = NULL;
 	GOptionContext *context;
-	SecretService *service;
 	GHashTable *attributes;
 	SecretValue *value;
 	gchar *collection = NULL;
+	gboolean ret;
 
 	context = g_option_context_new ("attribute value ...");
 	g_option_context_add_main_entries (context, STORE_OPTIONS, GETTEXT_PACKAGE);
@@ -315,24 +308,20 @@ secret_tool_action_store (int argc,
 			collection = g_strconcat (SECRET_ALIAS_PREFIX, store_collection, NULL);
 	}
 
-	service = secret_service_get_sync (SECRET_SERVICE_NONE, NULL, &error);
-	if (error == NULL) {
-		if (isatty (0))
-			value = read_password_tty ();
-		else
-			value = read_password_stdin ();
+	if (isatty (0))
+		value = read_password_tty ();
+	else
+		value = read_password_stdin ();
 
-		secret_service_store_sync (service, NULL, attributes, collection, store_label, value, NULL, &error);
-		secret_value_unref (value);
-	}
+	ret = secret_password_storev_binary_sync (NULL, attributes, collection, store_label, value, NULL, &error);
+	secret_value_unref (value);
 
-	g_object_unref (service);
 	g_hash_table_unref (attributes);
 	g_free (store_label);
 	g_free (store_collection);
 	g_free (collection);
 
-	if (error != NULL) {
+	if (!ret) {
 		g_printerr ("%s: %s\n", g_get_prgname (), error->message);
 		return 1;
 	}
@@ -360,58 +349,76 @@ print_item_when (const char *field,
 }
 
 static void
-print_item_details (SecretItem *item)
+on_retrieve_secret (GObject *source_object,
+		    GAsyncResult *res,
+		    gpointer user_data)
 {
+	SecretRetrievable *item = SECRET_RETRIEVABLE (source_object);
+	GMainLoop *loop = user_data;
 	SecretValue *secret;
 	GHashTableIter iter;
 	GHashTable *attributes;
-	gchar *value, *key;
+	const gchar *value, *key;
 	guint64 when;
+	gchar *label;
 	const gchar *part;
 	const gchar *path;
+	GError *error;
 
-	path = g_dbus_proxy_get_object_path (G_DBUS_PROXY (item));
-	g_return_if_fail (path != NULL);
+	error = NULL;
+	secret = secret_retrievable_retrieve_secret_finish (item, res, &error);
+	if (!secret) {
+		g_printerr ("%s: %s\n", g_get_prgname (), error->message);
+		g_clear_error (&error);
+	}
 
-	/* The item identifier */
-	part = strrchr (path, '/');
-	if (part == NULL)
-		part = path;
-	g_print ("[%s]\n", path);
+	if (G_IS_DBUS_PROXY (item)) {
+		path = g_dbus_proxy_get_object_path (G_DBUS_PROXY (item));
+		g_return_if_fail (path != NULL);
+
+		/* The item identifier */
+		part = strrchr (path, '/');
+		if (part == NULL)
+			part = path;
+		g_print ("[%s]\n", path);
+	} else {
+		g_print ("[no path]\n");
+	}
 
 	/* The label */
-	value = secret_item_get_label (item);
-	g_print ("label = %s\n", value);
-	g_free (value);
+	label = secret_retrievable_get_label (item);
+	g_print ("label = %s\n", label);
+	g_free (label);
 
-	/* The secret value */
-	secret = secret_item_get_secret (item);
-	g_print ("secret = ");
-	if (secret != NULL) {
-		write_password_data (secret);
-		secret_value_unref (secret);
+	if (secret) {
+		/* The secret value */
+		g_print ("secret = ");
+		if (secret != NULL) {
+			write_password_data (secret);
+			secret_value_unref (secret);
+		}
+		g_print ("\n");
 	}
-	g_print ("\n");
 
 	/* The dates */
-	when = secret_item_get_created (item);
+	when = secret_retrievable_get_created (item);
 	print_item_when ("created", when);
-	when = secret_item_get_modified (item);
+	when = secret_retrievable_get_modified (item);
 	print_item_when ("modified", when);
 
-	/* The schema */
-	value = secret_item_get_schema_name (item);
-	g_print ("schema = %s\n", value);
-	g_free (value);
-
 	/* The attributes */
-	attributes = secret_item_get_attributes (item);
+	attributes = secret_retrievable_get_attributes (item);
+	value = g_hash_table_lookup (attributes, "xdg:schema");
+	if (value)
+		g_print ("schema = %s\n", value);
+
 	g_hash_table_iter_init (&iter, attributes);
 	while (g_hash_table_iter_next (&iter, (void **)&key, (void **)&value)) {
 		if (strcmp (key, "xdg:schema") != 0)
 			g_printerr ("attribute.%s = %s\n", key, value);
 	}
 	g_hash_table_unref (attributes);
+	g_main_loop_quit (loop);
 }
 
 static int
@@ -420,7 +427,6 @@ secret_tool_action_search (int argc,
 {
 	GError *error = NULL;
 	GOptionContext *context;
-	SecretService *service;
 	GHashTable *attributes;
 	SecretSearchFlags flags;
 	gboolean flag_all = FALSE;
@@ -450,21 +456,25 @@ secret_tool_action_search (int argc,
 	attributes = attributes_from_arguments (attribute_args);
 	g_strfreev (attribute_args);
 
-	service = secret_service_get_sync (SECRET_SERVICE_NONE, NULL, &error);
+	flags = SECRET_SEARCH_LOAD_SECRETS;
+	if (flag_all)
+		flags |= SECRET_SEARCH_ALL;
+	if (flag_unlock)
+		flags |= SECRET_SEARCH_UNLOCK;
+	items = secret_password_searchv_sync (NULL, attributes, flags, NULL, &error);
 	if (error == NULL) {
-		flags = SECRET_SEARCH_LOAD_SECRETS;
-		if (flag_all)
-			flags |= SECRET_SEARCH_ALL;
-		if (flag_unlock)
-			flags |= SECRET_SEARCH_UNLOCK;
-		items = secret_service_search_sync (service, NULL, attributes, flags, NULL, &error);
-		if (error == NULL) {
-			for (l = items; l != NULL; l = g_list_next (l))
-				print_item_details (l->data);
-			g_list_free_full (items, g_object_unref);
+		GMainLoop *loop = g_main_loop_new (NULL, FALSE);
+
+		for (l = items; l != NULL; l = g_list_next (l)) {
+			SecretRetrievable *retrievable = SECRET_RETRIEVABLE (l->data);
+			secret_retrievable_retrieve_secret (retrievable,
+							    NULL,
+							    on_retrieve_secret,
+							    loop);
+			g_main_loop_run (loop);
 		}
 
-		g_object_unref (service);
+		g_list_free_full (items, g_object_unref);
 	}
 
 	g_hash_table_unref (attributes);

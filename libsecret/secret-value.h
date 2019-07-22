@@ -51,6 +51,9 @@ SecretValue *       secret_value_ref               (SecretValue *value);
 
 void                secret_value_unref             (gpointer value);
 
+gchar *             secret_value_unref_to_password (SecretValue *value,
+						    gsize *length);
+
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (SecretValue, secret_value_unref)
 
 G_END_DECLS
