@@ -25,16 +25,16 @@ with_gtkdoc = get_option('gtk_doc')
 # Some variables
 config_h_dir = include_directories('.')
 libsecret_prefix = get_option('prefix')
-datadir = join_paths(libsecret_prefix, get_option('datadir'))
-includedir = join_paths(libsecret_prefix, get_option('includedir'))
-bindir = join_paths(libsecret_prefix, get_option('bindir'))
-libdir = join_paths(libsecret_prefix, get_option('libdir'))
-libexecdir = join_paths(libsecret_prefix, get_option('libexecdir'))
-locale_dir = join_paths(libsecret_prefix, get_option('localedir'))
-pkgdatadir = join_paths(datadir, meson.project_name())
-pkglibdir = join_paths(libdir, meson.project_name())
-sysconfdir = join_paths(libsecret_prefix, get_option('sysconfdir'))
-po_dir = join_paths(meson.source_root(), 'po')
+datadir = get_option('datadir')
+includedir = get_option('includedir')
+bindir = get_option('bindir')
+libdir = get_option('libdir')
+libexecdir = get_option('libexecdir')
+locale_dir = get_option('localedir')
+pkgdatadir = datadir / meson.project_name()
+pkglibdir = libdir / meson.project_name()
+sysconfdir = get_option('sysconfdir')
+po_dir = meson.source_root() / 'po'
 
 # Dependencies
 min_glib_version = '2.44'
