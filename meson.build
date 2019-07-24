@@ -1,7 +1,7 @@
 project('libsecret', 'c',
   version: '0.18.8',
   license: 'GPL2+',
-  meson_version: '>= 0.48',
+  meson_version: '>= 0.50',
 )
 
 gnome = import('gnome')
