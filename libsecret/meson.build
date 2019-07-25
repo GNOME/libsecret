@@ -1,4 +1,4 @@
-installed_headers_subdir = join_paths('libsecret-@0@'.format(api_version_major), 'libsecret')
+installed_headers_subdir = 'libsecret-@0@'.format(api_version_major) / 'libsecret'
 
 libsecret_sources = [
   'secret-attributes.c',
@@ -37,12 +37,13 @@ version_numbers = meson.project_version().split('.')
 version_major = version_numbers[0].to_int()
 version_minor = version_numbers[1].to_int()
 version_micro = version_numbers[2].to_int()
-version_h_conf = configuration_data()
-version_h_conf.set('SECRET_MAJOR_VERSION', version_major)
-version_h_conf.set('SECRET_MINOR_VERSION', version_minor)
-version_h_conf.set('SECRET_MICRO_VERSION', version_micro)
+version_h_conf = configuration_data({
+  'SECRET_MAJOR_VERSION': version_major,
+  'SECRET_MINOR_VERSION': version_minor,
+  'SECRET_MICRO_VERSION': version_micro,
+})
 version_h = configure_file(input: 'secret-version.h.in',
-                           output: 'secret-version.h',
+                           output: '@BASENAME@',
                            configuration: version_h_conf)
 libsecret_headers += version_h
 
@@ -57,7 +58,7 @@ _enums_generated = gnome.mkenums('secret-enum-types',
   c_template: 'secret-enum-types.c.template',
   h_template: 'secret-enum-types.h.template',
   install_header: true,
-  install_dir: join_paths(includedir, installed_headers_subdir),
+  install_dir: libsecret_prefix / includedir / installed_headers_subdir,
 )
 
 libsecret_dependencies = [
@@ -136,37 +137,38 @@ libsecret_gir = gnome.generate_gir(libsecret,
 if with_vapi
   libsecret_vapi = gnome.generate_vapi('libsecret-@0@'.format(api_version_major),
     sources: libsecret_gir[0],
-    metadata_dirs: join_paths(meson.source_root(), 'libsecret'),
+    metadata_dirs: meson.source_root() / 'libsecret',
     packages: [ 'gobject-2.0', 'gio-2.0' ],
     install: true,
   )
 endif
 
 # pkg-config
-pc_conf = configuration_data()
-pc_conf.set('prefix', libsecret_prefix)
-pc_conf.set('exec_prefix', '${prefix}')
-pc_conf.set('libdir', join_paths('${prefix}', get_option('libdir')))
-pc_conf.set('includedir', join_paths('${prefix}', get_option('includedir')))
-pc_conf.set('datarootdir', join_paths('${prefix}', get_option('datadir')))
-pc_conf.set('datadir', '${datarootdir}')
-pc_conf.set('sysconfdir', join_paths('${prefix}', get_option('sysconfdir')))
-pc_conf.set('SECRET_MAJOR', api_version_major)
-pc_conf.set('VERSION', meson.project_version())
+pc_conf = configuration_data({
+  'prefix': libsecret_prefix,
+  'exec_prefix': '${prefix}',
+  'libdir': '${prefix}' / get_option('libdir'),
+  'includedir': '${prefix}' / get_option('includedir'),
+  'datarootdir': '${prefix}' / get_option('datadir'),
+  'datadir': '${datarootdir}',
+  'sysconfdir': '${prefix}' / get_option('sysconfdir'),
+  'SECRET_MAJOR': api_version_major,
+  'VERSION': meson.project_version(),
+})
 
 configure_file(
   input: 'libsecret.pc.in',
   output: 'libsecret-@0@.pc'.format(api_version_major),
   configuration: pc_conf,
   install: true,
-  install_dir: join_paths(libdir, 'pkgconfig'),
+  install_dir: libsecret_prefix / libdir / 'pkgconfig',
 )
 configure_file(
   input: 'libsecret-unstable.pc.in',
-  output: 'libsecret-unstable.pc',
+  output: '@BASENAME@',
   configuration: pc_conf,
   install: true,
-  install_dir: join_paths(libdir, 'pkgconfig'),
+  install_dir: libsecret_prefix / libdir / 'pkgconfig',
 )
 
 # Tests
