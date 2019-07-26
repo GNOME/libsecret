@@ -14,5 +14,5 @@ secret_tool_man = custom_target('secret-tool.1',
   ],
   build_by_default: true,
   install: true,
-  install_dir: join_paths(libsecret_prefix, get_option('mandir'), 'man1'),
+  install_dir: libsecret_prefix / get_option('mandir') / 'man1',
 )
