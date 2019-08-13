@@ -121,7 +121,8 @@ static void   secret_item_async_initable_iface   (GAsyncInitableIface *iface);
 G_DEFINE_TYPE_WITH_CODE (SecretItem, secret_item, G_TYPE_DBUS_PROXY,
                          G_ADD_PRIVATE (SecretItem)
 			 G_IMPLEMENT_INTERFACE (SECRET_TYPE_RETRIEVABLE, secret_item_retrievable_iface);
-                         G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE, secret_item_initable_iface);
+                         G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE, secret_item_init
+able_iface);
                          G_IMPLEMENT_INTERFACE (G_TYPE_ASYNC_INITABLE, secret_item_async_initable_iface);
 );
 

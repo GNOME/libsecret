@@ -52,9 +52,12 @@ libsecret_PUBLIC = \
 	libsecret/secret-types.h \
 	libsecret/secret-value.h libsecret/secret-value.c \
 	libsecret/secret-paths.h libsecret/secret-paths.c \
+	libsecret/secret-file.h libsecret/secret-file.c \
 	$(NULL)
 
 libsecret_PRIVATE = \
+	libsecret/secret-file-item.h \
+	libsecret/secret-file-item.c \
 	libsecret/secret-private.h \
 	libsecret/secret-session.c \
 	libsecret/secret-util.c \
