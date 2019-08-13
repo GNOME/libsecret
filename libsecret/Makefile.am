@@ -55,6 +55,10 @@ libsecret_PUBLIC = \
 	$(NULL)
 
 libsecret_PRIVATE = \
+	libsecret/secret-file-collection.h \
+	libsecret/secret-file-collection.c \
+	libsecret/secret-file-item.h \
+	libsecret/secret-file-item.c \
 	libsecret/secret-private.h \
 	libsecret/secret-session.c \
 	libsecret/secret-util.c \
@@ -215,6 +219,7 @@ C_TESTS = \
 	test-password \
 	test-item \
 	test-collection \
+	test-file-collection \
 	$(NULL)
 
 test_attributes_SOURCES = libsecret/test-attributes.c
@@ -246,6 +251,9 @@ test_session_LDADD = $(libsecret_LIBS)
 
 test_value_SOURCES = libsecret/test-value.c
 test_value_LDADD = $(libsecret_LIBS)
+
+test_file_collection_SOURCES = libsecret/test-file-collection.c
+test_file_collection_LDADD = $(libsecret_LIBS)
 
 JS_TESTS = \
 	libsecret/test-js-lookup.js \
