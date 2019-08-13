@@ -35,6 +35,14 @@ libsecret_headers = [
   'secret-value.h',
 ]
 
+if with_gcrypt
+  libsecret_sources += [
+    'secret-file-backend.c',
+    'secret-file-collection.c',
+    'secret-file-item.c',
+  ]
+endif
+
 version_numbers = meson.project_version().split('.')
 version_major = version_numbers[0].to_int()
 version_minor = version_numbers[1].to_int()
@@ -168,7 +176,7 @@ pkg.generate(description: 'GObject bindings for Secret Service API (Unstable)',
 	     requires: libsecret)
 
 # Tests
-mock_cflags = [
+test_cflags = [
   libsecret_cflags,
   '-DSRCDIR="@0@"'.format(meson.source_root()),
 ]
@@ -176,7 +184,7 @@ mock_cflags = [
 mock_service_lib = static_library('mock-service',
   'mock-service.c',
   dependencies: glib_deps,
-  c_args: mock_cflags,
+  c_args: test_cflags,
   include_directories: config_h_dir,
 )
 
@@ -193,6 +201,12 @@ test_names = [
   'test-collection',
 ]
 
+if with_gcrypt
+  test_names += [
+    'test-file-collection',
+  ]
+endif
+
 foreach _test : test_names
 
   test_bin = executable(_test,
@@ -200,7 +214,7 @@ foreach _test : test_names
     dependencies: libsecret_dep,
     link_with: mock_service_lib,
     include_directories: config_h_dir,
-    c_args: libsecret_cflags,
+    c_args: test_cflags,
   )
 
   test(_test, test_bin)
