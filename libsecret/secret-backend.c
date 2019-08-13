@@ -15,6 +15,11 @@
 #include "config.h"
 
 #include "secret-backend.h"
+
+#ifdef WITH_GCRYPT
+#include "secret-file-backend.h"
+#endif
+
 #include "secret-private.h"
 
 #include "libsecret/secret-enum-types.h"
@@ -151,6 +156,9 @@ backend_get_impl_type (void)
 		extension_name = envvar;
 
 	g_type_ensure (secret_service_get_type ());
+#ifdef WITH_GCRYPT
+	g_type_ensure (secret_file_backend_get_type ());
+#endif
 
 	ep = g_io_extension_point_lookup (SECRET_BACKEND_EXTENSION_POINT_NAME);
 	e = g_io_extension_point_get_extension_by_name (ep, extension_name);

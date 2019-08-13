@@ -60,6 +60,17 @@ libsecret_PRIVATE = \
 	libsecret/secret-util.c \
 	$(NULL)
 
+if WITH_GCRYPT
+libsecret_PRIVATE += \
+	libsecret/secret-file-backend.h \
+	libsecret/secret-file-backend.c \
+	libsecret/secret-file-collection.h \
+	libsecret/secret-file-collection.c \
+	libsecret/secret-file-item.h \
+	libsecret/secret-file-item.c \
+	$(NULL)
+endif
+
 libsecret_@SECRET_MAJOR@_la_SOURCES = \
 	$(libsecret_PUBLIC) \
 	$(libsecret_PRIVATE) \
@@ -247,6 +258,15 @@ test_session_LDADD = $(libsecret_LIBS)
 test_value_SOURCES = libsecret/test-value.c
 test_value_LDADD = $(libsecret_LIBS)
 
+if WITH_GCRYPT
+C_TESTS += \
+	test-file-collection \
+	$(NULL)
+
+test_file_collection_SOURCES = libsecret/test-file-collection.c
+test_file_collection_LDADD = $(libsecret_LIBS)
+endif
+
 JS_TESTS = \
 	libsecret/test-js-lookup.js \
 	libsecret/test-js-clear.js \
@@ -377,4 +397,5 @@ EXTRA_DIST += \
 	libsecret/mock-service-prompt.py \
 	$(JS_TESTS) \
 	$(PY_TESTS) \
+	libsecret/fixtures \
 	$(NULL)
