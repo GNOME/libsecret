@@ -5,3 +5,7 @@ secret_tool_SOURCES = \
 
 secret_tool_LDADD = \
 	libsecret-@SECRET_MAJOR@.la
+
+if WITH_GCRYPT
+TESTS += tool/test-secret-tool.sh
+endif
