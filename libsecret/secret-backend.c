@@ -150,10 +150,14 @@ backend_get_impl_type (void)
 	GIOExtensionPoint *ep;
 
 	envvar = g_getenv ("SECRET_BACKEND");
-	if (envvar == NULL || *envvar == '\0')
-		extension_name = "service";
-	else
+	if (envvar != NULL && *envvar != '\0')
 		extension_name = envvar;
+#ifdef WITH_GCRYPT
+	else if (g_file_test ("/.flatpak-info", G_FILE_TEST_EXISTS))
+		extension_name = "file";
+#endif
+	else
+		extension_name = "service";
 
 	g_type_ensure (secret_service_get_type ());
 #ifdef WITH_GCRYPT
