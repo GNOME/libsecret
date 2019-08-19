@@ -21,6 +21,14 @@
 #include "secret-private.h"
 #include "secret-retrievable.h"
 
+#include "egg/egg-secure-memory.h"
+
+EGG_SECURE_DECLARE (secret_file_backend);
+
+#include <gio/gunixfdlist.h>
+#include <gio/gunixinputstream.h>
+#include <glib-unix.h>
+
 static void secret_file_backend_async_initable_iface (GAsyncInitableIface *iface);
 static void secret_file_backend_backend_iface (SecretBackendInterface *iface);
 
@@ -138,6 +146,149 @@ on_collection_new_async (GObject *source_object,
 	g_object_unref (task);
 }
 
+typedef struct {
+	gint io_priority;
+	GFile *file;
+	GInputStream *stream;
+	gchar *buffer;
+} InitClosure;
+
+static void
+init_closure_free (gpointer data)
+{
+	InitClosure *init = data;
+	g_object_unref (init->file);
+	g_clear_object (&init->stream);
+	g_clear_pointer (&init->buffer, egg_secure_free);
+	g_slice_free (InitClosure, init);
+}
+
+static void
+on_read_all (GObject *source_object,
+	     GAsyncResult *result,
+	     gpointer user_data)
+{
+	GInputStream *stream = G_INPUT_STREAM (source_object);
+	GTask *task = G_TASK (user_data);
+	InitClosure *init = g_task_get_task_data (task);
+	gsize bytes_read;
+	SecretValue *password;
+	GError *error = NULL;
+
+	if (!g_input_stream_read_all_finish (stream, result, &bytes_read,
+					     &error)) {
+		g_task_return_error (task, error);
+		g_object_unref (task);
+		return;
+	}
+
+	password = secret_value_new (init->buffer, bytes_read, "text/plain");
+	g_async_initable_new_async (SECRET_TYPE_FILE_COLLECTION,
+				    init->io_priority,
+				    g_task_get_cancellable (task),
+				    on_collection_new_async,
+				    task,
+				    "file", init->file,
+				    "password", password,
+				    NULL);
+	secret_value_unref (password);
+}
+
+#define MAX_PASSWORD_SIZE 128
+
+static void
+on_portal_retrieve_secret (GObject *source_object,
+			   GAsyncResult *result,
+			   gpointer user_data)
+{
+	GDBusConnection *connection = G_DBUS_CONNECTION (source_object);
+	GTask *task = G_TASK (user_data);
+	InitClosure *init = g_task_get_task_data (task);
+	GVariant *reply;
+	GError *error = NULL;
+
+	reply = g_dbus_connection_call_with_unix_fd_list_finish (connection,
+								 NULL,
+								 result,
+								 &error);
+	if (reply == NULL) {
+		g_task_return_error (task, error);
+		g_object_unref (task);
+		return;
+	}
+
+	init->buffer = egg_secure_alloc (MAX_PASSWORD_SIZE);
+
+	g_input_stream_read_all_async (init->stream,
+				       init->buffer, MAX_PASSWORD_SIZE,
+				       G_PRIORITY_DEFAULT,
+				       g_task_get_cancellable (task),
+				       on_read_all,
+				       task);
+}
+
+static void
+on_bus_get (GObject *source_object,
+	    GAsyncResult *result,
+	    gpointer user_data)
+{
+	GDBusConnection *connection;
+	GTask *task = G_TASK (user_data);
+	InitClosure *init = g_task_get_task_data (task);
+	GUnixFDList *fd_list;
+	gint fds[2];
+	gint fd_index;
+	GVariantBuilder options;
+	GError *error = NULL;
+
+	connection = g_bus_get_finish (result, &error);
+	if (connection == NULL) {
+		g_task_return_error (task, error);
+		g_object_unref (task);
+		return;
+	}
+
+	if (!g_unix_open_pipe (fds, FD_CLOEXEC, &error)) {
+		g_object_unref (connection);
+		g_task_return_error (task, error);
+		g_object_unref (task);
+		return;
+	}
+
+	fd_list = g_unix_fd_list_new ();
+	fd_index = g_unix_fd_list_append (fd_list, fds[1], &error);
+	close (fds[1]);
+	if (fd_index < 0) {
+		close (fds[0]);
+		g_object_unref (fd_list);
+		g_object_unref (connection);
+		g_task_return_error (task, error);
+		g_object_unref (task);
+		return;
+	}
+
+	close (fds[1]);
+	init->stream = g_unix_input_stream_new (fds[0], TRUE);
+
+	g_variant_builder_init (&options, G_VARIANT_TYPE_VARDICT);
+	g_dbus_connection_call_with_unix_fd_list (connection,
+						  "org.freedesktop.portal.Desktop",
+						  "/org/freedesktop/portal/desktop",
+						  "org.freedesktop.portal.Secret",
+						  "RetrieveSecret",
+						  g_variant_new ("(h@a{sv})",
+								 fd_index,
+								 g_variant_builder_end (&options)),
+						  G_VARIANT_TYPE ("(o)"),
+						  G_DBUS_CALL_FLAGS_NONE,
+						  -1,
+						  fd_list,
+						  g_task_get_cancellable (task),
+						  on_portal_retrieve_secret,
+						  task);
+	g_object_unref (fd_list);
+}
+
 static void
 secret_file_backend_real_init_async (GAsyncInitable *initable,
 				     int io_priority,
@@ -152,6 +303,7 @@ secret_file_backend_real_init_async (GAsyncInitable *initable,
 	const gchar *envvar;
 	GTask *task;
 	GError *error = NULL;
+	InitClosure *init;
 	gboolean ret;
 
 	task = g_task_new (initable, cancellable, callback, user_data);
@@ -190,23 +342,27 @@ secret_file_backend_real_init_async (GAsyncInitable *initable,
 	}
 
 	envvar = g_getenv ("SECRET_FILE_TEST_PASSWORD");
-	if (envvar != NULL && *envvar != '\0')
+	if (envvar != NULL && *envvar != '\0') {
 		password = secret_value_new (envvar, -1, "text/plain");
-	else {
+		g_async_initable_new_async (SECRET_TYPE_FILE_COLLECTION,
+					    io_priority,
+					    cancellable,
+					    on_collection_new_async,
+					    task,
+					    "file", file,
+					    "password", password,
+					    NULL);
+		g_object_unref (file);
+		secret_value_unref (password);
+	} else if (g_file_test ("/.flatpak-info", G_FILE_TEST_EXISTS)) {
+		init = g_slice_new0 (InitClosure);
+		init->io_priority = io_priority;
+		init->file = file;
+		g_task_set_task_data (task, init, init_closure_free);
+		g_bus_get (G_BUS_TYPE_SESSION, cancellable, on_bus_get, task);
+	} else {
 		g_error ("master password is not retrievable");
-		return;
 	}
-
-	g_async_initable_new_async (SECRET_TYPE_FILE_COLLECTION,
-				    io_priority,
-				    cancellable,
-				    on_collection_new_async,
-				    task,
-				    "file", file,
-				    "password", password,
-				    NULL);
-	g_object_unref (file);
-	secret_value_unref (password);
 }
 
 static gboolean
