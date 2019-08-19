@@ -149,16 +149,20 @@ backend_get_impl_type (void)
 	GIOExtension *e;
 	GIOExtensionPoint *ep;
 
-	envvar = g_getenv ("SECRET_BACKEND");
-	if (envvar == NULL || *envvar == '\0')
-		extension_name = "service";
-	else
-		extension_name = envvar;
-
 	g_type_ensure (secret_service_get_type ());
 #ifdef WITH_GCRYPT
 	g_type_ensure (secret_file_backend_get_type ());
 #endif
+
+	envvar = g_getenv ("SECRET_BACKEND");
+	if (envvar == NULL || *envvar == '\0')
+		extension_name = "service";
+#ifdef WITH_GCRYPT
+	else if (g_file_test ("/.flatpak-info", G_FILE_TEST_EXISTS))
+		extension_name = "file";
+#endif
+	else
+		extension_name = envvar;
 
 	ep = g_io_extension_point_lookup (SECRET_BACKEND_EXTENSION_POINT_NAME);
 	e = g_io_extension_point_get_extension_by_name (ep, extension_name);
