@@ -52,7 +52,10 @@ dist-hook: dist-check-valac
 distcleancheck_listfiles =  \
        find . -name '*.gc[dn][oa]' -prune -o -type f -print
 
-TESTS_ENVIRONMENT = LD_LIBRARY_PATH=$(builddir)/.libs GI_TYPELIB_PATH=$(builddir)
+TESTS_ENVIRONMENT = \
+	LD_LIBRARY_PATH=$(builddir)/.libs \
+	GI_TYPELIB_PATH=$(builddir) \
+	abs_top_builddir=$(abs_top_builddir)
 TEST_EXTENSIONS = .py .js
 
 # Default executable tests

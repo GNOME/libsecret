@@ -82,6 +82,10 @@ conf.set('_DEBUG', enable_debug)
 conf.set('HAVE_MLOCK', meson.get_compiler('c').has_function('mlock'))
 configure_file(output: 'config.h', configuration: conf)
 
+# Test environment
+test_env = environment()
+test_env.set('abs_top_builddir', meson.build_root())
+
 # Subfolders
 subdir('po')
 subdir('egg')
