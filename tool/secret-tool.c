@@ -475,6 +475,7 @@ secret_tool_action_search (int argc,
 		}
 
 		g_list_free_full (items, g_object_unref);
+		g_main_loop_unref (loop);
 	}
 
 	g_hash_table_unref (attributes);
