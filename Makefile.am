@@ -56,18 +56,15 @@ TESTS_ENVIRONMENT = LD_LIBRARY_PATH=$(builddir)/.libs GI_TYPELIB_PATH=$(builddir
 TEST_EXTENSIONS = .py .js
 
 # Default executable tests
-LOG_DRIVER = $(srcdir)/build/tap-driver
-LOG_DRIVER_FLAGS = --format=tap
+LOG_DRIVER = env AM_TAP_AWK='$(AWK)' $(SHELL) \
+	$(top_srcdir)/build/litter/tap-driver.sh
+LOG_DRIVER_FLAGS = --comments --ignore-exit
 LOG_COMPILER = $(srcdir)/build/tap-gtester
 
 # Python tests
-PY_LOG_DRIVER = $(srcdir)/build/tap-driver
-PY_LOG_DRIVER_FLAGS = --format=tap
 PY_LOG_COMPILER = $(srcdir)/build/tap-unittest
 
 # Javascript tests
-JS_LOG_DRIVER = $(srcdir)/build/tap-driver
-JS_LOG_DRIVER_FLAGS = --format=simple
 JS_LOG_COMPILER = gjs
 
 VALGRIND_ARGS = --trace-children=no --quiet --error-exitcode=33 \
@@ -184,7 +181,6 @@ EXTRA_DIST = \
 	tool/meson.build \
 	build/valgrind \
 	build/tap-gtester \
-	build/tap-driver \
 	build/tap-unittest \
 	$(VALGRIND_SUPPRESSIONS)
 
