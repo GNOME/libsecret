@@ -1321,12 +1321,11 @@ secret_service_ensure_session_finish (SecretService *self,
 {
 	g_return_val_if_fail (SECRET_IS_SERVICE (self), FALSE);
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+	g_return_val_if_fail (g_task_is_valid (result, self), FALSE);
 
-	if (!g_task_is_valid (result, self)) {
-		if (!g_task_propagate_boolean (G_TASK (result), error)) {
-			_secret_util_strip_remote_error (error);
-			return FALSE;
-		}
+	if (!g_task_propagate_boolean (G_TASK (result), error)) {
+		_secret_util_strip_remote_error (error);
+		return FALSE;
 	}
 
 	g_return_val_if_fail (self->pv->session != NULL, FALSE);
