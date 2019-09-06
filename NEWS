@@ -1,3 +1,6 @@
+0.19.1
+ * service: Fix secret_service_ensure_session_finish error propagation [!36]
+
 0.19.0
  * secret-password: Add necessary functions to migrate from D-Bus based API [!32]
  * egg: Request that secure memory not be dumped to disk [!30]
