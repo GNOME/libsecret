@@ -27,7 +27,9 @@
 
 #include <glib-object.h>
 
+#if HAVE_VALGRIND_VALGRIND_H
 #include <valgrind/valgrind.h>
+#endif
 
 #include <glib.h>
 #include <glib/gstdio.h>

@@ -79,6 +79,8 @@ endif
 conf.set('WITH_DEBUG', enable_debug)
 conf.set('_DEBUG', enable_debug)
 conf.set('HAVE_MLOCK', meson.get_compiler('c').has_function('mlock'))
+cc = meson.get_compiler('c')
+conf.set10('HAVE_VALGRIND_VALGRIND_H', cc.has_header('valgrind/valgrind.h'))
 configure_file(output: 'config.h', configuration: conf)
 
 # Subfolders
