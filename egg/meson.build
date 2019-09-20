@@ -21,5 +21,5 @@ endif
 libegg = static_library('egg',
   libegg_sources,
   dependencies: libegg_deps,
-  include_directories: config_h_dir,
+  include_directories: [config_h_dir, build_dir],
 )

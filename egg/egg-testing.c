@@ -27,8 +27,6 @@
 
 #include <glib-object.h>
 
-#include <valgrind/valgrind.h>
-
 #include <glib.h>
 #include <glib/gstdio.h>
 

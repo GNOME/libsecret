@@ -24,6 +24,7 @@ with_gtkdoc = get_option('gtk_doc')
 
 # Some variables
 config_h_dir = include_directories('.')
+build_dir = include_directories('build')
 libsecret_prefix = get_option('prefix')
 datadir = get_option('datadir')
 includedir = get_option('includedir')
