@@ -38,6 +38,12 @@ teams in GNOME. Translators do not commit directly to Git, but are advised to
 use our separate translation infrastructure instead. More info can be found at
 the [translation project wiki page].
 
+Releases
+-------------
+
+The release tarballs use [semantic versioning] since 0.19.0.  That
+means, there is any stable/unstable indication in whether the minor
+version number is even or odd.
 
 
 [GObject]: https://developer.gnome.org/gobject/stable/
@@ -46,3 +52,4 @@ the [translation project wiki page].
 [help pages on MR's]: https://docs.gitlab.com/ee/gitlab-basics/add-merge-request.html
 [issue tracker]: https://gitlab.gnome.org/GNOME/libsecret/issues
 [translation project wiki page]: https://wiki.gnome.org/TranslationProject/
+[semantic versioning]: https://semver.org
