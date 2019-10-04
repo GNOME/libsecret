@@ -38,6 +38,18 @@ teams in GNOME. Translators do not commit directly to Git, but are advised to
 use our separate translation infrastructure instead. More info can be found at
 the [translation project wiki page].
 
+Releases
+-------------
+
+The release tarballs use [semantic versioning] since 0.19.0, which
+basically means:
+
+- The major version will be incremented if backward incompatible changes are added
+- The minor version will be incremented if new functionality is added in a backward compatible manner
+- The patch version will be incremented if only backward compatible bug fixes are added
+
+Note that there is no stable/unstable indication in whether the minor
+version number is even or odd.
 
 
 [GObject]: https://developer.gnome.org/gobject/stable/
@@ -46,3 +58,4 @@ the [translation project wiki page].
 [help pages on MR's]: https://docs.gitlab.com/ee/gitlab-basics/add-merge-request.html
 [issue tracker]: https://gitlab.gnome.org/GNOME/libsecret/issues
 [translation project wiki page]: https://wiki.gnome.org/TranslationProject/
+[semantic versioning]: https://semver.org
