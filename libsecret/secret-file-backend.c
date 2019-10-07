@@ -33,6 +33,7 @@ EGG_SECURE_DECLARE (secret_file_backend);
 #define PORTAL_OBJECT_PATH "/org/freedesktop/portal/desktop"
 #define PORTAL_REQUEST_INTERFACE "org.freedesktop.portal.Request"
 #define PORTAL_SECRET_INTERFACE "org.freedesktop.portal.Secret"
+#define PORTAL_SECRET_VERSION 1
 
 static void secret_file_backend_async_initable_iface (GAsyncInitableIface *iface);
 static void secret_file_backend_backend_iface (SecretBackendInterface *iface);
@@ -766,4 +767,52 @@ secret_file_backend_backend_iface (SecretBackendInterface *iface)
 	iface->clear_finish = secret_file_backend_real_clear_finish;
 	iface->search = secret_file_backend_real_search;
 	iface->search_finish = secret_file_backend_real_search_finish;
+}
+
+gboolean
+_secret_file_backend_check_portal_version (void)
+{
+	GDBusConnection *connection;
+	GVariant *ret;
+	GVariant *value;
+	guint32 version;
+	GError *error = NULL;
+
+	connection = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, &error);
+	if (connection == NULL) {
+		g_warning ("couldn't get session bus: %s", error->message);
+		g_error_free (error);
+		g_object_unref (connection);
+		return FALSE;
+	}
+
+	ret = g_dbus_connection_call_sync (connection,
+					   PORTAL_BUS_NAME,
+					   PORTAL_OBJECT_PATH,
+					   "org.freedesktop.DBus.Properties",
+					   "Get",
+					   g_variant_new ("(ss)",
+							  PORTAL_SECRET_INTERFACE,
+							  "version"),
+					   G_VARIANT_TYPE ("(v)"),
+					   0, -1, NULL, &error);
+	g_object_unref (connection);
+	if (!ret) {
+		g_message ("secret portal is not available: %s",
+			   error->message);
+		g_error_free (error);
+		return FALSE;
+	}
+
+	g_variant_get (ret, "(v)", &value);
+	g_variant_unref (ret);
+	version = g_variant_get_uint32 (value);
+	g_variant_unref (value);
+	if (version != PORTAL_SECRET_VERSION) {
+		g_message ("secret portal version mismatch: %u != %u",
+			   version, PORTAL_SECRET_VERSION);
+		return FALSE;
+	}
+
+	return TRUE;
 }
