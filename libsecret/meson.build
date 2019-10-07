@@ -98,6 +98,8 @@ libsecret_dep = declare_dependency(
 libsecret_gir_sources = [
   'secret-attributes.c',
   'secret-attributes.h',
+  'secret-backend.c',
+  'secret-backend.h',
   'secret-collection.c',
   'secret-collection.h',
   'secret-item.c',
