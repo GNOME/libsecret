@@ -26,6 +26,8 @@ G_BEGIN_DECLS
 #define SECRET_TYPE_FILE_BACKEND (secret_file_backend_get_type ())
 G_DECLARE_FINAL_TYPE (SecretFileBackend, secret_file_backend, SECRET, FILE_BACKEND, GObject)
 
+gboolean _secret_file_backend_check_portal_version (void);
+
 G_END_DECLS
 
 #endif /* __SECRET_FILE_BACKEND_H__ */
