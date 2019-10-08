@@ -15,6 +15,7 @@
 
 #include "config.h"
 
+#include "secret-backend.h"
 #include "secret-collection.h"
 #include "secret-dbus-generated.h"
 #include "secret-item.h"
@@ -135,14 +136,24 @@ static GInitableIface *secret_service_initable_parent_iface = NULL;
 
 static GAsyncInitableIface *secret_service_async_initable_parent_iface = NULL;
 
+static SecretBackendInterface *secret_service_backend_parent_iface = NULL;
+
 static void   secret_service_initable_iface         (GInitableIface *iface);
 
 static void   secret_service_async_initable_iface   (GAsyncInitableIface *iface);
+
+static void   secret_service_backend_iface          (SecretBackendInterface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (SecretService, secret_service, G_TYPE_DBUS_PROXY,
                          G_ADD_PRIVATE (SecretService)
                          G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE, secret_service_initable_iface);
                          G_IMPLEMENT_INTERFACE (G_TYPE_ASYNC_INITABLE, secret_service_async_initable_iface);
+			 G_IMPLEMENT_INTERFACE (SECRET_TYPE_BACKEND, secret_service_backend_iface);
+			 _secret_backend_ensure_extension_point ();
+			 g_io_extension_point_implement (SECRET_BACKEND_EXTENSION_POINT_NAME,
+                                                         g_define_type_id,
+                                                         "service",
+                                                         0)
 );
 
 static SecretService *
@@ -179,6 +190,8 @@ service_uncache_instance (SecretService *which)
 		g_object_unref (instance);
 	if (watch != 0)
 		g_bus_unwatch_name (watch);
+
+	_secret_backend_uncache_instance ();
 
 	return matched;
 }
@@ -509,6 +522,38 @@ secret_service_real_get_item_gtype (SecretService *self)
 	return klass->item_gtype;
 }
 
+static const gchar *
+get_default_bus_name (void)
+{
+	const gchar *bus_name;
+
+	bus_name = g_getenv ("SECRET_SERVICE_BUS_NAME");
+	if (bus_name == NULL)
+		bus_name = SECRET_SERVICE_BUS_NAME;
+
+	return bus_name;
+}
+
+static GObject *
+secret_service_constructor (GType type,
+                            guint n_construct_properties,
+                            GObjectConstructParam *construct_properties)
+{
+	GObject *object;
+
+	object = G_OBJECT_CLASS (secret_service_parent_class)->
+		constructor (type, n_construct_properties, construct_properties);
+	g_object_set (object,
+		      "g-flags", G_DBUS_PROXY_FLAGS_NONE,
+		      "g-interface-info", _secret_gen_service_interface_info (),
+		      "g-name", get_default_bus_name (),
+		      "g-bus-type", G_BUS_TYPE_SESSION,
+		      "g-object-path", SECRET_SERVICE_PATH,
+		      "g-interface-name", SECRET_SERVICE_INTERFACE,
+		      NULL);
+	return object;
+}
+
 static void
 secret_service_class_init (SecretServiceClass *klass)
 {
@@ -519,6 +564,7 @@ secret_service_class_init (SecretServiceClass *klass)
 	object_class->set_property = secret_service_set_property;
 	object_class->dispose = secret_service_dispose;
 	object_class->finalize = secret_service_finalize;
+	object_class->constructor = secret_service_constructor;
 
 	proxy_class->g_properties_changed = secret_service_properties_changed;
 	proxy_class->g_signal = secret_service_signal;
@@ -538,10 +584,7 @@ secret_service_class_init (SecretServiceClass *klass)
 	 * A set of flags describing which parts of the secret service have
 	 * been initialized.
 	 */
-	g_object_class_install_property (object_class, PROP_FLAGS,
-	             g_param_spec_flags ("flags", "Flags", "Service flags",
-	                                 secret_service_flags_get_type (), SECRET_SERVICE_NONE,
-	                                 G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS));
+	g_object_class_override_property (object_class, PROP_FLAGS, "flags");
 
 	/**
 	 * SecretService:collections:
@@ -745,16 +788,160 @@ secret_service_async_initable_iface (GAsyncInitableIface *iface)
 	iface->init_finish = secret_service_async_initable_init_finish;
 }
 
-static const gchar *
-get_default_bus_name (void)
+static void
+secret_service_real_ensure_for_flags (SecretBackend *self,
+				      SecretBackendFlags flags,
+				      GCancellable *cancellable,
+				      GAsyncReadyCallback callback,
+				      gpointer user_data)
 {
-	const gchar *bus_name;
+	GTask *task;
+	InitClosure *closure;
 
-	bus_name = g_getenv ("SECRET_SERVICE_BUS_NAME");
-	if (bus_name == NULL)
-		bus_name = SECRET_SERVICE_BUS_NAME;
+	g_return_if_fail (SECRET_IS_SERVICE (self));
 
-	return bus_name;
+	task = g_task_new (self, cancellable, callback, user_data);
+	closure = g_slice_new0 (InitClosure);
+	g_task_set_task_data (task, closure, init_closure_free);
+	service_ensure_for_flags_async (SECRET_SERVICE (self), flags, task);
+	g_object_unref (task);
+}
+
+static gboolean
+secret_service_real_ensure_for_flags_finish (SecretBackend *self,
+					     GAsyncResult *result,
+					     GError **error)
+{
+	g_return_val_if_fail (g_task_is_valid (result, self), FALSE);
+
+	if (!g_task_propagate_boolean (G_TASK (result), error)) {
+		_secret_util_strip_remote_error (error);
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+static void
+secret_service_real_store (SecretBackend *self,
+			   const SecretSchema *schema,
+			   GHashTable *attributes,
+			   const gchar *collection,
+			   const gchar *label,
+			   SecretValue *value,
+			   GCancellable *cancellable,
+			   GAsyncReadyCallback callback,
+			   gpointer user_data)
+{
+	g_return_if_fail (SECRET_IS_SERVICE (self));
+
+	secret_service_store (SECRET_SERVICE (self), schema, attributes,
+			      collection, label, value,
+			      cancellable, callback, user_data);
+}
+
+static gboolean
+secret_service_real_store_finish (SecretBackend *self,
+				  GAsyncResult *result,
+				  GError **error)
+{
+	g_return_val_if_fail (SECRET_IS_SERVICE (self), FALSE);
+
+	return secret_service_store_finish (SECRET_SERVICE (self),
+					    result, error);
+}
+
+static void
+secret_service_real_lookup (SecretBackend *self,
+			    const SecretSchema *schema,
+			    GHashTable *attributes,
+			    GCancellable *cancellable,
+			    GAsyncReadyCallback callback,
+			    gpointer user_data)
+{
+	g_return_if_fail (SECRET_IS_SERVICE (self));
+
+	secret_service_lookup (SECRET_SERVICE (self), schema, attributes,
+			       cancellable, callback, user_data);
+}
+
+static SecretValue *
+secret_service_real_lookup_finish (SecretBackend *self,
+				   GAsyncResult *result,
+				   GError **error)
+{
+	g_return_val_if_fail (SECRET_IS_SERVICE (self), NULL);
+
+	return secret_service_lookup_finish (SECRET_SERVICE (self),
+					     result, error);
+}
+
+static void
+secret_service_real_clear (SecretBackend *self,
+			   const SecretSchema *schema,
+			   GHashTable *attributes,
+			   GCancellable *cancellable,
+			   GAsyncReadyCallback callback,
+			   gpointer user_data)
+{
+	g_return_if_fail (SECRET_IS_SERVICE (self));
+
+	secret_service_clear (SECRET_SERVICE (self), schema, attributes,
+			      cancellable, callback, user_data);
+}
+
+static gboolean
+secret_service_real_clear_finish (SecretBackend *self,
+				  GAsyncResult *result,
+				  GError **error)
+{
+	g_return_val_if_fail (SECRET_IS_SERVICE (self), FALSE);
+
+	return secret_service_clear_finish (SECRET_SERVICE (self),
+					    result, error);
+}
+
+static void
+secret_service_real_search (SecretBackend *self,
+			    const SecretSchema *schema,
+			    GHashTable *attributes,
+			    SecretSearchFlags flags,
+			    GCancellable *cancellable,
+			    GAsyncReadyCallback callback,
+			    gpointer user_data)
+{
+	g_return_if_fail (SECRET_IS_SERVICE (self));
+
+	secret_service_search (SECRET_SERVICE (self), schema, attributes, flags,
+			       cancellable, callback, user_data);
+}
+
+static GList *
+secret_service_real_search_finish (SecretBackend *self,
+				   GAsyncResult *result,
+				   GError **error)
+{
+	g_return_val_if_fail (SECRET_IS_SERVICE (self), NULL);
+
+	return secret_service_search_finish (SECRET_SERVICE (self),
+					     result, error);
+}
+
+static void
+secret_service_backend_iface (SecretBackendInterface *iface)
+{
+	secret_service_backend_parent_iface = g_type_interface_peek_parent (iface);
+
+	iface->ensure_for_flags = secret_service_real_ensure_for_flags;
+	iface->ensure_for_flags_finish = secret_service_real_ensure_for_flags_finish;
+	iface->store = secret_service_real_store;
+	iface->store_finish = secret_service_real_store_finish;
+	iface->lookup = secret_service_real_lookup;
+	iface->lookup_finish = secret_service_real_lookup_finish;
+	iface->clear = secret_service_real_clear;
+	iface->clear_finish = secret_service_real_clear_finish;
+	iface->search = secret_service_real_search;
+	iface->search_finish = secret_service_real_search_finish;
 }
 
 /**
@@ -788,13 +975,7 @@ secret_service_get (SecretServiceFlags flags,
 	if (service == NULL) {
 		g_async_initable_new_async (SECRET_TYPE_SERVICE, G_PRIORITY_DEFAULT,
 		                            cancellable, callback, user_data,
-		                            "g-flags", G_DBUS_PROXY_FLAGS_NONE,
-		                            "g-interface-info", _secret_gen_service_interface_info (),
-		                            "g-name", get_default_bus_name (),
-		                            "g-bus-type", G_BUS_TYPE_SESSION,
-		                            "g-object-path", SECRET_SERVICE_PATH,
-		                            "g-interface-name", SECRET_SERVICE_INTERFACE,
-		                            "flags", flags,
+					    "flags", flags,
 		                            NULL);
 
 	/* Just have to ensure that the service matches flags */
@@ -890,12 +1071,6 @@ secret_service_get_sync (SecretServiceFlags flags,
 
 	if (service == NULL) {
 		service = g_initable_new (SECRET_TYPE_SERVICE, cancellable, error,
-		                          "g-flags", G_DBUS_PROXY_FLAGS_NONE,
-		                          "g-interface-info", _secret_gen_service_interface_info (),
-		                          "g-name", get_default_bus_name (),
-		                          "g-bus-type", G_BUS_TYPE_SESSION,
-		                          "g-object-path", SECRET_SERVICE_PATH,
-		                          "g-interface-name", SECRET_SERVICE_INTERFACE,
 		                          "flags", flags,
 		                          NULL);
 
@@ -970,12 +1145,6 @@ secret_service_open (GType service_gtype,
 
 	g_async_initable_new_async (service_gtype, G_PRIORITY_DEFAULT,
 	                            cancellable, callback, user_data,
-	                            "g-flags", G_DBUS_PROXY_FLAGS_NONE,
-	                            "g-interface-info", _secret_gen_service_interface_info (),
-	                            "g-name", service_bus_name,
-	                            "g-bus-type", G_BUS_TYPE_SESSION,
-	                            "g-object-path", SECRET_SERVICE_PATH,
-	                            "g-interface-name", SECRET_SERVICE_INTERFACE,
 	                            "flags", flags,
 	                            NULL);
 }
@@ -1052,12 +1221,6 @@ secret_service_open_sync (GType service_gtype,
 		service_bus_name = get_default_bus_name ();
 
 	return g_initable_new (service_gtype, cancellable, error,
-	                       "g-flags", G_DBUS_PROXY_FLAGS_NONE,
-	                       "g-interface-info", _secret_gen_service_interface_info (),
-	                       "g-name", service_bus_name,
-	                       "g-bus-type", G_BUS_TYPE_SESSION,
-	                       "g-object-path", SECRET_SERVICE_PATH,
-	                       "g-interface-name", SECRET_SERVICE_INTERFACE,
 	                       "flags", flags,
 	                       NULL);
 }
