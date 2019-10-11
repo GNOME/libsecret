@@ -148,32 +148,24 @@ if with_vapi
 endif
 
 # pkg-config
-pc_conf = configuration_data({
-  'prefix': libsecret_prefix,
-  'exec_prefix': '${prefix}',
-  'libdir': '${prefix}' / get_option('libdir'),
-  'includedir': '${prefix}' / get_option('includedir'),
-  'datarootdir': '${prefix}' / get_option('datadir'),
-  'datadir': '${datarootdir}',
-  'sysconfdir': '${prefix}' / get_option('sysconfdir'),
-  'SECRET_MAJOR': api_version_major,
-  'VERSION': meson.project_version(),
-})
+libsecret_pc_variables = [
+  'exec_prefix=${prefix}',
+  'datarootdir=@0@'.format('${prefix}' / get_option('datadir')),
+  'datadir=${datarootdir}',
+  'sysconfdir=@0@'.format('${prefix}' / get_option('sysconfdir'))
+]
 
-configure_file(
-  input: 'libsecret.pc.in',
-  output: 'libsecret-@0@.pc'.format(api_version_major),
-  configuration: pc_conf,
-  install: true,
-  install_dir: libsecret_prefix / libdir / 'pkgconfig',
-)
-configure_file(
-  input: 'libsecret-unstable.pc.in',
-  output: '@BASENAME@',
-  configuration: pc_conf,
-  install: true,
-  install_dir: libsecret_prefix / libdir / 'pkgconfig',
-)
+pkg.generate(libsecret,
+	     description: 'GObject bindings for Secret Service API',
+	     name: 'libsecret-@0@'.format(api_version_major),
+	     variables: libsecret_pc_variables,
+	     requires_private: glib_deps + [gcrypt_dep])
+
+pkg.generate(description: 'GObject bindings for Secret Service API (Unstable)',
+	     name: 'libsecret-unstable',
+	     variables: libsecret_pc_variables,
+	     extra_cflags: '-DSECRET_WITH_UNSTABLE',
+	     requires: libsecret)
 
 # Tests
 mock_cflags = [

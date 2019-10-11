@@ -6,6 +6,7 @@ project('libsecret', 'c',
 
 gnome = import('gnome')
 i18n = import('i18n')
+pkg = import('pkgconfig')
 
 # API version
 api_version = '1.0.0'
