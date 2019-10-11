@@ -6,6 +6,7 @@ project('libsecret', 'c',
 
 gnome = import('gnome')
 i18n = import('i18n')
+pkg = import('pkgconfig')
 
 # API version
 api_version = '1.0.0'
@@ -46,7 +47,8 @@ glib_deps = [
 ]
 
 min_libgcrypt_version = '1.2.2'
-gcrypt_dep = dependency('libgcrypt', version: '>=1.2.2', required: with_gcrypt)
+gcrypt_dep = dependency('libgcrypt', version: '>=' + min_libgcrypt_version,
+			required: with_gcrypt)
 
 # Libraries
 math = meson.get_compiler('c').find_library('m')
