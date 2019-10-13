@@ -171,3 +171,71 @@ egg_tests_run_with_loop (void)
 
 	return ret;
 }
+
+void
+egg_tests_copy_scratch_file (const gchar *directory,
+                             const gchar *filename)
+{
+	GError *error = NULL;
+	gchar *basename;
+	gchar *contents;
+	gchar *destination;
+	gsize length;
+
+	g_assert (directory);
+
+	g_file_get_contents (filename, &contents, &length, &error);
+	g_assert_no_error (error);
+
+	basename = g_path_get_basename (filename);
+	destination = g_build_filename (directory, basename, NULL);
+	g_free (basename);
+
+	g_file_set_contents (destination, contents, length, &error);
+	g_assert_no_error (error);
+	g_free (destination);
+	g_free (contents);
+}
+
+gchar *
+egg_tests_create_scratch_directory (const gchar *file_to_copy,
+                                    ...)
+{
+	gchar *basename;
+	gchar *directory;
+	va_list va;
+
+	basename = g_path_get_basename (g_get_prgname ());
+	directory = g_strdup_printf ("/tmp/scratch-%s.XXXXXX", basename);
+	g_free (basename);
+
+	if (!g_mkdtemp (directory))
+		g_assert_not_reached ();
+
+	va_start (va, file_to_copy);
+
+	while (file_to_copy != NULL) {
+		egg_tests_copy_scratch_file (directory, file_to_copy);
+		file_to_copy = va_arg (va, const gchar *);
+	}
+
+	va_end (va);
+
+	return directory;
+}
+
+void
+egg_tests_remove_scratch_directory (const gchar *directory)
+{
+	gchar *argv[] = { "rm", "-rf", (gchar *)directory, NULL };
+	GError *error = NULL;
+	gint rm_status;
+
+	g_assert_cmpstr (directory, !=, "");
+	g_assert_cmpstr (directory, !=, "/");
+
+	g_spawn_sync (NULL, argv, NULL, G_SPAWN_SEARCH_PATH, NULL,
+	              NULL, NULL, NULL, &rm_status, &error);
+	g_assert_no_error (error);
+	g_assert_cmpint (rm_status, ==, 0);
+}
