@@ -168,7 +168,7 @@ pkg.generate(libsecret,
 	     name: 'libsecret-@0@'.format(api_version_major),
 	     subdirs: installed_headers_subdir,
 	     variables: libsecret_pc_variables,
-	     requires_private: glib_deps + [gcrypt_dep])
+	     requires: glib_deps)
 
 pkg.generate(description: 'GObject bindings for Secret Service API (Unstable)',
 	     name: 'libsecret-unstable',
