@@ -1,4 +1,5 @@
-installed_headers_subdir = 'libsecret-@0@'.format(api_version_major) / 'libsecret'
+installed_headers_subdir_base = 'libsecret-@0@'.format(api_version_major)
+installed_headers_subdir = installed_headers_subdir_base / 'libsecret'
 
 libsecret_sources = [
   'secret-attributes.c',
@@ -166,7 +167,7 @@ libsecret_pc_variables = [
 pkg.generate(libsecret,
 	     description: 'GObject bindings for Secret Service API',
 	     name: 'libsecret-@0@'.format(api_version_major),
-	     subdirs: installed_headers_subdir,
+	     subdirs: installed_headers_subdir_base,
 	     variables: libsecret_pc_variables,
 	     requires: glib_deps)
 
