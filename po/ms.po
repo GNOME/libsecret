@@ -1,0 +1,54 @@
+# Malay translation for libsecret.
+# Copyright (C) 2019 libsecret's COPYRIGHT HOLDER
+# This file is distributed under the same license as the libsecret package.
+# abuyop <abuyop@gmail.com>, 2019.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: libsecret master\n"
+"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/libsecret/issues\n"
+"POT-Creation-Date: 2019-10-15 08:36+0000\n"
+"PO-Revision-Date: 2019-12-22 17:01+0800\n"
+"Language-Team: Malay <ms@li.org>\n"
+"Language: ms\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Last-Translator: abuyop <abuyop@gmail.com>\n"
+"X-Generator: Poedit 2.0.6\n"
+
+#: libsecret/secret-item.c:1162
+msgid "Received invalid secret from the secret storage"
+msgstr "Menerima rahsia tidak sah dari storan rahsia"
+
+#: libsecret/secret-methods.c:1055
+msgid "Default keyring"
+msgstr "Gelang kunci lalai"
+
+#: libsecret/secret-session.c:243 libsecret/secret-session.c:279
+msgid "Couldn’t communicate with the secret storage"
+msgstr "Tidak dapat berkomunikasi dengan storan rahsia"
+
+#: tool/secret-tool.c:39
+msgid "the label for the new stored item"
+msgstr "label untuk item tersimpan baharu"
+
+#: tool/secret-tool.c:41
+msgid "the collection in which to place the stored item"
+msgstr "koleksi yang menyimpan item tersimpan"
+
+#: tool/secret-tool.c:43 tool/secret-tool.c:50 tool/secret-tool.c:443
+msgid "attribute value pairs of item to lookup"
+msgstr "pasangan item bernilai atribut yang dicari"
+
+#: tool/secret-tool.c:57
+msgid "attribute value pairs which match items to clear"
+msgstr "pasangan nilai atribut yang sepadan dengan item yang dikosongkan"
+
+#: tool/secret-tool.c:439
+msgid "return all results, instead of just first one"
+msgstr "kembalikan semua keputusan, selain dari yang pertama"
+
+#: tool/secret-tool.c:441
+msgid "unlock item results if necessary"
+msgstr "nyahkunci keputusan item jika perlu"
