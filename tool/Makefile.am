@@ -9,3 +9,5 @@ tool_secret_tool_LDADD = \
 if WITH_GCRYPT
 TESTS += tool/test-secret-tool.sh
 endif
+
+check_SCRIPTS += tool/test-secret-tool.sh

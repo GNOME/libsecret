@@ -120,6 +120,7 @@ AM_CPPFLAGS = \
 bin_PROGRAMS =
 BUILT_SOURCES =
 check_PROGRAMS =
+check_SCRIPTS =
 DISTCLEANFILES =
 lib_LTLIBRARIES =
 man_MANS =
@@ -185,7 +186,8 @@ EXTRA_DIST = \
 	build/valgrind \
 	build/tap-gtester \
 	build/tap-unittest \
-	$(VALGRIND_SUPPRESSIONS)
+	$(VALGRIND_SUPPRESSIONS) \
+	$(check_SCRIPTS)
 
 include egg/Makefile.am
 include libsecret/Makefile.am
