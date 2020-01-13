@@ -1,3 +1,10 @@
+0.20.0
+ * secret-backend: New interface to represent password storage backend [!34]
+ * secret-backend: Add local-storage backend [!6]
+ * item: Port to GTask [!43]
+ * Build fixes [!34, !37, !38, !40, !41, !42, ...]
+ * Updated translations
+
 0.19.1
  * service: Fix secret_service_ensure_session_finish error propagation [!36]
 
