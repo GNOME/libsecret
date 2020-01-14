@@ -1,10 +1,14 @@
 
 #include "config.h"
 
+#undef G_DISABLE_ASSERT
+
 #include "egg/egg-testing.h"
 #include "secret-file-collection.h"
 #include "secret-retrievable.h"
 #include "secret-schema.h"
+
+#include <stdlib.h>
 
 typedef struct {
 	gchar *directory;
