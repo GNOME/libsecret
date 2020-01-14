@@ -34,4 +34,5 @@ gnome.gtkdoc('libsecret',
     '--ignore-headers=' + ' '.join(reference_ignore_headers),
   ],
   module_version: api_version_major,
+  install: true,
 )
