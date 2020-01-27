@@ -2,7 +2,7 @@ AC_PREREQ(2.63)
 
 m4_define([libsecret_major_version], 0)
 m4_define([libsecret_minor_version], 20)
-m4_define([libsecret_micro_version], 0)
+m4_define([libsecret_micro_version], 1)
 m4_define([libsecret_version],
           [libsecret_major_version.libsecret_minor_version.libsecret_micro_version])
 AC_INIT([libsecret],[libsecret_version],

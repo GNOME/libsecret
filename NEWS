@@ -1,3 +1,6 @@
+0.20.1
+ * Build fixes [!45]
+
 0.20.0
  * secret-backend: New interface to represent password storage backend [!34]
  * secret-backend: Add local-storage backend [!6]
