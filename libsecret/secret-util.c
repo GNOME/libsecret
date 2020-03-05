@@ -125,8 +125,7 @@ _secret_util_strip_remote_error (GError **error)
 	remote = g_dbus_error_get_remote_error (*error);
 	if (remote) {
 		if (g_dbus_error_strip_remote_error (*error)) {
-			g_message ("Remote error from secret service: %s: %s",
-			           remote, (*error)->message);
+			g_info ("Remote error from secret service: %s: %s", remote, (*error)->message);
 		}
 		g_free (remote);
 	}

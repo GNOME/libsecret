@@ -806,8 +806,7 @@ _secret_file_backend_check_portal_version (void)
 					   0, -1, NULL, &error);
 	g_object_unref (connection);
 	if (!ret) {
-		g_message ("secret portal is not available: %s",
-			   error->message);
+		g_info ("secret portal is not available: %s", error->message);
 		g_error_free (error);
 		return FALSE;
 	}
@@ -817,8 +816,7 @@ _secret_file_backend_check_portal_version (void)
 	version = g_variant_get_uint32 (value);
 	g_variant_unref (value);
 	if (version != PORTAL_SECRET_VERSION) {
-		g_message ("secret portal version mismatch: %u != %u",
-			   version, PORTAL_SECRET_VERSION);
+		g_info ("secret portal version mismatch: %u != %u", version, PORTAL_SECRET_VERSION);
 		return FALSE;
 	}
 

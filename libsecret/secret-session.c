@@ -393,12 +393,12 @@ service_decode_aes_secret (SecretSession *session,
 	gsize pos;
 
 	if (n_param != 16) {
-		g_message ("received an encrypted secret structure with invalid parameter");
+		g_info ("received an encrypted secret structure with invalid parameter");
 		return NULL;
 	}
 
 	if (n_value == 0 || n_value % 16 != 0) {
-		g_message ("received an encrypted secret structure with bad secret length");
+		g_info ("received an encrypted secret structure with bad secret length");
 		return NULL;
 	}
 
@@ -439,7 +439,7 @@ service_decode_aes_secret (SecretSession *session,
 	if (!pkcs7_unpad_bytes_in_place (padded, &n_padded)) {
 		egg_secure_clear (padded, n_padded);
 		egg_secure_free (padded);
-		g_message ("received an invalid or unencryptable secret");
+		g_info ("received an invalid or unencryptable secret");
 		return FALSE;
 	}
 
@@ -457,7 +457,7 @@ service_decode_plain_secret (SecretSession *session,
                              const gchar *content_type)
 {
 	if (n_param != 0) {
-		g_message ("received a plain secret structure with invalid parameter");
+		g_info ("received a plain secret structure with invalid parameter");
 		return NULL;
 	}
 
@@ -485,8 +485,8 @@ _secret_session_decode_secret (SecretSession *session,
 	g_variant_get_child (encoded, 0, "o", &session_path);
 
 	if (session_path == NULL || !g_str_equal (session_path, session->path)) {
-		g_message ("received a secret encoded with wrong session: %s != %s",
-		           session_path, session->path);
+		g_info ("received a secret encoded with wrong session: %s != %s",
+		        session_path, session->path);
 		g_free (session_path);
 		return NULL;
 	}
