@@ -287,7 +287,9 @@ on_load_contents (GObject *source_object,
 	GVariant *variant;
 	GVariant *salt_array;
 	guint32 salt_size;
+	guint32 iteration_count;
 	guint64 modified_time;
+	guint64 usage_count;
 	gconstpointer data;
 	gsize n_data;
 	GError *error = NULL;
@@ -365,11 +367,18 @@ on_load_contents (GObject *source_object,
 					   g_free,
 					   contents);
 	g_variant_get (variant, "(u@ayutu@a(a{say}ay))",
-		       &salt_size, &salt_array, &self->iteration_count,
-		       &modified_time, &self->usage_count,
+		       &salt_size, &salt_array, &iteration_count,
+		       &modified_time, &usage_count,
 		       &self->items);
 
+	salt_size = GUINT32_FROM_LE(salt_size);
+	iteration_count = GUINT32_FROM_LE(iteration_count);
+	modified_time = GUINT64_FROM_LE(modified_time);
+	usage_count = GUINT32_FROM_LE(usage_count);
+
+	self->iteration_count = iteration_count;
 	self->modified = g_date_time_new_from_unix_utc (modified_time);
+	self->usage_count = usage_count;
 
 	data = g_variant_get_fixed_array (salt_array, &n_data, sizeof(guint8));
 	g_assert (n_data == salt_size);
@@ -796,11 +805,11 @@ secret_file_collection_write (SecretFileCollection *self,
 						g_bytes_get_size (self->salt),
 						sizeof(guint8));
 	variant = g_variant_new ("(u@ayutu@a(a{say}ay))",
-				 g_bytes_get_size (self->salt),
+				 GUINT32_TO_LE(g_bytes_get_size (self->salt)),
 				 salt_array,
-				 self->iteration_count,
-				 g_date_time_to_unix (self->modified),
-				 self->usage_count,
+				 GUINT32_TO_LE(self->iteration_count),
+				 GUINT64_TO_LE(g_date_time_to_unix (self->modified)),
+				 GUINT32_TO_LE(self->usage_count),
 				 self->items);
 
 	g_variant_get_data (variant); /* force serialize */
