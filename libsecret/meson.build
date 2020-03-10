@@ -84,7 +84,7 @@ libsecret_cflags = [
   '-DSECRET_COMPILATION',
 ]
 
-libsecret = shared_library('secret-@0@'.format(api_version_major),
+libsecret = library('secret-@0@'.format(api_version_major),
   [ libsecret_sources, _dbus_generated, _enums_generated ],
   version: libtool_version,
   dependencies: libsecret_dependencies,
