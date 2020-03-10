@@ -18,6 +18,10 @@ fedora:Werror:
     - meson _build -Dwerror=true -Dc_args=-Wno-error=deprecated-declarations
     - eval `dbus-launch --sh-syntax`
     - meson test -C _build
+  artifacts:
+    when: on_failure
+    paths:
+      - _build/meson-logs/testlog.txt
 
 fedora:asan:
   image: fedora:latest
@@ -32,6 +36,10 @@ fedora:asan:
     - meson _build -Dsanitize=address
     - eval `dbus-launch --sh-syntax`
     - meson test -C _build
+  artifacts:
+    when: on_failure
+    paths:
+      - _build/meson-logs/testlog.txt
 
 fedora:ubsan:
   image: fedora:latest
@@ -46,6 +54,10 @@ fedora:ubsan:
     - meson _build -Dsanitize=undefined
     - eval `dbus-launch --sh-syntax`
     - meson test -C _build
+  artifacts:
+    when: on_failure
+    paths:
+      - _build/meson-logs/testlog.txt
 
 fedora:coverage:
   image: fedora:latest
@@ -64,6 +76,7 @@ fedora:coverage:
   coverage: '/^\s+lines.+:\s+([\d.]+\%)\s+/'
   artifacts:
     name: "libsecret-${CI_JOB_NAME}-${CI_COMMIT_REF_NAME}"
+    when: on_success
     paths:
       - _build/meson-logs/coveragereport/
   # https://github.com/linux-test-project/lcov/issues/58
