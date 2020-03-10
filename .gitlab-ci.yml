@@ -3,7 +3,7 @@ stages:
   - deploy
 
 variables:
-  DEPENDENCIES: dbus-x11 gcc gjs meson ninja-build python3-dbus python3-gobject redhat-rpm-config
+  DEPENDENCIES: dbus-x11 diffutils gcc gjs meson ninja-build python3-dbus python3-gobject redhat-rpm-config
 
 fedora:Werror:
   image: fedora:latest
