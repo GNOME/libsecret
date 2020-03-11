@@ -1,3 +1,9 @@
+0.20.2
+ * secret-file-collection: force little-endian in GVariant [!49, #42]
+ * Prefer g_info() over g_message() [!48, #40]
+ * meson: Don't specify shared_library() [!47]
+ * docs: Make sure to set install: true [!46]
+
 0.20.1
  * Build fixes [!45]
 
