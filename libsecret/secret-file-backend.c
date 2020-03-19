@@ -231,6 +231,11 @@ on_portal_response (GDBusConnection *connection,
 	InitClosure *init = g_task_get_task_data (task);
 	guint32 response;
 
+	if (init->cancellable_signal_id) {
+		g_cancellable_disconnect (g_task_get_cancellable (task), init->cancellable_signal_id);
+		init->cancellable_signal_id = 0;
+	}
+
 	g_dbus_connection_signal_unsubscribe (connection,
 					      init->portal_signal_id);
 
@@ -303,6 +308,7 @@ on_portal_cancel (GCancellable *cancellable,
 				task);
 
 	g_cancellable_disconnect (cancellable, init->cancellable_signal_id);
+	init->cancellable_signal_id = 0;
 }
 
 static void
