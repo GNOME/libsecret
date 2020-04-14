@@ -1,5 +1,5 @@
 project('libsecret', 'c',
-  version: '0.20.2',
+  version: '0.20.3',
   license: 'GPL2+',
   meson_version: '>= 0.50',
 )

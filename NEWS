@@ -1,3 +1,7 @@
+0.20.3
+ * secret-file-backend: Fix use-after-free in flatpak [!52]
+ * docs: Add man subdir only if manpage is enabled [!51]
+
 0.20.2
  * secret-file-collection: force little-endian in GVariant [!49, #42]
  * Prefer g_info() over g_message() [!48, #40]
