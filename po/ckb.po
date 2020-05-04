@@ -1,0 +1,55 @@
+# Kurdish (Sorani) translation for libsecret
+# Copyright (c) 2020 Rosetta Contributors and Canonical Ltd 2020
+# This file is distributed under the same license as the libsecret package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2020.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: libsecret\n"
+"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
+"POT-Creation-Date: 2020-03-11 06:56+0100\n"
+"PO-Revision-Date: 2020-05-05 01:13+0300\n"
+"Language-Team: Kurdish (Sorani) <ckb@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Launchpad-Export-Date: 2020-05-04 22:12+0000\n"
+"X-Generator: Poedit 2.3\n"
+"Last-Translator: Jwtiyar Nariman <jwtiyar@gmail.com>\n"
+"Language: ckb\n"
+
+#: libsecret/secret-item.c:1104
+msgid "Received invalid secret from the secret storage"
+msgstr "نهێنییەکی نادروست وەرگیرا لە بیرگە نهێنییەکە"
+
+#: libsecret/secret-methods.c:1055
+msgid "Default keyring"
+msgstr "مەدالیای بنەڕەتی"
+
+#: libsecret/secret-session.c:243 libsecret/secret-session.c:279
+msgid "Couldn’t communicate with the secret storage"
+msgstr "ناتوانرێ پەیوەندی بکرێ لەگەڵ بیرگە نهێنییەکە"
+
+#: tool/secret-tool.c:39
+msgid "the label for the new stored item"
+msgstr "پێناسەکە بۆ بڕگە خەزنکراوە نوێییەکە"
+
+#: tool/secret-tool.c:41
+msgid "the collection in which to place the stored item"
+msgstr "کۆکراوەکە بۆ جێگای بڕگە خەزنکراوەکە"
+
+#: tool/secret-tool.c:43 tool/secret-tool.c:50 tool/secret-tool.c:443
+msgid "attribute value pairs of item to lookup"
+msgstr "نرخی دوو دیارخراوی بڕگە بۆ گەڕان"
+
+#: tool/secret-tool.c:57
+msgid "attribute value pairs which match items to clear"
+msgstr "نرخی دوو دیارخراو کە لە ىرگەکان دەچێت بۆ پاککردنەوە"
+
+#: tool/secret-tool.c:439
+msgid "return all results, instead of just first one"
+msgstr "هەموو ئانجامەکان دەگەڕێنەوە، لەجێی تەنها یەکەم دانە"
+
+#: tool/secret-tool.c:441
+msgid "unlock item results if necessary"
+msgstr "ئەنجامەکانی بڕگەکە بکەرەوە ئەگەر پێویست بوو"
