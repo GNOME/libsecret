@@ -3,3 +3,4 @@ option('gcrypt', type: 'boolean', value: true, description: 'With gcrypt and tra
 option('debugging', type: 'boolean', value: false, description: 'Turn debugging on/off')
 option('vapi', type: 'boolean', value: true, description: 'Create VAPI file.')
 option('gtk_doc', type: 'boolean', value: true, description: 'Build reference documentation using gtk-doc')
+option('introspection', type: 'boolean', value: true, description: 'Create GIR file.')

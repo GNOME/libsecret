@@ -104,50 +104,52 @@ libsecret_dep = declare_dependency(
 )
 
 # GObject Introspection
-libsecret_gir_sources = [
-  'secret-attributes.c',
-  'secret-attributes.h',
-  'secret-backend.c',
-  'secret-backend.h',
-  'secret-collection.c',
-  'secret-collection.h',
-  'secret-item.c',
-  'secret-item.h',
-  'secret-methods.c',
-  'secret-password.c',
-  'secret-password.h',
-  'secret-paths.c',
-  'secret-paths.h',
-  'secret-prompt.c',
-  'secret-prompt.h',
-  'secret-retrievable.c',
-  'secret-retrievable.h',
-  'secret-schema.c',
-  'secret-schema.h',
-  'secret-schemas.c',
-  'secret-schemas.h',
-  'secret-service.c',
-  'secret-service.h',
-  'secret-types.h',
-  'secret-value.c',
-  'secret-value.h',
-]
-libsecret_gir_sources += version_h
-libsecret_gir_sources += _enums_generated
+if with_gir
+  libsecret_gir_sources = [
+    'secret-attributes.c',
+    'secret-attributes.h',
+    'secret-backend.c',
+    'secret-backend.h',
+    'secret-collection.c',
+    'secret-collection.h',
+    'secret-item.c',
+    'secret-item.h',
+    'secret-methods.c',
+    'secret-password.c',
+    'secret-password.h',
+    'secret-paths.c',
+    'secret-paths.h',
+    'secret-prompt.c',
+    'secret-prompt.h',
+    'secret-retrievable.c',
+    'secret-retrievable.h',
+    'secret-schema.c',
+    'secret-schema.h',
+    'secret-schemas.c',
+    'secret-schemas.h',
+    'secret-service.c',
+    'secret-service.h',
+    'secret-types.h',
+    'secret-value.c',
+    'secret-value.h',
+  ]
+  libsecret_gir_sources += version_h
+  libsecret_gir_sources += _enums_generated
 
-libsecret_gir = gnome.generate_gir(libsecret,
-  sources: libsecret_gir_sources,
-  namespace: 'Secret',
-  nsversion: api_version_major,
-  export_packages: 'libsecret-@0@'.format(api_version_major),
-  includes: [ 'GObject-2.0', 'Gio-2.0' ],
-  header: 'libsecret/secret.h',
-  extra_args: [ '-D SECRET_COMPILATION'],
-  install: true,
-)
+  libsecret_gir = gnome.generate_gir(libsecret,
+    sources: libsecret_gir_sources,
+    namespace: 'Secret',
+    nsversion: api_version_major,
+    export_packages: 'libsecret-@0@'.format(api_version_major),
+    includes: [ 'GObject-2.0', 'Gio-2.0' ],
+    header: 'libsecret/secret.h',
+    extra_args: [ '-D SECRET_COMPILATION'],
+    install: true,
+  )
+endif
 
 # Vapi
-if with_vapi
+if with_vapi and with_gir
   libsecret_vapi = gnome.generate_vapi('libsecret-@0@'.format(api_version_major),
     sources: libsecret_gir[0],
     metadata_dirs: meson.source_root() / 'libsecret',

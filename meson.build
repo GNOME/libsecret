@@ -22,6 +22,7 @@ with_gcrypt = get_option('gcrypt')
 enable_debug = get_option('debugging')
 with_vapi = get_option('vapi')
 with_gtkdoc = get_option('gtk_doc')
+with_gir = get_option('introspection')
 
 # Some variables
 config_h_dir = include_directories('.')
