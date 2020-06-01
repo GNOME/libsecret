@@ -8,7 +8,7 @@ libegg_deps = [
   glib_deps,
 ]
 
-if with_gcrypt
+if get_option('gcrypt')
   libegg_sources += [
     'egg-dh.c',
     'egg-hkdf.c',

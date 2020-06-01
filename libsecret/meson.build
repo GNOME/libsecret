@@ -36,7 +36,7 @@ libsecret_headers = [
   'secret-value.h',
 ]
 
-if with_gcrypt
+if get_option('gcrypt')
   libsecret_sources += [
     'secret-file-backend.c',
     'secret-file-collection.c',
@@ -69,14 +69,14 @@ _enums_generated = gnome.mkenums('secret-enum-types',
   c_template: 'secret-enum-types.c.template',
   h_template: 'secret-enum-types.h.template',
   install_header: true,
-  install_dir: libsecret_prefix / includedir / installed_headers_subdir,
+  install_dir: get_option('includedir') / installed_headers_subdir,
 )
 
 libsecret_dependencies = [
   glib_deps,
 ]
 
-if with_gcrypt
+if get_option('gcrypt')
   libsecret_dependencies += gcrypt_dep
 endif
 
@@ -104,7 +104,7 @@ libsecret_dep = declare_dependency(
 )
 
 # GObject Introspection
-if with_gir
+if get_option('introspection')
   libsecret_gir_sources = [
     'secret-attributes.c',
     'secret-attributes.h',
@@ -146,16 +146,16 @@ if with_gir
     extra_args: [ '-D SECRET_COMPILATION'],
     install: true,
   )
-endif
 
-# Vapi
-if with_vapi and with_gir
-  libsecret_vapi = gnome.generate_vapi('libsecret-@0@'.format(api_version_major),
-    sources: libsecret_gir[0],
-    metadata_dirs: meson.source_root() / 'libsecret',
-    packages: [ 'gobject-2.0', 'gio-2.0' ],
-    install: true,
-  )
+  # Vapi
+  if get_option('vapi')
+    libsecret_vapi = gnome.generate_vapi('libsecret-@0@'.format(api_version_major),
+      sources: libsecret_gir[0],
+      metadata_dirs: meson.source_root() / 'libsecret',
+      packages: [ 'gobject-2.0', 'gio-2.0' ],
+      install: true,
+    )
+  endif
 endif
 
 # pkg-config
@@ -205,7 +205,7 @@ test_names = [
   'test-collection',
 ]
 
-if with_gcrypt
+if get_option('gcrypt')
   test_names += [
     'test-file-collection',
   ]

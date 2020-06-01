@@ -16,27 +16,10 @@ api_version_micro = api_version.split('.')[2]
 
 libtool_version = '0.0.0'
 
-# Options
-with_manpage = get_option('manpage')
-with_gcrypt = get_option('gcrypt')
-enable_debug = get_option('debugging')
-with_vapi = get_option('vapi')
-with_gtkdoc = get_option('gtk_doc')
-with_gir = get_option('introspection')
-
 # Some variables
 config_h_dir = include_directories('.')
 build_dir = include_directories('build')
 libsecret_prefix = get_option('prefix')
-datadir = get_option('datadir')
-includedir = get_option('includedir')
-bindir = get_option('bindir')
-libdir = get_option('libdir')
-libexecdir = get_option('libexecdir')
-locale_dir = get_option('localedir')
-pkgdatadir = datadir / meson.project_name()
-pkglibdir = libdir / meson.project_name()
-sysconfdir = get_option('sysconfdir')
 po_dir = meson.source_root() / 'po'
 
 # Dependencies
@@ -48,8 +31,10 @@ glib_deps = [
 ]
 
 min_libgcrypt_version = '1.2.2'
-gcrypt_dep = dependency('libgcrypt', version: '>=' + min_libgcrypt_version,
-			required: with_gcrypt)
+gcrypt_dep = dependency('libgcrypt',
+  version: '>=' + min_libgcrypt_version,
+  required: get_option('gcrypt'),
+)
 
 # Libraries
 math = meson.get_compiler('c').find_library('m')
@@ -58,16 +43,16 @@ math = meson.get_compiler('c').find_library('m')
 conf = configuration_data()
 conf.set_quoted('GETTEXT_PACKAGE', meson.project_name())
 conf.set_quoted('G_LOG_DOMAIN', meson.project_name())
-conf.set_quoted('LOCALEDIR', libsecret_prefix / locale_dir)
+conf.set_quoted('LOCALEDIR', libsecret_prefix / get_option('localedir'))
 conf.set_quoted('PACKAGE_NAME', meson.project_name())
 conf.set_quoted('PACKAGE_STRING', meson.project_name())
 conf.set_quoted('PACKAGE_VERSION', meson.project_version())
-conf.set('WITH_GCRYPT', with_gcrypt)
-if with_gcrypt
+conf.set('WITH_GCRYPT', get_option('gcrypt'))
+if get_option('gcrypt')
   conf.set_quoted('LIBGCRYPT_VERSION', min_libgcrypt_version)
 endif
-conf.set('WITH_DEBUG', enable_debug)
-conf.set('_DEBUG', enable_debug)
+conf.set('WITH_DEBUG', get_option('debugging'))
+conf.set('_DEBUG', get_option('debugging'))
 conf.set('HAVE_MLOCK', meson.get_compiler('c').has_function('mlock'))
 configure_file(output: 'config.h', configuration: conf)
 
