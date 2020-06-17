@@ -187,13 +187,36 @@ test_cflags = [
   '-DSRCDIR="@0@"'.format(meson.source_root()),
 ]
 
-mock_service_lib = static_library('mock-service',
+mock_service_lib = library('mock-service',
   'mock-service.c',
   dependencies: glib_deps,
   c_args: test_cflags,
   include_directories: config_h_dir,
 )
 
+if get_option('introspection')
+  mock_service_gir = gnome.generate_gir(mock_service_lib,
+    sources: files('mock-service.c', 'mock-service.h'),
+    namespace: 'MockService',
+    nsversion: '0',
+    export_packages: 'mock-service-0',
+    includes: [ 'GObject-2.0', 'Gio-2.0' ],
+    header: 'libsecret/mock-service.h',
+  )
+
+  if get_option('vapi')
+    mock_service_vapi = gnome.generate_vapi('mock-service-0',
+      sources: mock_service_gir[0],
+      packages: [
+        'gobject-2.0',
+        'gio-2.0',
+        libsecret_vapi,
+      ],
+    )
+  endif
+endif
+
+# C tests
 test_names = [
   'test-attributes',
   'test-value',
@@ -223,5 +246,92 @@ foreach _test : test_names
     c_args: test_cflags,
   )
 
-  test(_test, test_bin)
+  test(_test, test_bin,
+    suite: 'libsecret',
+  )
 endforeach
+
+# Tests with introspection
+if get_option('introspection')
+  # env to be used in tests that use the typelib,
+  # to make sure they find the one for MockService
+  test_typelib_env = environment()
+  test_typelib_env.set('GI_TYPELIB_PATH', meson.current_build_dir())
+  test_typelib_env.set('LD_LIBRARY_PATH', meson.current_build_dir())
+
+  # Python Tests
+  pytest_names = [
+    'test-py-lookup',
+    'test-py-clear',
+    'test-py-store',
+  ]
+
+  pymod = import('python')
+  python3 = pymod.find_installation()
+  foreach _pytest : pytest_names
+    py_test = meson.current_source_dir() / _pytest + '.py'
+
+    test(_pytest, python3,
+      args: py_test,
+      depends: mock_service_gir[1],
+      env: test_typelib_env,
+      suite: 'python',
+    )
+  endforeach
+
+  # JS Tests
+  jstest_names = [
+    'test-js-lookup',
+    'test-js-clear',
+    'test-js-store',
+  ]
+
+  gjs = find_program('gjs', required: false)
+  if gjs.found()
+    foreach _jstest : jstest_names
+      js_test = meson.current_source_dir() / _jstest + '.js'
+
+      test(_jstest, gjs,
+        args: js_test,
+        depends: mock_service_gir[1],
+        env: test_typelib_env,
+        suite: 'javascript',
+      )
+    endforeach
+  else
+    message('GJS not found. Not running Javascript tests')
+  endif
+
+  # Vala tests
+  if get_option('vapi')
+    # FIXME: the "native" kwarg should be added once we can require meson ≥0.54
+    add_languages('vala')
+    valac = meson.get_compiler('vala')
+
+    valatest_names = [
+      'test-vala-lang',
+      'test-vala-unstable',
+    ]
+
+    foreach _valatest : valatest_names
+      test_bin = executable(_valatest,
+        '@0@.vala'.format(_valatest),
+        dependencies: [
+          glib_deps,
+          valac.find_library('glib-2.0'),
+          valac.find_library('gio-2.0'),
+          libsecret_vapi,
+          mock_service_vapi,
+        ],
+        link_with: mock_service_lib,
+        include_directories: config_h_dir,
+        c_args: test_cflags,
+      )
+
+      test(_valatest, test_bin,
+        suite: 'vala',
+      )
+    endforeach
+  endif
+
+endif
