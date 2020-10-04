@@ -131,6 +131,26 @@ do_calculate_mac (SecretFileCollection *self,
 }
 
 static gboolean
+do_verify_mac (SecretFileCollection *self,
+	       const guint8 *value, gsize n_value,
+	       const guint8 *data)
+{
+	guint8 buffer[MAC_SIZE];
+	guint8 status = 0;
+	gsize i;
+
+	if (!do_calculate_mac (self, value, n_value, buffer)) {
+		return FALSE;
+	}
+
+	for (i = 0; i < MAC_SIZE; i++) {
+		status |= data[i] ^ buffer[i];
+	}
+
+	return status == 0;
+}
+
+static gboolean
 do_decrypt (SecretFileCollection *self,
 	    guint8 *data,
 	    gsize n_data)
@@ -479,7 +499,6 @@ hashed_attributes_match (SecretFileCollection *self,
 	GVariant *hashed_attribute = NULL;
 	gpointer key;
 	gpointer value;
-	guint8 buffer[MAC_SIZE];
 
 	g_hash_table_iter_init (&iter, attributes);
 	while (g_hash_table_iter_next (&iter, &key, &value)) {
@@ -497,12 +516,7 @@ hashed_attributes_match (SecretFileCollection *self,
 			return FALSE;
 		}
 
-		if (!do_calculate_mac (self, value, strlen ((char *)value), buffer)) {
-			g_variant_unref (hashed_attribute);
-			return FALSE;
-		}
-
-		if (memcmp (data, buffer, MAC_SIZE) != 0) {
+		if (!do_verify_mac (self, value, strlen ((char *)value), data)) {
 			g_variant_unref (hashed_attribute);
 			return FALSE;
 		}
@@ -673,7 +687,6 @@ _secret_file_item_decrypt (GVariant *encrypted,
 	guint8 *data;
 	SecretFileItem *item;
 	GVariant *serialized_item;
-	guint8 mac[MAC_SIZE];
 
 	g_variant_get (encrypted, "(a{say}@ay)", NULL, &blob);
 
@@ -691,9 +704,9 @@ _secret_file_item_decrypt (GVariant *encrypted,
 			     "couldn't calculate mac");
 		return FALSE;
 	}
-	n_padded -= IV_SIZE + MAC_SIZE;
 
-	if (!do_calculate_mac (collection, data, n_padded + IV_SIZE, mac)) {
+	n_padded -= MAC_SIZE;
+	if (!do_verify_mac (collection, data, n_padded, data + n_padded)) {
 		egg_secure_free (data);
 		g_set_error (error,
 			     SECRET_ERROR,
@@ -702,15 +715,7 @@ _secret_file_item_decrypt (GVariant *encrypted,
 		return FALSE;
 	}
 
-	if (memcmp (data + n_padded + IV_SIZE, mac, MAC_SIZE) != 0) {
-		egg_secure_free (data);
-		g_set_error (error,
-			     SECRET_ERROR,
-			     SECRET_ERROR_PROTOCOL,
-			     "mac doesn't match");
-		return FALSE;
-	}
-
+	n_padded -= IV_SIZE;
 	if (!do_decrypt (collection, data, n_padded)) {
 		egg_secure_free (data);
 		g_set_error (error,
