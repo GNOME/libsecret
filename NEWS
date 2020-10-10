@@ -1,3 +1,11 @@
+0.20.4
+ * secret-file-collection: Make MAC comparison constant time [!60]
+ * Initialize libgcrypt for SecretFileCollection [!56]
+ * meson: Add tests for GIR-based languages [!54]
+ * man: Add a bugtracker section to the manpage [!14]
+ * meson: add option introspection [!53]
+ * Updated translations
+
 0.20.3
  * secret-file-backend: Fix use-after-free in flatpak [!52]
  * docs: Add man subdir only if manpage is enabled [!51]
