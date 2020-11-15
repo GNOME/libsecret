@@ -303,7 +303,9 @@ if get_option('introspection')
   endif
 
   # Vala tests
-  if get_option('vapi')
+  # FIXME: Don't add Vala tests when generating a coverage build, as this
+  # will fail due to https://github.com/mesonbuild/meson/issues/7426
+  if get_option('vapi') and not get_option('b_coverage')
     # FIXME: the "native" kwarg should be added once we can require meson ≥0.54
     add_languages('vala')
     valac = meson.get_compiler('vala')
