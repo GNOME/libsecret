@@ -1148,7 +1148,7 @@ _secret_service_xlock_paths_finish (SecretService *self,
 /**
  * secret_service_lock_dbus_paths_sync: (skip)
  * @self: the secret service
- * @paths: the D-Bus object paths of the items or collections to lock
+ * @paths: (array zero-terminated=1): the D-Bus object paths of the items or collections to lock
  * @cancellable: optional cancellation object
  * @locked: (out) (array zero-terminated=1) (transfer full) (allow-none):
  *          location to place array of D-Bus paths of items or collections
@@ -1207,7 +1207,7 @@ secret_service_lock_dbus_paths_sync (SecretService *self,
 /**
  * secret_service_lock_dbus_paths: (skip)
  * @self: the secret service
- * @paths: the D-Bus paths for items or collections to lock
+ * @paths: (array zero-terminated=1): the D-Bus paths for items or collections to lock
  * @cancellable: optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to pass to the callback
@@ -1277,7 +1277,8 @@ secret_service_lock_dbus_paths_finish (SecretService *self,
 /**
  * secret_service_unlock_dbus_paths_sync: (skip)
  * @self: the secret service
- * @paths: the D-Bus object paths of the items or collections to unlock
+ * @paths: (array zero-terminated=1): the D-Bus object paths of the items or
+ *         collections to unlock
  * @cancellable: optional cancellation object
  * @unlocked: (out) (array zero-terminated=1) (transfer full) (allow-none):
  *            location to place array of D-Bus paths of items or collections
@@ -1336,7 +1337,8 @@ secret_service_unlock_dbus_paths_sync (SecretService *self,
 /**
  * secret_service_unlock_dbus_paths: (skip)
  * @self: the secret service
- * @paths: the D-Bus paths for items or collections to unlock
+ * @paths: (array zero-terminated=1): the D-Bus paths for items or
+ *         collections to unlock
  * @cancellable: optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to pass to the callback
