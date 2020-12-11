@@ -310,14 +310,22 @@ if get_option('introspection')
     add_languages('vala')
     valac = meson.get_compiler('vala')
 
-    valatest_names = [
-      'test-vala-lang',
-      'test-vala-unstable',
+    valatests = [
+      {
+        'name': 'test-vala-lang',
+        'cflags': [],
+      },
+      {
+        'name': 'test-vala-unstable',
+        'cflags': [ '-DSECRET_WITH_UNSTABLE' ],
+      },
     ]
 
-    foreach _valatest : valatest_names
-      test_bin = executable(_valatest,
-        '@0@.vala'.format(_valatest),
+    foreach _valatest: valatests
+      name = _valatest['name']
+      extra_cflags = _valatest['cflags']
+
+      test_bin = executable(name, '@0@.vala'.format(name),
         dependencies: [
           glib_deps,
           valac.find_library('glib-2.0'),
@@ -327,11 +335,10 @@ if get_option('introspection')
         ],
         link_with: mock_service_lib,
         include_directories: config_h_dir,
-        c_args: test_cflags,
+        c_args: test_cflags + extra_cflags,
       )
 
-      test(_valatest, test_bin,
-        suite: 'vala',
+      test(name, test_bin, suite: 'vala',
       )
     endforeach
   endif
