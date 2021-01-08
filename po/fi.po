@@ -1,0 +1,58 @@
+# Finnish translation for libsecret.
+# Copyright (C) 2020 libsecret's COPYRIGHT HOLDER
+# This file is distributed under the same license as the libsecret package.
+# JRfi <starman@starman.fi>, 2020.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: libsecret master\n"
+"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/libsecret/issues\n"
+"POT-Creation-Date: 2020-07-23 09:25+0000\n"
+"PO-Revision-Date: 2020-08-07 22:08+0300\n"
+"Language-Team: Finnish <lokalisointi-lista@googlegroups.com>\n"
+"Language: fi\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Last-Translator: JR-Fi <starman@starman.fi>\n"
+"X-Generator: Poedit 2.0.6\n"
+
+#: libsecret/secret-item.c:1104
+msgid "Received invalid secret from the secret storage"
+msgstr "Vastaanotettiin epäkelpo salausavain salausavainten varastosta"
+
+#: libsecret/secret-methods.c:1055
+msgid "Default keyring"
+msgstr "Oletus salausavainten kokoelma"
+
+#: libsecret/secret-session.c:243 libsecret/secret-session.c:279
+msgid "Couldn’t communicate with the secret storage"
+msgstr "Ei pystynyt viestimään salausavainten varaston kanssa"
+
+#: tool/secret-tool.c:39
+msgid "the label for the new stored item"
+msgstr "tunniste uudelle varastoidulle salausavaimelle"
+
+#: tool/secret-tool.c:41
+msgid "the collection in which to place the stored item"
+msgstr "salausavainten kokoelma, johon varastoitu asia kuuluu"
+
+#: tool/secret-tool.c:43 tool/secret-tool.c:50 tool/secret-tool.c:443
+#, fuzzy
+msgid "attribute value pairs of item to lookup"
+msgstr "muuttujien ja niiden arvojen parit, joita etsitään"
+
+#: tool/secret-tool.c:57
+#, fuzzy
+msgid "attribute value pairs which match items to clear"
+msgstr "muuttujien ja niiden arvojen parit, jotka täsmäävät"
+
+#: tool/secret-tool.c:439
+msgid "return all results, instead of just first one"
+msgstr "palauttaa kaikki tulokset, ei vain ensimmäistä"
+
+#: tool/secret-tool.c:441
+#, fuzzy
+msgid "unlock item results if necessary"
+msgstr "avaa kohteet, mikäli tarpeen"
