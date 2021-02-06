@@ -50,7 +50,7 @@
  *
  * Get a new collection proxy for a collection in the secret service.
  *
- * If @service is NULL, then secret_service_get() will be called to get
+ * If @service is %NULL, then secret_service_get() will be called to get
  * the default #SecretService proxy.
  *
  * This method will return immediately and complete asynchronously.
@@ -128,7 +128,7 @@ secret_collection_new_for_dbus_path_finish (GAsyncResult *result,
  *
  * Get a new collection proxy for a collection in the secret service.
  *
- * If @service is NULL, then secret_service_get_sync() will be called to get
+ * If @service is %NULL, then secret_service_get_sync() will be called to get
  * the default #SecretService proxy.
  *
  * This method may block indefinitely and should not be used in user interface
@@ -179,7 +179,7 @@ secret_collection_new_for_dbus_path_sync (SecretService *service,
  *
  * Get a new item proxy for a secret item in the secret service.
  *
- * If @service is NULL, then secret_service_get() will be called to get
+ * If @service is %NULL, then secret_service_get() will be called to get
  * the default #SecretService proxy.
  *
  * This method will return immediately and complete asynchronously.
@@ -256,7 +256,7 @@ secret_item_new_for_dbus_path_finish (GAsyncResult *result,
  *
  * Get a new item proxy for a secret item in the secret service.
  *
- * If @service is NULL, then secret_service_get_sync() will be called to get
+ * If @service is %NULL, then secret_service_get_sync() will be called to get
  * the default #SecretService proxy.
  *
  * This method may block indefinitely and should not be used in user interface

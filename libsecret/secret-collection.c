@@ -1077,7 +1077,7 @@ _secret_collection_properties_new (const gchar *label)
  * collection with that alias already exists, then a new collection will not
  * be created. The previous one will be returned instead.
  *
- * If @service is NULL, then secret_service_get() will be called to get
+ * If @service is %NULL, then secret_service_get() will be called to get
  * the default #SecretService proxy.
  *
  */
@@ -1174,7 +1174,7 @@ secret_collection_create_finish (GAsyncResult *result,
  * collection with that alias already exists, then a new collection will not
  * be created. The previous one will be returned instead.
  *
- * If @service is NULL, then secret_service_get_sync() will be called to get
+ * If @service is %NULL, then secret_service_get_sync() will be called to get
  * the default #SecretService proxy.
  *
  * Returns: (transfer full): the new collection, which should be unreferenced
@@ -2114,7 +2114,7 @@ on_read_alias_service (GObject *source,
  * Lookup which collection is assigned to this alias. Aliases help determine
  * well known collections, such as 'default'.
  *
- * If @service is NULL, then secret_service_get() will be called to get
+ * If @service is %NULL, then secret_service_get() will be called to get
  * the default #SecretService proxy.
  *
  * This method will return immediately and complete asynchronously.
@@ -2194,7 +2194,7 @@ secret_collection_for_alias_finish (GAsyncResult *result,
  * Lookup which collection is assigned to this alias. Aliases help determine
  * well known collections, such as 'default'.
  *
- * If @service is NULL, then secret_service_get_sync() will be called to get
+ * If @service is %NULL, then secret_service_get_sync() will be called to get
  * the default #SecretService proxy.
  *
  * This method may block and should not be used in user interface threads.

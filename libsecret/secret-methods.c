@@ -270,7 +270,7 @@ on_search_service (GObject *source,
  * Search for items matching the @attributes. All collections are searched.
  * The @attributes should be a table of string keys and string values.
  *
- * If @service is NULL, then secret_service_get() will be called to get
+ * If @service is %NULL, then secret_service_get() will be called to get
  * the default #SecretService proxy.
  *
  * If %SECRET_SEARCH_ALL is set in @flags, then all the items matching the
@@ -413,7 +413,7 @@ service_load_items_sync (SecretService *service,
  * Search for items matching the @attributes. All collections are searched.
  * The @attributes should be a table of string keys and string values.
  *
- * If @service is NULL, then secret_service_get_sync() will be called to get
+ * If @service is %NULL, then secret_service_get_sync() will be called to get
  * the default #SecretService proxy.
  *
  * If %SECRET_SEARCH_ALL is set in @flags, then all the items matching the
@@ -737,7 +737,7 @@ service_xlock_finish (SecretService *service,
  * The secret service may not be able to lock items individually, and may
  * lock an entire collection instead.
  *
- * If @service is NULL, then secret_service_get() will be called to get
+ * If @service is %NULL, then secret_service_get() will be called to get
  * the default #SecretService proxy.
  *
  * This method returns immediately and completes asynchronously. The secret
@@ -799,7 +799,7 @@ secret_service_lock_finish (SecretService *service,
  * The secret service may not be able to lock items individually, and may
  * lock an entire collection instead.
  *
- * If @service is NULL, then secret_service_get_sync() will be called to get
+ * If @service is %NULL, then secret_service_get_sync() will be called to get
  * the default #SecretService proxy.
  *
  * This method may block indefinitely and should not be used in user
@@ -851,7 +851,7 @@ secret_service_lock_sync (SecretService *service,
  * The secret service may not be able to unlock items individually, and may
  * unlock an entire collection instead.
  *
- * If @service is NULL, then secret_service_get() will be called to get
+ * If @service is %NULL, then secret_service_get() will be called to get
  * the default #SecretService proxy.
  *
  * This method may block indefinitely and should not be used in user
@@ -913,7 +913,7 @@ secret_service_unlock_finish (SecretService *service,
  * The secret service may not be able to unlock items individually, and may
  * unlock an entire collection instead.
  *
- * If @service is NULL, then secret_service_get_sync() will be called to get
+ * If @service is %NULL, then secret_service_get_sync() will be called to get
  * the default #SecretService proxy.
  *
  * This method may block indefinitely and should not be used in user
@@ -1120,7 +1120,7 @@ on_store_service (GObject *source,
  * If the attributes match a secret item already stored in the collection, then
  * the item will be updated with these new values.
  *
- * If @service is NULL, then secret_service_get() will be called to get
+ * If @service is %NULL, then secret_service_get() will be called to get
  * the default #SecretService proxy.
  *
  * If @collection is not specified, then the default collection will be
@@ -1241,7 +1241,7 @@ secret_service_store_finish (SecretService *service,
  * used. Use #SECRET_COLLECTION_SESSION to store the password in the session
  * collection, which doesn't get stored across login sessions.
  *
- * If @service is NULL, then secret_service_get_sync() will be called to get
+ * If @service is %NULL, then secret_service_get_sync() will be called to get
  * the default #SecretService proxy.
  *
  * This method may block indefinitely and should not be used in user interface
@@ -1432,7 +1432,7 @@ on_lookup_service (GObject *source,
  *
  * The @attributes should be a set of key and value string pairs.
  *
- * If @service is NULL, then secret_service_get() will be called to get
+ * If @service is %NULL, then secret_service_get() will be called to get
  * the default #SecretService proxy.
  *
  * This method will return immediately and complete asynchronously.
@@ -1529,7 +1529,7 @@ secret_service_lookup_finish (SecretService *service,
  *
  * The @attributes should be a set of key and value string pairs.
  *
- * If @service is NULL, then secret_service_get_sync() will be called to get
+ * If @service is %NULL, then secret_service_get_sync() will be called to get
  * the default #SecretService proxy.
  *
  * This method may block indefinitely and should not be used in user interface
@@ -1683,7 +1683,7 @@ on_delete_service (GObject *source,
  *
  * The @attributes should be a set of key and value string pairs.
  *
- * If @service is NULL, then secret_service_get() will be called to get
+ * If @service is %NULL, then secret_service_get() will be called to get
  * the default #SecretService proxy.
  *
  * This method will return immediately and complete asynchronously.
@@ -1779,7 +1779,7 @@ secret_service_clear_finish (SecretService *service,
  *
  * The @attributes should be a set of key and value string pairs.
  *
- * If @service is NULL, then secret_service_get_sync() will be called to get
+ * If @service is %NULL, then secret_service_get_sync() will be called to get
  * the default #SecretService proxy.
  *
  * This method may block indefinitely and should not be used in user interface
@@ -1893,7 +1893,7 @@ on_set_alias_service (GObject *source,
  * Assign a collection to this alias. Aliases help determine
  * well known collections, such as 'default'.
  *
- * If @service is NULL, then secret_service_get() will be called to get
+ * If @service is %NULL, then secret_service_get() will be called to get
  * the default #SecretService proxy.
  *
  * This method will return immediately and complete asynchronously.
@@ -1982,7 +1982,7 @@ secret_service_set_alias_finish (SecretService *service,
  * Assign a collection to this alias. Aliases help determine
  * well known collections, such as 'default'.
  *
- * If @service is NULL, then secret_service_get_sync() will be called to get
+ * If @service is %NULL, then secret_service_get_sync() will be called to get
  * the default #SecretService proxy.
  *
  * This method may block and should not be used in user interface threads.
