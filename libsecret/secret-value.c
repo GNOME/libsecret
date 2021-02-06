@@ -175,7 +175,7 @@ secret_value_get (SecretValue *value,
  * Get the secret data in the #SecretValue if it contains a textual
  * value. The content type must be <literal>text/plain</literal>.
  *
- * Returns: (allow-none): the content type
+ * Returns: (nullable): the content type
  */
 const gchar *
 secret_value_get_text (SecretValue *value)

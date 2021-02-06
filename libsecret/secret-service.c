@@ -1109,7 +1109,7 @@ secret_service_disconnect (void)
 /**
  * secret_service_open:
  * @service_gtype: the GType of the new secret service
- * @service_bus_name: (allow-none): the D-Bus service name of the secret service
+ * @service_bus_name: (nullable): the D-Bus service name of the secret service
  * @flags: flags for which service functionality to ensure is initialized
  * @cancellable: optional cancellation object
  * @callback: called when the operation completes
@@ -1184,7 +1184,7 @@ secret_service_open_finish (GAsyncResult *result,
 /**
  * secret_service_open_sync:
  * @service_gtype: the GType of the new secret service
- * @service_bus_name: (allow-none): the D-Bus service name of the secret service
+ * @service_bus_name: (nullable): the D-Bus service name of the secret service
  * @flags: flags for which service functionality to ensure is initialized
  * @cancellable: optional cancellation object
  * @error: location to place an error on failure
@@ -1267,7 +1267,7 @@ secret_service_get_flags (SecretService *self)
  * initializing #SecretService proxy object, then this method will return
  * %NULL. Use secret_service_load_collections() to load the collections.
  *
- * Returns: (transfer full) (element-type Secret.Collection) (allow-none): a
+ * Returns: (transfer full) (element-type Secret.Collection) (nullable): a
  *          list of the collections in the secret service
  */
 GList *
@@ -1372,7 +1372,7 @@ _secret_service_take_session (SecretService *self,
  * This will be %NULL if no session has been established. Use
  * secret_service_ensure_session() to establish a session.
  *
- * Returns: (allow-none): a string representing the algorithms for transferring
+ * Returns: (nullable): a string representing the algorithms for transferring
  *          secrets
  */
 const gchar *
@@ -1402,7 +1402,7 @@ secret_service_get_session_algorithms (SecretService *self)
  * This will be %NULL if no session has been established. Use
  * secret_service_ensure_session() to establish a session.
  *
- * Returns: (allow-none): a string representing the D-Bus object path of the
+ * Returns: (nullable): a string representing the D-Bus object path of the
  *          session
  */
 const gchar *
@@ -1848,7 +1848,7 @@ secret_service_prompt_sync (SecretService *self,
  * secret_service_prompt:
  * @self: the secret service
  * @prompt: the prompt
- * @return_type: (allow-none): the variant type of the prompt result
+ * @return_type: (nullable): the variant type of the prompt result
  * @cancellable: optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to be passed to the callback

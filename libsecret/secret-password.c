@@ -47,7 +47,8 @@
 /**
  * secret_password_store: (skip)
  * @schema: the schema for attributes
- * @collection: (allow-none): a collection alias, or D-Bus object path of the collection where to store the secret
+ * @collection: (nullable): a collection alias, or D-Bus object path of the
+ *              collection where to store the secret
  * @label: label for the secret
  * @password: the null-terminated password to store
  * @cancellable: optional cancellation object
@@ -178,7 +179,8 @@ on_store_backend (GObject *source,
  * secret_password_storev: (rename-to secret_password_store)
  * @schema: (nullable): the schema for attributes
  * @attributes: (element-type utf8 utf8) (transfer full): the attribute keys and values
- * @collection: (allow-none): a collection alias, or D-Bus object path of the collection where to store the secret
+ * @collection: (nullable): a collection alias, or D-Bus object path of the
+ *              collection where to store the secret
  * @label: label for the secret
  * @password: the null-terminated password to store
  * @cancellable: optional cancellation object
@@ -237,7 +239,8 @@ secret_password_storev (const SecretSchema *schema,
 /**
  * secret_password_store_binary: (skip)
  * @schema: the schema for attributes
- * @collection: (allow-none): a collection alias, or D-Bus object path of the collection where to store the secret
+ * @collection: (nullable): a collection alias, or D-Bus object path of the
+ *              collection where to store the secret
  * @label: label for the secret
  * @value: a #SecretValue
  * @cancellable: optional cancellation object
@@ -290,7 +293,8 @@ secret_password_store_binary (const SecretSchema *schema,
  * secret_password_storev_binary: (rename-to secret_password_store_binary)
  * @schema: (nullable): the schema for attributes
  * @attributes: (element-type utf8 utf8) (transfer full): the attribute keys and values
- * @collection: (allow-none): a collection alias, or D-Bus object path of the collection where to store the secret
+ * @collection: (nullable): a collection alias, or D-Bus object path of the
+ *              collection where to store the secret
  * @label: label for the secret
  * @value: a #SecretValue
  * @cancellable: optional cancellation object
@@ -364,7 +368,8 @@ secret_password_store_finish (GAsyncResult *result,
 /**
  * secret_password_store_sync:
  * @schema: the schema for attributes
- * @collection: (allow-none): a collection alias, or D-Bus object path of the collection where to store the secret
+ * @collection: (nullable): a collection alias, or D-Bus object path of the
+ *              collection where to store the secret
  * @label: label for the secret
  * @password: the null-terminated password to store
  * @cancellable: optional cancellation object
@@ -428,7 +433,8 @@ secret_password_store_sync (const SecretSchema *schema,
  * secret_password_storev_sync: (rename-to secret_password_store_sync)
  * @schema: (nullable): the schema for attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
- * @collection: (allow-none): a collection alias, or D-Bus object path of the collection where to store the secret
+ * @collection: (nullable): a collection alias, or D-Bus object path of the
+ *              collection where to store the secret
  * @label: label for the secret
  * @password: the null-terminated password to store
  * @cancellable: optional cancellation object
@@ -491,7 +497,8 @@ secret_password_storev_sync (const SecretSchema *schema,
 /**
  * secret_password_store_binary_sync:
  * @schema: the schema for attributes
- * @collection: (allow-none): a collection alias, or D-Bus object path of the collection where to store the secret
+ * @collection: (nullable): a collection alias, or D-Bus object path of the
+ *              collection where to store the secret
  * @label: label for the secret
  * @value: a #SecretValue
  * @cancellable: optional cancellation object
@@ -548,7 +555,8 @@ secret_password_store_binary_sync (const SecretSchema *schema,
  * secret_password_storev_binary_sync: (rename-to secret_password_store_binary_sync)
  * @schema: (nullable): the schema for attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
- * @collection: (allow-none): a collection alias, or D-Bus object path of the collection where to store the secret
+ * @collection: (nullable): a collection alias, or D-Bus object path of the
+ *              collection where to store the secret
  * @label: label for the secret
  * @value: a #SecretValue
  * @cancellable: optional cancellation object
@@ -1733,7 +1741,7 @@ secret_password_searchv_sync (const SecretSchema *schema,
 
 /**
  * secret_password_free: (skip)
- * @password: (allow-none): password to free
+ * @password: (nullable): password to free
  *
  * Clear the memory used by a password, and then free it.
  *
@@ -1753,7 +1761,7 @@ secret_password_free (gchar *password)
 
 /**
  * secret_password_wipe:
- * @password: (allow-none): password to clear
+ * @password: (nullable): password to clear
  *
  * Clear the memory used by a password.
  */

@@ -120,7 +120,7 @@ _secret_prompt_instance (SecretService *service,
 /**
  * secret_prompt_run:
  * @self: a prompt
- * @window_id: (allow-none): string form of XWindow id for parent window to be transient for
+ * @window_id: (nullable): string form of XWindow id for parent window to be transient for
  * @cancellable: optional cancellation object
  * @return_type: the variant type of the prompt result
  * @error: location to place an error on failure
@@ -180,7 +180,7 @@ secret_prompt_run (SecretPrompt *self,
 /**
  * secret_prompt_perform_sync:
  * @self: a prompt
- * @window_id: (allow-none): string form of XWindow id for parent window to be transient for
+ * @window_id: (nullable): string form of XWindow id for parent window to be transient for
  * @cancellable: optional cancellation object
  * @return_type: the variant type of the prompt result
  * @error: location to place an error on failure
@@ -408,7 +408,7 @@ on_prompt_cancelled (GCancellable *cancellable,
 /**
  * secret_prompt_perform:
  * @self: a prompt
- * @window_id: (allow-none): string form of XWindow id for parent window to be transient for
+ * @window_id: (nullable): string form of XWindow id for parent window to be transient for
  * @return_type: the variant type of the prompt result
  * @cancellable: optional cancellation object
  * @callback: called when the operation completes
