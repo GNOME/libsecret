@@ -723,7 +723,7 @@ item_properties_new (const gchar *label,
  * @label: label for the new item
  * @value: secret value for the new item
  * @flags: flags for the creation of the new item
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to pass to the callback
  *
@@ -818,7 +818,7 @@ secret_item_create_finish (GAsyncResult *result,
  * @label: label for the new item
  * @value: secret value for the new item
  * @flags: flags for the creation of the new item
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @error: location to place an error on failure
  *
  * Create a new item in the secret service.
@@ -964,7 +964,7 @@ secret_item_delete_finish (SecretItem *self,
 /**
  * secret_item_delete_sync:
  * @self: an item
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @error: location to place an error on failure
  *
  * Delete this secret item.
@@ -1211,7 +1211,7 @@ secret_item_load_secret_finish (SecretItem *self,
 /**
  * secret_item_load_secret_sync:
  * @self: an item
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @error: location to place error on failure
  *
  * Load the secret value of this item.
@@ -1388,7 +1388,7 @@ on_loads_secrets_session (GObject *source,
 /**
  * secret_item_load_secrets:
  * @items: (element-type Secret.Item): the items to retrieve secrets for
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to pass to the callback
  *
@@ -1483,7 +1483,7 @@ secret_item_load_secrets_finish (GAsyncResult *result,
 /**
  * secret_item_load_secrets_sync:
  * @items: (element-type Secret.Item): the items to retrieve secrets for
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @error: location to place an error on failure
  *
  * Load the secret values for a secret item stored in the service.
@@ -1588,7 +1588,7 @@ on_set_ensure_session (GObject *source,
  * secret_item_set_secret:
  * @self: an item
  * @value: a new secret value
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to pass to the callback
  *
@@ -1652,7 +1652,7 @@ secret_item_set_secret_finish (SecretItem *self,
  * secret_item_set_secret_sync:
  * @self: an item
  * @value: a new secret value
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @error: location to place error on failure
  *
  * Set the secret value of this item.
@@ -1758,7 +1758,7 @@ secret_item_get_attributes (SecretItem *self)
  * @self: an item
  * @schema: (nullable): the schema for the attributes
  * @attributes: (element-type utf8 utf8): a new set of attributes
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @callback: called when the asynchronous operation completes
  * @user_data: data to pass to the callback
  *
@@ -1822,7 +1822,7 @@ secret_item_set_attributes_finish (SecretItem *self,
  * @self: an item
  * @schema: (nullable): the schema for the attributes
  * @attributes: (element-type utf8 utf8): a new set of attributes
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @error: location to place error on failure
  *
  * Set the attributes of this item.
@@ -1888,7 +1888,7 @@ secret_item_get_label (SecretItem *self)
  * secret_item_set_label:
  * @self: an item
  * @label: a new label
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to pass to the callback
  *
@@ -1938,7 +1938,7 @@ secret_item_set_label_finish (SecretItem *self,
  * secret_item_set_label_sync:
  * @self: an item
  * @label: a new label
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @error: location to place error on failure
  *
  * Set the label of this item.

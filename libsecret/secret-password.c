@@ -51,7 +51,7 @@
  *              collection where to store the secret
  * @label: label for the secret
  * @password: the null-terminated password to store
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to be passed to the callback
  * @...: the attribute keys and values, terminated with %NULL
@@ -183,7 +183,7 @@ on_store_backend (GObject *source,
  *              collection where to store the secret
  * @label: label for the secret
  * @password: the null-terminated password to store
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @callback: (scope async): called when the operation completes
  * @user_data: data to be passed to the callback
  *
@@ -243,7 +243,7 @@ secret_password_storev (const SecretSchema *schema,
  *              collection where to store the secret
  * @label: label for the secret
  * @value: a #SecretValue
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to be passed to the callback
  * @...: the attribute keys and values, terminated with %NULL
@@ -297,7 +297,7 @@ secret_password_store_binary (const SecretSchema *schema,
  *              collection where to store the secret
  * @label: label for the secret
  * @value: a #SecretValue
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @callback: (scope async): called when the operation completes
  * @user_data: data to be passed to the callback
  *
@@ -372,7 +372,7 @@ secret_password_store_finish (GAsyncResult *result,
  *              collection where to store the secret
  * @label: label for the secret
  * @password: the null-terminated password to store
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @error: location to place an error on failure
  * @...: the attribute keys and values, terminated with %NULL
  *
@@ -437,7 +437,7 @@ secret_password_store_sync (const SecretSchema *schema,
  *              collection where to store the secret
  * @label: label for the secret
  * @password: the null-terminated password to store
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @error: location to place an error on failure
  *
  * Store a password in the secret service.
@@ -501,7 +501,7 @@ secret_password_storev_sync (const SecretSchema *schema,
  *              collection where to store the secret
  * @label: label for the secret
  * @value: a #SecretValue
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @error: location to place an error on failure
  * @...: the attribute keys and values, terminated with %NULL
  *
@@ -559,7 +559,7 @@ secret_password_store_binary_sync (const SecretSchema *schema,
  *              collection where to store the secret
  * @label: label for the secret
  * @value: a #SecretValue
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @error: location to place an error on failure
  *
  * Store a password in the secret service.
@@ -615,7 +615,7 @@ secret_password_storev_binary_sync (const SecretSchema *schema,
 /**
  * secret_password_lookup: (skip)
  * @schema: the schema for the attributes
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to be passed to the callback
  * @...: the attribute keys and values, terminated with %NULL
@@ -731,7 +731,7 @@ on_lookup_backend (GObject *source,
  * secret_password_lookupv: (rename-to secret_password_lookup)
  * @schema: (nullable): the schema for attributes
  * @attributes: (element-type utf8 utf8) (transfer full): the attribute keys and values
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @callback: (scope async): called when the operation completes
  * @user_data: data to be passed to the callback
  *
@@ -848,7 +848,7 @@ secret_password_lookup_finish (GAsyncResult *result,
 /**
  * secret_password_lookup_sync: (skip)
  * @schema: the schema for the attributes
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @error: location to place an error on failure
  * @...: the attribute keys and values, terminated with %NULL
  *
@@ -900,7 +900,7 @@ secret_password_lookup_sync (const SecretSchema *schema,
 /**
  * secret_password_lookup_nonpageable_sync: (skip)
  * @schema: the schema for the attributes
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @error: location to place an error on failure
  * @...: the attribute keys and values, terminated with %NULL
  *
@@ -953,7 +953,7 @@ secret_password_lookup_nonpageable_sync (const SecretSchema *schema,
  * secret_password_lookupv_nonpageable_sync: (skip)
  * @schema: (nullable): the schema for attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @error: location to place an error on failure
  *
  * Lookup a password in the secret service.
@@ -1004,7 +1004,7 @@ secret_password_lookupv_nonpageable_sync (const SecretSchema *schema,
 /**
  * secret_password_lookup_binary_sync: (skip)
  * @schema: the schema for the attributes
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @error: location to place an error on failure
  * @...: the attribute keys and values, terminated with %NULL
  *
@@ -1055,7 +1055,7 @@ secret_password_lookup_binary_sync (const SecretSchema *schema,
  * secret_password_lookupv_binary_sync: (skip)
  * @schema: (nullable): the schema for attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @error: location to place an error on failure
  *
  * Lookup a password in the secret service.
@@ -1108,7 +1108,7 @@ secret_password_lookupv_binary_sync (const SecretSchema *schema,
  * secret_password_lookupv_sync: (rename-to secret_password_lookup_sync)
  * @schema: (nullable): the schema for attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @error: location to place an error on failure
  *
  * Lookup a password in the secret service.
@@ -1159,7 +1159,7 @@ secret_password_lookupv_sync (const SecretSchema *schema,
 /**
  * secret_password_clear:
  * @schema: the schema for the attributes
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to be passed to the callback
  * @...: the attribute keys and values, terminated with %NULL
@@ -1273,7 +1273,7 @@ on_clear_backend (GObject *source,
  * secret_password_clearv: (rename-to secret_password_clear)
  * @schema: (nullable): the schema for the attributes
  * @attributes: (element-type utf8 utf8) (transfer full): the attribute keys and values
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @callback: (scope async): called when the operation completes
  * @user_data: data to be passed to the callback
  *
@@ -1336,7 +1336,7 @@ secret_password_clear_finish (GAsyncResult *result,
 /**
  * secret_password_clear_sync:
  * @schema: the schema for the attributes
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @error: location to place an error on failure
  * @...: the attribute keys and values, terminated with %NULL
  *
@@ -1388,7 +1388,7 @@ secret_password_clear_sync (const SecretSchema* schema,
  * secret_password_clearv_sync: (rename-to secret_password_clear_sync)
  * @schema: (nullable): the schema for the attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @error: location to place an error on failure
  *
  * Remove unlocked matching passwords from the secret service.
@@ -1439,7 +1439,7 @@ secret_password_clearv_sync (const SecretSchema *schema,
  * secret_password_search: (skip)
  * @schema: the schema for the attributes
  * @flags: search option flags
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to be passed to the callback
  * @...: the attribute keys and values, terminated with %NULL
@@ -1563,7 +1563,7 @@ on_search_backend (GObject *source,
  * @schema: (nullable): the schema for attributes
  * @attributes: (element-type utf8 utf8) (transfer full): the attribute keys and values
  * @flags: search option flags
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @callback: (scope async): called when the operation completes
  * @user_data: data to be passed to the callback
  *
@@ -1631,7 +1631,7 @@ secret_password_search_finish (GAsyncResult *result,
  * secret_password_search_sync: (skip)
  * @schema: the schema for the attributes
  * @flags: search option flags
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @error: location to place an error on failure
  * @...: the attribute keys and values, terminated with %NULL
  *
@@ -1688,7 +1688,7 @@ secret_password_search_sync (const SecretSchema *schema,
  * @schema: (nullable): the schema for attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
  * @flags: search option flags
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @error: location to place an error on failure
  *
  * Search for items in the secret service.
