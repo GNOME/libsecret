@@ -204,7 +204,7 @@ on_ensure_for_flags (GObject *source_object,
 /**
  * secret_backend_get:
  * @flags: flags for which service functionality to ensure is initialized
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to be passed to the callback
  *

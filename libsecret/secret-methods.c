@@ -263,7 +263,7 @@ on_search_service (GObject *source,
  * @schema: (nullable): the schema for the attributes
  * @attributes: (element-type utf8 utf8): search for items matching these attributes
  * @flags: search option flags
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to pass to the callback
  *
@@ -407,7 +407,7 @@ service_load_items_sync (SecretService *service,
  * @schema: (nullable): the schema for the attributes
  * @attributes: (element-type utf8 utf8): search for items matching these attributes
  * @flags: search option flags
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @error: location to place error on failure
  *
  * Search for items matching the @attributes. All collections are searched.
@@ -728,7 +728,7 @@ service_xlock_finish (SecretService *service,
  * secret_service_lock:
  * @service: (nullable): the secret service
  * @objects: (element-type Gio.DBusProxy): the items or collections to lock
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to pass to the callback
  *
@@ -789,7 +789,7 @@ secret_service_lock_finish (SecretService *service,
  * secret_service_lock_sync:
  * @service: (nullable): the secret service
  * @objects: (element-type Gio.DBusProxy): the items or collections to lock
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @locked: (out) (element-type Gio.DBusProxy) (transfer full) (nullable) (optional):
  *          location to place list of items or collections that were locked
  * @error: location to place an error on failure
@@ -842,7 +842,7 @@ secret_service_lock_sync (SecretService *service,
  * secret_service_unlock:
  * @service: (nullable): the secret service
  * @objects: (element-type Gio.DBusProxy): the items or collections to unlock
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to pass to the callback
  *
@@ -903,7 +903,7 @@ secret_service_unlock_finish (SecretService *service,
  * secret_service_unlock_sync:
  * @service: (nullable): the secret service
  * @objects: (element-type Gio.DBusProxy): the items or collections to unlock
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @unlocked: (out) (element-type Gio.DBusProxy) (transfer full) (nullable) (optional):
  *            location to place list of items or collections that were unlocked
  * @error: location to place an error on failure
@@ -1109,7 +1109,7 @@ on_store_service (GObject *source,
  *              collection where to store the secret
  * @label: label for the secret
  * @value: the secret value
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to be passed to the callback
  *
@@ -1227,7 +1227,7 @@ secret_service_store_finish (SecretService *service,
  *              collection where to store the secret
  * @label: label for the secret
  * @value: the secret value
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @error: location to place an error on failure
  *
  * Store a secret value in the secret service.
@@ -1424,7 +1424,7 @@ on_lookup_service (GObject *source,
  * @service: (nullable): the secret service
  * @schema: (nullable): the schema for the attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to be passed to the callback
  *
@@ -1522,7 +1522,7 @@ secret_service_lookup_finish (SecretService *service,
  * @service: (nullable): the secret service
  * @schema: (nullable): the schema for the attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @error: location to place an error on failure
  *
  * Lookup a secret value in the secret service.
@@ -1675,7 +1675,7 @@ on_delete_service (GObject *source,
  * @service: (nullable): the secret service
  * @schema: (nullable): the schema for the attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to be passed to the callback
  *
@@ -1772,7 +1772,7 @@ secret_service_clear_finish (SecretService *service,
  * @service: (nullable): the secret service
  * @schema: (nullable): the schema for the attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @error: location to place an error on failure
  *
  * Remove unlocked items which match the attributes from the secret service.

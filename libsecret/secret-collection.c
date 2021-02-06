@@ -777,7 +777,7 @@ on_load_item (GObject *source,
 /**
  * secret_collection_load_items:
  * @self: the secret collection
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to be passed to the callback
  *
@@ -870,7 +870,7 @@ secret_collection_load_items_finish (SecretCollection *self,
 /**
  * secret_collection_load_items_sync:
  * @self: the secret collection
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @error: location to place an error on failure
  *
  * Ensure that the #SecretCollection proxy has loaded all the items present
@@ -1061,7 +1061,7 @@ _secret_collection_properties_new (const gchar *label)
  * @label: label for the new collection
  * @alias: (nullable): alias to assign to the collection
  * @flags: currently unused
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to pass to the callback
  *
@@ -1159,7 +1159,7 @@ secret_collection_create_finish (GAsyncResult *result,
  * @label: label for the new collection
  * @alias: (nullable): alias to assign to the collection
  * @flags: currently unused
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @error: location to place an error on failure
  *
  * Create a new collection in the secret service.
@@ -1400,7 +1400,7 @@ on_search_paths (GObject *source,
  * @schema: (nullable): the schema for the attributes
  * @attributes: (element-type utf8 utf8): search for items matching these attributes
  * @flags: search option flags
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to pass to the callback
  *
@@ -1534,7 +1534,7 @@ collection_load_items_sync (SecretCollection *self,
  * @schema: (nullable): the schema for the attributes
  * @attributes: (element-type utf8 utf8): search for items matching these attributes
  * @flags: search option flags
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @error: location to place error on failure
  *
  * Search for items matching the @attributes in the @collection.
@@ -1625,7 +1625,7 @@ on_service_delete_path (GObject *source,
 /**
  * secret_collection_delete:
  * @self: a collection
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to pass to the callback
  *
@@ -1687,7 +1687,7 @@ secret_collection_delete_finish (SecretCollection *self,
 /**
  * secret_collection_delete_sync:
  * @self: a collection
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @error: location to place an error on failure
  *
  * Delete this collection.
@@ -1841,7 +1841,7 @@ secret_collection_get_label (SecretCollection *self)
  * secret_collection_set_label:
  * @self: a collection
  * @label: a new label
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to pass to the callback
  *
@@ -1891,7 +1891,7 @@ secret_collection_set_label_finish (SecretCollection *self,
  * secret_collection_set_label_sync:
  * @self: a collection
  * @label: a new label
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @error: location to place error on failure
  *
  * Set the label of this collection.
