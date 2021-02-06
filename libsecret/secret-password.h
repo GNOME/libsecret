@@ -46,13 +46,13 @@ void         secret_password_storev                    (const SecretSchema *sche
                                                         gpointer user_data);
 
 void         secret_password_store_binary              (const SecretSchema *schema,
-							const gchar *collection,
-							const gchar *label,
-							SecretValue *value,
-							GCancellable *cancellable,
-							GAsyncReadyCallback callback,
-							gpointer user_data,
-							...);
+                                                        const char *collection,
+                                                        const char *label,
+                                                        SecretValue *value,
+                                                        GCancellable *cancellable,
+                                                        GAsyncReadyCallback callback,
+                                                        gpointer user_data,
+                                                        ...) G_GNUC_NULL_TERMINATED;
 
 void         secret_password_storev_binary             (const SecretSchema *schema,
 							GHashTable *attributes,
@@ -83,12 +83,12 @@ gboolean     secret_password_storev_sync               (const SecretSchema *sche
                                                         GError **error);
 
 gboolean     secret_password_store_binary_sync         (const SecretSchema *schema,
-							const gchar *collection,
-							const gchar *label,
-							SecretValue *value,
-							GCancellable *cancellable,
-							GError **error,
-							...);
+                                                        const char *collection,
+                                                        const char *label,
+                                                        SecretValue *value,
+                                                        GCancellable *cancellable,
+                                                        GError **error,
+                                                        ...) G_GNUC_NULL_TERMINATED;
 
 gboolean     secret_password_storev_binary_sync        (const SecretSchema *schema,
 							GHashTable *attributes,
@@ -126,11 +126,11 @@ gchar *      secret_password_lookup_sync               (const SecretSchema *sche
 gchar *      secret_password_lookup_nonpageable_sync   (const SecretSchema *schema,
                                                         GCancellable *cancellable,
                                                         GError **error,
-                                                        ...);
+                                                        ...) G_GNUC_NULL_TERMINATED;
 SecretValue *secret_password_lookup_binary_sync        (const SecretSchema *schema,
-							GCancellable *cancellable,
-							GError **error,
-							...);
+                                                        GCancellable *cancellable,
+                                                        GError **error,
+                                                        ...) G_GNUC_NULL_TERMINATED;
 
 gchar *      secret_password_lookupv_sync              (const SecretSchema *schema,
                                                         GHashTable *attributes,
