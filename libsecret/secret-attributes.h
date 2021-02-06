@@ -27,7 +27,7 @@
 G_BEGIN_DECLS
 
 GHashTable *         secret_attributes_build         (const SecretSchema *schema,
-                                                      ...);
+                                                      ...) G_GNUC_NULL_TERMINATED;
 
 GHashTable *         secret_attributes_buildv        (const SecretSchema *schema,
                                                       va_list va);
