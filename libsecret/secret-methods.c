@@ -259,18 +259,18 @@ on_search_service (GObject *source,
 
 /**
  * secret_service_search:
- * @service: (allow-none): the secret service
- * @schema: (allow-none): the schema for the attributes
+ * @service: (nullable): the secret service
+ * @schema: (nullable): the schema for the attributes
  * @attributes: (element-type utf8 utf8): search for items matching these attributes
  * @flags: search option flags
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to pass to the callback
  *
  * Search for items matching the @attributes. All collections are searched.
  * The @attributes should be a table of string keys and string values.
  *
- * If @service is NULL, then secret_service_get() will be called to get
+ * If @service is %NULL, then secret_service_get() will be called to get
  * the default #SecretService proxy.
  *
  * If %SECRET_SEARCH_ALL is set in @flags, then all the items matching the
@@ -336,7 +336,7 @@ secret_service_search (SecretService *service,
 
 /**
  * secret_service_search_finish:
- * @service: (allow-none): the secret service
+ * @service: (nullable): the secret service
  * @result: asynchronous result passed to callback
  * @error: location to place error on failure
  *
@@ -403,17 +403,17 @@ service_load_items_sync (SecretService *service,
 
 /**
  * secret_service_search_sync:
- * @service: (allow-none): the secret service
- * @schema: (allow-none): the schema for the attributes
+ * @service: (nullable): the secret service
+ * @schema: (nullable): the schema for the attributes
  * @attributes: (element-type utf8 utf8): search for items matching these attributes
  * @flags: search option flags
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @error: location to place error on failure
  *
  * Search for items matching the @attributes. All collections are searched.
  * The @attributes should be a table of string keys and string values.
  *
- * If @service is NULL, then secret_service_get_sync() will be called to get
+ * If @service is %NULL, then secret_service_get_sync() will be called to get
  * the default #SecretService proxy.
  *
  * If %SECRET_SEARCH_ALL is set in @flags, then all the items matching the
@@ -726,9 +726,9 @@ service_xlock_finish (SecretService *service,
 
 /**
  * secret_service_lock:
- * @service: (allow-none): the secret service
+ * @service: (nullable): the secret service
  * @objects: (element-type Gio.DBusProxy): the items or collections to lock
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to pass to the callback
  *
@@ -737,7 +737,7 @@ service_xlock_finish (SecretService *service,
  * The secret service may not be able to lock items individually, and may
  * lock an entire collection instead.
  *
- * If @service is NULL, then secret_service_get() will be called to get
+ * If @service is %NULL, then secret_service_get() will be called to get
  * the default #SecretService proxy.
  *
  * This method returns immediately and completes asynchronously. The secret
@@ -759,9 +759,9 @@ secret_service_lock (SecretService *service,
 
 /**
  * secret_service_lock_finish:
- * @service: (allow-none): the secret service
+ * @service: (nullable): the secret service
  * @result: asynchronous result passed to the callback
- * @locked: (out) (element-type Gio.DBusProxy) (transfer full) (allow-none):
+ * @locked: (out) (element-type Gio.DBusProxy) (transfer full) (nullable) (optional):
  *          location to place list of items or collections that were locked
  * @error: location to place an error on failure
  *
@@ -787,10 +787,10 @@ secret_service_lock_finish (SecretService *service,
 
 /**
  * secret_service_lock_sync:
- * @service: (allow-none): the secret service
+ * @service: (nullable): the secret service
  * @objects: (element-type Gio.DBusProxy): the items or collections to lock
- * @cancellable: optional cancellation object
- * @locked: (out) (element-type Gio.DBusProxy) (transfer full) (allow-none):
+ * @cancellable: (nullable): optional cancellation object
+ * @locked: (out) (element-type Gio.DBusProxy) (transfer full) (nullable) (optional):
  *          location to place list of items or collections that were locked
  * @error: location to place an error on failure
  *
@@ -799,7 +799,7 @@ secret_service_lock_finish (SecretService *service,
  * The secret service may not be able to lock items individually, and may
  * lock an entire collection instead.
  *
- * If @service is NULL, then secret_service_get_sync() will be called to get
+ * If @service is %NULL, then secret_service_get_sync() will be called to get
  * the default #SecretService proxy.
  *
  * This method may block indefinitely and should not be used in user
@@ -840,9 +840,9 @@ secret_service_lock_sync (SecretService *service,
 
 /**
  * secret_service_unlock:
- * @service: (allow-none): the secret service
+ * @service: (nullable): the secret service
  * @objects: (element-type Gio.DBusProxy): the items or collections to unlock
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to pass to the callback
  *
@@ -851,7 +851,7 @@ secret_service_lock_sync (SecretService *service,
  * The secret service may not be able to unlock items individually, and may
  * unlock an entire collection instead.
  *
- * If @service is NULL, then secret_service_get() will be called to get
+ * If @service is %NULL, then secret_service_get() will be called to get
  * the default #SecretService proxy.
  *
  * This method may block indefinitely and should not be used in user
@@ -873,9 +873,9 @@ secret_service_unlock (SecretService *service,
 
 /**
  * secret_service_unlock_finish:
- * @service: (allow-none): the secret service
+ * @service: (nullable): the secret service
  * @result: asynchronous result passed to the callback
- * @unlocked: (out) (element-type Gio.DBusProxy) (transfer full) (allow-none):
+ * @unlocked: (out) (element-type Gio.DBusProxy) (transfer full) (nullable) (optional):
  *            location to place list of items or collections that were unlocked
  * @error: location to place an error on failure
  *
@@ -901,10 +901,10 @@ secret_service_unlock_finish (SecretService *service,
 
 /**
  * secret_service_unlock_sync:
- * @service: (allow-none): the secret service
+ * @service: (nullable): the secret service
  * @objects: (element-type Gio.DBusProxy): the items or collections to unlock
- * @cancellable: optional cancellation object
- * @unlocked: (out) (element-type Gio.DBusProxy) (transfer full) (allow-none):
+ * @cancellable: (nullable): optional cancellation object
+ * @unlocked: (out) (element-type Gio.DBusProxy) (transfer full) (nullable) (optional):
  *            location to place list of items or collections that were unlocked
  * @error: location to place an error on failure
  *
@@ -913,7 +913,7 @@ secret_service_unlock_finish (SecretService *service,
  * The secret service may not be able to unlock items individually, and may
  * unlock an entire collection instead.
  *
- * If @service is NULL, then secret_service_get_sync() will be called to get
+ * If @service is %NULL, then secret_service_get_sync() will be called to get
  * the default #SecretService proxy.
  *
  * This method may block indefinitely and should not be used in user
@@ -1102,13 +1102,14 @@ on_store_service (GObject *source,
 
 /**
  * secret_service_store:
- * @service: (allow-none): the secret service
- * @schema: (allow-none): the schema to use to check attributes
+ * @service: (nullable): the secret service
+ * @schema: (nullable): the schema to use to check attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
- * @collection: (allow-none): a collection alias, or D-Bus object path of the collection where to store the secret
+ * @collection: (nullable): a collection alias, or D-Bus object path of the
+ *              collection where to store the secret
  * @label: label for the secret
  * @value: the secret value
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to be passed to the callback
  *
@@ -1119,7 +1120,7 @@ on_store_service (GObject *source,
  * If the attributes match a secret item already stored in the collection, then
  * the item will be updated with these new values.
  *
- * If @service is NULL, then secret_service_get() will be called to get
+ * If @service is %NULL, then secret_service_get() will be called to get
  * the default #SecretService proxy.
  *
  * If @collection is not specified, then the default collection will be
@@ -1193,7 +1194,7 @@ secret_service_store (SecretService *service,
 
 /**
  * secret_service_store_finish:
- * @service: (allow-none): the secret service
+ * @service: (nullable): the secret service
  * @result: the asynchronous result passed to the callback
  * @error: location to place an error on failure
  *
@@ -1219,13 +1220,14 @@ secret_service_store_finish (SecretService *service,
 
 /**
  * secret_service_store_sync:
- * @service: (allow-none): the secret service
- * @schema: (allow-none): the schema for the attributes
+ * @service: (nullable): the secret service
+ * @schema: (nullable): the schema for the attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
- * @collection: (allow-none): a collection alias, or D-Bus object path of the collection where to store the secret
+ * @collection: (nullable): a collection alias, or D-Bus object path of the
+ *              collection where to store the secret
  * @label: label for the secret
  * @value: the secret value
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @error: location to place an error on failure
  *
  * Store a secret value in the secret service.
@@ -1239,7 +1241,7 @@ secret_service_store_finish (SecretService *service,
  * used. Use #SECRET_COLLECTION_SESSION to store the password in the session
  * collection, which doesn't get stored across login sessions.
  *
- * If @service is NULL, then secret_service_get_sync() will be called to get
+ * If @service is %NULL, then secret_service_get_sync() will be called to get
  * the default #SecretService proxy.
  *
  * This method may block indefinitely and should not be used in user interface
@@ -1419,10 +1421,10 @@ on_lookup_service (GObject *source,
 
 /**
  * secret_service_lookup:
- * @service: (allow-none): the secret service
- * @schema: (allow-none): the schema for the attributes
+ * @service: (nullable): the secret service
+ * @schema: (nullable): the schema for the attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to be passed to the callback
  *
@@ -1430,7 +1432,7 @@ on_lookup_service (GObject *source,
  *
  * The @attributes should be a set of key and value string pairs.
  *
- * If @service is NULL, then secret_service_get() will be called to get
+ * If @service is %NULL, then secret_service_get() will be called to get
  * the default #SecretService proxy.
  *
  * This method will return immediately and complete asynchronously.
@@ -1480,7 +1482,7 @@ secret_service_lookup (SecretService *service,
 
 /**
  * secret_service_lookup_finish:
- * @service: (allow-none): the secret service
+ * @service: (nullable): the secret service
  * @result: the asynchronous result passed to the callback
  * @error: location to place an error on failure
  *
@@ -1517,17 +1519,17 @@ secret_service_lookup_finish (SecretService *service,
 
 /**
  * secret_service_lookup_sync:
- * @service: (allow-none): the secret service
- * @schema: (allow-none): the schema for the attributes
+ * @service: (nullable): the secret service
+ * @schema: (nullable): the schema for the attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @error: location to place an error on failure
  *
  * Lookup a secret value in the secret service.
  *
  * The @attributes should be a set of key and value string pairs.
  *
- * If @service is NULL, then secret_service_get_sync() will be called to get
+ * If @service is %NULL, then secret_service_get_sync() will be called to get
  * the default #SecretService proxy.
  *
  * This method may block indefinitely and should not be used in user interface
@@ -1670,10 +1672,10 @@ on_delete_service (GObject *source,
 
 /**
  * secret_service_clear:
- * @service: (allow-none): the secret service
- * @schema: (allow-none): the schema for the attributes
+ * @service: (nullable): the secret service
+ * @schema: (nullable): the schema for the attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to be passed to the callback
  *
@@ -1681,7 +1683,7 @@ on_delete_service (GObject *source,
  *
  * The @attributes should be a set of key and value string pairs.
  *
- * If @service is NULL, then secret_service_get() will be called to get
+ * If @service is %NULL, then secret_service_get() will be called to get
  * the default #SecretService proxy.
  *
  * This method will return immediately and complete asynchronously.
@@ -1735,7 +1737,7 @@ secret_service_clear (SecretService *service,
 
 /**
  * secret_service_clear_finish:
- * @service: (allow-none): the secret service
+ * @service: (nullable): the secret service
  * @result: the asynchronous result passed to the callback
  * @error: location to place an error on failure
  *
@@ -1767,17 +1769,17 @@ secret_service_clear_finish (SecretService *service,
 
 /**
  * secret_service_clear_sync:
- * @service: (allow-none): the secret service
- * @schema: (allow-none): the schema for the attributes
+ * @service: (nullable): the secret service
+ * @schema: (nullable): the schema for the attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @error: location to place an error on failure
  *
  * Remove unlocked items which match the attributes from the secret service.
  *
  * The @attributes should be a set of key and value string pairs.
  *
- * If @service is NULL, then secret_service_get_sync() will be called to get
+ * If @service is %NULL, then secret_service_get_sync() will be called to get
  * the default #SecretService proxy.
  *
  * This method may block indefinitely and should not be used in user interface
@@ -1881,17 +1883,17 @@ on_set_alias_service (GObject *source,
 
 /**
  * secret_service_set_alias:
- * @service: (allow-none): a secret service object
+ * @service: (nullable): a secret service object
  * @alias: the alias to assign the collection to
- * @collection: (allow-none): the collection to assign to the alias
- * @cancellable: (allow-none): optional cancellation object
+ * @collection: (nullable): the collection to assign to the alias
+ * @cancellable: (nullable): optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to pass to the callback
  *
  * Assign a collection to this alias. Aliases help determine
  * well known collections, such as 'default'.
  *
- * If @service is NULL, then secret_service_get() will be called to get
+ * If @service is %NULL, then secret_service_get() will be called to get
  * the default #SecretService proxy.
  *
  * This method will return immediately and complete asynchronously.
@@ -1945,7 +1947,7 @@ secret_service_set_alias (SecretService *service,
 
 /**
  * secret_service_set_alias_finish:
- * @service: (allow-none): a secret service object
+ * @service: (nullable): a secret service object
  * @result: asynchronous result passed to callback
  * @error: location to place error on failure
  *
@@ -1971,16 +1973,16 @@ secret_service_set_alias_finish (SecretService *service,
 
 /**
  * secret_service_set_alias_sync:
- * @service: (allow-none): a secret service object
+ * @service: (nullable): a secret service object
  * @alias: the alias to assign the collection to
- * @collection: (allow-none): the collection to assign to the alias
- * @cancellable: (allow-none): optional cancellation object
+ * @collection: (nullable): the collection to assign to the alias
+ * @cancellable: (nullable): optional cancellation object
  * @error: location to place error on failure
  *
  * Assign a collection to this alias. Aliases help determine
  * well known collections, such as 'default'.
  *
- * If @service is NULL, then secret_service_get_sync() will be called to get
+ * If @service is %NULL, then secret_service_get_sync() will be called to get
  * the default #SecretService proxy.
  *
  * This method may block and should not be used in user interface threads.

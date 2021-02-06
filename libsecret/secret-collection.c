@@ -777,7 +777,7 @@ on_load_item (GObject *source,
 /**
  * secret_collection_load_items:
  * @self: the secret collection
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to be passed to the callback
  *
@@ -870,7 +870,7 @@ secret_collection_load_items_finish (SecretCollection *self,
 /**
  * secret_collection_load_items_sync:
  * @self: the secret collection
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @error: location to place an error on failure
  *
  * Ensure that the #SecretCollection proxy has loaded all the items present
@@ -1057,11 +1057,11 @@ _secret_collection_properties_new (const gchar *label)
 
 /**
  * secret_collection_create:
- * @service: (allow-none): a secret service object
+ * @service: (nullable): a secret service object
  * @label: label for the new collection
- * @alias: (allow-none): alias to assign to the collection
+ * @alias: (nullable): alias to assign to the collection
  * @flags: currently unused
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to pass to the callback
  *
@@ -1077,7 +1077,7 @@ _secret_collection_properties_new (const gchar *label)
  * collection with that alias already exists, then a new collection will not
  * be created. The previous one will be returned instead.
  *
- * If @service is NULL, then secret_service_get() will be called to get
+ * If @service is %NULL, then secret_service_get() will be called to get
  * the default #SecretService proxy.
  *
  */
@@ -1155,11 +1155,11 @@ secret_collection_create_finish (GAsyncResult *result,
 
 /**
  * secret_collection_create_sync:
- * @service: (allow-none): a secret service object
+ * @service: (nullable): a secret service object
  * @label: label for the new collection
- * @alias: (allow-none): alias to assign to the collection
+ * @alias: (nullable): alias to assign to the collection
  * @flags: currently unused
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @error: location to place an error on failure
  *
  * Create a new collection in the secret service.
@@ -1174,7 +1174,7 @@ secret_collection_create_finish (GAsyncResult *result,
  * collection with that alias already exists, then a new collection will not
  * be created. The previous one will be returned instead.
  *
- * If @service is NULL, then secret_service_get_sync() will be called to get
+ * If @service is %NULL, then secret_service_get_sync() will be called to get
  * the default #SecretService proxy.
  *
  * Returns: (transfer full): the new collection, which should be unreferenced
@@ -1397,10 +1397,10 @@ on_search_paths (GObject *source,
 /**
  * secret_collection_search:
  * @self: a secret collection
- * @schema: (allow-none): the schema for the attributes
+ * @schema: (nullable): the schema for the attributes
  * @attributes: (element-type utf8 utf8): search for items matching these attributes
  * @flags: search option flags
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to pass to the callback
  *
@@ -1531,10 +1531,10 @@ collection_load_items_sync (SecretCollection *self,
 /**
  * secret_collection_search_sync:
  * @self: a secret collection
- * @schema: (allow-none): the schema for the attributes
+ * @schema: (nullable): the schema for the attributes
  * @attributes: (element-type utf8 utf8): search for items matching these attributes
  * @flags: search option flags
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @error: location to place error on failure
  *
  * Search for items matching the @attributes in the @collection.
@@ -1625,7 +1625,7 @@ on_service_delete_path (GObject *source,
 /**
  * secret_collection_delete:
  * @self: a collection
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to pass to the callback
  *
@@ -1687,7 +1687,7 @@ secret_collection_delete_finish (SecretCollection *self,
 /**
  * secret_collection_delete_sync:
  * @self: a collection
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @error: location to place an error on failure
  *
  * Delete this collection.
@@ -1841,7 +1841,7 @@ secret_collection_get_label (SecretCollection *self)
  * secret_collection_set_label:
  * @self: a collection
  * @label: a new label
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to pass to the callback
  *
@@ -1891,7 +1891,7 @@ secret_collection_set_label_finish (SecretCollection *self,
  * secret_collection_set_label_sync:
  * @self: a collection
  * @label: a new label
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @error: location to place error on failure
  *
  * Set the label of this collection.
@@ -2104,17 +2104,17 @@ on_read_alias_service (GObject *source,
 
 /**
  * secret_collection_for_alias:
- * @service: (allow-none): a secret service object
+ * @service: (nullable): a secret service object
  * @alias: the alias to lookup
  * @flags: options for the collection initialization
- * @cancellable: (allow-none): optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to pass to the callback
  *
  * Lookup which collection is assigned to this alias. Aliases help determine
  * well known collections, such as 'default'.
  *
- * If @service is NULL, then secret_service_get() will be called to get
+ * If @service is %NULL, then secret_service_get() will be called to get
  * the default #SecretService proxy.
  *
  * This method will return immediately and complete asynchronously.
@@ -2185,16 +2185,16 @@ secret_collection_for_alias_finish (GAsyncResult *result,
 
 /**
  * secret_collection_for_alias_sync:
- * @service: (allow-none): a secret service object
+ * @service: (nullable): a secret service object
  * @alias: the alias to lookup
  * @flags: options for the collection initialization
- * @cancellable: (allow-none): optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @error: location to place error on failure
  *
  * Lookup which collection is assigned to this alias. Aliases help determine
  * well known collections, such as 'default'.
  *
- * If @service is NULL, then secret_service_get_sync() will be called to get
+ * If @service is %NULL, then secret_service_get_sync() will be called to get
  * the default #SecretService proxy.
  *
  * This method may block and should not be used in user interface threads.

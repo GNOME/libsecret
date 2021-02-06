@@ -41,16 +41,16 @@
 
 /**
  * secret_collection_new_for_dbus_path: (skip)
- * @service: (allow-none): a secret service object
+ * @service: (nullable): a secret service object
  * @collection_path: the D-Bus path of the collection
  * @flags: options for the collection initialization
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to be passed to the callback
  *
  * Get a new collection proxy for a collection in the secret service.
  *
- * If @service is NULL, then secret_service_get() will be called to get
+ * If @service is %NULL, then secret_service_get() will be called to get
  * the default #SecretService proxy.
  *
  * This method will return immediately and complete asynchronously.
@@ -120,15 +120,15 @@ secret_collection_new_for_dbus_path_finish (GAsyncResult *result,
 
 /**
  * secret_collection_new_for_dbus_path_sync: (skip)
- * @service: (allow-none): a secret service object
+ * @service: (nullable): a secret service object
  * @collection_path: the D-Bus path of the collection
  * @flags: options for the collection initialization
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @error: location to place an error on failure
  *
  * Get a new collection proxy for a collection in the secret service.
  *
- * If @service is NULL, then secret_service_get_sync() will be called to get
+ * If @service is %NULL, then secret_service_get_sync() will be called to get
  * the default #SecretService proxy.
  *
  * This method may block indefinitely and should not be used in user interface
@@ -170,16 +170,16 @@ secret_collection_new_for_dbus_path_sync (SecretService *service,
 
 /**
  * secret_item_new_for_dbus_path: (skip)
- * @service: (allow-none): a secret service object
+ * @service: (nullable): a secret service object
  * @item_path: the D-Bus path of the collection
  * @flags: initialization flags for the new item
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to be passed to the callback
  *
  * Get a new item proxy for a secret item in the secret service.
  *
- * If @service is NULL, then secret_service_get() will be called to get
+ * If @service is %NULL, then secret_service_get() will be called to get
  * the default #SecretService proxy.
  *
  * This method will return immediately and complete asynchronously.
@@ -248,15 +248,15 @@ secret_item_new_for_dbus_path_finish (GAsyncResult *result,
 
 /**
  * secret_item_new_for_dbus_path_sync: (skip)
- * @service: (allow-none): a secret service object
+ * @service: (nullable): a secret service object
  * @item_path: the D-Bus path of the item
  * @flags: initialization flags for the new item
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @error: location to place an error on failure
  *
  * Get a new item proxy for a secret item in the secret service.
  *
- * If @service is NULL, then secret_service_get_sync() will be called to get
+ * If @service is %NULL, then secret_service_get_sync() will be called to get
  * the default #SecretService proxy.
  *
  * This method may block indefinitely and should not be used in user interface
@@ -320,9 +320,9 @@ on_search_items_complete (GObject *source,
 /**
  * secret_collection_search_for_dbus_paths: (skip)
  * @collection: the secret collection
- * @schema: (allow-none): the schema for the attributes
+ * @schema: (nullable): the schema for the attributes
  * @attributes: (element-type utf8 utf8): search for items matching these attributes
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to pass to the callback
  *
@@ -416,9 +416,9 @@ secret_collection_search_for_dbus_paths_finish (SecretCollection *collection,
 /**
  * secret_collection_search_for_dbus_paths_sync: (skip)
  * @collection: the secret collection
- * @schema: (allow-none): the schema for the attributes
+ * @schema: (nullable): the schema for the attributes
  * @attributes: (element-type utf8 utf8): search for items matching these attributes
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @error: location to place error on failure
  *
  * Search for items matching the @attributes in @collection, and return their
@@ -471,9 +471,9 @@ secret_collection_search_for_dbus_paths_sync (SecretCollection *collection,
 /**
  * secret_service_search_for_dbus_paths: (skip)
  * @self: the secret service
- * @schema: (allow-none): the schema for the attributes
+ * @schema: (nullable): the schema for the attributes
  * @attributes: (element-type utf8 utf8): search for items matching these attributes
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to pass to the callback
  *
@@ -543,10 +543,10 @@ _secret_service_search_for_paths_variant (SecretService *self,
  * secret_service_search_for_dbus_paths_finish: (skip)
  * @self: the secret service
  * @result: asynchronous result passed to callback
- * @unlocked: (out) (transfer full) (array zero-terminated=1) (allow-none):
+ * @unlocked: (out) (transfer full) (array zero-terminated=1) (optional) (nullable):
  *            location to place an array of D-Bus object paths for matching
  *            items which were locked.
- * @locked: (out) (transfer full) (array zero-terminated=1) (allow-none):
+ * @locked: (out) (transfer full) (array zero-terminated=1) (optional) (nullable):
  *          location to place an array of D-Bus object paths for matching
  *          items which were locked.
  * @error: location to place error on failure
@@ -604,13 +604,13 @@ secret_service_search_for_dbus_paths_finish (SecretService *self,
 /**
  * secret_service_search_for_dbus_paths_sync: (skip)
  * @self: the secret service
- * @schema: (allow-none): the schema for the attributes
+ * @schema: (nullable): the schema for the attributes
  * @attributes: (element-type utf8 utf8): search for items matching these attributes
- * @cancellable: optional cancellation object
- * @unlocked: (out) (transfer full) (array zero-terminated=1) (allow-none):
+ * @cancellable: (nullable): optional cancellation object
+ * @unlocked: (out) (transfer full) (array zero-terminated=1) (optional) (nullable):
  *            location to place an array of D-Bus object paths for matching
  *            items which were locked.
- * @locked: (out) (transfer full) (array zero-terminated=1) (allow-none):
+ * @locked: (out) (transfer full) (array zero-terminated=1) (optional) (nullable):
  *          location to place an array of D-Bus object paths for matching
  *          items which were locked.
  * @error: location to place error on failure
@@ -729,7 +729,7 @@ on_get_secrets_session (GObject *source,
  * secret_service_get_secret_for_dbus_path: (skip)
  * @self: the secret service
  * @item_path: the D-Bus path to item to retrieve secret for
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to pass to the callback
  *
@@ -783,7 +783,7 @@ secret_service_get_secret_for_dbus_path (SecretService *self,
  *
  * Stability: Unstable
  *
- * Returns: (transfer full) (allow-none): the newly allocated secret value
+ * Returns: (transfer full) (nullable): the newly allocated secret value
  *          for the item, which should be released with secret_value_unref()
  */
 SecretValue *
@@ -812,7 +812,7 @@ secret_service_get_secret_for_dbus_path_finish (SecretService *self,
  * secret_service_get_secret_for_dbus_path_sync: (skip)
  * @self: the secret service
  * @item_path: the D-Bus path to item to retrieve secret for
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @error: location to place an error on failure
  *
  * Get the secret value for a secret item stored in the service.
@@ -828,7 +828,7 @@ secret_service_get_secret_for_dbus_path_finish (SecretService *self,
  *
  * Stability: Unstable
  *
- * Returns: (transfer full) (allow-none): the newly allocated secret value
+ * Returns: (transfer full) (nullable): the newly allocated secret value
  *          for the item, which should be released with secret_value_unref()
  */
 SecretValue *
@@ -865,7 +865,7 @@ secret_service_get_secret_for_dbus_path_sync (SecretService *self,
  * secret_service_get_secrets_for_dbus_paths: (skip)
  * @self: the secret service
  * @item_paths: the D-Bus paths to items to retrieve secrets for
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to pass to the callback
  *
@@ -949,7 +949,7 @@ secret_service_get_secrets_for_dbus_paths_finish (SecretService *self,
  * secret_service_get_secrets_for_dbus_paths_sync: (skip)
  * @self: the secret service
  * @item_paths: the D-Bus paths to items to retrieve secrets for
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @error: location to place an error on failure
  *
  * Get the secret values for a secret item stored in the service.
@@ -1149,8 +1149,8 @@ _secret_service_xlock_paths_finish (SecretService *self,
  * secret_service_lock_dbus_paths_sync: (skip)
  * @self: the secret service
  * @paths: (array zero-terminated=1): the D-Bus object paths of the items or collections to lock
- * @cancellable: optional cancellation object
- * @locked: (out) (array zero-terminated=1) (transfer full) (allow-none):
+ * @cancellable: (nullable): optional cancellation object
+ * @locked: (out) (array zero-terminated=1) (transfer full) (optional) (nullable):
  *          location to place array of D-Bus paths of items or collections
  *          that were locked
  * @error: location to place an error on failure
@@ -1208,7 +1208,7 @@ secret_service_lock_dbus_paths_sync (SecretService *self,
  * secret_service_lock_dbus_paths: (skip)
  * @self: the secret service
  * @paths: (array zero-terminated=1): the D-Bus paths for items or collections to lock
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to pass to the callback
  *
@@ -1246,7 +1246,7 @@ secret_service_lock_dbus_paths (SecretService *self,
  * secret_service_lock_dbus_paths_finish: (skip)
  * @self: the secret service
  * @result: asynchronous result passed to the callback
- * @locked: (out) (array zero-terminated=1) (transfer full) (allow-none):
+ * @locked: (out) (array zero-terminated=1) (transfer full) (optional) (nullable):
  *          location to place array of D-Bus paths of items or collections
  *          that were locked
  * @error: location to place an error on failure
@@ -1279,8 +1279,8 @@ secret_service_lock_dbus_paths_finish (SecretService *self,
  * @self: the secret service
  * @paths: (array zero-terminated=1): the D-Bus object paths of the items or
  *         collections to unlock
- * @cancellable: optional cancellation object
- * @unlocked: (out) (array zero-terminated=1) (transfer full) (allow-none):
+ * @cancellable: (nullable): optional cancellation object
+ * @unlocked: (out) (array zero-terminated=1) (transfer full) (optional) (nullable):
  *            location to place array of D-Bus paths of items or collections
  *            that were unlocked
  * @error: location to place an error on failure
@@ -1339,7 +1339,7 @@ secret_service_unlock_dbus_paths_sync (SecretService *self,
  * @self: the secret service
  * @paths: (array zero-terminated=1): the D-Bus paths for items or
  *         collections to unlock
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to pass to the callback
  *
@@ -1378,7 +1378,7 @@ secret_service_unlock_dbus_paths (SecretService *self,
  * secret_service_unlock_dbus_paths_finish: (skip)
  * @self: the secret service
  * @result: asynchronous result passed to the callback
- * @unlocked: (out) (array zero-terminated=1) (transfer full) (allow-none):
+ * @unlocked: (out) (array zero-terminated=1) (transfer full) (optional) (nullable):
  *            location to place array of D-Bus paths of items or collections
  *            that were unlocked
  * @error: location to place an error on failure
@@ -1533,7 +1533,7 @@ _secret_service_delete_path_finish (SecretService *self,
  * secret_service_delete_item_dbus_path: (skip)
  * @self: the secret service
  * @item_path: the D-Bus path of item to delete
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to be passed to the callback
  *
@@ -1585,7 +1585,7 @@ secret_service_delete_item_dbus_path_finish (SecretService *self,
  * secret_service_delete_item_dbus_path_sync: (skip)
  * @self: the secret service
  * @item_path: the D-Bus path of item to delete
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @error: location to place an error on failure
  *
  * Delete a secret item from the secret service.
@@ -1705,10 +1705,10 @@ on_create_collection_called (GObject *source,
  * @self: a secret service object
  * @properties: (element-type utf8 GLib.Variant): hash table of properties for
  *              the new collection
- * @alias: (allow-none): an alias to check for before creating the new
+ * @alias: (nullable): an alias to check for before creating the new
  *         collection, or to assign to the new collection
  * @flags: not currently used
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to be passed to the callback
  *
@@ -1822,10 +1822,10 @@ secret_service_create_collection_dbus_path_finish (SecretService *self,
  * @self: a secret service object
  * @properties: (element-type utf8 GLib.Variant): hash table of D-Bus properties
  *              for the new collection
- * @alias: (allow-none): an alias to check for before creating the new
+ * @alias: (nullable): an alias to check for before creating the new
  *         collection, or to assign to the new collection
  * @flags: not currently used
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @error: location to place an error on failure
  *
  * Create a new collection in the secret service and return its path.
@@ -2011,7 +2011,7 @@ on_create_item_session (GObject *source,
  *              for the new collection
  * @value: the secret value to store in the item
  * @flags: flags for the creation of the new item
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to be passed to the callback
  *
@@ -2133,7 +2133,7 @@ _secret_service_create_item_dbus_path_finish_raw (GAsyncResult *result,
  *              for the new collection
  * @value: the secret value to store in the item
  * @flags: flags for the creation of the new item
- * @cancellable: optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @error: location to place an error on failure
  *
  * Create a new item in a secret service collection and return its D-Bus
@@ -2199,7 +2199,7 @@ secret_service_create_item_dbus_path_sync (SecretService *self,
  * secret_service_read_alias_dbus_path: (skip)
  * @self: a secret service object
  * @alias: the alias to lookup
- * @cancellable: (allow-none): optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to pass to the callback
  *
@@ -2271,7 +2271,7 @@ secret_service_read_alias_dbus_path_finish (SecretService *self,
  * secret_service_read_alias_dbus_path_sync: (skip)
  * @self: a secret service object
  * @alias: the alias to lookup
- * @cancellable: (allow-none): optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @error: location to place error on failure
  *
  * Lookup which collection is assigned to this alias. Aliases help determine
@@ -2318,8 +2318,8 @@ secret_service_read_alias_dbus_path_sync (SecretService *self,
  * secret_service_set_alias_to_dbus_path: (skip)
  * @self: a secret service object
  * @alias: the alias to assign the collection to
- * @collection_path: (allow-none): the dbus object path of the collection to assign to the alias
- * @cancellable: (allow-none): optional cancellation object
+ * @collection_path: (nullable): the dbus object path of the collection to assign to the alias
+ * @cancellable: (nullable): optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to pass to the callback
  *
@@ -2390,8 +2390,9 @@ secret_service_set_alias_to_dbus_path_finish (SecretService *self,
  * secret_service_set_alias_to_dbus_path_sync: (skip)
  * @self: a secret service object
  * @alias: the alias to assign the collection to
- * @collection_path: (allow-none): the dbus object path of the collection to assign to the alias
- * @cancellable: (allow-none): optional cancellation object
+ * @collection_path: (nullable): the D-Bus object path of the collection to
+ *                   assign to the alias
+ * @cancellable: (nullable): optional cancellation object
  * @error: location to place error on failure
  *
  * Assign a collection to this alias. Aliases help determine
@@ -2444,8 +2445,8 @@ secret_service_set_alias_to_dbus_path_sync (SecretService *self,
  * secret_service_prompt_at_dbus_path_sync: (skip)
  * @self: the secret service
  * @prompt_path: the D-Bus object path of the prompt
- * @cancellable: optional cancellation object
- * @return_type: (allow-none): the variant type of the prompt result
+ * @cancellable: (nullable): optional cancellation object
+ * @return_type: (nullable): the variant type of the prompt result
  * @error: location to place error on failure
  *
  * Perform prompting for a #SecretPrompt.
@@ -2491,8 +2492,8 @@ secret_service_prompt_at_dbus_path_sync (SecretService *self,
  * secret_service_prompt_at_dbus_path: (skip)
  * @self: the secret service
  * @prompt_path: the D-Bus object path of the prompt
- * @return_type: (allow-none): the variant type of the prompt result
- * @cancellable: optional cancellation object
+ * @return_type: (nullable): the variant type of the prompt result
+ * @cancellable: (nullable): optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to be passed to the callback
  *
