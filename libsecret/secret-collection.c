@@ -1057,9 +1057,9 @@ _secret_collection_properties_new (const gchar *label)
 
 /**
  * secret_collection_create:
- * @service: (allow-none): a secret service object
+ * @service: (nullable): a secret service object
  * @label: label for the new collection
- * @alias: (allow-none): alias to assign to the collection
+ * @alias: (nullable): alias to assign to the collection
  * @flags: currently unused
  * @cancellable: optional cancellation object
  * @callback: called when the operation completes
@@ -1155,9 +1155,9 @@ secret_collection_create_finish (GAsyncResult *result,
 
 /**
  * secret_collection_create_sync:
- * @service: (allow-none): a secret service object
+ * @service: (nullable): a secret service object
  * @label: label for the new collection
- * @alias: (allow-none): alias to assign to the collection
+ * @alias: (nullable): alias to assign to the collection
  * @flags: currently unused
  * @cancellable: optional cancellation object
  * @error: location to place an error on failure
@@ -1397,7 +1397,7 @@ on_search_paths (GObject *source,
 /**
  * secret_collection_search:
  * @self: a secret collection
- * @schema: (allow-none): the schema for the attributes
+ * @schema: (nullable): the schema for the attributes
  * @attributes: (element-type utf8 utf8): search for items matching these attributes
  * @flags: search option flags
  * @cancellable: optional cancellation object
@@ -1531,7 +1531,7 @@ collection_load_items_sync (SecretCollection *self,
 /**
  * secret_collection_search_sync:
  * @self: a secret collection
- * @schema: (allow-none): the schema for the attributes
+ * @schema: (nullable): the schema for the attributes
  * @attributes: (element-type utf8 utf8): search for items matching these attributes
  * @flags: search option flags
  * @cancellable: optional cancellation object
@@ -2104,10 +2104,10 @@ on_read_alias_service (GObject *source,
 
 /**
  * secret_collection_for_alias:
- * @service: (allow-none): a secret service object
+ * @service: (nullable): a secret service object
  * @alias: the alias to lookup
  * @flags: options for the collection initialization
- * @cancellable: (allow-none): optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to pass to the callback
  *
@@ -2185,10 +2185,10 @@ secret_collection_for_alias_finish (GAsyncResult *result,
 
 /**
  * secret_collection_for_alias_sync:
- * @service: (allow-none): a secret service object
+ * @service: (nullable): a secret service object
  * @alias: the alias to lookup
  * @flags: options for the collection initialization
- * @cancellable: (allow-none): optional cancellation object
+ * @cancellable: (nullable): optional cancellation object
  * @error: location to place error on failure
  *
  * Lookup which collection is assigned to this alias. Aliases help determine

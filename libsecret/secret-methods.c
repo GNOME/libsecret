@@ -259,8 +259,8 @@ on_search_service (GObject *source,
 
 /**
  * secret_service_search:
- * @service: (allow-none): the secret service
- * @schema: (allow-none): the schema for the attributes
+ * @service: (nullable): the secret service
+ * @schema: (nullable): the schema for the attributes
  * @attributes: (element-type utf8 utf8): search for items matching these attributes
  * @flags: search option flags
  * @cancellable: optional cancellation object
@@ -336,7 +336,7 @@ secret_service_search (SecretService *service,
 
 /**
  * secret_service_search_finish:
- * @service: (allow-none): the secret service
+ * @service: (nullable): the secret service
  * @result: asynchronous result passed to callback
  * @error: location to place error on failure
  *
@@ -403,8 +403,8 @@ service_load_items_sync (SecretService *service,
 
 /**
  * secret_service_search_sync:
- * @service: (allow-none): the secret service
- * @schema: (allow-none): the schema for the attributes
+ * @service: (nullable): the secret service
+ * @schema: (nullable): the schema for the attributes
  * @attributes: (element-type utf8 utf8): search for items matching these attributes
  * @flags: search option flags
  * @cancellable: optional cancellation object
@@ -726,7 +726,7 @@ service_xlock_finish (SecretService *service,
 
 /**
  * secret_service_lock:
- * @service: (allow-none): the secret service
+ * @service: (nullable): the secret service
  * @objects: (element-type Gio.DBusProxy): the items or collections to lock
  * @cancellable: optional cancellation object
  * @callback: called when the operation completes
@@ -759,9 +759,9 @@ secret_service_lock (SecretService *service,
 
 /**
  * secret_service_lock_finish:
- * @service: (allow-none): the secret service
+ * @service: (nullable): the secret service
  * @result: asynchronous result passed to the callback
- * @locked: (out) (element-type Gio.DBusProxy) (transfer full) (allow-none):
+ * @locked: (out) (element-type Gio.DBusProxy) (transfer full) (nullable) (optional):
  *          location to place list of items or collections that were locked
  * @error: location to place an error on failure
  *
@@ -787,10 +787,10 @@ secret_service_lock_finish (SecretService *service,
 
 /**
  * secret_service_lock_sync:
- * @service: (allow-none): the secret service
+ * @service: (nullable): the secret service
  * @objects: (element-type Gio.DBusProxy): the items or collections to lock
  * @cancellable: optional cancellation object
- * @locked: (out) (element-type Gio.DBusProxy) (transfer full) (allow-none):
+ * @locked: (out) (element-type Gio.DBusProxy) (transfer full) (nullable) (optional):
  *          location to place list of items or collections that were locked
  * @error: location to place an error on failure
  *
@@ -840,7 +840,7 @@ secret_service_lock_sync (SecretService *service,
 
 /**
  * secret_service_unlock:
- * @service: (allow-none): the secret service
+ * @service: (nullable): the secret service
  * @objects: (element-type Gio.DBusProxy): the items or collections to unlock
  * @cancellable: optional cancellation object
  * @callback: called when the operation completes
@@ -873,9 +873,9 @@ secret_service_unlock (SecretService *service,
 
 /**
  * secret_service_unlock_finish:
- * @service: (allow-none): the secret service
+ * @service: (nullable): the secret service
  * @result: asynchronous result passed to the callback
- * @unlocked: (out) (element-type Gio.DBusProxy) (transfer full) (allow-none):
+ * @unlocked: (out) (element-type Gio.DBusProxy) (transfer full) (nullable) (optional):
  *            location to place list of items or collections that were unlocked
  * @error: location to place an error on failure
  *
@@ -901,10 +901,10 @@ secret_service_unlock_finish (SecretService *service,
 
 /**
  * secret_service_unlock_sync:
- * @service: (allow-none): the secret service
+ * @service: (nullable): the secret service
  * @objects: (element-type Gio.DBusProxy): the items or collections to unlock
  * @cancellable: optional cancellation object
- * @unlocked: (out) (element-type Gio.DBusProxy) (transfer full) (allow-none):
+ * @unlocked: (out) (element-type Gio.DBusProxy) (transfer full) (nullable) (optional):
  *            location to place list of items or collections that were unlocked
  * @error: location to place an error on failure
  *
@@ -1102,10 +1102,11 @@ on_store_service (GObject *source,
 
 /**
  * secret_service_store:
- * @service: (allow-none): the secret service
- * @schema: (allow-none): the schema to use to check attributes
+ * @service: (nullable): the secret service
+ * @schema: (nullable): the schema to use to check attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
- * @collection: (allow-none): a collection alias, or D-Bus object path of the collection where to store the secret
+ * @collection: (nullable): a collection alias, or D-Bus object path of the
+ *              collection where to store the secret
  * @label: label for the secret
  * @value: the secret value
  * @cancellable: optional cancellation object
@@ -1193,7 +1194,7 @@ secret_service_store (SecretService *service,
 
 /**
  * secret_service_store_finish:
- * @service: (allow-none): the secret service
+ * @service: (nullable): the secret service
  * @result: the asynchronous result passed to the callback
  * @error: location to place an error on failure
  *
@@ -1219,10 +1220,11 @@ secret_service_store_finish (SecretService *service,
 
 /**
  * secret_service_store_sync:
- * @service: (allow-none): the secret service
- * @schema: (allow-none): the schema for the attributes
+ * @service: (nullable): the secret service
+ * @schema: (nullable): the schema for the attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
- * @collection: (allow-none): a collection alias, or D-Bus object path of the collection where to store the secret
+ * @collection: (nullable): a collection alias, or D-Bus object path of the
+ *              collection where to store the secret
  * @label: label for the secret
  * @value: the secret value
  * @cancellable: optional cancellation object
@@ -1419,8 +1421,8 @@ on_lookup_service (GObject *source,
 
 /**
  * secret_service_lookup:
- * @service: (allow-none): the secret service
- * @schema: (allow-none): the schema for the attributes
+ * @service: (nullable): the secret service
+ * @schema: (nullable): the schema for the attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
  * @cancellable: optional cancellation object
  * @callback: called when the operation completes
@@ -1480,7 +1482,7 @@ secret_service_lookup (SecretService *service,
 
 /**
  * secret_service_lookup_finish:
- * @service: (allow-none): the secret service
+ * @service: (nullable): the secret service
  * @result: the asynchronous result passed to the callback
  * @error: location to place an error on failure
  *
@@ -1517,8 +1519,8 @@ secret_service_lookup_finish (SecretService *service,
 
 /**
  * secret_service_lookup_sync:
- * @service: (allow-none): the secret service
- * @schema: (allow-none): the schema for the attributes
+ * @service: (nullable): the secret service
+ * @schema: (nullable): the schema for the attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
  * @cancellable: optional cancellation object
  * @error: location to place an error on failure
@@ -1670,8 +1672,8 @@ on_delete_service (GObject *source,
 
 /**
  * secret_service_clear:
- * @service: (allow-none): the secret service
- * @schema: (allow-none): the schema for the attributes
+ * @service: (nullable): the secret service
+ * @schema: (nullable): the schema for the attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
  * @cancellable: optional cancellation object
  * @callback: called when the operation completes
@@ -1735,7 +1737,7 @@ secret_service_clear (SecretService *service,
 
 /**
  * secret_service_clear_finish:
- * @service: (allow-none): the secret service
+ * @service: (nullable): the secret service
  * @result: the asynchronous result passed to the callback
  * @error: location to place an error on failure
  *
@@ -1767,8 +1769,8 @@ secret_service_clear_finish (SecretService *service,
 
 /**
  * secret_service_clear_sync:
- * @service: (allow-none): the secret service
- * @schema: (allow-none): the schema for the attributes
+ * @service: (nullable): the secret service
+ * @schema: (nullable): the schema for the attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
  * @cancellable: optional cancellation object
  * @error: location to place an error on failure
@@ -1881,10 +1883,10 @@ on_set_alias_service (GObject *source,
 
 /**
  * secret_service_set_alias:
- * @service: (allow-none): a secret service object
+ * @service: (nullable): a secret service object
  * @alias: the alias to assign the collection to
- * @collection: (allow-none): the collection to assign to the alias
- * @cancellable: (allow-none): optional cancellation object
+ * @collection: (nullable): the collection to assign to the alias
+ * @cancellable: (nullable): optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to pass to the callback
  *
@@ -1945,7 +1947,7 @@ secret_service_set_alias (SecretService *service,
 
 /**
  * secret_service_set_alias_finish:
- * @service: (allow-none): a secret service object
+ * @service: (nullable): a secret service object
  * @result: asynchronous result passed to callback
  * @error: location to place error on failure
  *
@@ -1971,10 +1973,10 @@ secret_service_set_alias_finish (SecretService *service,
 
 /**
  * secret_service_set_alias_sync:
- * @service: (allow-none): a secret service object
+ * @service: (nullable): a secret service object
  * @alias: the alias to assign the collection to
- * @collection: (allow-none): the collection to assign to the alias
- * @cancellable: (allow-none): optional cancellation object
+ * @collection: (nullable): the collection to assign to the alias
+ * @cancellable: (nullable): optional cancellation object
  * @error: location to place error on failure
  *
  * Assign a collection to this alias. Aliases help determine

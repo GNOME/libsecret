@@ -718,7 +718,7 @@ item_properties_new (const gchar *label,
 /**
  * secret_item_create:
  * @collection: a secret collection to create this item in
- * @schema: (allow-none): the schema for the attributes
+ * @schema: (nullable): the schema for the attributes
  * @attributes: (element-type utf8 utf8): attributes for the new item
  * @label: label for the new item
  * @value: secret value for the new item
@@ -813,7 +813,7 @@ secret_item_create_finish (GAsyncResult *result,
 /**
  * secret_item_create_sync:
  * @collection: a secret collection to create this item in
- * @schema: (allow-none): the schema for the attributes
+ * @schema: (nullable): the schema for the attributes
  * @attributes: (element-type utf8 utf8): attributes for the new item
  * @label: label for the new item
  * @value: secret value for the new item
@@ -1057,7 +1057,7 @@ secret_item_get_service (SecretItem *self)
  *
  * To load the secret call the secret_item_load_secret() method.
  *
- * Returns: (transfer full) (allow-none): the secret value which should be
+ * Returns: (transfer full) (nullable): the secret value which should be
  *          released with secret_value_unref(), or %NULL
  */
 SecretValue *
@@ -1756,7 +1756,7 @@ secret_item_get_attributes (SecretItem *self)
 /**
  * secret_item_set_attributes:
  * @self: an item
- * @schema: (allow-none): the schema for the attributes
+ * @schema: (nullable): the schema for the attributes
  * @attributes: (element-type utf8 utf8): a new set of attributes
  * @cancellable: optional cancellation object
  * @callback: called when the asynchronous operation completes
@@ -1820,7 +1820,7 @@ secret_item_set_attributes_finish (SecretItem *self,
 /**
  * secret_item_set_attributes_sync:
  * @self: an item
- * @schema: (allow-none): the schema for the attributes
+ * @schema: (nullable): the schema for the attributes
  * @attributes: (element-type utf8 utf8): a new set of attributes
  * @cancellable: optional cancellation object
  * @error: location to place error on failure
