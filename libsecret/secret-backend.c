@@ -155,7 +155,7 @@ backend_get_impl_type (void)
 #endif
 
 #ifdef WITH_GCRYPT
-	if (g_file_test ("/.flatpak-info", G_FILE_TEST_EXISTS) &&
+	if ((g_file_test ("/.flatpak-info", G_FILE_TEST_EXISTS) || g_getenv ("SNAP_NAME") != NULL) &&
 	    _secret_file_backend_check_portal_version ())
 		extension_name = "file";
 	else
