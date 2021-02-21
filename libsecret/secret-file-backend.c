@@ -488,7 +488,7 @@ secret_file_backend_real_init_async (GAsyncInitable *initable,
 					    NULL);
 		g_object_unref (file);
 		secret_value_unref (password);
-	} else if (g_file_test ("/.flatpak-info", G_FILE_TEST_EXISTS)) {
+	} else if (g_file_test ("/.flatpak-info", G_FILE_TEST_EXISTS) || g_getenv ("SNAP_NAME") != NULL) {
 		init = g_slice_new0 (InitClosure);
 		init->io_priority = io_priority;
 		init->file = file;
