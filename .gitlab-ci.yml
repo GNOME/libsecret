@@ -4,6 +4,7 @@ stages:
 
 variables:
   DEPENDENCIES: dbus-x11 diffutils gcc gjs meson ninja-build python3-dbus python3-gobject redhat-rpm-config
+  CPPCHECK_OPTIONS: "--enable=warning --enable=style --enable=performance --enable=portability --std=c99 --template='{id}:{file}:{line},{severity},{message}'"
 
 fedora:Werror:
   image: fedora:latest
@@ -54,6 +55,24 @@ fedora:ubsan:
     - meson _build -Dsanitize=undefined
     - eval `dbus-launch --sh-syntax`
     - meson test -C _build
+  artifacts:
+    when: on_failure
+    paths:
+      - _build/meson-logs/testlog.txt
+
+fedora-static-analyzers/test:
+  image: fedora:latest
+  stage: build
+  before_script:
+    - dnf upgrade -y
+    - dnf install -y 'dnf-command(builddep)'
+    - dnf builddep -y libsecret
+    - dnf install -y $DEPENDENCIES clang-analyzer cppcheck
+    - dbus-uuidgen --ensure
+  script:
+    - meson _build
+    - meson compile -C _build --ninja-args scan-build
+    - cppcheck --force -q $CPPCHECK_OPTIONS libsecret/ egg/ tool/
   artifacts:
     when: on_failure
     paths:
