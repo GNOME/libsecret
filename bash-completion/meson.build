@@ -8,3 +8,6 @@ if bashcompdir == ''
     warning('Will not install bash completion due to missing dependencies!')
   endif
 endif
+if bashcompdir != ''
+  install_data('secret-tool', install_dir: bashcompdir)
+endif

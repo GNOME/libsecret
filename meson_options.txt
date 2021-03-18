@@ -4,3 +4,4 @@ option('debugging', type: 'boolean', value: false, description: 'Turn debugging 
 option('vapi', type: 'boolean', value: true, description: 'Create VAPI file.')
 option('gtk_doc', type: 'boolean', value: true, description: 'Build reference documentation using gtk-doc')
 option('introspection', type: 'boolean', value: true, description: 'Create GIR file.')
+option('bashcompdir', type: 'string', value: '', description: 'Override default location for bash completion files')
