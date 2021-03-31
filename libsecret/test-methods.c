@@ -727,6 +727,7 @@ test_store_sync (Test *test,
 
 	ret = secret_service_store_sync (test->service, &MOCK_SCHEMA, attributes, collection_path,
 	                                 "New Item Label", value, NULL, &error);
+	g_assert_true (ret);
 	g_assert_no_error (error);
 	secret_value_unref (value);
 	g_hash_table_unref (attributes);
@@ -776,10 +777,12 @@ test_store_replace (Test *test,
 
 	ret = secret_service_store_sync (test->service, &MOCK_SCHEMA, attributes, collection_path,
 	                                  "New Item Label", value, NULL, &error);
+	g_assert_true (ret);
 	g_assert_no_error (error);
 
 	ret = secret_service_store_sync (test->service, &MOCK_SCHEMA, attributes, collection_path,
 	                                  "Another Label", value, NULL, &error);
+	g_assert_true (ret);
 	g_assert_no_error (error);
 	secret_value_unref (value);
 	g_hash_table_unref (attributes);
@@ -829,6 +832,7 @@ test_store_async (Test *test,
 	egg_test_wait ();
 
 	ret = secret_service_store_finish (test->service, result, &error);
+	g_assert_true (ret);
 	g_assert_no_error (error);
 	g_object_unref (result);
 
@@ -877,6 +881,7 @@ test_store_no_default (Test *test,
 
 	ret = secret_service_store_sync (test->service, &MOCK_SCHEMA, attributes, SECRET_COLLECTION_DEFAULT,
 	                                 "New Item Label", value, NULL, &error);
+	g_assert_true (ret);
 	g_assert_no_error (error);
 	secret_value_unref (value);
 	g_hash_table_unref (attributes);

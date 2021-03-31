@@ -380,7 +380,7 @@ on_retrieve_secret (GObject *source_object,
 		part = strrchr (path, '/');
 		if (part == NULL)
 			part = path;
-		g_print ("[%s]\n", path);
+		g_print ("[%s]\n", part);
 	} else {
 		g_print ("[no path]\n");
 	}
