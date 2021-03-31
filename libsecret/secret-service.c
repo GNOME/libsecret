@@ -1140,9 +1140,6 @@ secret_service_open (GType service_gtype,
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 	g_return_if_fail (g_type_is_a (service_gtype, SECRET_TYPE_SERVICE));
 
-	if (service_bus_name == NULL)
-		service_bus_name = get_default_bus_name ();
-
 	g_async_initable_new_async (service_gtype, G_PRIORITY_DEFAULT,
 	                            cancellable, callback, user_data,
 	                            "flags", flags,
@@ -1216,9 +1213,6 @@ secret_service_open_sync (GType service_gtype,
 {
 	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
 	g_return_val_if_fail (g_type_is_a (service_gtype, SECRET_TYPE_SERVICE), NULL);
-
-	if (service_bus_name == NULL)
-		service_bus_name = get_default_bus_name ();
 
 	return g_initable_new (service_gtype, cancellable, error,
 	                       "flags", flags,

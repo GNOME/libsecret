@@ -1560,8 +1560,6 @@ secret_collection_search_sync (SecretCollection *self,
 	if (paths == NULL)
 		return NULL;
 
-	ret = TRUE;
-
 	want = 1;
 	if (flags & SECRET_SEARCH_ALL)
 		want = G_MAXINT;
