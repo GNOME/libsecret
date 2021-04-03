@@ -142,7 +142,10 @@ secret_tool_action_clear (int argc,
 	g_hash_table_unref (attributes);
 
 	if (!ret) {
-		g_printerr ("%s: %s\n", g_get_prgname (), error->message);
+		if (error != NULL) {
+			g_printerr ("%s: %s\n", g_get_prgname (), error->message);
+			g_error_free (error);
+		}
 		return 1;
 	}
 
@@ -215,6 +218,7 @@ secret_tool_action_lookup (int argc,
 
 	if (error != NULL) {
 		g_printerr ("%s: %s\n", g_get_prgname (), error->message);
+		g_error_free (error);
 		return 1;
 	}
 
@@ -482,6 +486,7 @@ secret_tool_action_search (int argc,
 
 	if (error != NULL) {
 		g_printerr ("%s: %s\n", g_get_prgname (), error->message);
+		g_error_free (error);
 		return 1;
 	}
 
