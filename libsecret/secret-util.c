@@ -89,7 +89,7 @@ _secret_list_get_type (void)
 GQuark
 secret_error_get_quark (void)
 {
-	static volatile gsize quark = 0;
+	static gsize quark = 0;
 
 	static const GDBusErrorEntry entries[] = {
 		{ SECRET_ERROR_IS_LOCKED, "org.freedesktop.Secret.Error.IsLocked", },
