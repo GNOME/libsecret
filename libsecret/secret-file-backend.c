@@ -397,7 +397,6 @@ on_bus_get (GObject *source_object,
 		return;
 	}
 
-	close (fds[1]);
 	init->stream = g_unix_input_stream_new (fds[0], TRUE);
 
 	g_variant_builder_init (&options, G_VARIANT_TYPE_VARDICT);
