@@ -1,15 +1,15 @@
 # Polish translation for libsecret.
-# Copyright © 2012-2016 the libsecret authors.
+# Copyright © 2012-2021 the libsecret authors.
 # This file is distributed under the same license as the libsecret package.
-# Piotr Drąg <piotrdrag@gmail.com>, 2012-2016.
-# Aviary.pl <community-poland@mozilla.org>, 2012-2016.
+# Piotr Drąg <piotrdrag@gmail.com>, 2012-2021.
+# Aviary.pl <community-poland@mozilla.org>, 2012-2021.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: libsecret\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-08-22 21:41+0200\n"
-"PO-Revision-Date: 2016-08-22 21:42+0200\n"
+"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/libsecret/issues\n"
+"POT-Creation-Date: 2021-06-24 11:59+0000\n"
+"PO-Revision-Date: 2021-06-27 11:00+0200\n"
 "Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
 "Language-Team: Polish <community-poland@mozilla.org>\n"
 "Language: pl\n"
@@ -19,39 +19,42 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
 "|| n%100>=20) ? 1 : 2);\n"
 
-#: ../libsecret/secret-item.c:1165
-#, c-format
+#: libsecret/secret-item.c:1104
 msgid "Received invalid secret from the secret storage"
 msgstr "Otrzymano nieprawidłowy sekret z przechowalni"
 
-#: ../libsecret/secret-methods.c:1055
+#: libsecret/secret-methods.c:1055
 msgid "Default keyring"
 msgstr "Domyślna baza kluczy"
 
-#: ../libsecret/secret-session.c:244 ../libsecret/secret-session.c:281
+#: libsecret/secret-session.c:243 libsecret/secret-session.c:279
 msgid "Couldn’t communicate with the secret storage"
-msgstr "Nie można komunikować się z przechowalnią"
+msgstr "Nie można komunikować się z przechowalnią"
 
-#: ../tool/secret-tool.c:39
+#: tool/secret-tool.c:42
 msgid "the label for the new stored item"
 msgstr "etykieta dla nowo przechowywanego elementu"
 
-#: ../tool/secret-tool.c:41
+#: tool/secret-tool.c:44
 msgid "the collection in which to place the stored item"
 msgstr "kolekcja, w której umieścić przechowywany element"
 
-#: ../tool/secret-tool.c:43 ../tool/secret-tool.c:50 ../tool/secret-tool.c:437
+#: tool/secret-tool.c:46 tool/secret-tool.c:53 tool/secret-tool.c:458
 msgid "attribute value pairs of item to lookup"
 msgstr "pary wartości atrybutu wyszukiwanego elementu"
 
-#: ../tool/secret-tool.c:57
+#: tool/secret-tool.c:60
 msgid "attribute value pairs which match items to clear"
 msgstr "pary wartości atrybutu pasujące do czyszczonych elementów"
 
-#: ../tool/secret-tool.c:433
+#: tool/secret-tool.c:67
+msgid "collection in which to lock"
+msgstr "kolekcja, w której zablokować"
+
+#: tool/secret-tool.c:454
 msgid "return all results, instead of just first one"
 msgstr "zwraca wszystkie wyniki, zamiast tylko pierwszego"
 
-#: ../tool/secret-tool.c:435
+#: tool/secret-tool.c:456
 msgid "unlock item results if necessary"
 msgstr "odblokowuje wyniki elementów, jeśli to potrzebne"
