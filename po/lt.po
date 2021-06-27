@@ -1,15 +1,14 @@
 # Lithuanian translation for libsecret.
 # Copyright (C) 2013 libsecret's COPYRIGHT HOLDER
 # This file is distributed under the same license as the libsecret package.
-# Aurimas Černius <aurisc4@gmail.com>, 2013.
+# Aurimas Černius <aurisc4@gmail.com>, 2013-2021.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: libsecret master\n"
-"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
-"product=libsecret&keywords=I18N+L10N&component=general\n"
-"POT-Creation-Date: 2013-06-02 00:21+0000\n"
-"PO-Revision-Date: 2013-06-09 23:29+0300\n"
+"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/libsecret/issues\n"
+"POT-Creation-Date: 2021-06-24 11:59+0000\n"
+"PO-Revision-Date: 2021-06-27 18:21+0300\n"
 "Last-Translator: Aurimas Černius <aurisc4@gmail.com>\n"
 "Language-Team: Lietuvių <gnome-lt@lists.akl.lt>\n"
 "Language: lt\n"
@@ -17,42 +16,46 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && (n"
-"%100<10 || n%100>=20) ? 1 : 2);\n"
-"X-Generator: Gtranslator 2.91.6\n"
+"%100<10 || n%100>=20) ? 1 : 2)\n"
+"X-Generator: Gtranslator 40.0\n"
 
-#: ../libsecret/secret-item.c:1164
-#, c-format
+#: libsecret/secret-item.c:1104
 msgid "Received invalid secret from the secret storage"
 msgstr "Iš paslapčių saugyklos gauta netinkama paslaptis"
 
-#: ../libsecret/secret-methods.c:1055
+#: libsecret/secret-methods.c:1055
 msgid "Default keyring"
 msgstr "Numatytoji raktinė"
 
-#: ../libsecret/secret-session.c:244 ../libsecret/secret-session.c:281
+#: libsecret/secret-session.c:243 libsecret/secret-session.c:279
 msgid "Couldn’t communicate with the secret storage"
 msgstr "Nepavyksta komunikuoti su paslapčių saugykla"
 
-#: ../tool/secret-tool.c:39
+#: tool/secret-tool.c:42
 msgid "the label for the new stored item"
 msgstr "etiketė naujai įrašomam elementui"
 
-#: ../tool/secret-tool.c:41
+#: tool/secret-tool.c:44
 msgid "the collection in which to place the stored item"
 msgstr "rinkinys, į kurį patalpinti įrašomą elementą"
 
-#: ../tool/secret-tool.c:43 ../tool/secret-tool.c:50 ../tool/secret-tool.c:437
+#: tool/secret-tool.c:46 tool/secret-tool.c:53 tool/secret-tool.c:458
 msgid "attribute value pairs of item to lookup"
 msgstr "elemento atributų verčių poros paieškai"
 
-#: ../tool/secret-tool.c:57
+#: tool/secret-tool.c:60
 msgid "attribute value pairs which match items to clear"
 msgstr "atributų verčių poros, kurios atitinka išvalomus elementus"
 
-#: ../tool/secret-tool.c:433
+#: tool/secret-tool.c:67
+#| msgid "the collection in which to place the stored item"
+msgid "collection in which to lock"
+msgstr "rinkinys, į kuriame rakinti"
+
+#: tool/secret-tool.c:454
 msgid "return all results, instead of just first one"
 msgstr "grąžinti visus rezultatus, o ne vieną"
 
-#: ../tool/secret-tool.c:435
+#: tool/secret-tool.c:456
 msgid "unlock item results if necessary"
 msgstr "jei reikia, atrakinti rezultatus"
