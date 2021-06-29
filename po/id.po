@@ -6,51 +6,53 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: libsecret master\n"
-"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
-"product=libsecret&keywords=I18N+L10N&component=general\n"
-"POT-Creation-Date: 2013-06-23 10:22+0000\n"
-"PO-Revision-Date: 2013-07-04 12:33+0700\n"
+"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/libsecret/issues\n"
+"POT-Creation-Date: 2021-06-24 11:59+0000\n"
+"PO-Revision-Date: 2021-06-29 14:42+0700\n"
 "Last-Translator: Andika Triwidada <andika@gmail.com>\n"
 "Language-Team: Indonesian <gnome-l10n-id@googlegroups.com>\n"
 "Language: id\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 1.5.5\n"
+"X-Generator: Poedit 2.4.3\n"
 
-#: ../libsecret/secret-item.c:1164
-#, c-format
+#: libsecret/secret-item.c:1104
 msgid "Received invalid secret from the secret storage"
 msgstr "Menerima rahasia yang tak valid dari penyimpanan rahasia"
 
-#: ../libsecret/secret-methods.c:1055
+#: libsecret/secret-methods.c:1055
 msgid "Default keyring"
 msgstr "Ring kunci baku"
 
-#: ../libsecret/secret-session.c:244 ../libsecret/secret-session.c:281
+#: libsecret/secret-session.c:243 libsecret/secret-session.c:279
 msgid "Couldn’t communicate with the secret storage"
 msgstr "Tak bisa berkomunikasi dengan penyimpanan rahasia"
 
-#: ../tool/secret-tool.c:39
+#: tool/secret-tool.c:42
 msgid "the label for the new stored item"
 msgstr "label bagi butir yang baru disimpan"
 
-#: ../tool/secret-tool.c:41
+#: tool/secret-tool.c:44
 msgid "the collection in which to place the stored item"
 msgstr "koleksi tempat tujuan butir yang disimpan"
 
-#: ../tool/secret-tool.c:43 ../tool/secret-tool.c:50 ../tool/secret-tool.c:437
+#: tool/secret-tool.c:46 tool/secret-tool.c:53 tool/secret-tool.c:458
 msgid "attribute value pairs of item to lookup"
 msgstr "pasangan nilai atribut dari butir yang dicari"
 
-#: ../tool/secret-tool.c:57
+#: tool/secret-tool.c:60
 msgid "attribute value pairs which match items to clear"
 msgstr "pasangan nilai atribut yang cocok dengan butir yang akan dibersihkan"
 
-#: ../tool/secret-tool.c:433
+#: tool/secret-tool.c:67
+msgid "collection in which to lock"
+msgstr "koleksi tempat mengunci"
+
+#: tool/secret-tool.c:454
 msgid "return all results, instead of just first one"
 msgstr "mengembalikan semua hasil, bukan hanya yang pertama"
 
-#: ../tool/secret-tool.c:435
+#: tool/secret-tool.c:456
 msgid "unlock item results if necessary"
 msgstr "buka kunci hasil butir bila perlu"
