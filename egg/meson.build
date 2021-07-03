@@ -23,3 +23,30 @@ libegg = static_library('egg',
   dependencies: libegg_deps,
   include_directories: [config_h_dir, build_dir],
 )
+
+# Tests
+test_names = [
+  'test-hex',
+  'test-secmem',
+]
+
+if get_option('gcrypt')
+  test_names += [
+    'test-dh',
+    'test-hkdf',
+  ]
+endif
+
+foreach _test : test_names
+
+  test_bin = executable(_test,
+    '@0@.c'.format(_test),
+    dependencies: libegg_deps,
+    link_with: libegg,
+    include_directories: config_h_dir,
+  )
+
+  test(_test, test_bin,
+    suite: 'libegg',
+  )
+endforeach
