@@ -13,11 +13,18 @@ fedora:Werror:
     - dnf upgrade -y
     - dnf install -y 'dnf-command(builddep)'
     - dnf builddep -y libsecret
-    - dnf install -y $DEPENDENCIES
+    - dnf install -y $DEPENDENCIES swtpm swtpm-tools tpm2-abrmd
     - dbus-uuidgen --ensure
   script:
-    - meson _build -Dwerror=true -Dc_args=-Wno-error=deprecated-declarations
+    - export XDG_CONFIG_HOME=$HOME/.config
+    - /usr/share/swtpm/swtpm-create-user-config-files --root
+    - mkdir -p ${XDG_CONFIG_HOME}/mytpm1
+    - swtpm_setup --tpm2 --tpmstate $XDG_CONFIG_HOME/mytpm1 --createek --allow-signing --decryption --create-ek-cert --create-platform-cert --lock-nvram --overwrite --display
+    - swtpm socket --tpm2 --tpmstate dir=$XDG_CONFIG_HOME/mytpm1 --flags startup-clear --ctrl type=tcp,port=2322 --server type=tcp,port=2321 --daemon
     - eval `dbus-launch --sh-syntax`
+    - 'tpm2-abrmd --logger=stdout --tcti=swtpm: --session --flush-all &'
+    - 'export TCTI=tabrmd:bus_type=session'
+    - meson _build -Dwerror=true -Dc_args=-Wno-error=deprecated-declarations
     - meson test -C _build
   artifacts:
     when: on_failure
