@@ -22,7 +22,7 @@ fedora:Werror:
     - swtpm_setup --tpm2 --tpmstate $XDG_CONFIG_HOME/mytpm1 --createek --allow-signing --decryption --create-ek-cert --create-platform-cert --lock-nvram --overwrite --display
     - swtpm socket --tpm2 --tpmstate dir=$XDG_CONFIG_HOME/mytpm1 --flags startup-clear --ctrl type=tcp,port=2322 --server type=tcp,port=2321 --daemon
     - eval `dbus-launch --sh-syntax`
-    - 'tpm2-abrmd --logger=stdout --tcti=swtpm: --session --flush-all &'
+    - 'tpm2-abrmd --logger=stdout --tcti=swtpm: --session --allow-root --flush-all &'
     - 'export TCTI=tabrmd:bus_type=session'
     - meson _build -Dwerror=true -Dc_args=-Wno-error=deprecated-declarations
     - meson test -C _build
