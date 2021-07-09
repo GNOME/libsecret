@@ -61,7 +61,7 @@
  * The variable argument list should contain pairs of a) The attribute name as
  * a null-terminated string, followed by b) attribute value, either a character
  * string, an int number, or a gboolean value, as defined in the @schema.
- * The list of attribtues should be terminated with a %NULL.
+ * The list of attributes should be terminated with a %NULL.
  *
  * If the attributes match a secret item already stored in the collection, then
  * the item will be updated with these new values.
@@ -381,7 +381,7 @@ secret_password_store_finish (GAsyncResult *result,
  * The variable argument list should contain pairs of a) The attribute name as
  * a null-terminated string, followed by b) attribute value, either a character
  * string, an int number, or a gboolean value, as defined in the @schema.
- * The list of attribtues should be terminated with a %NULL.
+ * The list of attributes should be terminated with a %NULL.
  *
  * If the attributes match a secret item already stored in the collection, then
  * the item will be updated with these new values.
@@ -625,7 +625,7 @@ secret_password_storev_binary_sync (const SecretSchema *schema,
  * The variable argument list should contain pairs of a) The attribute name as
  * a null-terminated string, followed by b) attribute value, either a character
  * string, an int number, or a gboolean value, as defined in the password
- * @schema. The list of attribtues should be terminated with a %NULL.
+ * @schema. The list of attributes should be terminated with a %NULL.
  *
  * If no secret is found then %NULL is returned.
  *
@@ -909,7 +909,7 @@ secret_password_lookup_sync (const SecretSchema *schema,
  * The variable argument list should contain pairs of a) The attribute name as
  * a null-terminated string, followed by b) attribute value, either a character
  * string, an int number, or a gboolean value, as defined in the password
- * @schema. The list of attribtues should be terminated with a %NULL.
+ * @schema. The list of attributes should be terminated with a %NULL.
  *
  * If no secret is found then %NULL is returned.
  *
@@ -1169,7 +1169,7 @@ secret_password_lookupv_sync (const SecretSchema *schema,
  * The variable argument list should contain pairs of a) The attribute name as
  * a null-terminated string, followed by b) attribute value, either a character
  * string, an int number, or a gboolean value, as defined in the password
- * @schema. The list of attribtues should be terminated with a %NULL.
+ * @schema. The list of attributes should be terminated with a %NULL.
  *
  * All unlocked items that match the attributes will be deleted.
  *
@@ -1345,7 +1345,7 @@ secret_password_clear_finish (GAsyncResult *result,
  * The variable argument list should contain pairs of a) The attribute name as
  * a null-terminated string, followed by b) attribute value, either a character
  * string, an int number, or a gboolean value, as defined in the password
- * @schema. The list of attribtues should be terminated with a %NULL.
+ * @schema. The list of attributes should be terminated with a %NULL.
  *
  * All unlocked items that match the attributes will be deleted.
  *
@@ -1449,7 +1449,7 @@ secret_password_clearv_sync (const SecretSchema *schema,
  * The variable argument list should contain pairs of a) The attribute name as
  * a null-terminated string, followed by b) attribute value, either a character
  * string, an int number, or a gboolean value, as defined in the password
- * @schema. The list of attribtues should be terminated with a %NULL.
+ * @schema. The list of attributes should be terminated with a %NULL.
  *
  * This method will return immediately and complete asynchronously.
  *
