@@ -84,7 +84,7 @@ _secret_attributes_for_variant (GVariant *variant)
  * The variable argument list should contain pairs of a) The attribute name as
  * a null-terminated string, followed by b) attribute value, either a character
  * string, an int number, or a gboolean value, as defined in the password
- * @schema. The list of attribtues should be terminated with a %NULL.
+ * @schema. The list of attributes should be terminated with a %NULL.
  *
  * Returns: (transfer full) (element-type utf8 utf8): a new table of
  *          attributes, to be released with g_hash_table_unref()
@@ -113,7 +113,7 @@ secret_attributes_build (const SecretSchema *schema,
  * The variable argument list should contain pairs of a) The attribute name as
  * a null-terminated string, followed by b) attribute value, either a character
  * string, an int number, or a gboolean value, as defined in the password
- * @schema. The list of attribtues should be terminated with a %NULL.
+ * @schema. The list of attributes should be terminated with a %NULL.
  *
  * Returns: (transfer full) (element-type utf8 utf8): a new table of
  *          attributes, to be released with g_hash_table_unref()

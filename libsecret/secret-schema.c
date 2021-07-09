@@ -251,7 +251,7 @@ secret_schema_newv (const gchar *name,
  * The variable argument list should contain pairs of a) The attribute name as
  * a null-terminated string, followed by b) integers from the
  * #SecretSchemaAttributeType enumeration, representing the attribute type for
- * each attribute name. The list of attribtues should be terminated with a %NULL.
+ * each attribute name. The list of attributes should be terminated with a %NULL.
  *
  * Normally when looking up passwords only those with matching schema names are
  * returned. If the schema @flags contain the %SECRET_SCHEMA_DONT_MATCH_NAME flag,
