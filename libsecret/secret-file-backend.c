@@ -22,6 +22,7 @@
 #include "secret-retrievable.h"
 
 #include "egg/egg-secure-memory.h"
+#include "egg/egg-tpm2.h"
 
 EGG_SECURE_DECLARE (secret_file_backend);
 
@@ -494,12 +495,112 @@ secret_file_backend_real_init_async (GAsyncInitable *initable,
 		g_task_set_task_data (task, init, init_closure_free);
 		g_bus_get (G_BUS_TYPE_SESSION, cancellable, on_bus_get, task);
 	} else {
+#ifdef WITH_TPM
+		EggTpm2Context *context;
+		GFile *tpm2_file;
+		gchar *tpm2_file_path;
+		gboolean status;
+		GBytes *encrypted;
+		GBytes *decrypted;
+
+		context = egg_tpm2_initialize (&error);
+		if (!context) {
+			g_task_return_error (task, error);
+			g_object_unref (task);
+			return;
+		}
+
+		path = g_file_get_path (file);
+		tpm2_file_path = g_strdup_printf ("%s.tpm2", path);
+		g_free(path);
+		tpm2_file = g_file_new_for_path (tpm2_file_path);
+		status = g_file_test (tpm2_file_path, G_FILE_TEST_EXISTS);
+		g_free (tpm2_file_path);
+
+		if (!status) {
+			encrypted = egg_tpm2_generate_master_password (
+							context,
+							&error);
+			if (!encrypted) {
+				g_task_return_error (task, error);
+				g_object_unref (task);
+				return;
+			}
+
+			gconstpointer contents;
+			gsize size;
+			contents = g_bytes_get_data (encrypted, &size);
+			status = g_file_replace_contents (tpm2_file,
+							  contents,
+							  size,
+							  NULL,
+							  FALSE,
+							  G_FILE_CREATE_PRIVATE,
+							  NULL,
+							  cancellable,
+							  &error);
+			if (!status) {
+				g_task_return_error (task, error);
+				g_object_unref (task);
+				return;
+			}
+
+		} else {
+			char *contents;
+			gsize length;
+			status = g_file_load_contents (tpm2_file,
+						       cancellable,
+						       &contents,
+						       &length,
+						       NULL,
+						       &error);
+			if (!status) {
+				g_task_return_error (task, error);
+				g_object_unref (task);
+				return;
+			}
+
+			encrypted = g_bytes_new_take (contents, length);
+		}
+
+		decrypted = egg_tpm2_decrypt_master_password (context,
+							      encrypted,
+							      &error);
+		g_bytes_unref (encrypted);
+		egg_tpm2_finalize (context);
+		if (!decrypted) {
+			g_task_return_error (task, error);
+			g_object_unref (task);
+			return;
+		}
+
+		gconstpointer data;
+		gsize size;
+		data = g_bytes_get_data(decrypted, &size);
+		password = secret_value_new (data,
+					     size,
+					     "text/plain");
+		g_bytes_unref (decrypted);
+		g_async_initable_new_async (SECRET_TYPE_FILE_COLLECTION,
+					    io_priority,
+					    cancellable,
+					    on_collection_new_async,
+					    task,
+					    "file", file,
+					    "password", password,
+					    NULL);
+
+		g_object_unref (tpm2_file);
+		g_object_unref (file);
+		secret_value_unref (password);
+#else
 		g_task_return_new_error (task,
 					 G_IO_ERROR,
 					 G_IO_ERROR_INVALID_ARGUMENT,
 					 "master password is not retrievable");
 		g_object_unref (task);
 		return;
+#endif
 	}
 }
 

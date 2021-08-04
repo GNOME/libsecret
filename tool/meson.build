@@ -17,3 +17,11 @@ if get_option('gcrypt') and host_machine.system() != 'windows'
     suite: 'secret-tool',
   )
 endif
+
+if get_option('tpm2')
+  test('test-secret-tool-tpm2.sh',
+    find_program('test-secret-tool-tpm2.sh'),
+    env: test_env,
+    suite: 'secret-tool',
+  )
+endif
