@@ -18,6 +18,14 @@ if get_option('gcrypt')
   libegg_deps += gcrypt_dep
 endif
 
+if get_option('tpm2')
+  libegg_sources += [
+    'egg-tpm2.c',
+  ]
+
+  libegg_deps += tss2_deps
+endif
+
 libegg = static_library('egg',
   libegg_sources,
   dependencies: libegg_deps,
@@ -34,6 +42,12 @@ if get_option('gcrypt')
   test_names += [
     'test-dh',
     'test-hkdf',
+  ]
+endif
+
+if get_option('tpm2')
+  test_names += [
+    'test-tpm2',
   ]
 endif
 

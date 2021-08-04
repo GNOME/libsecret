@@ -36,6 +36,17 @@ gcrypt_dep = dependency('libgcrypt',
   required: get_option('gcrypt'),
 )
 
+min_tss2_version = '3.0.3'
+tss2_esys = dependency('tss2-esys', version: '>=' + min_tss2_version, required: get_option('tpm2'))
+tss2_mu = dependency('tss2-mu', version: '>=' + min_tss2_version, required: get_option('tpm2'))
+tss2_rc = dependency('tss2-rc', version: '>=' + min_tss2_version, required: get_option('tpm2'))
+tss2_tctildr = dependency('tss2-tctildr', version: '>=' + min_tss2_version, required: get_option('tpm2'))
+
+tss2_deps = []
+if tss2_esys.found() and tss2_mu.found() and tss2_rc.found() and tss2_tctildr.found()
+  tss2_deps += [tss2_esys, tss2_mu, tss2_rc, tss2_tctildr]
+endif
+
 # Libraries
 math = meson.get_compiler('c').find_library('m')
 
@@ -48,8 +59,12 @@ conf.set_quoted('PACKAGE_NAME', meson.project_name())
 conf.set_quoted('PACKAGE_STRING', meson.project_name())
 conf.set_quoted('PACKAGE_VERSION', meson.project_version())
 conf.set('WITH_GCRYPT', get_option('gcrypt'))
+conf.set('WITH_TPM', get_option('tpm2'))
 if get_option('gcrypt')
   conf.set_quoted('LIBGCRYPT_VERSION', min_libgcrypt_version)
+endif
+if get_option('tpm2')
+  conf.set_quoted('TSS2_VERSION', min_tss2_version)
 endif
 conf.set('WITH_DEBUG', get_option('debugging'))
 conf.set('_DEBUG', get_option('debugging'))
