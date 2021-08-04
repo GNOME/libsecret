@@ -25,6 +25,7 @@ fedora:Werror:
     - 'tpm2-abrmd --logger=stdout --tcti=swtpm: --session --allow-root --flush-all &'
     - 'export TCTI=tabrmd:bus_type=session'
     - meson _build -Dwerror=true -Dc_args=-Wno-error=deprecated-declarations
+    - meson compile -C _build
     - meson test -C _build
   artifacts:
     when: on_failure
@@ -42,6 +43,7 @@ fedora:asan:
     - dbus-uuidgen --ensure
   script:
     - meson _build -Dsanitize=address
+    - meson compile -C _build
     - eval `dbus-launch --sh-syntax`
     - meson test -C _build
   artifacts:
@@ -60,6 +62,7 @@ fedora:ubsan:
     - dbus-uuidgen --ensure
   script:
     - meson _build -Dsanitize=undefined
+    - meson compile -C _build
     - eval `dbus-launch --sh-syntax`
     - meson test -C _build
   artifacts:
@@ -96,6 +99,7 @@ fedora:coverage:
     - dbus-uuidgen --ensure
   script:
     - meson _build -Db_coverage=true
+    - meson compile -C _build
     - eval `dbus-launch --sh-syntax`
     - meson test -C _build
     - ninja coverage-html -C _build
