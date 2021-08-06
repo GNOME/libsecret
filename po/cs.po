@@ -1,15 +1,14 @@
 # Czech translation for libsecret.
 # Copyright (C) 2013 libsecret's COPYRIGHT HOLDER
 # This file is distributed under the same license as the libsecret package.
-# Marek Černocký <marek@manet.cz>, 2013.
+# Marek Černocký <marek@manet.cz>, 2013, 2021
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: libsecret master\n"
-"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
-"product=libsecret&keywords=I18N+L10N&component=general\n"
-"POT-Creation-Date: 2013-02-18 14:22+0000\n"
-"PO-Revision-Date: 2013-03-18 21:05+0100\n"
+"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/libsecret/issues\n"
+"POT-Creation-Date: 2021-06-24 11:59+0000\n"
+"PO-Revision-Date: 2021-08-06 21:06+0200\n"
 "Last-Translator: Marek Černocký <marek@manet.cz>\n"
 "Language-Team: Czech <gnome-cs-list@gnome.org>\n"
 "Language: cs\n"
@@ -19,39 +18,43 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
 "X-Generator: Gtranslator 2.91.6\n"
 
-#: ../libsecret/secret-item.c:1164
-#, c-format
+#: libsecret/secret-item.c:1104
 msgid "Received invalid secret from the secret storage"
 msgstr "Přijata neplatná tajná informace z úložiště tajných dat"
 
-#: ../libsecret/secret-methods.c:1029
+#: libsecret/secret-methods.c:1055
 msgid "Default keyring"
 msgstr "Výchozí klíčenka"
 
-#: ../libsecret/secret-session.c:244 ../libsecret/secret-session.c:281
+#: libsecret/secret-session.c:243 libsecret/secret-session.c:279
 msgid "Couldn’t communicate with the secret storage"
 msgstr "Nelze komunikovat s úložištěm tajných dat"
 
-#: ../tool/secret-tool.c:39
+#: tool/secret-tool.c:42
 msgid "the label for the new stored item"
 msgstr "popisek pro nově ukládanou položku"
 
-#: ../tool/secret-tool.c:41
+#: tool/secret-tool.c:44
 msgid "the collection in which to place the stored item"
 msgstr "kolekce, do které se má umístit ukládaná položka"
 
-#: ../tool/secret-tool.c:43 ../tool/secret-tool.c:50 ../tool/secret-tool.c:437
+#: tool/secret-tool.c:46 tool/secret-tool.c:53 tool/secret-tool.c:458
 msgid "attribute value pairs of item to lookup"
 msgstr "dvojice atribut – hodnota hledané položky"
 
-#: ../tool/secret-tool.c:57
+#: tool/secret-tool.c:60
 msgid "attribute value pairs which match items to clear"
 msgstr "dvojice atribut – hodnota, které odpovídají mazaným položkám"
 
-#: ../tool/secret-tool.c:433
+#: tool/secret-tool.c:67
+msgid "collection in which to lock"
+msgstr "kolekce, ve které se má zamknout"
+
+#: tool/secret-tool.c:454
 msgid "return all results, instead of just first one"
 msgstr "vrátit všechny výsledky, ne jen první"
 
-#: ../tool/secret-tool.c:435
+#: tool/secret-tool.c:456
 msgid "unlock item results if necessary"
 msgstr "odemknout položky výsledků, pokud je potřeba"
+
