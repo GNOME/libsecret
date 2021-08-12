@@ -115,7 +115,8 @@ fedora:coverage:
 pages:
   stage: deploy
   script:
-    - mv _build/meson-logs/coveragereport/ public/
+    - mkdir public
+    - mv _build/meson-logs/coveragereport public/coverage
   artifacts:
     when: on_success
     paths:
