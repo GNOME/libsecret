@@ -50,6 +50,9 @@ test_egg_tpm2_decrypt_master_password(void)
 	g_assert_nonnull(context);
 	result = egg_tpm2_generate_master_password(context, &error);
 	g_assert_nonnull(result);
+	egg_tpm2_finalize(context);
+
+	context = egg_tpm2_initialize(&error);
 	decrypted1 = egg_tpm2_decrypt_master_password(context, result,
 						      &error);
 	g_assert_nonnull(decrypted1);

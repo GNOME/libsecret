@@ -130,14 +130,9 @@ static GBytes *
 egg_tpm2_generate_random_data(EggTpm2Context *context,
 		               GError **error)
 {
-	gboolean status = FALSE;
 	TSS2_RC ret;
 	TPM2B_DIGEST *random_data;
 	GBytes *bytes;
-
-	status = egg_tpm2_generate_primary_key(context, error);
-	if (!status)
-		return NULL;
 
 	ret = Esys_GetRandom(context->esys_context, ESYS_TR_NONE,
 			     ESYS_TR_NONE, ESYS_TR_NONE, MAX_BYTE_SIZE,
@@ -164,6 +159,7 @@ egg_tpm2_initialize(GError **error)
 	EggTpm2Context *context;
 	gsize n_context;
 	const gchar *tcti_conf;
+	gboolean status;
 
 	n_context = 1;
 	context = g_new(EggTpm2Context, n_context);
@@ -198,6 +194,12 @@ egg_tpm2_initialize(GError **error)
 			    G_IO_ERROR,
 			    G_IO_ERROR_FAILED,
 			    "Esys_Startup: %s", Tss2_RC_Decode(ret));
+		return NULL;
+	}
+
+	status = egg_tpm2_generate_primary_key(context, error);
+	if (!status) {
+		egg_tpm2_finalize(context);
 		return NULL;
 	}
 
@@ -286,8 +288,6 @@ egg_tpm2_generate_master_password(EggTpm2Context *context,
 	}
 
 	data = g_bytes_get_data(input, &size);
-	g_bytes_unref(input);
-
 	if (size > sizeof(in_sensitive.sensitive.data.buffer)) {
 		g_set_error_literal(error,
 				    G_IO_ERROR,
@@ -298,6 +298,7 @@ egg_tpm2_generate_master_password(EggTpm2Context *context,
 
 	memcpy(in_sensitive.sensitive.data.buffer, data, size);
 	in_sensitive.sensitive.data.size = size;
+	g_bytes_unref(input);
 
 	ret = Esys_Create(context->esys_context, context->primary_key,
 			  ESYS_TR_PASSWORD, ESYS_TR_NONE, ESYS_TR_NONE,
