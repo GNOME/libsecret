@@ -3,7 +3,7 @@ stages:
   - deploy
 
 variables:
-  DEPENDENCIES: dbus-x11 diffutils gcc gjs meson ninja-build python3-dbus python3-gobject redhat-rpm-config tpm2-tss-devel
+  DEPENDENCIES: dbus-x11 diffutils gcc gjs meson ninja-build python3-dbus python3-gobject redhat-rpm-config
   CPPCHECK_OPTIONS: "--enable=warning --enable=style --enable=performance --enable=portability --std=c99 --template='{id}:{file}:{line},{severity},{message}'"
 
 fedora:Werror:
@@ -13,19 +13,12 @@ fedora:Werror:
     - dnf upgrade -y
     - dnf install -y 'dnf-command(builddep)'
     - dnf builddep -y libsecret
-    - dnf install -y $DEPENDENCIES swtpm swtpm-tools tpm2-abrmd
+    - dnf install -y $DEPENDENCIES
     - dbus-uuidgen --ensure
   script:
-    - export XDG_CONFIG_HOME=$HOME/.config
-    - /usr/share/swtpm/swtpm-create-user-config-files --root
-    - mkdir -p ${XDG_CONFIG_HOME}/mytpm1
-    - swtpm_setup --tpm2 --tpmstate $XDG_CONFIG_HOME/mytpm1 --createek --allow-signing --decryption --create-ek-cert --create-platform-cert --lock-nvram --overwrite --display
-    - swtpm socket --tpm2 --tpmstate dir=$XDG_CONFIG_HOME/mytpm1 --flags startup-clear --ctrl type=tcp,port=2322 --server type=tcp,port=2321 --daemon
-    - eval `dbus-launch --sh-syntax`
-    - 'tpm2-abrmd --logger=stdout --tcti=swtpm: --session --allow-root --flush-all &'
-    - 'export TCTI=tabrmd:bus_type=session'
-    - meson _build -Dwerror=true -Dc_args=-Wno-error=deprecated-declarations -Dtpm2=true
+    - meson _build -Dwerror=true -Dc_args=-Wno-error=deprecated-declarations
     - meson compile -C _build
+    - eval `dbus-launch --sh-syntax`
     - meson test -C _build
   artifacts:
     when: on_failure
@@ -95,12 +88,20 @@ fedora:coverage:
     - dnf upgrade -y
     - dnf install -y 'dnf-command(builddep)'
     - dnf builddep -y libsecret
+    - dnf install -y $DEPENDENCIES swtpm swtpm-tools tpm2-abrmd tpm2-tss-devel
     - dnf install -y $DEPENDENCIES lcov
     - dbus-uuidgen --ensure
   script:
-    - meson _build -Db_coverage=true
+    - meson _build -Db_coverage=true -Dtpm2=true
     - meson compile -C _build
     - eval `dbus-launch --sh-syntax`
+    - export XDG_CONFIG_HOME=$HOME/.config
+    - /usr/share/swtpm/swtpm-create-user-config-files --root
+    - mkdir -p ${XDG_CONFIG_HOME}/mytpm1
+    - swtpm_setup --tpm2 --tpmstate $XDG_CONFIG_HOME/mytpm1 --createek --allow-signing --decryption --create-ek-cert --create-platform-cert --lock-nvram --overwrite --display
+    - swtpm socket --tpm2 --tpmstate dir=$XDG_CONFIG_HOME/mytpm1 --flags startup-clear --ctrl type=tcp,port=2322 --server type=tcp,port=2321 --daemon
+    - 'tpm2-abrmd --logger=stdout --tcti=swtpm: --session --allow-root --flush-all &'
+    - 'export TCTI=tabrmd:bus_type=session'
     - meson test -C _build
     - ninja coverage-html -C _build
   coverage: '/^\s+lines.+:\s+([\d.]+\%)\s+/'
