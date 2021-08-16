@@ -103,17 +103,6 @@ secret_error_get_quark (void)
 	return quark;
 }
 
-gboolean
-_secret_util_propagate_error (GSimpleAsyncResult *async,
-                              GError **error)
-{
-	if (!g_simple_async_result_propagate_error (async, error))
-		return FALSE;
-
-	_secret_util_strip_remote_error (error);
-	return TRUE;
-}
-
 void
 _secret_util_strip_remote_error (GError **error)
 {

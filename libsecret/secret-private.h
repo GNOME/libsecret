@@ -67,9 +67,6 @@ SecretPrompt *       _secret_prompt_instance                  (SecretService *se
 
 void                 _secret_util_strip_remote_error          (GError **error);
 
-gboolean             _secret_util_propagate_error             (GSimpleAsyncResult *async,
-                                                               GError **error);
-
 gchar *              _secret_util_parent_path                 (const gchar *path);
 
 gboolean             _secret_util_empty_path                  (const gchar *path);
