@@ -1050,7 +1050,8 @@ on_store_create (GObject *source,
 
 	if (!store->created_collection &&
 	    (g_error_matches (error, SECRET_ERROR, SECRET_ERROR_NO_SUCH_OBJECT) ||
-	     g_error_matches (error, G_DBUS_ERROR, G_DBUS_ERROR_UNKNOWN_METHOD)) &&
+	     g_error_matches (error, G_DBUS_ERROR, G_DBUS_ERROR_UNKNOWN_METHOD) ||
+	     g_error_matches (error, G_DBUS_ERROR, G_DBUS_ERROR_UNKNOWN_OBJECT)) &&
 	    g_strcmp0 (store->collection_path, SECRET_ALIAS_PREFIX "default") == 0) {
 		properties = _secret_collection_properties_new (_("Default keyring"));
 		secret_service_create_collection_dbus_path (service, properties, "default",
