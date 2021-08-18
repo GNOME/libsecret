@@ -3,56 +3,57 @@
 # This file is distributed under the same license as the PACKAGE package.
 #
 # Iñaki Larrañaga Murgoitio <dooteo@zundan.com>, 2014.
+# Asier Sarasua Garmendia  <asiersarasua@ni.eus>, 021.
+#
 msgid ""
-msgstr ""
-"Project-Id-Version: libsecret master\n"
-"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
-"product=libsecret&keywords=I18N+L10N&component=general\n"
-"POT-Creation-Date: 2014-04-03 17:40+0200\n"
-"PO-Revision-Date: 2014-04-03 17:46+0200\n"
-"Last-Translator: Iñaki Larrañaga Murgoitio <dooteo@zundan.com>\n"
-"Language-Team: Basque <librezale@librezale.org>\n"
+msgstr "Project-Id-Version: libsecret master\n"
+"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/libsecret/issues\n"
+"POT-Creation-Date: 2021-06-24 11:59+0000\n"
+"PO-Revision-Date: 2021-08-18 17:46+0200\n"
+"Last-Translator: Asier Sarasua Garmendia <asiersarasua@ni.eus>\n"
+"Language-Team: Basque <librezale@librezale.eus>\n"
 "Language: eu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Lokalize 1.4\n"
 
-#: ../libsecret/secret-item.c:1164
-#, c-format
+#: libsecret/secret-item.c:1104
 msgid "Received invalid secret from the secret storage"
 msgstr "Baliogabeko ezkutukoa jaso da ezkutuko biltegitik"
 
-#: ../libsecret/secret-methods.c:1055
+#: libsecret/secret-methods.c:1055
 msgid "Default keyring"
 msgstr "Gako-sorta lehenetsia"
 
-#: ../libsecret/secret-session.c:244 ../libsecret/secret-session.c:281
+#: libsecret/secret-session.c:243 libsecret/secret-session.c:279
 msgid "Couldn’t communicate with the secret storage"
 msgstr "Ezin izan da ezkutuko biltegiarekin komunikatu"
 
-#: ../tool/secret-tool.c:39
+#: tool/secret-tool.c:42
 msgid "the label for the new stored item"
 msgstr "etiketa (gordetako elementu berriarentzako)"
 
-#: ../tool/secret-tool.c:41
+#: tool/secret-tool.c:44
 msgid "the collection in which to place the stored item"
 msgstr "bilduma (gordetako elementua kokatzeko)"
 
-#: ../tool/secret-tool.c:43 ../tool/secret-tool.c:50 ../tool/secret-tool.c:437
+#: tool/secret-tool.c:46 tool/secret-tool.c:53 tool/secret-tool.c:458
 msgid "attribute value pairs of item to lookup"
 msgstr "bilaketako elementuaren atributu eta balio bikotea"
 
-#: ../tool/secret-tool.c:57
+#: tool/secret-tool.c:60
 msgid "attribute value pairs which match items to clear"
 msgstr "garbituko diren elementuekin bat datozen atributu eta balio bikotea"
 
-#: ../tool/secret-tool.c:433
+#: tool/secret-tool.c:67
+msgid "collection in which to lock"
+msgstr "blokeoa jasango duen bilduma"
+
+#: tool/secret-tool.c:454
 msgid "return all results, instead of just first one"
 msgstr "itzuli emaitza guztiak, aurrenekoa bakarrik itzuli ordez"
 
-#: ../tool/secret-tool.c:435
+#: tool/secret-tool.c:456
 msgid "unlock item results if necessary"
 msgstr "desblokeatu emaitzako elementuak behar izanez gero"
-
