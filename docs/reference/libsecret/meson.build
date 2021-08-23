@@ -1,6 +1,7 @@
 reference_content_files = [
   'libsecret-examples.sgml',
   'libsecret-using.sgml',
+  'libsecret-tpm2.sgml',
   'migrating-libgnome-keyring.xml',
 ]
 
