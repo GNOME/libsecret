@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/libsecret/issues\n"
-"POT-Creation-Date: 2020-06-01 07:09+0000\n"
+"POT-Creation-Date: 2021-06-24 11:59+0000\n"
 "PO-Revision-Date: 2013-06-02 00:02+0200\n"
 "Last-Translator: Fran Dieguez <frandieguez@gnome.org>\n"
 "Language-Team: Proxecto Trasno <proxecto@trasno.gal>\n"
@@ -30,26 +30,32 @@ msgstr "Anel de chaves por omisión"
 msgid "Couldn’t communicate with the secret storage"
 msgstr "Non foi posíbel comunicarse co almacenamento de segredos"
 
-#: tool/secret-tool.c:39
+#: tool/secret-tool.c:42
 msgid "the label for the new stored item"
 msgstr "a etiqueta para o novo elemento almacenado"
 
-#: tool/secret-tool.c:41
+#: tool/secret-tool.c:44
 msgid "the collection in which to place the stored item"
 msgstr "A colección na que se poñerá o elemento almacenado"
 
-#: tool/secret-tool.c:43 tool/secret-tool.c:50 tool/secret-tool.c:443
+#: tool/secret-tool.c:46 tool/secret-tool.c:53 tool/secret-tool.c:458
 msgid "attribute value pairs of item to lookup"
 msgstr "pares de atributo-valor do elemento a buscar"
 
-#: tool/secret-tool.c:57
+#: tool/secret-tool.c:60
 msgid "attribute value pairs which match items to clear"
 msgstr "pares de atributo-valor nos que os elementos a limpar deben coincidir"
 
-#: tool/secret-tool.c:439
+#: tool/secret-tool.c:67
+#, fuzzy
+#| msgid "the collection in which to place the stored item"
+msgid "collection in which to lock"
+msgstr "A colección na que se poñerá o elemento almacenado"
+
+#: tool/secret-tool.c:454
 msgid "return all results, instead of just first one"
 msgstr "devolver todos os resultados, no lugar de só un"
 
-#: tool/secret-tool.c:441
+#: tool/secret-tool.c:456
 msgid "unlock item results if necessary"
 msgstr "desbloquear resultados do elemento se é preciso"
