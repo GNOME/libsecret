@@ -2,27 +2,34 @@
 # Copyright (C) 2012 THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # Fran Diéguez <frandieguez@gnome.org>, 2012.
-# Fran Dieguez <frandieguez@gnome.org>, 2012, 2013.
+# Fran Dieguez <frandieguez@gnome.org>, 2012-2021.
+#
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
+"Project-Id-Version: libsecret mater\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/libsecret/issues\n"
-"POT-Creation-Date: 2021-06-24 11:59+0000\n"
-"PO-Revision-Date: 2013-06-02 00:02+0200\n"
+"POT-Creation-Date: 2021-08-25 05:34+0000\n"
+"PO-Revision-Date: 2021-08-25 07:35+0200\n"
 "Last-Translator: Fran Dieguez <frandieguez@gnome.org>\n"
-"Language-Team: Proxecto Trasno <proxecto@trasno.gal>\n"
+"Language-Team: Galician <Proxecto Trasno <proxecto@trasno.gal>>\n"
 "Language: gl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Virtaal 0.7.1\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+"X-Generator: Gtranslator 40.0\n"
+"X-DL-Team: gl\n"
+"X-DL-Module: libsecret\n"
+"X-DL-Branch: master\n"
+"X-DL-Domain: po\n"
+"X-DL-State: Translating\n"
 
 #: libsecret/secret-item.c:1104
+#, c-format
 msgid "Received invalid secret from the secret storage"
 msgstr "Recibiuse un segredo non válido desde o almacenamento de segredos"
 
-#: libsecret/secret-methods.c:1055
+#: libsecret/secret-methods.c:1056
 msgid "Default keyring"
 msgstr "Anel de chaves por omisión"
 
@@ -47,10 +54,9 @@ msgid "attribute value pairs which match items to clear"
 msgstr "pares de atributo-valor nos que os elementos a limpar deben coincidir"
 
 #: tool/secret-tool.c:67
-#, fuzzy
 #| msgid "the collection in which to place the stored item"
 msgid "collection in which to lock"
-msgstr "A colección na que se poñerá o elemento almacenado"
+msgstr "a colección na que se poñerá o elemento almacenado"
 
 #: tool/secret-tool.c:454
 msgid "return all results, instead of just first one"
