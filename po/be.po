@@ -1,55 +1,60 @@
-# Belarusian translation for libsecret.
-# Copyright (C) 2013 libsecret's COPYRIGHT HOLDER
-# This file is distributed under the same license as the libsecret package.
-# Ihar Hrachyshka <ihar.hrachyshka@gmail.com>, 2013.
-#
 msgid ""
 msgstr ""
-"Project-Id-Version: libsecret master\n"
-"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
-"product=libsecret&keywords=I18N+L10N&component=general\n"
-"POT-Creation-Date: 2013-09-14 13:23+0000\n"
-"PO-Revision-Date: 2013-09-14 13:23+0000\n"
+"Project-Id-Version: ab10e6d45488175674299c2d7fc854f6\n"
+"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/libsecret/issues\n"
+"POT-Creation-Date: 2021-06-24 11:59+0000\n"
+"PO-Revision-Date: 2021-08-27 09:56\n"
 "Last-Translator: Ihar Hrachyshka <ihar.hrachyshka@gmail.com>\n"
-"Language-Team: Belarusian <i18n-bel-gnome@googlegroups.com>\n"
+"Language-Team: Belarusian\n"
 "Language: be\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || n%10>=5 && n%10<=9 || n%100>=11 && n%100<=14 ? 2 : 3);\n"
+"X-Crowdin-Project: ab10e6d45488175674299c2d7fc854f6\n"
+"X-Crowdin-Project-ID: 104\n"
+"X-Crowdin-Language: be\n"
+"X-Crowdin-File: /Localizations/Gnome/Development/libsecret.master.be.po\n"
+"X-Crowdin-File-ID: 3080\n"
 
-#: ../libsecret/secret-item.c:1164
-#, c-format
+#: libsecret/secret-item.c:1104
 msgid "Received invalid secret from the secret storage"
 msgstr "Атрыманы хібны сакрэт з сакрэтнага сховішча"
 
-#: ../libsecret/secret-methods.c:1055
+#: libsecret/secret-methods.c:1055
 msgid "Default keyring"
 msgstr "Прадвызначаная вязка ключоў"
 
-#: ../libsecret/secret-session.c:244 ../libsecret/secret-session.c:281
+#: libsecret/secret-session.c:243 libsecret/secret-session.c:279
 msgid "Couldn’t communicate with the secret storage"
-msgstr "Не ўдалося звязацца з сакрэтным сховішчам"
+msgstr "Не атрымалася звязацца з сакрэтным сховішчам"
 
-#: ../tool/secret-tool.c:39
+#: tool/secret-tool.c:42
 msgid "the label for the new stored item"
-msgstr "назва для новага элемента сховішча"
+msgstr "назва для новага элемента"
 
-#: ../tool/secret-tool.c:41
+#: tool/secret-tool.c:44
 msgid "the collection in which to place the stored item"
-msgstr "калекцыя, у якой трэба змясціць элемент сховішча"
+msgstr "калекцыя, у якой патрэбна размясціць элемент, які будзе захоўвацца"
 
-#: ../tool/secret-tool.c:43 ../tool/secret-tool.c:50 ../tool/secret-tool.c:437
+#: tool/secret-tool.c:46 tool/secret-tool.c:53 tool/secret-tool.c:458
 msgid "attribute value pairs of item to lookup"
 msgstr "пары значэнняў атрыбутаў элемента для пошуку"
 
-#: ../tool/secret-tool.c:57
+#: tool/secret-tool.c:60
 msgid "attribute value pairs which match items to clear"
 msgstr "пары значэнняў атрыбутаў адпаведных элементаў для ачысткі"
 
-#: ../tool/secret-tool.c:433
-msgid "return all results, instead of just first one"
-msgstr "вярнуць усе вынікі, а не толькі першы"
+#: tool/secret-tool.c:67
+#| msgid "the collection in which to place the stored item"
+msgid "collection in which to lock"
+msgstr "калекцыя, у якой трэба заблакаваць"
 
-#: ../tool/secret-tool.c:435
+#: tool/secret-tool.c:454
+msgid "return all results, instead of just first one"
+msgstr "выдаць усе вынікі, а не толькі першы"
+
+#: tool/secret-tool.c:456
 msgid "unlock item results if necessary"
-msgstr "калі трэба, разблакіраваць вынікі"
+msgstr "калі патрэбна, разблакаваць вынікі"
+
