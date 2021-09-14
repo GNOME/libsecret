@@ -2,56 +2,60 @@
 # Copyright (C) 2013 libsecret's COPYRIGHT HOLDER
 # This file is distributed under the same license as the libsecret package.
 # Tobias Endrigkeit <tobiasendrigkeit@outlook.com>, 2013.
+# Philipp Kiemle <philipp.kiemle@gmail.com>, 2021.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: libsecret master\n"
-"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
-"product=libsecret&keywords=I18N+L10N&component=general\n"
-"POT-Creation-Date: 2013-07-31 14:30+0000\n"
-"PO-Revision-Date: 2013-08-03 01:44+0100\n"
-"Last-Translator: Christian Kirbach <christian.kirbach@gmail.com>\n"
+"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/libsecret/issues\n"
+"POT-Creation-Date: 2021-08-17 14:32+0000\n"
+"PO-Revision-Date: 2021-09-14 20:05+0200\n"
+"Last-Translator: Tim Sabsch <tim@sabsch.com>\n"
 "Language-Team: Deutsch <gnome-de@gnome.org>\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 1.5.4\n"
+"X-Generator: Poedit 3.0\n"
 
-#: ../libsecret/secret-item.c:1164
+#: libsecret/secret-item.c:1104
 #, c-format
 msgid "Received invalid secret from the secret storage"
 msgstr "Ungültiges Geheimnis aus dem Geheimspeicher erhalten"
 
-#: ../libsecret/secret-methods.c:1055
+#: libsecret/secret-methods.c:1056
 msgid "Default keyring"
 msgstr "Standard-Schlüsselbund"
 
-#: ../libsecret/secret-session.c:244 ../libsecret/secret-session.c:281
+#: libsecret/secret-session.c:243 libsecret/secret-session.c:279
 msgid "Couldn’t communicate with the secret storage"
-msgstr "Der Geheimspeicher konnte nicht erreicht werden."
+msgstr "Der Geheimspeicher konnte nicht erreicht werden"
 
-#: ../tool/secret-tool.c:39
+#: tool/secret-tool.c:42
 msgid "the label for the new stored item"
 msgstr "Die Bezeichnung für das neu gespeicherte Objekt"
 
-#: ../tool/secret-tool.c:41
+#: tool/secret-tool.c:44
 msgid "the collection in which to place the stored item"
 msgstr "Die Sammlung, in welcher das gespeicherte Objekt abgelegt werden soll"
 
-#: ../tool/secret-tool.c:43 ../tool/secret-tool.c:50 ../tool/secret-tool.c:437
+#: tool/secret-tool.c:46 tool/secret-tool.c:53 tool/secret-tool.c:458
 msgid "attribute value pairs of item to lookup"
 msgstr "Attribut-Wert-Paare des zu suchenden Objekts"
 
-#: ../tool/secret-tool.c:57
+#: tool/secret-tool.c:60
 msgid "attribute value pairs which match items to clear"
 msgstr "Attribut-Wert-Paare, die auf das zu löschenden Objekt zutreffen"
 
-#: ../tool/secret-tool.c:433
-msgid "return all results, instead of just first one"
-msgstr "Alle Ergebnisse anstatt nur des ersten zurückgeben "
+#: tool/secret-tool.c:67
+msgid "collection in which to lock"
+msgstr "Sammlung, in der gesperrt werden soll"
 
-#: ../tool/secret-tool.c:435
+#: tool/secret-tool.c:454
+msgid "return all results, instead of just first one"
+msgstr "Alle Ergebnisse anstatt nur des ersten zurückgeben"
+
+#: tool/secret-tool.c:456
 msgid "unlock item results if necessary"
 msgstr "Objektergebnisse bei Bedarf entsperren"
