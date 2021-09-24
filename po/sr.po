@@ -5,53 +5,56 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: libsecret master\n"
-"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?product=libsec"
-"ret&keywords=I18N+L10N&component=general\n"
-"POT-Creation-Date: 2013-02-18 14:22+0000\n"
-"PO-Revision-Date: 2013-02-20 20:24+0200\n"
-"Last-Translator: Мирослав Николић <miroslavnikolic@rocketmail.com>\n"
+"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/libsecret/issues\n"
+"POT-Creation-Date: 2021-06-24 11:59+0000\n"
+"PO-Revision-Date: 2021-09-24 04:14+0200\n"
+"Last-Translator: Марко М. Костић <marko.m.kostic@gmail.com>\n"
 "Language-Team: Serbian <gnom@prevod.org>\n"
 "Language: sr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=4; plural=n==1? 3 : n%10==1 && n%100!=11 ? 0 : "
-"n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"Plural-Forms: nplurals=4; plural=n==1? 3 : n%10==1 && n%100!=11 ? 0 : n"
+"%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
 "X-Project-Style: gnome\n"
+"X-Generator: Poedit 3.0\n"
 
-#: ../libsecret/secret-item.c:1164
-#, c-format
+#: libsecret/secret-item.c:1104
 msgid "Received invalid secret from the secret storage"
 msgstr "Примљена је неисправна тајна из складишта тајни"
 
-#: ../libsecret/secret-methods.c:1029
+#: libsecret/secret-methods.c:1055
 msgid "Default keyring"
 msgstr "Основни привезак кључева"
 
-#: ../libsecret/secret-session.c:244 ../libsecret/secret-session.c:281
+#: libsecret/secret-session.c:243 libsecret/secret-session.c:279
 msgid "Couldn’t communicate with the secret storage"
 msgstr "Не могу да комуницирам са складиштем тајни"
 
-#: ../tool/secret-tool.c:39
+#: tool/secret-tool.c:42
 msgid "the label for the new stored item"
 msgstr "натпис за нову ускладиштену ставку"
 
-#: ../tool/secret-tool.c:41
+#: tool/secret-tool.c:44
 msgid "the collection in which to place the stored item"
 msgstr "збирка у којој ће бити стављена ускладиштена ставка"
 
-#: ../tool/secret-tool.c:43 ../tool/secret-tool.c:50 ../tool/secret-tool.c:437
+#: tool/secret-tool.c:46 tool/secret-tool.c:53 tool/secret-tool.c:458
 msgid "attribute value pairs of item to lookup"
 msgstr "парови вредности особина ставке за тражење"
 
-#: ../tool/secret-tool.c:57
+#: tool/secret-tool.c:60
 msgid "attribute value pairs which match items to clear"
 msgstr "парови вредности особина који одговарају ставкама за чишћење"
 
-#: ../tool/secret-tool.c:433
+#: tool/secret-tool.c:67
+msgid "collection in which to lock"
+msgstr "збирка у којој треба закључати"
+
+#: tool/secret-tool.c:454
 msgid "return all results, instead of just first one"
 msgstr "даје све резултате, уместо само првог"
 
-#: ../tool/secret-tool.c:435
+#: tool/secret-tool.c:456
 msgid "unlock item results if necessary"
 msgstr "откључава резултате ставке ако је неопходно"
