@@ -1,0 +1,60 @@
+# Vietnamese translation for libsecret.
+# Copyright (C) 2021 libsecret's COPYRIGHT HOLDER
+# This file is distributed under the same license as the libsecret package.
+# Trần Ngọc Quân <vnwildman@gmail.com>, 2021.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: libsecret master\n"
+"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/libsecret/issues\n"
+"POT-Creation-Date: 2021-09-24 02:15+0000\n"
+"PO-Revision-Date: 2021-09-25 09:03+0700\n"
+"Last-Translator: Trần Ngọc Quân <vnwildman@gmail.com>\n"
+"Language-Team: Vietnamese <gnome-vi-list@gnome.org>\n"
+"Language: vi\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Gtranslator 3.38.0\n"
+
+#: libsecret/secret-item.c:1104
+#, c-format
+msgid "Received invalid secret from the secret storage"
+msgstr "Đã nhận được khóa bí mật không hợp lệ từ kho chứa khóa bí mật"
+
+#: libsecret/secret-methods.c:1056
+msgid "Default keyring"
+msgstr "Chùm chìa khóa mặc định"
+
+#: libsecret/secret-session.c:243 libsecret/secret-session.c:279
+msgid "Couldn’t communicate with the secret storage"
+msgstr "Không thể kết nối với kho chứa khóa bí mật"
+
+#: tool/secret-tool.c:42
+msgid "the label for the new stored item"
+msgstr "nhãn cho mục được lưu mới"
+
+#: tool/secret-tool.c:44
+msgid "the collection in which to place the stored item"
+msgstr "bộ sưu tập để đặt mục được lưu trữ"
+
+#: tool/secret-tool.c:46 tool/secret-tool.c:53 tool/secret-tool.c:458
+msgid "attribute value pairs of item to lookup"
+msgstr "các cặp giá trị thuộc tính của mục để tra cứu"
+
+#: tool/secret-tool.c:60
+msgid "attribute value pairs which match items to clear"
+msgstr "các cặp giá trị thuộc tính khớp với mục để xóa"
+
+#: tool/secret-tool.c:67
+msgid "collection in which to lock"
+msgstr "bộ sưu tập để khóa"
+
+#: tool/secret-tool.c:454
+msgid "return all results, instead of just first one"
+msgstr "trả về tất cả các kết quả, thay vì chỉ cái đầu tiên"
+
+#: tool/secret-tool.c:456
+msgid "unlock item results if necessary"
+msgstr "mở khóa các kết quả mục tin nếu cần thiết"
