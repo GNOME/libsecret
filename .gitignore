@@ -28,7 +28,6 @@ config.*
 depcomp
 install-sh
 INSTALL
-gtk-doc.make
 libtool
 ltmain.sh
 Makefile

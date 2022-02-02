@@ -33,7 +33,7 @@
  * @SECRET_SEARCH_UNLOCK: unlock locked items while searching
  * @SECRET_SEARCH_LOAD_SECRETS: while searching load secrets for items that are not locked
  *
- * Various flags to be used with secret_service_search() and secret_service_search_sync().
+ * Various flags to be used with [method@Service.search] and [method@Service.search_sync].
  */
 
 typedef struct {
@@ -273,8 +273,8 @@ on_search_service (GObject *source,
  * Search for items matching the @attributes. All collections are searched.
  * The @attributes should be a table of string keys and string values.
  *
- * If @service is %NULL, then secret_service_get() will be called to get
- * the default #SecretService proxy.
+ * If @service is %NULL, then [func@Service.get] will be called to get
+ * the default [class@Service] proxy.
  *
  * If %SECRET_SEARCH_ALL is set in @flags, then all the items matching the
  * search will be returned. Otherwise only the first item will be returned.
@@ -285,7 +285,7 @@ on_search_service (GObject *source,
  * search and be returned. If the unlock fails, the search does not fail.
  *
  * If %SECRET_SEARCH_LOAD_SECRETS is set in @flags, then the items will have
- * their secret values loaded and available via secret_item_get_secret().
+ * their secret values loaded and available via [method@Item.get_secret].
  *
  * This function returns immediately and completes asynchronously.
  */
@@ -345,7 +345,7 @@ secret_service_search (SecretService *service,
  * Complete asynchronous operation to search for items.
  *
  * Returns: (transfer full) (element-type Secret.Item):
- *          a list of items that matched the search
+ *   a list of items that matched the search
  */
 GList *
 secret_service_search_finish (SecretService *service,
@@ -413,8 +413,8 @@ service_load_items_sync (SecretService *service,
  * Search for items matching the @attributes. All collections are searched.
  * The @attributes should be a table of string keys and string values.
  *
- * If @service is %NULL, then secret_service_get_sync() will be called to get
- * the default #SecretService proxy.
+ * If @service is %NULL, then [func@Service.get_sync] will be called to get
+ * the default [class@Service] proxy.
  *
  * If %SECRET_SEARCH_ALL is set in @flags, then all the items matching the
  * search will be returned. Otherwise only the first item will be returned.
@@ -426,14 +426,14 @@ service_load_items_sync (SecretService *service,
  *
  * If %SECRET_SEARCH_LOAD_SECRETS is set in @flags, then the items' secret
  * values will be loaded for any unlocked items. Loaded item secret values
- * are available via secret_item_get_secret(). If the load of a secret values
+ * are available via [method@Item.get_secret]. If the load of a secret values
  * fail, then the
  *
  * This function may block indefinitely. Use the asynchronous version
  * in user interface threads.
  *
  * Returns: (transfer full) (element-type Secret.Item):
- *          a list of items that matched the search
+ *   a list of items that matched the search
  */
 GList *
 secret_service_search_sync (SecretService *service,
@@ -735,11 +735,11 @@ service_xlock_finish (SecretService *service,
  * The secret service may not be able to lock items individually, and may
  * lock an entire collection instead.
  *
- * If @service is %NULL, then secret_service_get() will be called to get
- * the default #SecretService proxy.
+ * If @service is %NULL, then [func@Service.get] will be called to get
+ * the default [class@Service] proxy.
  *
  * This method returns immediately and completes asynchronously. The secret
- * service may prompt the user. secret_service_prompt() will be used to handle
+ * service may prompt the user. [method@Service.prompt] will be used to handle
  * any prompts that show up.
  */
 void
@@ -797,12 +797,12 @@ secret_service_lock_finish (SecretService *service,
  * The secret service may not be able to lock items individually, and may
  * lock an entire collection instead.
  *
- * If @service is %NULL, then secret_service_get_sync() will be called to get
- * the default #SecretService proxy.
+ * If @service is %NULL, then [func@Service.get_sync] will be called to get
+ * the default [class@Service] proxy.
  *
  * This method may block indefinitely and should not be used in user
  * interface threads. The secret service may prompt the user.
- * secret_service_prompt() will be used to handle any prompts that show up.
+ * [method@Service.prompt] will be used to handle any prompts that show up.
  *
  * Returns: the number of items or collections that were locked
  */
@@ -849,12 +849,12 @@ secret_service_lock_sync (SecretService *service,
  * The secret service may not be able to unlock items individually, and may
  * unlock an entire collection instead.
  *
- * If @service is %NULL, then secret_service_get() will be called to get
- * the default #SecretService proxy.
+ * If @service is %NULL, then [func@Service.get] will be called to get
+ * the default [class@Service] proxy.
  *
  * This method may block indefinitely and should not be used in user
  * interface threads. The secret service may prompt the user.
- * secret_service_prompt() will be used to handle any prompts that show up.
+ * [method@Service.prompt] will be used to handle any prompts that show up.
  */
 void
 secret_service_unlock (SecretService *service,
@@ -911,12 +911,12 @@ secret_service_unlock_finish (SecretService *service,
  * The secret service may not be able to unlock items individually, and may
  * unlock an entire collection instead.
  *
- * If @service is %NULL, then secret_service_get_sync() will be called to get
- * the default #SecretService proxy.
+ * If @service is %NULL, then [func@Service.get_sync] will be called to get
+ * the default [class@Service] proxy.
  *
  * This method may block indefinitely and should not be used in user
  * interface threads. The secret service may prompt the user.
- * secret_service_prompt() will be used to handle any prompts that show up.
+ * [method@Service.prompt] will be used to handle any prompts that show up.
  *
  * Returns: the number of items or collections that were unlocked
  */
@@ -1131,11 +1131,11 @@ on_store_service (GObject *source,
  * If the attributes match a secret item already stored in the collection, then
  * the item will be updated with these new values.
  *
- * If @service is %NULL, then secret_service_get() will be called to get
- * the default #SecretService proxy.
+ * If @service is %NULL, then [func@Service.get] will be called to get
+ * the default [class@Service] proxy.
  *
  * If @collection is not specified, then the default collection will be
- * used. Use #SECRET_COLLECTION_SESSION to store the password in the session
+ * used. Use [const@COLLECTION_SESSION] to store the password in the session
  * collection, which doesn't get stored across login sessions.
  *
  * This method will return immediately and complete asynchronously.
@@ -1251,11 +1251,11 @@ secret_service_store_finish (SecretService *service,
  * the item will be updated with these new values.
  *
  * If @collection is %NULL, then the default collection will be
- * used. Use #SECRET_COLLECTION_SESSION to store the password in the session
+ * used. Use [const@COLLECTION_SESSION] to store the password in the session
  * collection, which doesn't get stored across login sessions.
  *
- * If @service is %NULL, then secret_service_get_sync() will be called to get
- * the default #SecretService proxy.
+ * If @service is %NULL, then [func@Service.get_sync] will be called to get
+ * the default [class@Service] proxy.
  *
  * This method may block indefinitely and should not be used in user interface
  * threads.
@@ -1427,8 +1427,8 @@ on_lookup_service (GObject *source,
  *
  * The @attributes should be a set of key and value string pairs.
  *
- * If @service is %NULL, then secret_service_get() will be called to get
- * the default #SecretService proxy.
+ * If @service is %NULL, then [func@Service.get] will be called to get
+ * the default [class@Service] proxy.
  *
  * This method will return immediately and complete asynchronously.
  */
@@ -1485,8 +1485,8 @@ secret_service_lookup (SecretService *service,
  *
  * If no secret is found then %NULL is returned.
  *
- * Returns: (transfer full): a newly allocated #SecretValue, which should be
- *          released with secret_value_unref(), or %NULL if no secret found
+ * Returns: (transfer full): a newly allocated [struct@Value], which should be
+ *   released with [method@Value.unref], or %NULL if no secret found
  */
 SecretValue *
 secret_service_lookup_finish (SecretService *service,
@@ -1520,14 +1520,14 @@ secret_service_lookup_finish (SecretService *service,
  *
  * The @attributes should be a set of key and value string pairs.
  *
- * If @service is %NULL, then secret_service_get_sync() will be called to get
- * the default #SecretService proxy.
+ * If @service is %NULL, then [func@Service.get_sync] will be called to get
+ * the default [class@Service] proxy.
  *
  * This method may block indefinitely and should not be used in user interface
  * threads.
  *
- * Returns: (transfer full): a newly allocated #SecretValue, which should be
- *          released with secret_value_unref(), or %NULL if no secret found
+ * Returns: (transfer full): a newly allocated [struct@Value], which should be
+ *   released with [method@Value.unref], or %NULL if no secret found
  */
 SecretValue *
 secret_service_lookup_sync (SecretService *service,
@@ -1674,8 +1674,8 @@ on_delete_service (GObject *source,
  *
  * The @attributes should be a set of key and value string pairs.
  *
- * If @service is %NULL, then secret_service_get() will be called to get
- * the default #SecretService proxy.
+ * If @service is %NULL, then [func@Service.get] will be called to get
+ * the default [class@Service] proxy.
  *
  * This method will return immediately and complete asynchronously.
  */
@@ -1765,8 +1765,8 @@ secret_service_clear_finish (SecretService *service,
  *
  * The @attributes should be a set of key and value string pairs.
  *
- * If @service is %NULL, then secret_service_get_sync() will be called to get
- * the default #SecretService proxy.
+ * If @service is %NULL, then [func@Service.get_sync] will be called to get
+ * the default [class@Service] proxy.
  *
  * This method may block indefinitely and should not be used in user interface
  * threads.
@@ -1878,8 +1878,8 @@ on_set_alias_service (GObject *source,
  * Assign a collection to this alias. Aliases help determine
  * well known collections, such as 'default'.
  *
- * If @service is %NULL, then secret_service_get() will be called to get
- * the default #SecretService proxy.
+ * If @service is %NULL, then [func@Service.get] will be called to get
+ * the default [class@Service] proxy.
  *
  * This method will return immediately and complete asynchronously.
  */
@@ -1967,8 +1967,8 @@ secret_service_set_alias_finish (SecretService *service,
  * Assign a collection to this alias. Aliases help determine
  * well known collections, such as 'default'.
  *
- * If @service is %NULL, then secret_service_get_sync() will be called to get
- * the default #SecretService proxy.
+ * If @service is %NULL, then [func@Service.get_sync] will be called to get
+ * the default [class@Service] proxy.
  *
  * This method may block and should not be used in user interface threads.
  *

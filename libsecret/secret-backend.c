@@ -25,9 +25,9 @@
 #include "libsecret/secret-enum-types.h"
 
 /**
- * SECTION:secret-backend
- * @title: SecretBackend
- * @short_description: A backend implementation of password storage
+ * SecretBackend
+ *
+ * A backend implementation of password storage
  *
  * #SecretBackend represents a backend implementation of password
  * storage.
@@ -48,14 +48,14 @@
  * @parent_iface: the parent interface
  * @ensure_for_flags: implementation of reinitialization step in constructor, optional
  * @ensure_for_flags_finish: implementation of reinitialization step in constructor, optional
- * @store: implementation of secret_password_store(), required
- * @store_finish: implementation of secret_password_store_finish(), required
- * @lookup: implementation of secret_password_lookup(), required
- * @lookup_finish: implementation of secret_password_lookup_finish(), required
- * @clear: implementation of secret_password_clear(), required
- * @clear_finish: implementation of secret_password_clear_finish(), required
- * @search: implementation of secret_password_search(), required
- * @search_finish: implementation of secret_password_search_finish(), required
+ * @store: implementation of [func@password_store], required
+ * @store_finish: implementation of [func@password_store_finish], required
+ * @lookup: implementation of [func@password_lookup], required
+ * @lookup_finish: implementation of [func@password_lookup_finish], required
+ * @clear: implementation of [func@password_clear], required
+ * @clear_finish: implementation of [func@password_clear_finish], required
+ * @search: implementation of [func@password_search], required
+ * @search_finish: implementation of [func@password_search_finish], required
  *
  * The interface for #SecretBackend.
  *
@@ -264,7 +264,7 @@ secret_backend_get (SecretBackendFlags flags,
  * Complete an asynchronous operation to get a #SecretBackend.
  *
  * Returns: (transfer full): a new reference to a #SecretBackend proxy, which
- *          should be released with g_object_unref().
+ *   should be released with [method@GObject.Object.unref].
  *
  * Since: 0.19.0
  */

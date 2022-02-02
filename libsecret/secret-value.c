@@ -22,32 +22,26 @@
 #include <string.h>
 
 /**
- * SECTION:secret-value
- * @title: SecretValue
- * @short_description: a value containing a secret
+ * SecretValue:
+ *
+ * A value containing a secret
  *
  * A #SecretValue contains a password or other secret value.
  *
- * Use secret_value_get() to get the actual secret data, such as a password.
+ * Use [method@Value.get] to get the actual secret data, such as a password.
  * The secret data is not necessarily null-terminated, unless the content type
  * is "text/plain".
  *
- * Each #SecretValue has a content type. For passwords, this is "text/plain".
- * Use secret_value_get_content_type() to look at the content type.
+ * Each #SecretValue has a content type. For passwords, this is `text/plain`.
+ * Use [method@Value.get_content_type] to look at the content type.
  *
  * #SecretValue is reference counted and immutable. The secret data is only
- * freed when all references have been released via secret_value_unref().
+ * freed when all references have been released via [method@Value.unref].
  *
  * Stability: Stable
  */
 
 static gboolean     is_password_value    (SecretValue *value);
-
-/**
- * SecretValue:
- *
- * A secret value, like a password or other binary secret.
- */
 
 EGG_SECURE_DECLARE (secret_value);
 
@@ -153,8 +147,8 @@ secret_value_new_full (gchar *secret,
  * @length: the length of the secret
  *
  * Get the secret data in the #SecretValue. The value is not necessarily
- * null-terminated unless it was created with secret_value_new() or a
- * null-terminated string was passed to secret_value_new_full().
+ * null-terminated unless it was created with [ctor@Value.new] or a
+ * null-terminated string was passed to [ctor@Value.new_full].
  *
  * Returns: (array length=length) (element-type guint8): the secret data
  */
@@ -173,7 +167,7 @@ secret_value_get (SecretValue *value,
  * @value: the value
  *
  * Get the secret data in the #SecretValue if it contains a textual
- * value. The content type must be <literal>text/plain</literal>.
+ * value. The content type must be `text/plain`.
  *
  * Returns: (nullable): the content type
  */
@@ -193,7 +187,7 @@ secret_value_get_text (SecretValue *value)
  * @value: the value
  *
  * Get the content type of the secret value, such as
- * <literal>text/plain</literal>.
+ * `text/plain`.
  *
  * Returns: the content type
  */
@@ -209,7 +203,7 @@ secret_value_get_content_type (SecretValue *value)
  * @value: value to reference
  *
  * Add another reference to the #SecretValue. For each reference
- * secret_value_unref() should be called to unreference the value.
+ * [method@Value.unref] should be called to unreference the value.
  *
  * Returns: (transfer full): the value
  */
@@ -265,7 +259,7 @@ is_password_value (SecretValue *value)
  * #SecretValue as nonpageable memory.
  *
  * Returns: (transfer full): a new password string stored in nonpageable memory
- *          which must be freed with secret_password_free() when done
+ *   which must be freed with [func@password_free] when done
  *
  * Since: 0.19.0
  */

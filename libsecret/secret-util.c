@@ -20,9 +20,9 @@
 #include <string.h>
 
 /**
- * SECTION:secret-error
- * @title: SecretError
- * @short_description: libsecret errors
+ * SecretError
+ *
+ * libsecret errors
  *
  * Various errors reported by the libsecret library. No error returned from
  * the libsecret API is suitable for direct display to the user. It is up

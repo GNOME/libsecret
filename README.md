@@ -9,6 +9,11 @@ methods so consumers do not have to call the low-level DBus methods.
 The actual Secret Service API spec can be found at
 https://specifications.freedesktop.org/secret-service/.
 
+Documentation
+--------
+
+You can find the nighlt documentation at https://gnome.pages.gitlab.gnome.org/libsecret/.
+
 Building
 --------
 

@@ -22,30 +22,24 @@
 #include <glib/gi18n-lib.h>
 
 /**
- * SECTION:secret-prompt
- * @title: SecretPrompt
- * @short_description: a prompt in the Service
+ * SecretPrompt:
  *
- * A #SecretPrompt represents a prompt in the Secret Service.
+ * A prompt in the Service
+ *
+ * A proxy object representing a prompt that the Secret Service will display
+ * to the user.
  *
  * Certain actions on the Secret Service require user prompting to complete,
  * such as creating a collection, or unlocking a collection. When such a prompt
  * is necessary, then a #SecretPrompt object is created by this library, and
- * passed to the secret_service_prompt() method. In this way it is handled
+ * passed to the [method@Service.prompt] method. In this way it is handled
  * automatically.
  *
  * In order to customize prompt handling, override the
- * SecretServiceClass::prompt_async and SecretServiceClass::prompt_finish
- * virtual methods of the #SecretService class.
+ * [vfunc@Service.prompt_async] and [vfunc@Service.prompt_finish] virtual
+ * methods of the [class@Service] class.
  *
  * Stability: Stable
- */
-
-/**
- * SecretPrompt:
- *
- * A proxy object representing a prompt that the Secret Service will display
- * to the user.
  */
 
 /**
@@ -131,10 +125,10 @@ _secret_prompt_instance (SecretService *service,
  * API specification.
  *
  * If @window_id is non-null then it is used as an XWindow id on Linux. The API
- * expects this id to be converted to a string using the <literal>%d</literal>
- * printf format. The Secret Service can make its prompt transient for the window
- * with this id. In some Secret Service implementations this is not possible, so
- * the behavior depending on this should degrade gracefully.
+ * expects this id to be converted to a string using the `%d` printf format. The
+ * Secret Service can make its prompt transient for the window with this id. In
+ * some Secret Service implementations this is not possible, so the behavior
+ * depending on this should degrade gracefully.
  *
  * This runs the dialog in a recursive mainloop. When run from a user interface
  * thread, this means the user interface will remain responsive. Care should be
@@ -191,10 +185,10 @@ secret_prompt_run (SecretPrompt *self,
  * API specification.
  *
  * If @window_id is non-null then it is used as an XWindow id on Linux. The API
- * expects this id to be converted to a string using the <literal>%d</literal>
- * printf format. The Secret Service can make its prompt transient for the window
- * with this id. In some Secret Service implementations this is not possible,
- * so the behavior depending on this should degrade gracefully.
+ * expects this id to be converted to a string using the `%d` printf format. The
+ * Secret Service can make its prompt transient for the window with this id. In
+ * some Secret Service implementations this is not possible, so the behavior
+ * depending on this should degrade gracefully.
  *
  * This method may block indefinitely and should not be used in user interface
  * threads.
@@ -412,10 +406,10 @@ on_prompt_cancelled (GCancellable *cancellable,
  * was completed and not dismissed.
  *
  * If @window_id is non-null then it is used as an XWindow id on Linux. The API
- * expects this id to be converted to a string using the <literal>%d</literal>
- * printf format. The Secret Service can make its prompt transient for the window
- * with this id. In some Secret Service implementations this is not possible, so
- * the behavior depending on this should degrade gracefully.
+ * expects this id to be converted to a string using the `%d` printf format. The
+ * Secret Service can make its prompt transient for the window with this id. In
+ * some Secret Service implementations this is not possible, so the behavior
+ * depending on this should degrade gracefully.
  *
  * This method will return immediately and complete asynchronously.
  */
@@ -505,7 +499,7 @@ secret_prompt_perform (SecretPrompt *self,
  * defined in the Secret Service DBus API specification.
  *
  * Returns: (transfer full): %NULL if the prompt was dismissed or an error occurred,
- *          a variant result if the prompt was successful
+ *   a variant result if the prompt was successful
  */
 GVariant *
 secret_prompt_perform_finish (SecretPrompt *self,

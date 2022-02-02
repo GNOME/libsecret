@@ -16,7 +16,7 @@ fedora:Werror:
     - dnf install -y $DEPENDENCIES
     - dbus-uuidgen --ensure
   script:
-    - meson _build -Dwerror=true -Dc_args=-Wno-error=deprecated-declarations
+    - meson _build -Dwerror=true -Dc_args=-Wno-error=deprecated-declarations -Dgtk_doc=false
     - meson compile -C _build
     - eval `dbus-launch --sh-syntax`
     - meson test -C _build
@@ -35,7 +35,7 @@ fedora:asan:
     - dnf install -y $DEPENDENCIES libasan
     - dbus-uuidgen --ensure
   script:
-    - meson _build -Dsanitize=address
+    - meson _build -Dsanitize=address -Dgtk_doc=false
     - meson compile -C _build
     - eval `dbus-launch --sh-syntax`
     - meson test -C _build
@@ -54,7 +54,7 @@ fedora:ubsan:
     - dnf install -y $DEPENDENCIES libubsan
     - dbus-uuidgen --ensure
   script:
-    - meson _build -Dsanitize=undefined
+    - meson _build -Dsanitize=undefined -Dgtk_doc=false
     - meson compile -C _build
     - eval `dbus-launch --sh-syntax`
     - meson test -C _build
@@ -73,7 +73,7 @@ fedora-static-analyzers/test:
     - dnf install -y $DEPENDENCIES clang-analyzer cppcheck
     - dbus-uuidgen --ensure
   script:
-    - meson _build
+    - meson _build -Dgtk_doc=false
     - meson compile -C _build --ninja-args scan-build
     - cppcheck --force -q $CPPCHECK_OPTIONS libsecret/ egg/ tool/
   artifacts:
@@ -92,7 +92,7 @@ fedora:coverage:
     - dnf install -y $DEPENDENCIES lcov
     - dbus-uuidgen --ensure
   script:
-    - meson _build -Db_coverage=true -Dtpm2=true
+    - meson _build -Db_coverage=true -Dtpm2=true -Dgtk_doc=false
     - meson compile -C _build
     - eval `dbus-launch --sh-syntax`
     - export XDG_CONFIG_HOME=$HOME/.config
@@ -113,11 +113,30 @@ fedora:coverage:
   # https://github.com/linux-test-project/lcov/issues/58
   allow_failure: true
 
+reference:
+  stage: build
+  image: fedora:35
+  before_script:
+    - dnf install -y $DEPENDENCIES gi-docgen gobject-introspection-devel libgcrypt-devel
+  variables:
+    MESON_ARGS: >-
+      -Dgtk_doc=true
+      -Dvapi=false
+      -Dmanpage=false
+  script:
+    - meson ${MESON_ARGS} _build
+    - ninja -C _build
+    - mv _build/docs/reference/libsecret/libsecret-1 _reference
+  artifacts:
+    paths:
+      - _reference
+
 pages:
   stage: deploy
   script:
     - mkdir public
     - mv _build/meson-logs/coveragereport public/coverage
+    - mv _reference/* public/
   artifacts:
     when: on_success
     paths:

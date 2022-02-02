@@ -18,16 +18,16 @@
 #include "secret-private.h"
 
 /**
- * SECTION:secret-retrievable
- * @title: SecretRetrievable
- * @short_description: A read-only secret item
+ * SecretRetrievable
+ *
+ * A read-only secret item
  *
  * #SecretRetrievable provides a read-only view of a secret item
  * stored in the Secret Service.
  *
- * Each item has a value, represented by a #SecretValue, which can be
- * retrieved by secret_retrievable_retrieve_secret() and
- * secret_retrievable_retrieve_secret_finish().
+ * Each item has a value, represented by a [struct@Value], which can be
+ * retrieved by [method@Retrievable.retrieve_secret] and
+ * [method@Retrievable.retrieve_secret_finish].
  *
  * Stability: Stable
  */
@@ -44,10 +44,10 @@
 /**
  * SecretRetrievableInterface:
  * @parent_iface: the parent interface
- * @retrieve_secret: implementation of secret_retrievable_retrieve_secret(),
+ * @retrieve_secret: implementation of [method@Retrievable.retrieve_secret],
  *                   required
  * @retrieve_secret_finish: implementation of
- *                   secret_retrievable_retrieve_secret_finish(), required
+ *                   [method@Retrievable.retrieve_secret_finish], required
  *
  * The interface for #SecretRetrievable.
  *
@@ -60,7 +60,7 @@ static void
 secret_retrievable_default_init (SecretRetrievableInterface *iface)
 {
 	/**
-	 * SecretRetrievable:attributes: (type GLib.HashTable(utf8,utf8)) (transfer full)
+	 * SecretRetrievable:attributes: (type GLib.HashTable(utf8,utf8)) (transfer full) (attributes org.gtk.Property.get=secret_retrievable_get_attributes)
 	 *
 	 * The attributes set on this item. Attributes are used to locate an
 	 * item. They are not guaranteed to be stored or transferred securely.
@@ -72,7 +72,7 @@ secret_retrievable_default_init (SecretRetrievableInterface *iface)
 	                                 G_TYPE_HASH_TABLE, G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
 	/**
-	 * SecretRetrievable:label:
+	 * SecretRetrievable:label: (attributes org.gtk.Property.get=secret_retrievable_get_label)
 	 *
 	 * The human readable label for the item.
 	 *
@@ -83,7 +83,7 @@ secret_retrievable_default_init (SecretRetrievableInterface *iface)
 	                                 NULL, G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
 	/**
-	 * SecretRetrievable:created:
+	 * SecretRetrievable:created: (attributes org.gtk.Property.get=secret_retrievable_get_created)
 	 *
 	 * The date and time (in seconds since the UNIX epoch) that this
 	 * item was created.
@@ -95,7 +95,7 @@ secret_retrievable_default_init (SecretRetrievableInterface *iface)
 	                                 0UL, G_MAXUINT64, 0UL, G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
 	/**
-	 * SecretRetrievable:modified:
+	 * SecretRetrievable:modified: (attributes org.gtk.Property.get=secret_retrievable_get_modified)
 	 *
 	 * The date and time (in seconds since the UNIX epoch) that this
 	 * item was last modified.
@@ -146,7 +146,7 @@ secret_retrievable_retrieve_secret (SecretRetrievable *self,
  * Complete asynchronous operation to retrieve the secret value of this object.
  *
  * Returns: (transfer full) (nullable): the secret value which should be
- *          released with secret_value_unref(), or %NULL
+ *   released with [method@Value.unref], or %NULL
  *
  * Since: 0.19.0
  */
@@ -178,7 +178,7 @@ secret_retrievable_retrieve_secret_finish (SecretRetrievable *self,
  * threads.
  *
  * Returns: (transfer full) (nullable): the secret value which should be
- *          released with secret_value_unref(), or %NULL
+ *   released with [method@Value.unref], or %NULL
  *
  * Since: 0.19.0
  */
@@ -213,7 +213,7 @@ secret_retrievable_retrieve_secret_sync (SecretRetrievable *self,
 }
 
 /**
- * secret_retrievable_get_attributes:
+ * secret_retrievable_get_attributes: (attributes org.gtk.Method.get_property=attributes)
  * @self: a retrievable object
  *
  * Get the attributes of this object.
@@ -225,8 +225,8 @@ secret_retrievable_retrieve_secret_sync (SecretRetrievable *self,
  * Do not modify the attribute returned by this method.
  *
  * Returns: (transfer full) (element-type utf8 utf8): a new reference
- *          to the attributes, which should not be modified, and
- *          released with g_hash_table_unref()
+ *   to the attributes, which should not be modified, and
+ *   released with [func@GLib.HashTable.unref]
  *
  * Since: 0.19.0
  */
@@ -247,7 +247,7 @@ secret_retrievable_get_attributes (SecretRetrievable *self)
  *
  * Get the label of this item.
  *
- * Returns: (transfer full): the label, which should be freed with g_free()
+ * Returns: (transfer full): the label, which should be freed with [func@GLib.free]
  *
  * Since: 0.19.0
  */
@@ -263,7 +263,7 @@ secret_retrievable_get_label (SecretRetrievable *self)
 }
 
 /**
- * secret_retrievable_get_created:
+ * secret_retrievable_get_created: (attributes org.gtk.Method.get_property=created)
  * @self: a retrievable object
  *
  * Get the created date and time of the object. The return value is
@@ -285,7 +285,7 @@ secret_retrievable_get_created (SecretRetrievable *self)
 }
 
 /**
- * secret_retrievable_get_modified:
+ * secret_retrievable_get_modified: (attributes org.gtk.Method.get_property=modified)
  * @self: a retrievable object
  *
  * Get the modified date and time of the object. The return value is
