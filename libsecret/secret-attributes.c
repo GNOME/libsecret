@@ -19,19 +19,6 @@
 
 #include <string.h>
 
-/**
- * SECTION:secret-attributes
- * @title: Secret Attributes
- * @short_description: secret attributes
- *
- * Each item has a set of attributes, which are used to locate the item later.
- * These are not stored or transferred in a secure manner. Each attribute has
- * a string name and a string value. These attributes are represented by a
- * #GHashTable with string keys and values.
- *
- * Use secret_attributes_build() to simply build up a set of attributes.
- */
-
 GVariant *
 _secret_attributes_to_variant (GHashTable *attributes,
                                const gchar *schema_name)
@@ -87,7 +74,7 @@ _secret_attributes_for_variant (GVariant *variant)
  * @schema. The list of attributes should be terminated with a %NULL.
  *
  * Returns: (transfer full) (element-type utf8 utf8): a new table of
- *          attributes, to be released with g_hash_table_unref()
+ *   attributes, to be released with [func@GLib.HashTable.unref]
  */
 GHashTable *
 secret_attributes_build (const SecretSchema *schema,
@@ -116,7 +103,7 @@ secret_attributes_build (const SecretSchema *schema,
  * @schema. The list of attributes should be terminated with a %NULL.
  *
  * Returns: (transfer full) (element-type utf8 utf8): a new table of
- *          attributes, to be released with g_hash_table_unref()
+ *   attributes, to be released with [func@GLib.HashTable.unref]
  */
 GHashTable *
 secret_attributes_buildv (const SecretSchema *schema,

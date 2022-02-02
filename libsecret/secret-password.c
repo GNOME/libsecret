@@ -24,27 +24,6 @@
 #include <egg/egg-secure-memory.h>
 
 /**
- * SECTION:secret-password
- * @title: Password storage
- * @short_description: Simple password storage and lookup
- *
- * This is a simple API for storing passwords and retrieving passwords in the
- * Secret Service.
- *
- * Each password is associated with a set of attributes. Attribute values can
- * be either strings, integers or booleans.
- *
- * The names and types of allowed attributes for a given password are defined
- * with a schema. Certain schemas are predefined. Additional schemas can be
- * defined via the %SecretSchema structure.
- *
- * Each of the functions accept a variable list of attributes names and their
- * values. Include a %NULL to terminate the list of attributes.
- *
- * Stability: Stable
- */
-
-/**
  * secret_password_store: (skip)
  * @schema: the schema for attributes
  * @collection: (nullable): a collection alias, or D-Bus object path of the
@@ -67,7 +46,7 @@
  * the item will be updated with these new values.
  *
  * If @collection is %NULL, then the default collection will be
- * used. Use #SECRET_COLLECTION_SESSION to store the password in the session
+ * used. Use [const@COLLECTION_SESSION] to store the password in the session
  * collection, which doesn't get stored across login sessions.
  *
  * This method will return immediately and complete asynchronously.
@@ -195,7 +174,7 @@ on_store_backend (GObject *source,
  * the item will be updated with these new values.
  *
  * If @collection is %NULL, then the default collection will be
- * used. Use #SECRET_COLLECTION_SESSION to store the password in the session
+ * used. Use [const@COLLECTION_SESSION] to store the password in the session
  * collection, which doesn't get stored across login sessions.
  *
  * This method will return immediately and complete asynchronously.
@@ -240,9 +219,9 @@ secret_password_storev (const SecretSchema *schema,
  * secret_password_store_binary: (skip)
  * @schema: the schema for attributes
  * @collection: (nullable): a collection alias, or D-Bus object path of the
- *              collection where to store the secret
+ *    collection where to store the secret
  * @label: label for the secret
- * @value: a #SecretValue
+ * @value: a [struct@Value]
  * @cancellable: (nullable): optional cancellation object
  * @callback: called when the operation completes
  * @user_data: data to be passed to the callback
@@ -250,8 +229,8 @@ secret_password_storev (const SecretSchema *schema,
  *
  * Store a password in the secret service.
  *
- * This is similar to secret_password_store(), but takes a
- * #SecretValue as the argument instead of a null-terminated password.
+ * This is similar to [func@password_store], but takes a
+ * [struct@Value] as the argument instead of a null-terminated password.
  *
  * This method will return immediately and complete asynchronously.
  *
@@ -296,15 +275,15 @@ secret_password_store_binary (const SecretSchema *schema,
  * @collection: (nullable): a collection alias, or D-Bus object path of the
  *              collection where to store the secret
  * @label: label for the secret
- * @value: a #SecretValue
+ * @value: a [struct@Value]
  * @cancellable: (nullable): optional cancellation object
  * @callback: (scope async): called when the operation completes
  * @user_data: data to be passed to the callback
  *
  * Store a password in the secret service.
  *
- * This is similar to secret_password_storev(), but takes a
- * #SecretValue as the argument instead of a null-terminated password.
+ * This is similar to [func@password_storev], but takes a
+ * [struct@Value] as the argument instead of a null-terminated password.
  *
  * This method will return immediately and complete asynchronously.
  *
@@ -387,7 +366,7 @@ secret_password_store_finish (GAsyncResult *result,
  * the item will be updated with these new values.
  *
  * If @collection is %NULL, then the default collection will be
- * used. Use #SECRET_COLLECTION_SESSION to store the password in the session
+ * used. Use [const@COLLECTION_SESSION] to store the password in the session
  * collection, which doesn't get stored across login sessions.
  *
  * This method may block indefinitely and should not be used in user interface
@@ -448,7 +427,7 @@ secret_password_store_sync (const SecretSchema *schema,
  * the item will be updated with these new values.
  *
  * If @collection is %NULL, then the default collection will be
- * used. Use #SECRET_COLLECTION_SESSION to store the password in the session
+ * used. Use [const@COLLECTION_SESSION] to store the password in the session
  * collection, which doesn't get stored across login sessions.
  *
  * This method may block indefinitely and should not be used in user interface
@@ -500,15 +479,15 @@ secret_password_storev_sync (const SecretSchema *schema,
  * @collection: (nullable): a collection alias, or D-Bus object path of the
  *              collection where to store the secret
  * @label: label for the secret
- * @value: a #SecretValue
+ * @value: a [struct@Value]
  * @cancellable: (nullable): optional cancellation object
  * @error: location to place an error on failure
  * @...: the attribute keys and values, terminated with %NULL
  *
  * Store a password in the secret service.
  *
- * This is similar to secret_password_store_sync(), but takes a
- * #SecretValue as the argument instead of a null terminated password.
+ * This is similar to [func@password_store_sync], but takes a
+ * [struct@Value] as the argument instead of a null terminated password.
  *
  * This method may block indefinitely and should not be used in user interface
  * threads.
@@ -558,14 +537,14 @@ secret_password_store_binary_sync (const SecretSchema *schema,
  * @collection: (nullable): a collection alias, or D-Bus object path of the
  *              collection where to store the secret
  * @label: label for the secret
- * @value: a #SecretValue
+ * @value: a [struct@Value]
  * @cancellable: (nullable): optional cancellation object
  * @error: location to place an error on failure
  *
  * Store a password in the secret service.
  *
- * This is similar to secret_password_storev_sync(), but takes a
- * #SecretValue as the argument instead of a null-terminated passwords.
+ * This is similar to [func@password_storev_sync], but takes a [struct@Value] as
+ * the argument instead of a null-terminated passwords.
  *
  * This method may block indefinitely and should not be used in user interface
  * threads.
@@ -779,7 +758,7 @@ secret_password_lookupv (const SecretSchema *schema,
  * Finish an asynchronous operation to lookup a password in the secret service.
  *
  * Returns: (transfer full): a new password string stored in nonpageable memory
- *          which must be freed with secret_password_free() when done
+ *   which must be freed with [func@password_free] when done
  */
 gchar *
 secret_password_lookup_nonpageable_finish (GAsyncResult *result,
@@ -804,8 +783,8 @@ secret_password_lookup_nonpageable_finish (GAsyncResult *result,
  *
  * Finish an asynchronous operation to lookup a password in the secret service.
  *
- * Returns: (transfer full): a newly allocated #SecretValue, which should be
- *          released with secret_value_unref(), or %NULL if no secret found
+ * Returns: (transfer full): a newly allocated [struct@Value], which should be
+ *   released with [method@Value.unref], or %NULL if no secret found
  *
  * Since: 0.19.0
  */
@@ -827,7 +806,7 @@ secret_password_lookup_binary_finish (GAsyncResult *result,
  * Finish an asynchronous operation to lookup a password in the secret service.
  *
  * Returns: (transfer full): a new password string which should be freed with
- *          secret_password_free() or may be freed with g_free() when done
+ *   [func@password_free] or may be freed with [func@GLib.free] when done
  */
 gchar *
 secret_password_lookup_finish (GAsyncResult *result,
@@ -865,7 +844,7 @@ secret_password_lookup_finish (GAsyncResult *result,
  * threads.
  *
  * Returns: (transfer full): a new password string which should be freed with
- *          secret_password_free() or may be freed with g_free() when done
+ *   [func@password_free] or may be freed with [func@GLib.free] when done
  */
 gchar *
 secret_password_lookup_sync (const SecretSchema *schema,
@@ -917,7 +896,7 @@ secret_password_lookup_sync (const SecretSchema *schema,
  * threads.
  *
  * Returns: (transfer full): a new password string stored in nonpageable memory
- *          which must be freed with secret_password_free() when done
+ *   which must be freed with [func@password_free] when done
  */
 gchar *
 secret_password_lookup_nonpageable_sync (const SecretSchema *schema,
@@ -966,7 +945,7 @@ secret_password_lookup_nonpageable_sync (const SecretSchema *schema,
  * threads.
  *
  * Returns: (transfer full): a new password string stored in non pageable memory
- *          which should be freed with secret_password_free() when done
+ *   which should be freed with [func@password_free] when done
  */
 gchar *
 secret_password_lookupv_nonpageable_sync (const SecretSchema *schema,
@@ -1010,14 +989,14 @@ secret_password_lookupv_nonpageable_sync (const SecretSchema *schema,
  *
  * Lookup a password in the secret service.
  *
- * This is similar to secret_password_lookup_sync(), but returns a
- * #SecretValue instead of a null-terminated password.
+ * This is similar to [func@password_lookup_sync], but returns a
+ * [struct@Value] instead of a null-terminated password.
  *
  * This method may block indefinitely and should not be used in user interface
  * threads.
  *
- * Returns: (transfer full): a newly allocated #SecretValue, which should be
- *          released with secret_value_unref(), or %NULL if no secret found
+ * Returns: (transfer full): a newly allocated [struct@Value], which should be
+ *   released with [method@Value.unref], or %NULL if no secret found
  *
  * Since: 0.19.0
  */
@@ -1060,14 +1039,14 @@ secret_password_lookup_binary_sync (const SecretSchema *schema,
  *
  * Lookup a password in the secret service.
  *
- * This is similar to secret_password_lookupv_sync(), but returns a
- * #SecretValue instead of a null-terminated password.
+ * This is similar to [func@password_lookupv_sync], but returns a
+ * [struct@Value] instead of a null-terminated password.
  *
  * This method may block indefinitely and should not be used in user interface
  * threads.
  *
- * Returns: (transfer full): a newly allocated #SecretValue, which should be
- *          released with secret_value_unref(), or %NULL if no secret found
+ * Returns: (transfer full): a newly allocated [struct@Value], which should be
+ *   released with [method@Value.unref], or %NULL if no secret found
  *
  * Since: 0.19.0
  */
@@ -1121,7 +1100,7 @@ secret_password_lookupv_binary_sync (const SecretSchema *schema,
  * threads.
  *
  * Returns: (transfer full): a new password string which should be freed with
- *          secret_password_free() or may be freed with g_free() when done
+ *   [func@password_free] or may be freed with [func@GLib.free] when done
  */
 gchar *
 secret_password_lookupv_sync (const SecretSchema *schema,
@@ -1613,7 +1592,7 @@ secret_password_searchv (const SecretSchema *schema,
  * Finish an asynchronous operation to search for items in the secret service.
  *
  * Returns: (transfer full) (element-type Secret.Retrievable): a list of
- *          #SecretRetrievable containing attributes of the matched items
+ *   [iface@Retrievable] containing attributes of the matched items
  *
  * Since: 0.19.0
  */
@@ -1648,7 +1627,7 @@ secret_password_search_finish (GAsyncResult *result,
  * threads.
  *
  * Returns: (transfer full) (element-type Secret.Retrievable): a list of
- *          #SecretRetrievable containing attributes of the matched items
+ *   [iface@Retrievable] containing attributes of the matched items
  *
  * Since: 0.19.0
  */
@@ -1701,7 +1680,7 @@ secret_password_search_sync (const SecretSchema *schema,
  * threads.
  *
  * Returns: (transfer full) (element-type Secret.Retrievable): a list of
- *          #SecretRetrievable containing attributes of the matched items
+ *   [iface@Retrievable] containing attributes of the matched items
  *
  * Since: 0.19.0
  */
@@ -1746,9 +1725,9 @@ secret_password_searchv_sync (const SecretSchema *schema,
  * Clear the memory used by a password, and then free it.
  *
  * This function must be used to free nonpageable memory returned by
- * secret_password_lookup_nonpageable_finish(),
- * secret_password_lookup_nonpageable_sync() or
- * secret_password_lookupv_nonpageable_sync().
+ * [func@password_lookup_nonpageable_finish],
+ * [func@password_lookup_nonpageable_sync] or
+ * [func@password_lookupv_nonpageable_sync].
  */
 void
 secret_password_free (gchar *password)

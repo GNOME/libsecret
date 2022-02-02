@@ -1,39 +1,48 @@
-reference_content_files = [
-  'libsecret-examples.sgml',
-  'libsecret-using.sgml',
-  'libsecret-tpm2.sgml',
-  'migrating-libgnome-keyring.xml',
+expand_content_md_files = [
+  'libsecret-c-examples.md',
+  'libsecret-js-examples.md',
+  'libsecret-python-examples.md',
+  'libsecret-simple-api.md',
+  'libsecret-tpm2.md',
+  'libsecret-using.md',
+  'libsecret-vala-examples.md',
+  'migrating-libgnome-keyring.md',
 ]
 
-# SGML files where gtk-doc abbrevations (#GtkWidget) are expanded
-reference_expanded_content_files = [
-  'migrating-libgnome-keyring.xml',
-]
+toml_data = configuration_data()
+toml_data.set('VERSION', meson.project_version())
 
-reference_ignore_headers = [
-  'mock-service.h',
-  'secret-dbus-generated.h',
-  'secret-private.h',
-]
-
-configure_file(
-  input: 'version.xml.in',
-  output: '@BASENAME@',
-  configuration: {'VERSION': meson.project_version()},
+libsecret_toml = configure_file(
+  input: 'libsecret.toml.in',
+  output: 'libsecret.toml',
+  configuration: toml_data
 )
 
-gnome.gtkdoc('libsecret',
-  main_sgml: 'libsecret-docs.sgml',
-  content_files: reference_content_files,
-  src_dir: include_directories('../../../libsecret'),
-  dependencies: libsecret_dep,
-  gobject_typesfile: 'libsecret.types',
-  mkdb_args: '--expand-content-files=' + ' '.join(reference_expanded_content_files),
-  scan_args: [
-    '--deprecated-guards=SECRET_DISABLE_DEPRECATED',
-    '--rebuild-types',
-    '--ignore-headers=' + ' '.join(reference_ignore_headers),
+dependency('gi-docgen', version: '>= 2021.7',
+           fallback: ['gi-docgen', 'dummy_dep'],
+           native: true,
+           required: get_option('gtk_doc'))
+
+gidocgen = find_program('gi-docgen')
+
+docs_dir = get_option('datadir') / 'doc'
+
+custom_target('libsecret-doc',
+  input: [ libsecret_toml, libsecret_gir[0] ],
+  output: 'libsecret-@0@'.format(api_version_major),
+  command: [
+    gidocgen,
+    'generate',
+    '--quiet',
+    '--add-include-path=@0@'.format(meson.current_build_dir() / '../../../libsecret'),
+    '--config=@INPUT0@',
+    '--output-dir=@OUTPUT@',
+    '--no-namespace-dir',
+    '--content-dir=@0@'.format(meson.current_source_dir()),
+    '@INPUT1@',
   ],
-  module_version: api_version_major,
+  depend_files: [ expand_content_md_files ],
+  build_by_default: true,
   install: true,
+  install_dir: docs_dir,
 )

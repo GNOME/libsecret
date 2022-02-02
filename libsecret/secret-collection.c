@@ -27,27 +27,22 @@
 #include <glib/gi18n-lib.h>
 
 /**
- * SECTION:secret-collection
- * @title: SecretCollection
- * @short_description: A collection of secret items
+ * SecretCollection:
+ *
+ * A proxy object representing a collection of secrets in the Secret Service.
  *
  * #SecretCollection represents a collection of secret items stored in the
  * Secret Service.
  *
- * A collection can be in a locked or unlocked state. Use secret_service_lock()
- * or secret_service_unlock() to lock or unlock the collection.
+ * A collection can be in a locked or unlocked state. Use
+ * [method@SecretService.lock] or [method@SecretService.unlock] to lock or
+ * unlock the collection.
  *
- * Use the SecretCollection::items property or secret_collection_get_items() to
- * lookup the items in the collection. There may not be any items exposed when
- * the collection is locked.
+ * Use the [property@SecretCollection:items] property or
+ * [method@SecretCollection.get_items] to lookup the items in the collection.
+ * There may not be any items exposed when the collection is locked.
  *
  * Stability: Stable
- */
-
-/**
- * SecretCollection:
- *
- * A proxy object representing a collection of secrets in the Secret Service.
  */
 
 /**
@@ -69,22 +64,22 @@
  * SecretCollectionCreateFlags:
  * @SECRET_COLLECTION_CREATE_NONE: no flags
  *
- * Flags for secret_collection_create().
+ * Flags for [func@Collection.create].
  */
 
 /**
  * SECRET_COLLECTION_DEFAULT:
  *
- * An alias to the default collection. This can be passed to secret_password_store()
- * secret_collection_for_alias().
+ * An alias to the default collection. This can be passed to
+ * [func@password_store] [func@Collection.for_alias].
  */
 
 /**
  * SECRET_COLLECTION_SESSION:
  *
  * An alias to the session collection, which will be cleared when the user ends
- * the session. This can be passed to secret_password_store(),
- * secret_collection_for_alias() or similar functions.
+ * the session. This can be passed to [func@password_store],
+ * [func@Collection.for_alias] or similar functions.
  */
 
 enum {
@@ -429,9 +424,9 @@ secret_collection_class_init (SecretCollectionClass *klass)
 	proxy_class->g_signal = secret_collection_signal;
 
 	/**
-	 * SecretCollection:service:
+	 * SecretCollection:service: (attributes org.gtk.Property.get=secret_collection_get_service)
 	 *
-	 * The #SecretService object that this collection is associated with and
+	 * The [class@Service] object that this collection is associated with and
 	 * uses to interact with the actual D-Bus Secret Service.
 	 */
 	g_object_class_install_property (gobject_class, PROP_SERVICE,
@@ -439,7 +434,7 @@ secret_collection_class_init (SecretCollectionClass *klass)
 	                                 SECRET_TYPE_SERVICE, G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS));
 
 	/**
-	 * SecretCollection:flags:
+	 * SecretCollection:flags: (attributes org.gtk.Property.get=secret_collection_get_flags)
 	 *
 	 * A set of flags describing which parts of the secret collection have
 	 * been initialized.
@@ -450,9 +445,9 @@ secret_collection_class_init (SecretCollectionClass *klass)
 	                                 G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS));
 
 	/**
-	 * SecretCollection:items:
+	 * SecretCollection:items: (attributes org.gtk.Property.get=secret_collection_get_items)
 	 *
-	 * A list of #SecretItem objects representing the items that are in
+	 * A list of [class@Item] objects representing the items that are in
 	 * this collection. This list will be empty if the collection is locked.
 	 */
 	g_object_class_install_property (gobject_class, PROP_ITEMS,
@@ -460,32 +455,32 @@ secret_collection_class_init (SecretCollectionClass *klass)
 	                                 _secret_list_get_type (), G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 
 	/**
-	 * SecretCollection:label:
+	 * SecretCollection:label: (attributes org.gtk.Property.get=secret_collection_get_label org.gtk.Property.set=secret_collection_set_label)
 	 *
 	 * The human readable label for the collection.
 	 *
 	 * Setting this property will result in the label of the collection being
 	 * set asynchronously. To properly track the changing of the label use the
-	 * secret_collection_set_label() function.
+	 * [method@Collection.set_label] function.
 	 */
 	g_object_class_install_property (gobject_class, PROP_LABEL,
 	            g_param_spec_string ("label", "Label", "Item label",
 	                                 NULL, G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
 	/**
-	 * SecretCollection:locked:
+	 * SecretCollection:locked: (attributes org.gtk.Property.get=secret_collection_get_locked)
 	 *
 	 * Whether the collection is locked or not.
 	 *
-	 * To lock or unlock a collection use the secret_service_lock() or
-	 * secret_service_unlock() functions.
+	 * To lock or unlock a collection use the [method@Service.lock] or
+	 * [method@Service.unlock] functions.
 	 */
 	g_object_class_install_property (gobject_class, PROP_LOCKED,
 	           g_param_spec_boolean ("locked", "Locked", "Item locked",
 	                                 TRUE, G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 
 	/**
-	 * SecretCollection:created:
+	 * SecretCollection:created: (attributes org.gtk.Property.get=secret_collection_get_created)
 	 *
 	 * The date and time (in seconds since the UNIX epoch) that this
 	 * collection was created.
@@ -495,7 +490,7 @@ secret_collection_class_init (SecretCollectionClass *klass)
 	                                 0UL, G_MAXUINT64, 0UL, G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
 	/**
-	 * SecretCollection:modified:
+	 * SecretCollection:modified: (attributes org.gtk.Property.get=secret_collection_get_modified)
 	 *
 	 * The date and time (in seconds since the UNIX epoch) that this
 	 * collection was last modified.
@@ -765,10 +760,10 @@ on_load_item (GObject *source,
  *
  * Ensure that the #SecretCollection proxy has loaded all the items present
  * in the Secret Service. This affects the result of
- * secret_collection_get_items().
+ * [method@Collection.get_items].
  *
- * For collections returned from secret_service_get_collections() the items
- * will have already been loaded.
+ * For collections returned from [method@Service.get_collections] the items will
+ * have already been loaded.
  *
  * This method will return immediately and complete asynchronously.
  */
@@ -859,9 +854,9 @@ secret_collection_load_items_finish (SecretCollection *self,
  *
  * Ensure that the #SecretCollection proxy has loaded all the items present
  * in the Secret Service. This affects the result of
- * secret_collection_get_items().
+ * [method@Collection.get_items].
  *
- * For collections returned from secret_service_get_collections() the items
+ * For collections returned from [method@Service.get_collections] the items
  * will have already been loaded.
  *
  * This method may block indefinitely and should not be used in user interface
@@ -1050,7 +1045,7 @@ _secret_collection_properties_new (const gchar *label)
  * Create a new collection in the secret service.
  *
  * This method returns immediately and completes asynchronously. The secret
- * service may prompt the user. secret_service_prompt() will be used to handle
+ * service may prompt the user. [method@Service.prompt] will be used to handle
  * any prompts that are required.
  *
  * An @alias is a well-known tag for a collection, such as 'default' (ie: the
@@ -1059,8 +1054,8 @@ _secret_collection_properties_new (const gchar *label)
  * collection with that alias already exists, then a new collection will not
  * be created. The previous one will be returned instead.
  *
- * If @service is %NULL, then secret_service_get() will be called to get
- * the default #SecretService proxy.
+ * If @service is %NULL, then [func@Service.get] will be called to get the
+ * default [class@Service] proxy.
  */
 void
 secret_collection_create (SecretService *service,
@@ -1108,7 +1103,7 @@ secret_collection_create (SecretService *service,
  * Finish operation to create a new collection in the secret service.
  *
  * Returns: (transfer full): the new collection, which should be unreferenced
- *          with g_object_unref()
+ *   with [method@GObject.Object.unref]
  */
 SecretCollection *
 secret_collection_create_finish (GAsyncResult *result,
@@ -1140,20 +1135,20 @@ secret_collection_create_finish (GAsyncResult *result,
  * Create a new collection in the secret service.
  *
  * This method may block indefinitely and should not be used in user interface
- * threads. The secret service may prompt the user. secret_service_prompt()
+ * threads. The secret service may prompt the user. [method@Service.prompt]
  * will be used to handle any prompts that are required.
  *
- * An @alias is a well-known tag for a collection, such as 'default' (ie: the
+ * An @alias is a well-known tag for a collection, such as `default` (ie: the
  * default collection to store items in). This allows other applications to
  * easily identify and share a collection. If you specify an @alias, and a
  * collection with that alias already exists, then a new collection will not
  * be created. The previous one will be returned instead.
  *
- * If @service is %NULL, then secret_service_get_sync() will be called to get
- * the default #SecretService proxy.
+ * If @service is %NULL, then [func@Service.get_sync] will be called to get the
+ * default [class@Service] proxy.
  *
  * Returns: (transfer full): the new collection, which should be unreferenced
- *          with g_object_unref()
+ *   with [method@GObject.Object.unref]
  */
 SecretCollection *
 secret_collection_create_sync (SecretService *service,
@@ -1395,7 +1390,7 @@ on_search_paths (GObject *source,
  * search and be returned. If the unlock fails, the search does not fail.
  *
  * If %SECRET_SEARCH_LOAD_SECRETS is set in @flags, then the items will have
- * their secret values loaded and available via secret_item_get_secret().
+ * their secret values loaded and available via [method@Item.get_secret].
  *
  * This function returns immediately and completes asynchronously.
  */
@@ -1443,7 +1438,7 @@ secret_collection_search (SecretCollection *self,
  * Complete asynchronous operation to search for items in a collection.
  *
  * Returns: (transfer full) (element-type Secret.Item):
- *          a list of items that matched the search
+ *   a list of items that matched the search
  */
 GList *
 secret_collection_search_finish (SecretCollection *self,
@@ -1526,13 +1521,13 @@ collection_load_items_sync (SecretCollection *self,
  * search and be returned. If the unlock fails, the search does not fail.
  *
  * If %SECRET_SEARCH_LOAD_SECRETS is set in @flags, then the items will have
- * their secret values loaded and available via secret_item_get_secret().
+ * their secret values loaded and available via [method@Item.get_secret].
  *
  * This function may block indefinitely. Use the asynchronous version
  * in user interface threads.
  *
  * Returns: (transfer full) (element-type Secret.Item):
- *          a list of items that matched the search
+ *   a list of items that matched the search
  */
 GList *
 secret_collection_search_sync (SecretCollection *self,
@@ -1610,7 +1605,7 @@ on_service_delete_path (GObject *source,
  * Delete this collection.
  *
  * This method returns immediately and completes asynchronously. The secret
- * service may prompt the user. secret_service_prompt() will be used to handle
+ * service may prompt the user. [method@Service.prompt] will be used to handle
  * any prompts that show up.
  */
 void
@@ -1671,9 +1666,9 @@ secret_collection_delete_finish (SecretCollection *self,
  *
  * Delete this collection.
  *
- * This method may block indefinitely and should not be used in user
- * interface threads. The secret service may prompt the user.
- * secret_service_prompt() will be used to handle any prompts that show up.
+ * This method may block indefinitely and should not be used in user interface
+ * threads. The secret service may prompt the user. [method@Service.prompt] will
+ * be used to handle any prompts that show up.
  *
  * Returns: whether the collection was successfully deleted or not
  */
@@ -1705,7 +1700,7 @@ secret_collection_delete_sync (SecretCollection *self,
 }
 
 /**
- * secret_collection_get_service:
+ * secret_collection_get_service: (attributes org.gtk.Method.get_property=service)
  * @self: a collection
  *
  * Get the Secret Service object that this collection was created with.
@@ -1720,14 +1715,14 @@ secret_collection_get_service (SecretCollection *self)
 }
 
 /**
- * secret_collection_get_flags:
+ * secret_collection_get_flags: (attributes org.gtk.Method.get_property=flags)
  * @self: the secret collection proxy
  *
  * Get the flags representing what features of the #SecretCollection proxy
  * have been initialized.
  *
- * Use secret_collection_load_items()  to initialize further features
- * and change the flags.
+ * Use [method@Collection.load_items] to initialize further features and change
+ * the flags.
  *
  * Returns: the flags for features initialized
  */
@@ -1749,14 +1744,14 @@ secret_collection_get_flags (SecretCollection *self)
 }
 
 /**
- * secret_collection_get_items:
+ * secret_collection_get_items: (attributes org.gtk.Method.get_property=items)
  * @self: a collection
  *
  * Get the list of items in this collection.
  *
- * Returns: (transfer full) (element-type Secret.Item): a list of items,
- * when done, the list should be freed with g_list_free, and each item should
- * be released with g_object_unref()
+ * Returns: (transfer full) (element-type Secret.Item): a list of items, when
+ *   done, the list should be freed with [func@GLib.List.free], and each item
+ *   should be released with [method@GObject.Object.unref]
  */
 GList *
 secret_collection_get_items (SecretCollection *self)
@@ -1792,12 +1787,13 @@ _secret_collection_find_item_instance (SecretCollection *self,
 }
 
 /**
- * secret_collection_get_label:
+ * secret_collection_get_label: (attributes org.gtk.Method.get_property=label)
  * @self: a collection
  *
  * Get the label of this collection.
  *
- * Returns: (transfer full): the label, which should be freed with g_free()
+ * Returns: (transfer full): the label, which should be freed with
+ *   [func@GLib.free]
  */
 gchar *
 secret_collection_get_label (SecretCollection *self)
@@ -1817,7 +1813,7 @@ secret_collection_get_label (SecretCollection *self)
 }
 
 /**
- * secret_collection_set_label:
+ * secret_collection_set_label: (attributes org.gtk.Method.set_property=label)
  * @self: a collection
  * @label: a new label
  * @cancellable: (nullable): optional cancellation object
@@ -1895,12 +1891,12 @@ secret_collection_set_label_sync (SecretCollection *self,
 }
 
 /**
- * secret_collection_get_locked:
+ * secret_collection_get_locked: (attributes org.gtk.Method.get_property=locked)
  * @self: a collection
  *
  * Get whether the collection is locked or not.
  *
- * Use secret_service_lock() or secret_service_unlock() to lock or unlock the
+ * Use [method@Service.lock] or [method@Service.unlock] to lock or unlock the
  * collection.
  *
  * Returns: whether the collection is locked or not
@@ -1923,7 +1919,7 @@ secret_collection_get_locked (SecretCollection *self)
 }
 
 /**
- * secret_collection_get_created:
+ * secret_collection_get_created: (attributes org.gtk.Method.get_property=created)
  * @self: a collection
  *
  * Get the created date and time of the collection. The return value is
@@ -1949,7 +1945,7 @@ secret_collection_get_created (SecretCollection *self)
 }
 
 /**
- * secret_collection_get_modified:
+ * secret_collection_get_modified: (attributes org.gtk.Method.get_property=modified)
  * @self: a collection
  *
  * Get the modified date and time of the collection. The return value is
@@ -2091,8 +2087,8 @@ on_read_alias_service (GObject *source,
  * Lookup which collection is assigned to this alias. Aliases help determine
  * well known collections, such as 'default'.
  *
- * If @service is %NULL, then secret_service_get() will be called to get
- * the default #SecretService proxy.
+ * If @service is %NULL, then [func@Service.get] will be called to get the
+ * default [class@Service] proxy.
  *
  * This method will return immediately and complete asynchronously.
  */
@@ -2167,10 +2163,10 @@ secret_collection_for_alias_finish (GAsyncResult *result,
  * @error: location to place error on failure
  *
  * Lookup which collection is assigned to this alias. Aliases help determine
- * well known collections, such as 'default'.
+ * well known collections, such as `default`.
  *
- * If @service is %NULL, then secret_service_get_sync() will be called to get
- * the default #SecretService proxy.
+ * If @service is %NULL, then [func@Service.get_sync] will be called to get the
+ * default [class@Service] proxy.
  *
  * This method may block and should not be used in user interface threads.
  *

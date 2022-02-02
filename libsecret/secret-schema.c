@@ -23,82 +23,6 @@
 #include "egg/egg-secure-memory.h"
 
 /**
- * SECTION:secret-schema
- * @title: SecretSchema
- * @short_description: Schema for defining which attributes are on items
- *
- * Each password is associated with a set of attributes. Attribute values can
- * be either strings, integers or booleans.
- *
- * The names and types of allowed attributes for a given password are defined
- * with a schema.
- *
- * Additional schemas can be defined via the %SecretSchema structure like this:
- *
- * <informalexample><programlisting language="c">
- * /<!-- -->* in a header: *<!-- -->/
- *
- * const SecretSchema * example_get_schema (void) G_GNUC_CONST;
- *
- * #define EXAMPLE_SCHEMA  example_get_schema ()
- *
- *
- * /<!-- -->* in a .c file: *<!-- -->/
- *
- * const SecretSchema *
- * example_get_schema (void)
- * {
- * 	static const SecretSchema the_schema = {
- * 		"org.example.Password", SECRET_SCHEMA_NONE,
- * 		{
- * 			{  "number", SECRET_SCHEMA_ATTRIBUTE_INTEGER },
- * 			{  "string", SECRET_SCHEMA_ATTRIBUTE_STRING },
- * 			{  "even", SECRET_SCHEMA_ATTRIBUTE_BOOLEAN },
- * 			{  NULL, 0 },
- * 		}
- * 	};
- * 	return &the_schema;
- * }
- * </programlisting></informalexample>
- *
- * Stability: Stable
- */
-
-/**
- * SecretSchema:
- * @name: the dotted name of the schema
- * @flags: flags for the schema
- * @attributes: the attribute names and types of those attributes
- *
- * Represents a set of attributes that are stored with an item. These schemas
- * are used for interoperability between various services storing the same types
- * of items.
- *
- * Each schema has a name like "org.gnome.keyring.NetworkPassword", and defines
- * a set of attributes, and types (string, integer, boolean) for those attributes.
- *
- * Attributes are stored as strings in the Secret Service, and the attribute
- * types simply define standard ways to store integer and boolean values as strings.
- * Attributes are represented in libsecret via a #GHashTable with string keys and
- * values. Even for values that defined as an integer or boolean in the schema,
- * the attribute values in the #GHashTable are strings. Boolean values are stored
- * as the strings 'true' and 'false'. Integer values are stored in decimal, with
- * a preceding negative sign for negative integers.
- *
- * Schemas are handled entirely on the client side by this library. The name of the
- * schema is automatically stored as an attribute on the item.
- *
- * Normally when looking up passwords only those with matching schema names are
- * returned. If the schema @flags contain the %SECRET_SCHEMA_DONT_MATCH_NAME flag,
- * then lookups will not check that the schema name matches that on the item, only
- * the schema's attributes are matched. This is useful when you are looking up items
- * that are not stored by the libsecret library. Other libraries such as libgnome-keyring
- * don't store the schema name.
- *
- * Stability: Stable
- */
-
-/**
  * SecretSchemaFlags:
  * @SECRET_SCHEMA_NONE: no flags for the schema
  * @SECRET_SCHEMA_DONT_MATCH_NAME: don't match the schema name when looking up or
@@ -161,12 +85,12 @@ G_DEFINE_BOXED_TYPE (SecretSchemaAttribute, secret_schema_attribute,
  * schemas are used for interoperability between various services storing the
  * same types of items.
  *
- * Each schema has an @name like "org.gnome.keyring.NetworkPassword", and
+ * Each schema has an @name like `org.gnome.keyring.NetworkPassword`, and
  * defines a set of attributes names, and types (string, integer, boolean) for
  * those attributes.
  *
  * Each key in the @attributes table should be a attribute name strings, and
- * the values in the table should be integers from the #SecretSchemaAttributeType
+ * the values in the table should be integers from the [enum@SchemaAttributeType]
  * enumeration, representing the attribute type for each attribute name.
  *
  * Normally when looking up passwords only those with matching schema names are
@@ -177,7 +101,7 @@ G_DEFINE_BOXED_TYPE (SecretSchemaAttribute, secret_schema_attribute,
  * don't store the schema name.
  *
  * Returns: (transfer full): the new schema, which should be unreferenced with
- *          secret_schema_unref() when done
+ *   [method@Schema.unref] when done
  */
 SecretSchema *
 secret_schema_newv (const gchar *name,
@@ -244,13 +168,13 @@ secret_schema_newv (const gchar *name,
  * schemas are used for interoperability between various services storing the
  * same types of items.
  *
- * Each schema has an @name like "org.gnome.keyring.NetworkPassword", and
+ * Each schema has an @name like `org.gnome.keyring.NetworkPassword`, and
  * defines a set of attributes names, and types (string, integer, boolean) for
  * those attributes.
  *
  * The variable argument list should contain pairs of a) The attribute name as
  * a null-terminated string, followed by b) integers from the
- * #SecretSchemaAttributeType enumeration, representing the attribute type for
+ * [enum@SchemaAttributeType] enumeration, representing the attribute type for
  * each attribute name. The list of attributes should be terminated with a %NULL.
  *
  * Normally when looking up passwords only those with matching schema names are
@@ -261,7 +185,7 @@ secret_schema_newv (const gchar *name,
  * don't store the schema name.
  *
  * Returns: (transfer full): the new schema, which should be unreferenced with
- *          secret_schema_unref() when done
+ *   [method@Schema.unref] when done
  */
 SecretSchema *
 secret_schema_new (const gchar *name,
@@ -304,7 +228,7 @@ secret_schema_new (const gchar *name,
  * allocated, then this function will copy the schema.
  *
  * Returns: (transfer full): the referenced schema, which should be later
- *          unreferenced with secret_schema_unref()
+ *   unreferenced with [method@Schema.unref]
  */
 SecretSchema *
 secret_schema_ref (SecretSchema *schema)
