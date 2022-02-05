@@ -253,7 +253,7 @@ is_password_value (SecretValue *value)
 /**
  * secret_value_unref_to_password:
  * @value: the value
- * @length: the length of the secret
+ * @length: (inout): the length of the secret
  *
  * Unreference a #SecretValue and steal the secret data in
  * #SecretValue as nonpageable memory.
