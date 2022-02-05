@@ -75,6 +75,12 @@
  * Since: 0.19.0
  */
 
+/**
+ * SECRET_BACKEND_EXTENSION_POINT_NAME:
+ *
+ * Extension point for the secret backend.
+ */
+
 G_DEFINE_INTERFACE_WITH_CODE (SecretBackend, secret_backend, G_TYPE_OBJECT,
 			      g_type_interface_add_prerequisite(g_define_type_id, G_TYPE_ASYNC_INITABLE);
 );
