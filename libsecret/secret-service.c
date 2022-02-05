@@ -76,16 +76,16 @@
  * SecretServiceClass:
  * @parent_class: the parent class
  * @collection_gtype: the [alias@GLib.Type] of the [class@Collection] objects instantiated
- *                    by the #SecretService proxy
+ *   by the #SecretService proxy
  * @item_gtype: the [alias@GLib.Type] of the [class@Item] objects instantiated by the
- *              #SecretService proxy
+ *   #SecretService proxy
  * @prompt_async: called to perform asynchronous prompting when necessary
  * @prompt_finish: called to complete an asynchronous prompt operation
  * @prompt_sync: called to perform synchronous prompting when necessary
  * @get_collection_gtype: called to get the GObject type for collections
- *                        instantiated by the #SecretService proxy
+ *   instantiated by the #SecretService proxy
  * @get_item_gtype: called to get the GObject type for collections
- *                  instantiated by the #SecretService proxy
+ *   instantiated by the #SecretService proxy
  *
  * The class for #SecretService.
  */
@@ -94,9 +94,9 @@
  * SecretServiceFlags:
  * @SECRET_SERVICE_NONE: no flags for initializing the #SecretService
  * @SECRET_SERVICE_OPEN_SESSION: establish a session for transfer of secrets
- *                               while initializing the #SecretService
+ *   while initializing the #SecretService
  * @SECRET_SERVICE_LOAD_COLLECTIONS: load collections while initializing the
- *                                   #SecretService
+ *   #SecretService
  *
  * Flags which determine which parts of the #SecretService proxy are initialized
  * during a [func@Service.get] or [func@Service.open] operation.
@@ -1365,7 +1365,7 @@ _secret_service_take_session (SecretService *self,
  * [method@Service.ensure_session] to establish a session.
  *
  * Returns: (nullable): a string representing the algorithms for transferring
- *          secrets
+ *   secrets
  */
 const gchar *
 secret_service_get_session_algorithms (SecretService *self)

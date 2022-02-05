@@ -89,7 +89,7 @@
  * SecretSchemaFlags:
  * @SECRET_SCHEMA_NONE: no flags for the schema
  * @SECRET_SCHEMA_DONT_MATCH_NAME: don't match the schema name when looking up or
- *                                 removing passwords
+ *   removing passwords
  *
  * Flags for a #SecretSchema definition.
  */

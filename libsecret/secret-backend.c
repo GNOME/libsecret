@@ -66,9 +66,9 @@
  * SecretBackendFlags:
  * @SECRET_BACKEND_NONE: no flags for initializing the #SecretBackend
  * @SECRET_BACKEND_OPEN_SESSION: establish a session for transfer of secrets
- *                               while initializing the #SecretBackend
+ *   while initializing the #SecretBackend
  * @SECRET_BACKEND_LOAD_COLLECTIONS: load collections while initializing the
- *                                   #SecretBackend
+ *   #SecretBackend
  *
  * Flags which determine which parts of the #SecretBackend are initialized.
  *

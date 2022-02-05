@@ -45,9 +45,9 @@
  * SecretRetrievableInterface:
  * @parent_iface: the parent interface
  * @retrieve_secret: implementation of [method@Retrievable.retrieve_secret],
- *                   required
+ *   required
  * @retrieve_secret_finish: implementation of
- *                   [method@Retrievable.retrieve_secret_finish], required
+ *   [method@Retrievable.retrieve_secret_finish], required
  *
  * The interface for #SecretRetrievable.
  *
