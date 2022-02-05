@@ -20,36 +20,22 @@
 #include <string.h>
 
 /**
- * SecretError
- *
- * libsecret errors
- *
- * Various errors reported by the libsecret library. No error returned from
- * the libsecret API is suitable for direct display to the user. It is up
- * to the application to handle them appropriately.
- *
- * Stability: Stable
- */
-
-/**
- * SECRET_ERROR:
- *
- * The error domain quark which denotes libsecret specific errors from the
- * #SecretError enumeration.
- */
-
-/**
  * SecretError:
  * @SECRET_ERROR_PROTOCOL: received an invalid data or message from the Secret
- *                         Service
+ *   Service
  * @SECRET_ERROR_IS_LOCKED: the item or collection is locked and the operation
- *                          cannot be performed
- * @SECRET_ERROR_NO_SUCH_OBJECT: no such item or collection found in the
- *                               Secret Service
+ *   cannot be performed
+ * @SECRET_ERROR_NO_SUCH_OBJECT: no such item or collection found in the Secret
+ *   Service
  * @SECRET_ERROR_ALREADY_EXISTS: a relevant item or collection already exists
+ * @SECRET_ERROR_INVALID_FILE_FORMAT: the file format is not valid
  *
- * Errors returned by the Secret Service. None of the errors are appropriate
- * for display to the user.
+ * Errors returned by the Secret Service.
+ *
+ * None of the errors are appropriate for display to the user. It is up to the
+ * application to handle them appropriately.
+ *
+ * Stability: Stable
  */
 
 static void
@@ -86,6 +72,13 @@ _secret_list_get_type (void)
 
 }
 
+/**
+ * secret_error_get_quark:
+ *
+ * Get the error quark.
+ *
+ * Returns: the quark
+ */
 GQuark
 secret_error_get_quark (void)
 {
