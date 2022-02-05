@@ -585,8 +585,9 @@ secret_service_class_init (SecretServiceClass *klass)
 	 * SecretService:collections: (attributes org.gtk.Property.get=secret_service_get_collections)
 	 *
 	 * A list of [class@Collection] objects representing the collections in
-	 * the Secret Service. This list may be %NULL if the collections have
-	 * not been loaded.
+	 * the Secret Service.
+	 *
+	 * This list may be %NULL if the collections have not been loaded.
 	 *
 	 * To load the collections, specify the %SECRET_SERVICE_LOAD_COLLECTIONS
 	 * initialization flag when calling the [func@Service.get] or
@@ -946,8 +947,9 @@ secret_service_backend_iface (SecretBackendInterface *iface)
  * @callback: called when the operation completes
  * @user_data: data to be passed to the callback
  *
- * Get a #SecretService proxy for the Secret Service. If such a proxy object
- * already exists, then the same proxy is returned.
+ * Get a #SecretService proxy for the Secret Service.
+ *
+ * If such a proxy object already exists, then the same proxy is returned.
  *
  * If @flags contains any flags of which parts of the secret service to
  * ensure are initialized, then those will be initialized before completing.
@@ -1043,8 +1045,9 @@ secret_service_get_finish (GAsyncResult *result,
  * @cancellable: (nullable): optional cancellation object
  * @error: location to place an error on failure
  *
- * Get a #SecretService proxy for the Secret Service. If such a proxy object
- * already exists, then the same proxy is returned.
+ * Get a #SecretService proxy for the Secret Service.
+ *
+ * If such a proxy object already exists, then the same proxy is returned.
  *
  * If @flags contains any flags of which parts of the secret service to
  * ensure are initialized, then those will be initialized before returning.
@@ -1419,7 +1422,9 @@ secret_service_get_session_dbus_path (SecretService *self)
  * @user_data: data to be passed to the callback
  *
  * Ensure that the #SecretService proxy has established a session with the
- * Secret Service. This session is used to transfer secrets.
+ * Secret Service.
+ *
+ * This session is used to transfer secrets.
  *
  * It is not normally necessary to call this method, as the session is
  * established as necessary. You can also pass the %SECRET_SERVICE_OPEN_SESSION
@@ -1491,7 +1496,9 @@ secret_service_ensure_session_finish (SecretService *self,
  * @error: location to place an error on failure
  *
  * Ensure that the #SecretService proxy has established a session with the
- * Secret Service. This session is used to transfer secrets.
+ * Secret Service.
+ *
+ * This session is used to transfer secrets.
  *
  * It is not normally necessary to call this method, as the session is
  * established as necessary. You can also pass the %SECRET_SERVICE_OPEN_SESSION
@@ -1632,8 +1639,9 @@ on_ensure_collection (GObject *source,
  * @user_data: data to be passed to the callback
  *
  * Ensure that the #SecretService proxy has loaded all the collections present
- * in the Secret Service. This affects the result of
- * [method@Service.get_collections].
+ * in the Secret Service.
+ *
+ * This affects the result of [method@Service.get_collections].
  *
  * You can also pass the %SECRET_SERVICE_LOAD_COLLECTIONS to
  * [func@Service.get_sync] in order to ensure that the collections have been
@@ -1729,8 +1737,9 @@ secret_service_load_collections_finish (SecretService *self,
  * @error: location to place an error on failure
  *
  * Ensure that the #SecretService proxy has loaded all the collections present
- * in the Secret Service. This affects the result of
- * [method@Service.get_collections].
+ * in the Secret Service.
+ *
+ * This affects the result of [method@Service.get_collections].
  *
  * You can also pass the %SECRET_SERVICE_LOAD_COLLECTIONS to
  * [func@Service.get_sync] in order to ensure that the collections have been
@@ -1908,6 +1917,7 @@ secret_service_prompt_finish (SecretService *self,
  * @self: the secret service
  *
  * Get the GObject type for collections instantiated by this service.
+ *
  * This will always be either [class@Collection] or derived from it.
  *
  * Returns: the gobject type for collections
@@ -1936,6 +1946,7 @@ secret_service_get_collection_gtype (SecretService *self)
  * @self: the service
  *
  * Get the GObject type for items instantiated by this service.
+ *
  * This will always be either [class@Item] or derived from it.
  *
  * Returns: the gobject type for items

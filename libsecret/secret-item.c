@@ -353,7 +353,9 @@ secret_item_class_init (SecretItemClass *klass)
 	 * SecretItem:attributes: (type GLib.HashTable(utf8,utf8)) (transfer full)
 	 *
 	 * The attributes set on this item. Attributes are used to locate an
-	 * item. They are not guaranteed to be stored or transferred securely.
+	 * item.
+	 *
+	 * They are not guaranteed to be stored or transferred securely.
 	 */
 	g_object_class_override_property (gobject_class, PROP_ATTRIBUTES, "attributes");
 
@@ -371,8 +373,10 @@ secret_item_class_init (SecretItemClass *klass)
 	/**
 	 * SecretItem:locked: (attributes org.gtk.Property.get=secret_item_get_locked)
 	 *
-	 * Whether the item is locked or not. An item may not be independently
-	 * lockable separate from other items in its collection.
+	 * Whether the item is locked or not.
+	 *
+	 * An item may not be independently lockable separate from other items in
+	 * its collection.
 	 *
 	 * To lock or unlock a item use the [method@Service.lock] or
 	 * [method@Service.unlock] functions.
@@ -588,8 +592,10 @@ secret_item_async_initable_iface (GAsyncInitableIface *iface)
  * secret_item_refresh:
  * @self: the collection
  *
- * Refresh the properties on this item. This fires off a request to
- * refresh, and the properties will be updated later.
+ * Refresh the properties on this item.
+ *
+ * This fires off a request to refresh, and the properties will be updated
+ * later.
  *
  * Calling this method is not normally necessary, as the secret service
  * will notify the client when properties change.
@@ -1046,8 +1052,10 @@ secret_item_get_service (SecretItem *self)
  * secret_item_get_secret:
  * @self: an item
  *
- * Get the secret value of this item. If this item is locked or the secret
- * has not yet been loaded then this will return %NULL.
+ * Get the secret value of this item.
+ *
+ * If this item is locked or the secret has not yet been loaded then this will
+ * return %NULL.
  *
  * To load the secret call the [method@Item.load_secret] method.
  *
@@ -1988,8 +1996,10 @@ secret_item_get_locked (SecretItem *self)
  * secret_item_get_created:
  * @self: an item
  *
- * Get the created date and time of the item. The return value is
- * the number of seconds since the unix epoch, January 1st 1970.
+ * Get the created date and time of the item.
+ *
+ * The return value is the number of seconds since the unix epoch, January 1st
+ * 1970.
  *
  * Returns: the created date and time
  */
@@ -2014,8 +2024,10 @@ secret_item_get_created (SecretItem *self)
  * secret_item_get_modified:
  * @self: an item
  *
- * Get the modified date and time of the item. The return value is
- * the number of seconds since the unix epoch, January 1st 1970.
+ * Get the modified date and time of the item.
+ *
+ * The return value is the number of seconds since the unix epoch, January 1st
+ * 1970.
  *
  * Returns: the modified date and time
  */

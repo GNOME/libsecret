@@ -270,8 +270,10 @@ on_search_service (GObject *source,
  * @callback: called when the operation completes
  * @user_data: data to pass to the callback
  *
- * Search for items matching the @attributes. All collections are searched.
- * The @attributes should be a table of string keys and string values.
+ * Search for items matching the @attributes.
+ *
+ * All collections are searched. The @attributes should be a table of string
+ * keys and string values.
  *
  * If @service is %NULL, then [func@Service.get] will be called to get
  * the default [class@Service] proxy.
@@ -410,8 +412,10 @@ service_load_items_sync (SecretService *service,
  * @cancellable: (nullable): optional cancellation object
  * @error: location to place error on failure
  *
- * Search for items matching the @attributes. All collections are searched.
- * The @attributes should be a table of string keys and string values.
+ * Search for items matching the @attributes.
+ *
+ * All collections are searched. The @attributes should be a table of string
+ * keys and string values.
  *
  * If @service is %NULL, then [func@Service.get_sync] will be called to get
  * the default [class@Service] proxy.
@@ -1875,8 +1879,9 @@ on_set_alias_service (GObject *source,
  * @callback: called when the operation completes
  * @user_data: data to pass to the callback
  *
- * Assign a collection to this alias. Aliases help determine
- * well known collections, such as 'default'.
+ * Assign a collection to this alias.
+ *
+ * Aliases help determine well known collections, such as 'default'.
  *
  * If @service is %NULL, then [func@Service.get] will be called to get
  * the default [class@Service] proxy.

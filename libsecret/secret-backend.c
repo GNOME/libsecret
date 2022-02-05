@@ -214,8 +214,9 @@ on_ensure_for_flags (GObject *source_object,
  * @callback: called when the operation completes
  * @user_data: data to be passed to the callback
  *
- * Get a #SecretBackend instance. If such a backend already exists,
- * then the same backend is returned.
+ * Get a #SecretBackend instance.
+ *
+ * If such a backend already exists, then the same backend is returned.
  *
  * If @flags contains any flags of which parts of the secret backend to
  * ensure are initialized, then those will be initialized before completing.

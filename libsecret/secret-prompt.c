@@ -119,10 +119,11 @@ _secret_prompt_instance (SecretService *service,
  * @return_type: the variant type of the prompt result
  * @error: location to place an error on failure
  *
- * Runs a prompt and performs the prompting. Returns a variant result if the
- * prompt was completed and not dismissed. The type of result depends on the
- * action the prompt is completing, and is defined in the Secret Service DBus
- * API specification.
+ * Runs a prompt and performs the prompting.
+ *
+ * Returns a variant result if the prompt was completed and not dismissed. The
+ * type of result depends on the action the prompt is completing, and is defined
+ * in the Secret Service DBus API specification.
  *
  * If @window_id is non-null then it is used as an XWindow id on Linux. The API
  * expects this id to be converted to a string using the `%d` printf format. The
@@ -179,10 +180,11 @@ secret_prompt_run (SecretPrompt *self,
  * @return_type: the variant type of the prompt result
  * @error: location to place an error on failure
  *
- * Runs a prompt and performs the prompting. Returns a variant result if the
- * prompt was completed and not dismissed. The type of result depends on the
- * action the prompt is completing, and is defined in the Secret Service DBus
- * API specification.
+ * Runs a prompt and performs the prompting.
+ *
+ * Returns a variant result if the prompt was completed and not dismissed. The
+ * type of result depends on the action the prompt is completing, and is defined
+ * in the Secret Service DBus API specification.
  *
  * If @window_id is non-null then it is used as an XWindow id on Linux. The API
  * expects this id to be converted to a string using the `%d` printf format. The
@@ -402,8 +404,9 @@ on_prompt_cancelled (GCancellable *cancellable,
  * @callback: called when the operation completes
  * @user_data: data to be passed to the callback
  *
- * Runs a prompt and performs the prompting. Returns %TRUE if the prompt
- * was completed and not dismissed.
+ * Runs a prompt and performs the prompting.
+ *
+ * Returns %TRUE if the prompt was completed and not dismissed.
  *
  * If @window_id is non-null then it is used as an XWindow id on Linux. The API
  * expects this id to be converted to a string using the `%d` printf format. The

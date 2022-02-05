@@ -108,9 +108,11 @@
  * @SECRET_SCHEMA_ATTRIBUTE_INTEGER: an integer attribute, stored as a decimal
  * @SECRET_SCHEMA_ATTRIBUTE_STRING: a utf-8 string attribute
  *
- * The type of an attribute in a #SecretSchema. Attributes are stored as strings
- * in the Secret Service, and the attribute types simply define standard ways
- * to store integer and boolean values as strings.
+ * The type of an attribute in a [struct@SecretSchema].
+ *
+ * Attributes are stored as strings in the Secret Service, and the attribute
+ * types simply define standard ways to store integer and boolean values as
+ * strings.
  */
 
 static SecretSchemaAttribute *
@@ -332,8 +334,9 @@ _secret_schema_ref_if_nonstatic (const SecretSchema *schema)
  * secret_schema_unref:
  * @schema: the schema to reference
  *
- * Releases a reference to the #SecretSchema. If the last reference is
- * released then the schema will be freed.
+ * Releases a reference to the #SecretSchema.
+ *
+ * If the last reference is released then the schema will be freed.
  *
  * It is not normally necessary to call this function from C code, and is
  * mainly present for the sake of bindings. It is an error to call this for

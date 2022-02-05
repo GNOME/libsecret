@@ -75,8 +75,9 @@ secret_value_get_type (void)
  * @length: the length of the data
  * @content_type: the content type of the data
  *
- * Create a #SecretValue for the secret data passed in. The secret data is
- * copied into non-pageable 'secure' memory.
+ * Create a #SecretValue for the secret data passed in.
+ *
+ * The secret data is copied into non-pageable 'secure' memory.
  *
  * If the length is less than zero, then @secret is assumed to be
  * null-terminated.
@@ -110,8 +111,10 @@ secret_value_new (const gchar *secret,
  * @content_type: the content type of the data
  * @destroy: function to call to free the secret data
  *
- * Create a #SecretValue for the secret data passed in. The secret data is
- * not copied, and will later be freed with the @destroy function.
+ * Create a #SecretValue for the secret data passed in.
+ *
+ * The secret data is not copied, and will later be freed with the @destroy
+ * function.
  *
  * If the length is less than zero, then @secret is assumed to be
  * null-terminated.
@@ -146,9 +149,11 @@ secret_value_new_full (gchar *secret,
  * @value: the value
  * @length: the length of the secret
  *
- * Get the secret data in the #SecretValue. The value is not necessarily
- * null-terminated unless it was created with [ctor@Value.new] or a
- * null-terminated string was passed to [ctor@Value.new_full].
+ * Get the secret data in the #SecretValue.
+ *
+ * The value is not necessarily null-terminated unless it was created with
+ * [ctor@Value.new] or a null-terminated string was passed to
+ * [ctor@Value.new_full].
  *
  * Returns: (array length=length) (element-type guint8): the secret data
  */
@@ -167,7 +172,9 @@ secret_value_get (SecretValue *value,
  * @value: the value
  *
  * Get the secret data in the #SecretValue if it contains a textual
- * value. The content type must be `text/plain`.
+ * value.
+ *
+ * The content type must be `text/plain`.
  *
  * Returns: (nullable): the content type
  */
@@ -202,8 +209,10 @@ secret_value_get_content_type (SecretValue *value)
  * secret_value_ref:
  * @value: value to reference
  *
- * Add another reference to the #SecretValue. For each reference
- * [method@Value.unref] should be called to unreference the value.
+ * Add another reference to the #SecretValue.
+ *
+ * For each reference [method@Value.unref] should be called to unreference the
+ * value.
  *
  * Returns: (transfer full): the value
  */
@@ -219,8 +228,9 @@ secret_value_ref (SecretValue *value)
  * secret_value_unref:
  * @value: (type Secret.Value): value to unreference
  *
- * Unreference a #SecretValue. When the last reference is gone, then
- * the value will be freed.
+ * Unreference a #SecretValue.
+ *
+ * When the last reference is gone, then the value will be freed.
  */
 void
 secret_value_unref (gpointer value)

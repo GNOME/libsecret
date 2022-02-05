@@ -311,8 +311,10 @@ on_search_items_complete (GObject *source,
  * @user_data: data to pass to the callback
  *
  * Search for items in @collection matching the @attributes, and return their
- * DBus object paths. Only the specified collection is searched. The @attributes
- * should be a table of string keys and string values.
+ * DBus object paths.
+ *
+ * Only the specified collection is searched. The @attributes should be a table
+ * of string keys and string values.
  *
  * This function returns immediately and completes asynchronously.
  *
@@ -406,8 +408,9 @@ secret_collection_search_for_dbus_paths_finish (SecretCollection *collection,
  * @error: location to place error on failure
  *
  * Search for items matching the @attributes in @collection, and return their
- * DBus object paths. The @attributes should be a table of string keys and
- * string values.
+ * DBus object paths.
+ *
+ * The @attributes should be a table of string keys and string values.
  *
  * This function may block indefinitely. Use the asynchronous version
  * in user interface threads.
@@ -462,6 +465,7 @@ secret_collection_search_for_dbus_paths_sync (SecretCollection *collection,
  * @user_data: data to pass to the callback
  *
  * Search for items matching the @attributes, and return their D-Bus object paths.
+ *
  * All collections are searched. The @attributes should be a table of string keys
  * and string values.
  *
@@ -600,8 +604,10 @@ secret_service_search_for_dbus_paths_finish (SecretService *self,
  * @error: location to place error on failure
  *
  * Search for items matching the @attributes, and return their D-Bus object
- * paths. All collections are searched. The @attributes should be a table of
- * string keys and string values.
+ * paths.
+ *
+ * All collections are searched. The @attributes should be a table of string
+ * keys and string values.
  *
  * This function may block indefinitely. Use the asynchronous version
  * in user interface threads.
@@ -2187,9 +2193,10 @@ secret_service_create_item_dbus_path_sync (SecretService *self,
  * @callback: called when the operation completes
  * @user_data: data to pass to the callback
  *
- * Lookup which collection is assigned to this alias. Aliases help determine
- * well known collections, such as 'default'. This method looks up the
- * dbus object path of the well known collection.
+ * Lookup which collection is assigned to this alias.
+ *
+ * Aliases help determine well known collections, such as 'default'. This method
+ * looks up the dbus object path of the well known collection.
  *
  * This method will return immediately and complete asynchronously.
  *
@@ -2219,7 +2226,9 @@ secret_service_read_alias_dbus_path (SecretService *self,
  * @error: location to place error on failure
  *
  * Finish an asynchronous operation to lookup which collection is assigned
- * to an alias. This method returns the DBus object path of the collection
+ * to an alias.
+ *
+ * This method returns the DBus object path of the collection
  *
  * Stability: Unstable
  *
@@ -2258,9 +2267,10 @@ secret_service_read_alias_dbus_path_finish (SecretService *self,
  * @cancellable: (nullable): optional cancellation object
  * @error: location to place error on failure
  *
- * Lookup which collection is assigned to this alias. Aliases help determine
- * well known collections, such as 'default'. This method returns the dbus
- * object path of the collection.
+ * Lookup which collection is assigned to this alias.
+ *
+ * Aliases help determine well known collections, such as 'default'. This method
+ * returns the dbus object path of the collection.
  *
  * This method may block and should not be used in user interface threads.
  *
@@ -2379,9 +2389,10 @@ secret_service_set_alias_to_dbus_path_finish (SecretService *self,
  * @cancellable: (nullable): optional cancellation object
  * @error: location to place error on failure
  *
- * Assign a collection to this alias. Aliases help determine
- * well known collections, such as 'default'. This method takes the dbus object
- * path of the collection to assign to the alias.
+ * Assign a collection to this alias.
+ *
+ * Aliases help determine well known collections, such as 'default'. This method
+ * takes the dbus object path of the collection to assign to the alias.
  *
  * This method may block and should not be used in user interface threads.
  *

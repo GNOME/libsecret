@@ -70,16 +70,19 @@
 /**
  * SECRET_COLLECTION_DEFAULT:
  *
- * An alias to the default collection. This can be passed to
- * [func@password_store] [func@Collection.for_alias].
+ * An alias to the default collection.
+ *
+ * This can be passed to [func@password_store] [func@Collection.for_alias].
  */
 
 /**
  * SECRET_COLLECTION_SESSION:
  *
  * An alias to the session collection, which will be cleared when the user ends
- * the session. This can be passed to [func@password_store],
- * [func@Collection.for_alias] or similar functions.
+ * the session.
+ *
+ * This can be passed to [func@password_store], [func@Collection.for_alias] or
+ * similar functions.
  */
 
 enum {
@@ -759,8 +762,9 @@ on_load_item (GObject *source,
  * @user_data: data to be passed to the callback
  *
  * Ensure that the #SecretCollection proxy has loaded all the items present
- * in the Secret Service. This affects the result of
- * [method@Collection.get_items].
+ * in the Secret Service.
+ *
+ * This affects the result of [method@Collection.get_items].
  *
  * For collections returned from [method@Service.get_collections] the items will
  * have already been loaded.
@@ -1922,8 +1926,10 @@ secret_collection_get_locked (SecretCollection *self)
  * secret_collection_get_created: (attributes org.gtk.Method.get_property=created)
  * @self: a collection
  *
- * Get the created date and time of the collection. The return value is
- * the number of seconds since the unix epoch, January 1st 1970.
+ * Get the created date and time of the collection.
+ *
+ * The return value is the number of seconds since the unix epoch, January 1st
+ * 1970.
  *
  * Returns: the created date and time
  */
@@ -1948,8 +1954,10 @@ secret_collection_get_created (SecretCollection *self)
  * secret_collection_get_modified: (attributes org.gtk.Method.get_property=modified)
  * @self: a collection
  *
- * Get the modified date and time of the collection. The return value is
- * the number of seconds since the unix epoch, January 1st 1970.
+ * Get the modified date and time of the collection.
+ *
+ * The return value is the number of seconds since the unix epoch, January 1st
+ * 1970.
  *
  * Returns: the modified date and time
  */
