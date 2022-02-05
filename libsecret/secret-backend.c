@@ -25,20 +25,12 @@
 #include "libsecret/secret-enum-types.h"
 
 /**
- * SecretBackend
- *
- * A backend implementation of password storage
+ * SecretBackend:
  *
  * #SecretBackend represents a backend implementation of password
  * storage.
  *
  * Stability: Stable
- */
-
-/**
- * SecretBackend:
- *
- * An object representing a backend implementation of password storage.
  *
  * Since: 0.19.0
  */

@@ -18,9 +18,9 @@
 #include "secret-private.h"
 
 /**
- * SecretRetrievable
+ * SecretRetrievable:
  *
- * A read-only secret item
+ * A read-only view of a secret item in the Secret Service.
  *
  * #SecretRetrievable provides a read-only view of a secret item
  * stored in the Secret Service.
@@ -30,13 +30,6 @@
  * [method@Retrievable.retrieve_secret_finish].
  *
  * Stability: Stable
- */
-
-/**
- * SecretRetrievable:
- *
- * An object representing a read-only view of a secret item in the
- * Secret Service.
  *
  * Since: 0.19.0
  */
