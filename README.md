@@ -12,7 +12,7 @@ https://specifications.freedesktop.org/secret-service/.
 Documentation
 --------
 
-You can find the nighlt documentation at https://gnome.pages.gitlab.gnome.org/libsecret/.
+You can find the nightly documentation at https://gnome.pages.gitlab.gnome.org/libsecret/.
 
 Building
 --------
