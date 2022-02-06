@@ -910,7 +910,7 @@ secret_service_get_secrets_for_dbus_paths (SecretService *self,
  * Stability: Unstable
  *
  * Returns: (transfer full) (element-type utf8 Secret.Value): a newly
- *   allocated hash table of item_path keys to [struct@Value]
+ *   allocated hash table of item path keys to [struct@Value]
  *   values.
  */
 GHashTable *
