@@ -270,8 +270,10 @@ on_search_service (GObject *source,
  * @callback: called when the operation completes
  * @user_data: data to pass to the callback
  *
- * Search for items matching the @attributes. All collections are searched.
- * The @attributes should be a table of string keys and string values.
+ * Search for items matching the @attributes.
+ *
+ * All collections are searched. The @attributes should be a table of string
+ * keys and string values.
  *
  * If @service is %NULL, then [func@Service.get] will be called to get
  * the default [class@Service] proxy.
@@ -410,8 +412,10 @@ service_load_items_sync (SecretService *service,
  * @cancellable: (nullable): optional cancellation object
  * @error: location to place error on failure
  *
- * Search for items matching the @attributes. All collections are searched.
- * The @attributes should be a table of string keys and string values.
+ * Search for items matching the @attributes.
+ *
+ * All collections are searched. The @attributes should be a table of string
+ * keys and string values.
  *
  * If @service is %NULL, then [func@Service.get_sync] will be called to get
  * the default [class@Service] proxy.
@@ -760,7 +764,7 @@ secret_service_lock (SecretService *service,
  * @service: (nullable): the secret service
  * @result: asynchronous result passed to the callback
  * @locked: (out) (element-type Gio.DBusProxy) (transfer full) (nullable) (optional):
- *          location to place list of items or collections that were locked
+ *   location to place list of items or collections that were locked
  * @error: location to place an error on failure
  *
  * Complete asynchronous operation to lock items or collections in the secret
@@ -789,7 +793,7 @@ secret_service_lock_finish (SecretService *service,
  * @objects: (element-type Gio.DBusProxy): the items or collections to lock
  * @cancellable: (nullable): optional cancellation object
  * @locked: (out) (element-type Gio.DBusProxy) (transfer full) (nullable) (optional):
- *          location to place list of items or collections that were locked
+ *   location to place list of items or collections that were locked
  * @error: location to place an error on failure
  *
  * Lock items or collections in the secret service.
@@ -874,7 +878,7 @@ secret_service_unlock (SecretService *service,
  * @service: (nullable): the secret service
  * @result: asynchronous result passed to the callback
  * @unlocked: (out) (element-type Gio.DBusProxy) (transfer full) (nullable) (optional):
- *            location to place list of items or collections that were unlocked
+ *   location to place list of items or collections that were unlocked
  * @error: location to place an error on failure
  *
  * Complete asynchronous operation to unlock items or collections in the secret
@@ -903,7 +907,7 @@ secret_service_unlock_finish (SecretService *service,
  * @objects: (element-type Gio.DBusProxy): the items or collections to unlock
  * @cancellable: (nullable): optional cancellation object
  * @unlocked: (out) (element-type Gio.DBusProxy) (transfer full) (nullable) (optional):
- *            location to place list of items or collections that were unlocked
+ *   location to place list of items or collections that were unlocked
  * @error: location to place an error on failure
  *
  * Unlock items or collections in the secret service.
@@ -1117,7 +1121,7 @@ on_store_service (GObject *source,
  * @schema: (nullable): the schema to use to check attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
  * @collection: (nullable): a collection alias, or D-Bus object path of the
- *              collection where to store the secret
+ *   collection where to store the secret
  * @label: label for the secret
  * @value: the secret value
  * @cancellable: (nullable): optional cancellation object
@@ -1237,7 +1241,7 @@ secret_service_store_finish (SecretService *service,
  * @schema: (nullable): the schema for the attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
  * @collection: (nullable): a collection alias, or D-Bus object path of the
- *              collection where to store the secret
+ *   collection where to store the secret
  * @label: label for the secret
  * @value: the secret value
  * @cancellable: (nullable): optional cancellation object
@@ -1875,8 +1879,9 @@ on_set_alias_service (GObject *source,
  * @callback: called when the operation completes
  * @user_data: data to pass to the callback
  *
- * Assign a collection to this alias. Aliases help determine
- * well known collections, such as 'default'.
+ * Assign a collection to this alias.
+ *
+ * Aliases help determine well known collections, such as 'default'.
  *
  * If @service is %NULL, then [func@Service.get] will be called to get
  * the default [class@Service] proxy.

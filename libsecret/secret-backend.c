@@ -25,20 +25,12 @@
 #include "libsecret/secret-enum-types.h"
 
 /**
- * SecretBackend
- *
- * A backend implementation of password storage
+ * SecretBackend:
  *
  * #SecretBackend represents a backend implementation of password
  * storage.
  *
  * Stability: Stable
- */
-
-/**
- * SecretBackend:
- *
- * An object representing a backend implementation of password storage.
  *
  * Since: 0.19.0
  */
@@ -66,13 +58,19 @@
  * SecretBackendFlags:
  * @SECRET_BACKEND_NONE: no flags for initializing the #SecretBackend
  * @SECRET_BACKEND_OPEN_SESSION: establish a session for transfer of secrets
- *                               while initializing the #SecretBackend
+ *   while initializing the #SecretBackend
  * @SECRET_BACKEND_LOAD_COLLECTIONS: load collections while initializing the
- *                                   #SecretBackend
+ *   #SecretBackend
  *
  * Flags which determine which parts of the #SecretBackend are initialized.
  *
  * Since: 0.19.0
+ */
+
+/**
+ * SECRET_BACKEND_EXTENSION_POINT_NAME:
+ *
+ * Extension point for the secret backend.
  */
 
 G_DEFINE_INTERFACE_WITH_CODE (SecretBackend, secret_backend, G_TYPE_OBJECT,
@@ -208,8 +206,9 @@ on_ensure_for_flags (GObject *source_object,
  * @callback: called when the operation completes
  * @user_data: data to be passed to the callback
  *
- * Get a #SecretBackend instance. If such a backend already exists,
- * then the same backend is returned.
+ * Get a #SecretBackend instance.
+ *
+ * If such a backend already exists, then the same backend is returned.
  *
  * If @flags contains any flags of which parts of the secret backend to
  * ensure are initialized, then those will be initialized before completing.

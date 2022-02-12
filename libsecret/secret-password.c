@@ -27,7 +27,7 @@
  * secret_password_store: (skip)
  * @schema: the schema for attributes
  * @collection: (nullable): a collection alias, or D-Bus object path of the
- *              collection where to store the secret
+ *   collection where to store the secret
  * @label: label for the secret
  * @password: the null-terminated password to store
  * @cancellable: (nullable): optional cancellation object
@@ -159,7 +159,7 @@ on_store_backend (GObject *source,
  * @schema: (nullable): the schema for attributes
  * @attributes: (element-type utf8 utf8) (transfer full): the attribute keys and values
  * @collection: (nullable): a collection alias, or D-Bus object path of the
- *              collection where to store the secret
+ *   collection where to store the secret
  * @label: label for the secret
  * @password: the null-terminated password to store
  * @cancellable: (nullable): optional cancellation object
@@ -273,7 +273,7 @@ secret_password_store_binary (const SecretSchema *schema,
  * @schema: (nullable): the schema for attributes
  * @attributes: (element-type utf8 utf8) (transfer full): the attribute keys and values
  * @collection: (nullable): a collection alias, or D-Bus object path of the
- *              collection where to store the secret
+ *   collection where to store the secret
  * @label: label for the secret
  * @value: a [struct@Value]
  * @cancellable: (nullable): optional cancellation object
@@ -348,7 +348,7 @@ secret_password_store_finish (GAsyncResult *result,
  * secret_password_store_sync:
  * @schema: the schema for attributes
  * @collection: (nullable): a collection alias, or D-Bus object path of the
- *              collection where to store the secret
+ *   collection where to store the secret
  * @label: label for the secret
  * @password: the null-terminated password to store
  * @cancellable: (nullable): optional cancellation object
@@ -413,7 +413,7 @@ secret_password_store_sync (const SecretSchema *schema,
  * @schema: (nullable): the schema for attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
  * @collection: (nullable): a collection alias, or D-Bus object path of the
- *              collection where to store the secret
+ *   collection where to store the secret
  * @label: label for the secret
  * @password: the null-terminated password to store
  * @cancellable: (nullable): optional cancellation object
@@ -477,7 +477,7 @@ secret_password_storev_sync (const SecretSchema *schema,
  * secret_password_store_binary_sync:
  * @schema: the schema for attributes
  * @collection: (nullable): a collection alias, or D-Bus object path of the
- *              collection where to store the secret
+ *   collection where to store the secret
  * @label: label for the secret
  * @value: a [struct@Value]
  * @cancellable: (nullable): optional cancellation object
@@ -535,7 +535,7 @@ secret_password_store_binary_sync (const SecretSchema *schema,
  * @schema: (nullable): the schema for attributes
  * @attributes: (element-type utf8 utf8): the attribute keys and values
  * @collection: (nullable): a collection alias, or D-Bus object path of the
- *              collection where to store the secret
+ *   collection where to store the secret
  * @label: label for the secret
  * @value: a [struct@Value]
  * @cancellable: (nullable): optional cancellation object

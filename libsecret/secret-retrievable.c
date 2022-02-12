@@ -18,9 +18,9 @@
 #include "secret-private.h"
 
 /**
- * SecretRetrievable
+ * SecretRetrievable:
  *
- * A read-only secret item
+ * A read-only view of a secret item in the Secret Service.
  *
  * #SecretRetrievable provides a read-only view of a secret item
  * stored in the Secret Service.
@@ -30,13 +30,6 @@
  * [method@Retrievable.retrieve_secret_finish].
  *
  * Stability: Stable
- */
-
-/**
- * SecretRetrievable:
- *
- * An object representing a read-only view of a secret item in the
- * Secret Service.
  *
  * Since: 0.19.0
  */
@@ -45,9 +38,9 @@
  * SecretRetrievableInterface:
  * @parent_iface: the parent interface
  * @retrieve_secret: implementation of [method@Retrievable.retrieve_secret],
- *                   required
+ *   required
  * @retrieve_secret_finish: implementation of
- *                   [method@Retrievable.retrieve_secret_finish], required
+ *   [method@Retrievable.retrieve_secret_finish], required
  *
  * The interface for #SecretRetrievable.
  *
@@ -62,8 +55,10 @@ secret_retrievable_default_init (SecretRetrievableInterface *iface)
 	/**
 	 * SecretRetrievable:attributes: (type GLib.HashTable(utf8,utf8)) (transfer full) (attributes org.gtk.Property.get=secret_retrievable_get_attributes)
 	 *
-	 * The attributes set on this item. Attributes are used to locate an
-	 * item. They are not guaranteed to be stored or transferred securely.
+	 * The attributes set on this item.
+	 *
+	 * Attributes are used to locate an item. They are not guaranteed to be
+	 * stored or transferred securely.
 	 *
 	 * Since: 0.19.0
 	 */
@@ -266,8 +261,10 @@ secret_retrievable_get_label (SecretRetrievable *self)
  * secret_retrievable_get_created: (attributes org.gtk.Method.get_property=created)
  * @self: a retrievable object
  *
- * Get the created date and time of the object. The return value is
- * the number of seconds since the unix epoch, January 1st 1970.
+ * Get the created date and time of the object.
+ *
+ * The return value is the number of seconds since the unix epoch, January 1st
+ * 1970.
  *
  * Returns: the created date and time
  *
@@ -288,8 +285,10 @@ secret_retrievable_get_created (SecretRetrievable *self)
  * secret_retrievable_get_modified: (attributes org.gtk.Method.get_property=modified)
  * @self: a retrievable object
  *
- * Get the modified date and time of the object. The return value is
- * the number of seconds since the unix epoch, January 1st 1970.
+ * Get the modified date and time of the object.
+ *
+ * The return value is the number of seconds since the unix epoch, January 1st
+ * 1970.
  *
  * Returns: the modified date and time
  *

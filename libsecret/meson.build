@@ -132,6 +132,7 @@ if get_option('introspection')
     'secret-types.h',
     'secret-value.c',
     'secret-value.h',
+    'secret-util.c',
   ]
   libsecret_gir_sources += version_h
   libsecret_gir_sources += _enums_generated
