@@ -1,3 +1,18 @@
+0.20.5
+ * Drop autotools-based build [!44]
+ * Use G_GNUC_NULL_TERMINATED where appropriate [!65]
+ * collection, methods, prompt: Port to GTask [!66, !93]
+ * Detect local storage in snaps in the same way as flatpaks [!67]
+ * Add bash-completion for secret-tool [!70, #50, !72]
+ * secret-tool: Add locking capabilities to secret tool [#28, !75]
+ * secret-file-backend: Avoid closing the same file descriptor twice [!78]
+ * Add support for TPM2 based secret storage [!83, !90, !95]
+ * Create default collection after DBus.Error.UnknownObject [!94]
+ * Port documentation to gi-docgen [!101]
+ * GI annotation and documentation fixes [!63, !64, !102, !103, #66]
+ * Build fixes [#54, !62, !68, #59, !73, !77, !82, !84, !85, !88]
+ * Updated translations
+
 0.20.4
  * secret-file-collection: Make MAC comparison constant time [!60]
  * Initialize libgcrypt for SecretFileCollection [!56]
