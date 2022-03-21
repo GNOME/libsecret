@@ -1,13 +1,15 @@
 # Bulgarian translation of libsecret po-file.
 # Copyright (C) 2017 Free Software Foundation, Inc.
+# Copyright (C) 2022 Alexander Shopov.
 # This file is distributed under the same license as the libsecret package.
-# Alexander Shopov <ash@kambanaria.org>, 2017.
+# Alexander Shopov <ash@kambanaria.org>, 2017, 2022.
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: libsecret master\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-09-14 22:25+0200\n"
-"PO-Revision-Date: 2017-09-14 22:25+0200\n"
+"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/libsecret/issues\n"
+"POT-Creation-Date: 2022-02-22 00:31+0000\n"
+"PO-Revision-Date: 2022-03-21 14:02+0100\n"
 "Last-Translator: Alexander Shopov <ash@kambanaria.org>\n"
 "Language-Team: Bulgarian <dict@fsa-bg.org>\n"
 "Language: bg\n"
@@ -16,39 +18,43 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: ../libsecret/secret-item.c:1165
+#: libsecret/secret-item.c:1106
 #, c-format
 msgid "Received invalid secret from the secret storage"
 msgstr "Получена е невалидна тайна от хранилището за тайни"
 
-#: ../libsecret/secret-methods.c:1055
+#: libsecret/secret-methods.c:1060
 msgid "Default keyring"
 msgstr "Стандартен ключодържател"
 
-#: ../libsecret/secret-session.c:244 ../libsecret/secret-session.c:281
+#: libsecret/secret-session.c:243 libsecret/secret-session.c:279
 msgid "Couldn’t communicate with the secret storage"
 msgstr "Няма връзка с хранилището за тайни"
 
-#: ../tool/secret-tool.c:39
+#: tool/secret-tool.c:42
 msgid "the label for the new stored item"
 msgstr "етикетът за новосъхраненият обект"
 
-#: ../tool/secret-tool.c:41
+#: tool/secret-tool.c:44
 msgid "the collection in which to place the stored item"
 msgstr "къде да се запази този обект"
 
-#: ../tool/secret-tool.c:43 ../tool/secret-tool.c:50 ../tool/secret-tool.c:437
+#: tool/secret-tool.c:46 tool/secret-tool.c:53 tool/secret-tool.c:458
 msgid "attribute value pairs of item to lookup"
 msgstr "двойки атрибут-стойност на търсения обект"
 
-#: ../tool/secret-tool.c:57
+#: tool/secret-tool.c:60
 msgid "attribute value pairs which match items to clear"
 msgstr "двойки атрибут-стойност, които ще бъдат изтрити"
 
-#: ../tool/secret-tool.c:433
+#: tool/secret-tool.c:67
+msgid "collection in which to lock"
+msgstr "колекция, в която да се заключва"
+
+#: tool/secret-tool.c:454
 msgid "return all results, instead of just first one"
 msgstr "всички резултати, а не само първия"
 
-#: ../tool/secret-tool.c:435
+#: tool/secret-tool.c:456
 msgid "unlock item results if necessary"
 msgstr "отключване на обектите при необходимост"
