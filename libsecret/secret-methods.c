@@ -98,49 +98,14 @@ on_search_secrets (GObject *source,
 }
 
 static void
-on_search_unlocked (GObject *source,
-                    GAsyncResult *result,
-                    gpointer user_data)
-{
-	GTask *task = G_TASK (user_data);
-	SearchClosure *search = g_task_get_task_data (task);
-	GCancellable *cancellable = g_task_get_cancellable (task);
-	GList *items;
-
-	/* Note that we ignore any unlock failure */
-	secret_service_unlock_finish (search->service, result, NULL, NULL);
-
-	/* If loading secrets ... locked items automatically ignored */
-	if (search->flags & SECRET_SEARCH_LOAD_SECRETS) {
-		items = g_hash_table_get_values (search->items);
-		secret_item_load_secrets (items, cancellable,
-		                          on_search_secrets, g_object_ref (task));
-		g_list_free (items);
-
-	/* No additional options, just complete */
-	} else {
-		g_task_return_boolean (task, TRUE);
-	}
-
-	g_clear_object (&task);
-}
-
-static void
 secret_search_unlock_load_or_complete (GTask *task,
                                        SearchClosure *search)
 {
 	GCancellable *cancellable = g_task_get_cancellable (task);
 	GList *items;
 
-	/* If unlocking then unlock all the locked items */
-	if (search->flags & SECRET_SEARCH_UNLOCK) {
-		items = search_closure_build_items (search, search->locked);
-		secret_service_unlock (search->service, items, cancellable,
-		                       on_search_unlocked, g_object_ref (task));
-		g_list_free_full (items, g_object_unref);
-
 	/* If loading secrets ... locked items automatically ignored */
-	} else if (search->flags & SECRET_SEARCH_LOAD_SECRETS) {
+	if (search->flags & SECRET_SEARCH_LOAD_SECRETS) {
 		items = g_hash_table_get_values (search->items);
 		secret_item_load_secrets (items, cancellable,
 		                          on_search_secrets, g_object_ref (task));
@@ -201,6 +166,44 @@ search_load_item_async (SecretService *self,
 }
 
 static void
+load_items (SearchClosure *closure,
+            GTask *task)
+{
+	SecretService *self = closure->service;
+	gint want = 1;
+	gint count = 0;
+	gint i;
+
+	if (closure->flags & SECRET_SEARCH_ALL)
+		want = G_MAXINT;
+
+	for (i = 0; count < want && closure->unlocked[i] != NULL; i++, count++)
+		search_load_item_async (self, task, closure, closure->unlocked[i]);
+	for (i = 0; count < want && closure->locked[i] != NULL; i++, count++)
+		search_load_item_async (self, task, closure, closure->locked[i]);
+
+	/* No items loading, complete operation now */
+	if (closure->loading == 0)
+		secret_search_unlock_load_or_complete (task, closure);
+}
+
+static void
+on_unlock_paths (GObject *source,
+                 GAsyncResult *result,
+                 gpointer user_data)
+{
+	GTask *task = G_TASK (user_data);
+	SearchClosure *closure = g_task_get_task_data (task);
+	SecretService *self = closure->service;
+
+	/* Note that we ignore any unlock failure */
+	secret_service_unlock_dbus_paths_finish (self, result, NULL, NULL);
+
+	load_items (closure, task);
+	g_clear_object (&task);
+}
+
+static void
 on_search_paths (GObject *source,
                  GAsyncResult *result,
                  gpointer user_data)
@@ -209,27 +212,21 @@ on_search_paths (GObject *source,
 	SearchClosure *closure = g_task_get_task_data (task);
 	SecretService *self = closure->service;
 	GError *error = NULL;
-	gint want = 1;
-	gint count;
-	gint i;
 
 	secret_service_search_for_dbus_paths_finish (self, result, &closure->unlocked,
 	                                             &closure->locked, &error);
 	if (error == NULL) {
-		want = 1;
-		if (closure->flags & SECRET_SEARCH_ALL)
-			want = G_MAXINT;
-		count = 0;
+		/* If unlocking then unlock all the locked items */
+		if (closure->flags & SECRET_SEARCH_UNLOCK) {
+			GCancellable *cancellable = g_task_get_cancellable (task);
+			const gchar **const_locked = (const gchar**) closure->locked;
 
-		for (i = 0; count < want && closure->unlocked[i] != NULL; i++, count++)
-			search_load_item_async (self, task, closure, closure->unlocked[i]);
-		for (i = 0; count < want && closure->locked[i] != NULL; i++, count++)
-			search_load_item_async (self, task, closure, closure->locked[i]);
-
-		/* No items loading, complete operation now */
-		if (closure->loading == 0)
-			secret_search_unlock_load_or_complete (task, closure);
-
+			secret_service_unlock_dbus_paths (self, const_locked, cancellable,
+			                                  on_unlock_paths,
+			                                  g_steal_pointer (&task));
+		} else {
+			load_items (closure, task);
+		}
 	} else {
 		g_task_return_error (task, g_steal_pointer (&error));
 	}
