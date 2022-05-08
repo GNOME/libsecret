@@ -625,16 +625,34 @@ on_init_service (GObject *source,
 	g_clear_object (&task);
 }
 
+typedef struct {
+	GAsyncReadyCallback callback;
+	gpointer user_data;
+} InitBaseClosure;
+
+static void
+secret_collection_async_initable_init_async (GAsyncInitable *initable,
+                                             int io_priority,
+                                             GCancellable *cancellable,
+                                             GAsyncReadyCallback callback,
+                                             gpointer user_data);
+
 static void
 on_init_base (GObject *source,
               GAsyncResult *result,
               gpointer user_data)
 {
-	GTask *task = G_TASK (user_data);
-	GCancellable *cancellable = g_task_get_cancellable (task);
+	GTask *base_task = G_TASK (user_data);
+	InitBaseClosure *base = g_task_get_task_data (base_task);
+	GCancellable *cancellable = g_task_get_cancellable (base_task);
+	GTask *task;
 	SecretCollection *self = SECRET_COLLECTION (source);
 	GDBusProxy *proxy = G_DBUS_PROXY (self);
 	GError *error = NULL;
+
+	task = g_task_new (source, cancellable, base->callback, base->user_data);
+	g_task_set_source_tag (task, secret_collection_async_initable_init_async);
+	g_clear_object (&base_task);
 
 	if (!secret_collection_async_initable_parent_iface->init_finish (G_ASYNC_INITABLE (self),
 	                                                                 result, &error)) {
@@ -665,9 +683,15 @@ secret_collection_async_initable_init_async (GAsyncInitable *initable,
                                              gpointer user_data)
 {
 	GTask *task;
+	InitBaseClosure *base;
 
-	task = g_task_new (initable, cancellable, callback, user_data);
+	task = g_task_new (initable, cancellable, NULL, NULL);
 	g_task_set_source_tag (task, secret_collection_async_initable_init_async);
+
+	base = g_new0 (InitBaseClosure, 1);
+	base->callback = callback;
+	base->user_data = user_data;
+	g_task_set_task_data (task, base, g_free);
 
 	secret_collection_async_initable_parent_iface->init_async (initable,
 	                                                           io_priority,
