@@ -718,17 +718,40 @@ secret_service_initable_iface (GInitableIface *iface)
 }
 
 static void
+secret_service_async_initable_init_async (GAsyncInitable *initable,
+                                          int io_priority,
+                                          GCancellable *cancellable,
+                                          GAsyncReadyCallback callback,
+                                          gpointer user_data);
+
+typedef struct {
+	GAsyncReadyCallback callback;
+	gpointer user_data;
+} InitBaseClosure;
+
+static void
 on_init_base (GObject *source,
               GAsyncResult *result,
               gpointer user_data)
 {
-	GTask *task = G_TASK (user_data);
+	GTask *base_task = G_TASK (user_data);
+	InitBaseClosure *base = g_task_get_task_data (base_task);
+	GCancellable *cancellable = g_task_get_cancellable (base_task);
+	GTask *task;
+	InitClosure *init;
 	SecretService *self = SECRET_SERVICE (source);
 	GError *error = NULL;
 
+	task = g_task_new (source, cancellable, base->callback, base->user_data);
+	g_task_set_source_tag (task, secret_service_async_initable_init_async);
+	init = g_slice_new0 (InitClosure);
+	g_task_set_task_data (task, init, init_closure_free);
+
+	g_clear_object (&base_task);
+
 	if (!secret_service_async_initable_parent_iface->init_finish (G_ASYNC_INITABLE (self),
 	                                                              result, &error)) {
-		g_task_return_error (task, error);
+		g_task_return_error (task, g_steal_pointer (&error));
 	} else {
 		service_ensure_for_flags_async (self, self->pv->init_flags, task);
 	}
@@ -744,12 +767,14 @@ secret_service_async_initable_init_async (GAsyncInitable *initable,
                                           gpointer user_data)
 {
 	GTask *task;
-	InitClosure *closure;
+	InitBaseClosure *base;
 
-	task = g_task_new (initable, cancellable, callback, user_data);
+	task = g_task_new (initable, cancellable, NULL, NULL);
 	g_task_set_source_tag (task, secret_service_async_initable_init_async);
-	closure = g_slice_new0 (InitClosure);
-	g_task_set_task_data (task, closure, init_closure_free);
+	base = g_new0 (InitBaseClosure, 1);
+	base->callback = callback;
+	base->user_data = user_data;
+	g_task_set_task_data (task, base, g_free);
 
 	secret_service_async_initable_parent_iface->init_async (initable,
 	                                                        io_priority,
