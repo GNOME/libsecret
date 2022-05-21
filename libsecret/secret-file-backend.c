@@ -60,6 +60,51 @@ enum {
 	PROP_FLAGS
 };
 
+/* Gets the GFile for this backend and makes sure the parent dirs exist */
+static GFile *
+get_secret_file (GCancellable *cancellable, GError **error)
+{
+	const char *envvar = NULL;
+	char *path = NULL;
+	GFile *file = NULL;
+	GFile *dir = NULL;
+	gboolean ret;
+
+	envvar = g_getenv ("SECRET_FILE_TEST_PATH");
+	if (envvar != NULL && *envvar != '\0') {
+		path = g_strdup (envvar);
+	} else {
+		path = g_build_filename (g_get_user_data_dir (),
+		                         "keyrings",
+		                         SECRET_COLLECTION_DEFAULT ".keyring",
+		                         NULL);
+	}
+
+	file = g_file_new_for_path (path);
+	g_free (path);
+
+	dir = g_file_get_parent (file);
+	if (dir == NULL) {
+		g_set_error (error, G_IO_ERROR, G_IO_ERROR_INVALID_ARGUMENT,
+		             "not a valid path");
+		g_object_unref (file);
+		return NULL;
+	}
+
+	ret = g_file_make_directory_with_parents (dir, cancellable, error);
+	g_object_unref (dir);
+	if (!ret) {
+		if (!g_error_matches (*error, G_IO_ERROR, G_IO_ERROR_EXISTS)) {
+			g_object_unref (file);
+			return NULL;
+		}
+
+		g_clear_error (error);
+	}
+
+	return file;
+}
+
 static void
 secret_file_backend_init (SecretFileBackend *self)
 {
@@ -426,53 +471,20 @@ secret_file_backend_real_init_async (GAsyncInitable *initable,
 				     GAsyncReadyCallback callback,
 				     gpointer user_data)
 {
-	gchar *path;
-	GFile *file;
-	GFile *dir;
+	const char *envvar = NULL;
+	GFile *file = NULL;
 	SecretValue *password;
-	const gchar *envvar;
 	GTask *task;
 	GError *error = NULL;
 	InitClosure *init;
-	gboolean ret;
 
 	task = g_task_new (initable, cancellable, callback, user_data);
 
-	envvar = g_getenv ("SECRET_FILE_TEST_PATH");
-	if (envvar != NULL && *envvar != '\0')
-		path = g_strdup (envvar);
-	else {
-		path = g_build_filename (g_get_user_data_dir (),
-					 "keyrings",
-					 SECRET_COLLECTION_DEFAULT ".keyring",
-					 NULL);
-	}
-
-	file = g_file_new_for_path (path);
-	g_free (path);
-
-	dir = g_file_get_parent (file);
-	if (dir == NULL) {
-		g_task_return_new_error (task,
-					 G_IO_ERROR,
-					 G_IO_ERROR_INVALID_ARGUMENT,
-					 "not a valid path");
-		g_object_unref (file);
+	file = get_secret_file (cancellable, &error);
+	if (file == NULL) {
+		g_task_return_error (task, g_steal_pointer (&error));
 		g_object_unref (task);
 		return;
-	}
-
-	ret = g_file_make_directory_with_parents (dir, cancellable, &error);
-	g_object_unref (dir);
-	if (!ret) {
-		if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_EXISTS))
-			g_clear_error (&error);
-		else {
-			g_task_return_error (task, error);
-			g_object_unref (file);
-			g_object_unref (task);
-			return;
-		}
 	}
 
 	envvar = g_getenv ("SECRET_FILE_TEST_PASSWORD");
