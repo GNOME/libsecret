@@ -363,6 +363,65 @@ _secret_session_open_finish (GAsyncResult *result,
 	return TRUE;
 }
 
+gboolean
+_secret_session_open_sync (SecretService *service,
+                           GCancellable *cancellable,
+                           GError **error)
+{
+	SecretSession *session = NULL;
+	GVariant *params;
+	GVariant *result = NULL;
+
+	session = g_new0 (SecretSession, 1);
+
+#ifdef WITH_CRYPTO
+	params = request_open_session_aes (session);
+	result = g_dbus_proxy_call_sync (G_DBUS_PROXY (service), "OpenSession",
+	                                 params,
+	                                 G_DBUS_CALL_FLAGS_NONE, -1,
+	                                 cancellable, error);
+	if (result != NULL) {
+		if (response_open_session_aes (session, result)) {
+			_secret_service_take_session (service, g_steal_pointer (&session));
+			goto out;
+		} else {
+			g_set_error (error, SECRET_ERROR, SECRET_ERROR_PROTOCOL,
+			             _("Couldn’t communicate with the secret storage"));
+			goto out;
+		}
+	} else {
+		/* AES session not supported, request a plain session */
+		if (g_error_matches (*error, G_DBUS_ERROR, G_DBUS_ERROR_NOT_SUPPORTED)) {
+			g_clear_error (error);
+			/* Fall through */
+		} else {
+			goto out;
+		}
+	}
+#endif
+
+	params = request_open_session_plain (session);
+	result = g_dbus_proxy_call_sync (G_DBUS_PROXY (service), "OpenSession",
+	                                 params,
+	                                 G_DBUS_CALL_FLAGS_NONE, -1,
+	                                 cancellable, error);
+	if (result != NULL) {
+		if (response_open_session_plain (session, result)) {
+			_secret_service_take_session (service, g_steal_pointer (&session));
+			goto out;
+		} else {
+			g_set_error (error, SECRET_ERROR, SECRET_ERROR_PROTOCOL,
+			             _("Couldn’t communicate with the secret storage"));
+			goto out;
+		}
+	}
+
+out:
+	_secret_util_strip_remote_error (error);
+	g_clear_object (&session);
+	return result != NULL;
+}
+
 #ifdef WITH_CRYPTO
 
 static gboolean

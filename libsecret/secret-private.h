@@ -140,6 +140,12 @@ gboolean             _secret_service_delete_path_finish       (SecretService *se
                                                                GAsyncResult *result,
                                                                GError **error);
 
+gboolean             _secret_service_delete_path_sync         (SecretService *self,
+                                                               const char *object_path,
+                                                               gboolean is_an_item,
+                                                               GCancellable *cancellable,
+                                                               GError **error);
+
 void                 _secret_service_search_for_paths_variant (SecretService *self,
                                                                GVariant *attributes,
                                                                GCancellable *cancellable,
@@ -196,6 +202,10 @@ void                 _secret_session_open                     (SecretService *se
                                                                gpointer user_data);
 
 gboolean             _secret_session_open_finish              (GAsyncResult *result,
+                                                               GError **error);
+
+gboolean             _secret_session_open_sync                (SecretService *service,
+                                                               GCancellable *cancellable,
                                                                GError **error);
 
 GVariant *           _secret_session_encode_secret            (SecretSession *session,

@@ -1705,26 +1705,19 @@ secret_collection_delete_sync (SecretCollection *self,
                                GCancellable *cancellable,
                                GError **error)
 {
-	SecretSync *sync;
-	gboolean ret;
+	const char *object_path;
 
 	g_return_val_if_fail (SECRET_IS_COLLECTION (self), FALSE);
 	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), FALSE);
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
-	sync = _secret_sync_new ();
-	g_main_context_push_thread_default (sync->context);
-
-	secret_collection_delete (self, cancellable, _secret_sync_on_result, sync);
-
-	g_main_loop_run (sync->loop);
-
-	ret = secret_collection_delete_finish (self, sync->result, error);
-
-	g_main_context_pop_thread_default (sync->context);
-	_secret_sync_free (sync);
-
-	return ret;
+	object_path = g_dbus_proxy_get_object_path (G_DBUS_PROXY (self));
+	if (!_secret_service_delete_path_sync (self->pv->service, object_path, FALSE,
+	                                       cancellable, error)) {
+		_secret_util_strip_remote_error (error);
+		return FALSE;
+	}
+	return TRUE;
 }
 
 /**

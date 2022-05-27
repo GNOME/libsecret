@@ -1411,6 +1411,42 @@ on_loads_secrets_session (GObject *source,
 	g_clear_object (&task);
 }
 
+static LoadsClosure *
+load_secrets_prepare (GList *items)
+{
+	LoadsClosure *ret;
+	GPtrArray *paths;
+
+	ret = g_new0 (LoadsClosure, 1);
+	ret->items = g_hash_table_new_full (g_str_hash, g_str_equal,
+	                                    g_free, g_object_unref);
+
+	paths = g_ptr_array_new ();
+	for (GList *l = items; l != NULL; l = g_list_next (l)) {
+		const char *path;
+
+		if (secret_item_get_locked (l->data))
+			continue;
+
+		if (ret->service == NULL) {
+			ret->service = secret_item_get_service (l->data);
+			if (ret->service)
+				g_object_ref (ret->service);
+		}
+
+		path = g_dbus_proxy_get_object_path (l->data);
+		g_hash_table_insert (ret->items, g_strdup (path), g_object_ref (l->data));
+		g_ptr_array_add (paths, (void *) path);
+	}
+
+	ret->in = g_variant_new_objv ((const char * const *)paths->pdata, paths->len);
+	g_variant_ref_sink (ret->in);
+
+	g_ptr_array_free (paths, TRUE);
+
+	return ret;
+}
+
 /**
  * secret_item_load_secrets:
  * @items: (element-type Secret.Item): the items to retrieve secrets for
@@ -1430,43 +1466,17 @@ secret_item_load_secrets (GList *items,
                           GAsyncReadyCallback callback,
                           gpointer user_data)
 {
-	GTask *task;
 	LoadsClosure *loads;
-	GPtrArray *paths;
-	const gchar *path;
-	GList *l;
+	GTask *task;
 
+	for (GList *l = items; l != NULL; l = g_list_next (l))
+		g_return_if_fail (SECRET_IS_ITEM (l->data));
 	g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
-	for (l = items; l != NULL; l = g_list_next (l))
-		g_return_if_fail (SECRET_IS_ITEM (l->data));
+	loads = load_secrets_prepare (items);
 
 	task = g_task_new (NULL, cancellable, callback, user_data);
 	g_task_set_source_tag (task, secret_item_load_secrets);
-	loads = g_new0 (LoadsClosure, 1);
-	loads->items = g_hash_table_new_full (g_str_hash, g_str_equal,
-	                                      g_free, g_object_unref);
-
-	paths = g_ptr_array_new ();
-	for (l = items; l != NULL; l = g_list_next (l)) {
-		if (secret_item_get_locked (l->data))
-			continue;
-
-		if (loads->service == NULL) {
-			loads->service = secret_item_get_service (l->data);
-			if (loads->service)
-				g_object_ref (loads->service);
-		}
-
-		path = g_dbus_proxy_get_object_path (l->data);
-		g_hash_table_insert (loads->items, g_strdup (path), g_object_ref (l->data));
-		g_ptr_array_add (paths, (gpointer)path);
-	}
-
-	loads->in = g_variant_new_objv ((const gchar * const *)paths->pdata, paths->len);
-	g_variant_ref_sink (loads->in);
-
-	g_ptr_array_free (paths, TRUE);
 	g_task_set_task_data (task, loads, loads_closure_free);
 
 	if (loads->service) {
@@ -1528,29 +1538,53 @@ secret_item_load_secrets_sync (GList *items,
                                GCancellable *cancellable,
                                GError **error)
 {
-	SecretSync *sync;
-	gboolean ret;
-	GList *l;
-
-	for (l = items; l != NULL; l = g_list_next (l))
-		g_return_val_if_fail (SECRET_IS_ITEM (l->data), FALSE);
+	gboolean ret = TRUE;
+	LoadsClosure *loads;
+	const char *session_path;
+	GVariant *response;
 
 	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), FALSE);
+	for (GList *l = items; l != NULL; l = g_list_next (l))
+		g_return_val_if_fail (SECRET_IS_ITEM (l->data), FALSE);
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
-	sync = _secret_sync_new ();
-	g_main_context_push_thread_default (sync->context);
+	loads = load_secrets_prepare (items);
+	ret = secret_service_ensure_session_sync (loads->service, cancellable, error);
+	if (!ret) {
+		goto out;
+	}
 
-	secret_item_load_secrets (items, cancellable,
-	                          _secret_sync_on_result, sync);
+	session_path = secret_service_get_session_dbus_path (loads->service);
+	response = g_dbus_proxy_call_sync (G_DBUS_PROXY (loads->service), "GetSecrets",
+	                                   g_variant_new ("(@aoo)", loads->in, session_path),
+	                                   G_DBUS_CALL_FLAGS_NO_AUTO_START, -1,
+	                                   cancellable, error);
 
-	g_main_loop_run (sync->loop);
+	if (response != NULL) {
+		GHashTable *with_paths;
+		GHashTableIter iter;
+		const char *path;
+		SecretValue *value;
+		SecretItem *item;
 
-	ret = secret_item_load_secrets_finish (sync->result, error);
+		with_paths = _secret_service_decode_get_secrets_all (loads->service, response);
+		g_return_val_if_fail (with_paths != NULL, FALSE);
 
-	g_main_context_pop_thread_default (sync->context);
-	_secret_sync_free (sync);
+		g_hash_table_iter_init (&iter, with_paths);
+		while (g_hash_table_iter_next (&iter, (void *) &path, (void *) &value)) {
+			item = g_hash_table_lookup (loads->items, path);
+			if (item != NULL)
+				_secret_item_set_cached_secret (item, value);
+		}
 
+		g_hash_table_unref (with_paths);
+	}
+
+out:
+	if (response != NULL)
+		g_variant_unref (response);
+	_secret_util_strip_remote_error (error);
+	loads_closure_free (loads);
 	return ret;
 }
 

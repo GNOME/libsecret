@@ -432,28 +432,37 @@ secret_collection_search_for_dbus_paths_sync (SecretCollection *collection,
                                               GCancellable *cancellable,
                                               GError **error)
 {
-	SecretSync *sync;
-	gchar **paths;
+	const char *schema_name = NULL;
+	GVariant *response = NULL;
+	char **paths = NULL;
 
 	g_return_val_if_fail (SECRET_IS_COLLECTION (collection), NULL);
 	g_return_val_if_fail (attributes != NULL, NULL);
 	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
 	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 
-	sync = _secret_sync_new ();
-	g_main_context_push_thread_default (sync->context);
+	/* Warnings raised already */
+	if (schema != NULL && !_secret_attributes_validate (schema, attributes, G_STRFUNC, TRUE))
+		return NULL;
 
-	secret_collection_search_for_dbus_paths (collection, schema, attributes, cancellable,
-	                                         _secret_sync_on_result, sync);
+	if (schema != NULL && !(schema->flags & SECRET_SCHEMA_DONT_MATCH_NAME))
+		schema_name = schema->name;
 
-	g_main_loop_run (sync->loop);
 
-	paths = secret_collection_search_for_dbus_paths_finish (collection, sync->result, error);
+	response =
+		g_dbus_proxy_call_sync (G_DBUS_PROXY (collection), "SearchItems",
+		                        g_variant_new ("(@a{ss})",
+		                        _secret_attributes_to_variant (attributes, schema_name)),
+		                        G_DBUS_CALL_FLAGS_NONE, -1, cancellable, error);
+	if (response == NULL) {
+		_secret_util_strip_remote_error (error);
+		return FALSE;
+	}
 
-	g_main_context_pop_thread_default (sync->context);
-	_secret_sync_free (sync);
+	g_variant_get (response, "(^ao)", &paths);
+	g_variant_unref (response);
 
-	return paths;
+	return g_steal_pointer (&paths);
 }
 
 /**
@@ -831,28 +840,37 @@ secret_service_get_secret_for_dbus_path_sync (SecretService *self,
                                               GCancellable *cancellable,
                                               GError **error)
 {
-	SecretSync *sync;
-	SecretValue *value;
+	const char *session = NULL;
+	GVariant *response = NULL;
+	SecretValue *ret = NULL;
 
 	g_return_val_if_fail (SECRET_IS_SERVICE (self), NULL);
 	g_return_val_if_fail (item_path != NULL, NULL);
 	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
 	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 
-	sync = _secret_sync_new ();
-	g_main_context_push_thread_default (sync->context);
+	if (!secret_service_ensure_session_sync (self, cancellable, error)) {
+		_secret_util_strip_remote_error (error);
+		return NULL;
+	}
 
-	secret_service_get_secret_for_dbus_path (self, item_path, cancellable,
-	                                         _secret_sync_on_result, sync);
+	session = secret_service_get_session_dbus_path (self);
+	response =
+		g_dbus_proxy_call_sync (G_DBUS_PROXY (self), "GetSecrets",
+		                        g_variant_new ("(@aoo)",
+		                                       g_variant_new_objv (&item_path, 1),
+		                                       session),
+		                        G_DBUS_CALL_FLAGS_NO_AUTO_START, -1,
+		                        cancellable, error);
+	if (response) {
+		ret = _secret_service_decode_get_secrets_first (self, response);
+	} else {
+		_secret_util_strip_remote_error (error);
+	}
 
-	g_main_loop_run (sync->loop);
+	g_clear_pointer (&response, g_variant_unref);
 
-	value = secret_service_get_secret_for_dbus_path_finish (self, sync->result, error);
-
-	g_main_context_pop_thread_default (sync->context);
-	_secret_sync_free (sync);
-
-	return value;
+	return ret;
 }
 
 /**
@@ -1525,6 +1543,63 @@ _secret_service_delete_path_finish (SecretService *self,
 	}
 
 	return TRUE;
+}
+
+gboolean
+_secret_service_delete_path_sync (SecretService *self,
+                                  const char *object_path,
+                                  gboolean is_an_item,
+                                  GCancellable *cancellable,
+                                  GError **error)
+{
+	GError *err = NULL;
+	GVariant *prompt_variant = NULL;
+	gboolean ret = TRUE;
+
+	g_return_val_if_fail (SECRET_IS_SERVICE (self), FALSE);
+	g_return_val_if_fail (object_path != NULL, FALSE);
+	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), FALSE);
+
+	prompt_variant =
+		g_dbus_connection_call_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (self)),
+		                             g_dbus_proxy_get_name (G_DBUS_PROXY (self)),
+		                             object_path,
+		                             is_an_item ? SECRET_ITEM_INTERFACE : SECRET_COLLECTION_INTERFACE,
+		                             "Delete", g_variant_new ("()"), G_VARIANT_TYPE ("(o)"),
+		                             G_DBUS_CALL_FLAGS_NO_AUTO_START, -1,
+		                             cancellable,
+		                             &err);
+	if (err == NULL) {
+		const char *prompt_path;
+
+		g_variant_get (prompt_variant, "(&o)", &prompt_path);
+
+		/* show a prompt if needed */
+		if (!_secret_util_empty_path (prompt_path)) {
+			SecretPrompt *prompt = NULL;
+			GVariant *prompt_result = NULL;
+
+			prompt = _secret_prompt_instance (self, prompt_path);
+			prompt_result = secret_service_prompt_sync (self,
+			                                            prompt,
+			                                            cancellable,
+			                                            NULL,
+			                                            &err);
+			ret = (err != NULL);
+			g_clear_pointer (&prompt_result, g_variant_unref);
+			g_clear_object (&prompt);
+		}
+
+	} else {
+		ret = FALSE;
+	}
+
+	g_clear_pointer (&prompt_variant, g_variant_unref);
+	if (err) {
+		_secret_util_strip_remote_error (&err);
+		g_propagate_error (error, err);
+	}
+	return ret;
 }
 
 /**
