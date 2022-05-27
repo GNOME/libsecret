@@ -1544,27 +1544,20 @@ secret_service_ensure_session_sync (SecretService *self,
                                     GCancellable *cancellable,
                                     GError **error)
 {
-	SecretSync *sync;
-	gboolean ret;
+	SecretSession *session;
 
 	g_return_val_if_fail (SECRET_IS_SERVICE (self), FALSE);
 	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), FALSE);
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
-	sync = _secret_sync_new ();
-	g_main_context_push_thread_default (sync->context);
+	g_mutex_lock (&self->pv->mutex);
+	session = self->pv->session;
+	g_mutex_unlock (&self->pv->mutex);
 
-	secret_service_ensure_session (self, cancellable,
-	                               _secret_sync_on_result, sync);
+	if (session != NULL)
+		return TRUE;
 
-	g_main_loop_run (sync->loop);
-
-	ret = secret_service_ensure_session_finish (self, sync->result, error);
-
-	g_main_context_pop_thread_default (sync->context);
-	_secret_sync_free (sync);
-
-	return ret;
+	return _secret_session_open_sync (self, cancellable, error);
 }
 
 static SecretCollection *
