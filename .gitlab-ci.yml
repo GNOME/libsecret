@@ -35,7 +35,7 @@ fedora:asan:
     - dnf install -y $DEPENDENCIES libasan
     - dbus-uuidgen --ensure
   script:
-    - meson _build -Dsanitize=address -Dgtk_doc=false
+    - meson _build -Db_sanitize=address -Dgtk_doc=false
     - meson compile -C _build
     - eval `dbus-launch --sh-syntax`
     - meson test -C _build
@@ -54,7 +54,7 @@ fedora:ubsan:
     - dnf install -y $DEPENDENCIES libubsan
     - dbus-uuidgen --ensure
   script:
-    - meson _build -Dsanitize=undefined -Dgtk_doc=false
+    - meson _build -Db_sanitize=undefined -Dgtk_doc=false
     - meson compile -C _build
     - eval `dbus-launch --sh-syntax`
     - meson test -C _build
