@@ -140,6 +140,12 @@ gboolean             _secret_service_delete_path_finish       (SecretService *se
                                                                GAsyncResult *result,
                                                                GError **error);
 
+gboolean             _secret_service_delete_path_sync         (SecretService *self,
+                                                               const char *object_path,
+                                                               gboolean is_an_item,
+                                                               GCancellable *cancellable,
+                                                               GError **error);
+
 void                 _secret_service_search_for_paths_variant (SecretService *self,
                                                                GVariant *attributes,
                                                                GCancellable *cancellable,
