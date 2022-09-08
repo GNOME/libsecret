@@ -2166,7 +2166,7 @@ secret_collection_for_alias (SecretService *service,
  * Finish an asynchronous operation to lookup which collection is assigned
  * to an alias.
  *
- * Returns: (transfer full): the collection, or %NULL if none assigned to the alias
+ * Returns: (transfer full) (nullable): the collection, or %NULL if none assigned to the alias
  */
 SecretCollection *
 secret_collection_for_alias_finish (GAsyncResult *result,
@@ -2202,7 +2202,7 @@ secret_collection_for_alias_finish (GAsyncResult *result,
  *
  * This method may block and should not be used in user interface threads.
  *
- * Returns: (transfer full): the collection, or %NULL if none assigned to the alias
+ * Returns: (transfer full) (nullable): the collection, or %NULL if none assigned to the alias
  */
 SecretCollection *
 secret_collection_for_alias_sync (SecretService *service,
