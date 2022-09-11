@@ -98,8 +98,8 @@ on_search_secrets (GObject *source,
 }
 
 static void
-secret_search_unlock_load_or_complete (GTask *task,
-                                       SearchClosure *search)
+secret_search_load_or_complete (GTask *task,
+                                SearchClosure *search)
 {
 	GCancellable *cancellable = g_task_get_cancellable (task);
 	GList *items;
@@ -141,7 +141,7 @@ on_search_loaded (GObject *source,
 
 	/* We're done loading, lets go to the next step */
 	if (closure->loading == 0)
-		secret_search_unlock_load_or_complete (task, closure);
+		secret_search_load_or_complete (task, closure);
 
 	g_clear_object (&task);
 }
@@ -184,7 +184,7 @@ load_items (SearchClosure *closure,
 
 	/* No items loading, complete operation now */
 	if (closure->loading == 0)
-		secret_search_unlock_load_or_complete (task, closure);
+		secret_search_load_or_complete (task, closure);
 }
 
 static void
