@@ -1,5 +1,6 @@
 # Turkish translation for libsecret
 # Copyright (c) 2012 Rosetta Contributors and Canonical Ltd 2012
+# Copyright (C) 2013-2022 libsecret's COPYRIGHT HOLDER
 # This file is distributed under the same license as the libsecret package.
 #
 # Muhammet Kara <muhammetk@gmail.com>, 2014.
@@ -10,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: libsecret\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/libsecret/issues\n"
-"POT-Creation-Date: 2021-06-24 11:59+0000\n"
+"POT-Creation-Date: 2022-07-26 08:24+0000\n"
 "PO-Revision-Date: 2021-09-19 20:05+0300\n"
 "Last-Translator: Emin Tufan Çetin <etcetin@gmail.com>\n"
 "Language-Team: Türkçe <gnome-turk@gnome.org>\n"
@@ -22,11 +23,12 @@ msgstr ""
 "X-Generator: Poedit 3.0\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: libsecret/secret-item.c:1104
+#: libsecret/secret-item.c:1130
+#, c-format
 msgid "Received invalid secret from the secret storage"
 msgstr "Giz deposudan geçersiz bir giz alındı"
 
-#: libsecret/secret-methods.c:1055
+#: libsecret/secret-methods.c:1060
 msgid "Default keyring"
 msgstr "Öntanımlı anahtarlık"
 
