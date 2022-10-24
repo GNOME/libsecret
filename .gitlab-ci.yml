@@ -26,7 +26,7 @@ fedora:Werror:
       - _build/meson-logs/testlog.txt
 
 fedora:asan:
-  image: fedora:34
+  image: fedora:latest
   stage: build
   before_script:
     - dnf upgrade -y
@@ -39,6 +39,7 @@ fedora:asan:
     - meson compile -C _build
     - eval `dbus-launch --sh-syntax`
     - meson test -C _build
+  allow_failure: true
   artifacts:
     when: on_failure
     paths:
