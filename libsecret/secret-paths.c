@@ -396,6 +396,7 @@ secret_collection_search_for_dbus_paths_finish (SecretCollection *collection,
 	}
 
 	g_variant_get (retval, "(^ao)", &paths);
+	g_clear_pointer (&retval, g_variant_unref);
 	return g_steal_pointer (&paths);
 }
 
