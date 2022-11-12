@@ -475,6 +475,10 @@ secret_service_search_sync (SecretService *service,
 		return NULL;
 	}
 
+	if (flags & SECRET_SEARCH_UNLOCK)
+		secret_service_unlock_dbus_paths_sync (service, (const gchar**) locked_paths,
+						       cancellable, NULL, NULL);
+
 	ret = TRUE;
 
 	want = 1;
@@ -508,9 +512,6 @@ secret_service_search_sync (SecretService *service,
 	items = g_list_concat (items, g_list_copy (locked));
 	items = g_list_concat (items, g_list_copy (unlocked));
 	items = g_list_reverse (items);
-
-	if (flags & SECRET_SEARCH_UNLOCK)
-		secret_service_unlock_sync (service, locked, cancellable, NULL, NULL);
 
 	if (flags & SECRET_SEARCH_LOAD_SECRETS)
 		secret_item_load_secrets_sync (items, NULL, NULL);
