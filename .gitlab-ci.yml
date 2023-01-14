@@ -26,7 +26,7 @@ fedora:asan:
   before_script:
     - dbus-uuidgen --ensure
   script:
-    - meson _build -Db_sanitize=address -Dgtk_doc=false
+    - meson _build -Db_sanitize=address -Dgtk_doc=false -Dintrospection=false
     - meson compile -C _build
     - eval `dbus-launch --sh-syntax`
     - meson test -C _build
