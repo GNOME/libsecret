@@ -19,12 +19,9 @@ fedora:Werror:
   stage: build
   extends:
     - .build
-  before_script:
-    - dbus-uuidgen --ensure
   script:
     - meson _build -Dwerror=true -Dc_args=-Wno-error=deprecated-declarations -Dgtk_doc=false -Dcrypto=$CRYPTO
     - meson compile -C _build
-    - eval `dbus-launch --sh-syntax`
     - meson test -C _build --print-errorlogs
   artifacts:
     reports:
@@ -39,13 +36,10 @@ fedora:asan:
   stage: build
   extends:
     - .build
-  before_script:
-    - dbus-uuidgen --ensure
   script:
     - export LSAN_OPTIONS=suppressions=$PWD/build/lsan.supp
     - meson _build -Db_sanitize=address -Dgtk_doc=false -Dintrospection=false -Dcrypto=$CRYPTO
     - meson compile -C _build
-    - eval `dbus-launch --sh-syntax`
     - meson test -C _build --print-errorlogs
   artifacts:
     reports:
@@ -60,12 +54,9 @@ fedora:ubsan:
   stage: build
   extends:
     - .build
-  before_script:
-    - dbus-uuidgen --ensure
   script:
     - meson _build -Db_sanitize=undefined -Dgtk_doc=false -Dcrypto=$CRYPTO
     - meson compile -C _build
-    - eval `dbus-launch --sh-syntax`
     - meson test -C _build --print-errorlogs
   artifacts:
     reports:
@@ -80,8 +71,6 @@ fedora-static-analyzers/test:
   stage: build
   extends:
     - .build
-  before_script:
-    - dbus-uuidgen --ensure
   script:
     - meson _build -Dgtk_doc=false -Dcrypto=$CRYPTO
     - meson compile -C _build --ninja-args scan-build
@@ -93,12 +82,11 @@ fedora-static-analyzers/test:
 
 fedora:PAM:
   stage: build
-  before_script:
-    - dbus-uuidgen --ensure
+  extends:
+    - .build
   script:
     - meson _build -Dwerror=true -Dc_args=-Wno-error=deprecated-declarations -Dgtk_doc=false -Dpam=true
     - meson compile -C _build
-    - eval `dbus-launch --sh-syntax`
     - meson test -C _build --print-errorlogs
   artifacts:
     reports:
@@ -111,12 +99,9 @@ fedora:PAM:
 
 fedora:coverage:
   stage: build
-  before_script:
-    - dbus-uuidgen --ensure
   script:
     - meson _build -Db_coverage=true -Dtpm2=true -Dgtk_doc=false
     - meson compile -C _build
-    - eval `dbus-launch --sh-syntax`
     - export XDG_CONFIG_HOME=$HOME/.config
     - /usr/share/swtpm/swtpm-create-user-config-files --root
     - mkdir -p ${XDG_CONFIG_HOME}/mytpm1
