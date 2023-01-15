@@ -60,6 +60,51 @@ enum {
 	PROP_FLAGS
 };
 
+/* Gets the GFile for this backend and makes sure the parent dirs exist */
+static GFile *
+get_secret_file (GCancellable *cancellable, GError **error)
+{
+	const char *envvar = NULL;
+	char *path = NULL;
+	GFile *file = NULL;
+	GFile *dir = NULL;
+	gboolean ret;
+
+	envvar = g_getenv ("SECRET_FILE_TEST_PATH");
+	if (envvar != NULL && *envvar != '\0') {
+		path = g_strdup (envvar);
+	} else {
+		path = g_build_filename (g_get_user_data_dir (),
+		                         "keyrings",
+		                         SECRET_COLLECTION_DEFAULT ".keyring",
+		                         NULL);
+	}
+
+	file = g_file_new_for_path (path);
+	g_free (path);
+
+	dir = g_file_get_parent (file);
+	if (dir == NULL) {
+		g_set_error (error, G_IO_ERROR, G_IO_ERROR_INVALID_ARGUMENT,
+		             "not a valid path");
+		g_object_unref (file);
+		return NULL;
+	}
+
+	ret = g_file_make_directory_with_parents (dir, cancellable, error);
+	g_object_unref (dir);
+	if (!ret) {
+		if (!g_error_matches (*error, G_IO_ERROR, G_IO_ERROR_EXISTS)) {
+			g_object_unref (file);
+			return NULL;
+		}
+
+		g_clear_error (error);
+	}
+
+	return file;
+}
+
 static void
 secret_file_backend_init (SecretFileBackend *self)
 {
@@ -419,6 +464,77 @@ on_bus_get (GObject *source_object,
 	g_object_unref (fd_list);
 }
 
+#ifdef WITH_TPM
+static GBytes *
+load_password_from_tpm (GFile *file, GCancellable *cancellable, GError **error)
+{
+	EggTpm2Context *context = NULL;
+	char *path = NULL;
+	char *tpm2_file_path = NULL;
+	GFile *tpm2_file = NULL;
+	gboolean status;
+	GBytes *encrypted = NULL;
+	GBytes *decrypted = NULL;
+
+	context = egg_tpm2_initialize (error);
+	if (!context)
+		return NULL;
+
+	path = g_file_get_path (file);
+	tpm2_file_path = g_strdup_printf ("%s.tpm2", path);
+	g_free (path);
+
+	tpm2_file = g_file_new_for_path (tpm2_file_path);
+	status = g_file_test (tpm2_file_path, G_FILE_TEST_EXISTS);
+	g_free (tpm2_file_path);
+
+	if (!status) {
+		gconstpointer contents;
+		gsize size;
+
+		encrypted = egg_tpm2_generate_master_password (context, error);
+		if (!encrypted)
+			return NULL;
+
+		contents = g_bytes_get_data (encrypted, &size);
+		status = g_file_replace_contents (tpm2_file,
+		                                  contents,
+		                                  size,
+		                                  NULL,
+		                                  FALSE,
+		                                  G_FILE_CREATE_PRIVATE,
+		                                  NULL,
+		                                  cancellable,
+		                                  error);
+		if (!status)
+			goto out;
+	} else {
+		char *contents;
+		gsize length;
+
+		status = g_file_load_contents (tpm2_file,
+		                               cancellable,
+		                               &contents,
+		                               &length,
+		                               NULL,
+		                               error);
+		if (!status)
+			goto out;
+
+		encrypted = g_bytes_new_take (contents, length);
+	}
+
+	decrypted = egg_tpm2_decrypt_master_password (context, encrypted, error);
+
+out:
+	g_clear_object (&tpm2_file);
+	g_clear_pointer (&encrypted, g_bytes_unref);
+	egg_tpm2_finalize (context);
+
+	return decrypted;
+}
+#endif /* WITH_TPM */
+
 static void
 secret_file_backend_real_init_async (GAsyncInitable *initable,
 				     int io_priority,
@@ -426,53 +542,20 @@ secret_file_backend_real_init_async (GAsyncInitable *initable,
 				     GAsyncReadyCallback callback,
 				     gpointer user_data)
 {
-	gchar *path;
-	GFile *file;
-	GFile *dir;
+	const char *envvar = NULL;
+	GFile *file = NULL;
 	SecretValue *password;
-	const gchar *envvar;
 	GTask *task;
 	GError *error = NULL;
 	InitClosure *init;
-	gboolean ret;
 
 	task = g_task_new (initable, cancellable, callback, user_data);
 
-	envvar = g_getenv ("SECRET_FILE_TEST_PATH");
-	if (envvar != NULL && *envvar != '\0')
-		path = g_strdup (envvar);
-	else {
-		path = g_build_filename (g_get_user_data_dir (),
-					 "keyrings",
-					 SECRET_COLLECTION_DEFAULT ".keyring",
-					 NULL);
-	}
-
-	file = g_file_new_for_path (path);
-	g_free (path);
-
-	dir = g_file_get_parent (file);
-	if (dir == NULL) {
-		g_task_return_new_error (task,
-					 G_IO_ERROR,
-					 G_IO_ERROR_INVALID_ARGUMENT,
-					 "not a valid path");
-		g_object_unref (file);
+	file = get_secret_file (cancellable, &error);
+	if (file == NULL) {
+		g_task_return_error (task, g_steal_pointer (&error));
 		g_object_unref (task);
 		return;
-	}
-
-	ret = g_file_make_directory_with_parents (dir, cancellable, &error);
-	g_object_unref (dir);
-	if (!ret) {
-		if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_EXISTS))
-			g_clear_error (&error);
-		else {
-			g_task_return_error (task, error);
-			g_object_unref (file);
-			g_object_unref (task);
-			return;
-		}
 	}
 
 	envvar = g_getenv ("SECRET_FILE_TEST_PASSWORD");
@@ -496,90 +579,19 @@ secret_file_backend_real_init_async (GAsyncInitable *initable,
 		g_bus_get (G_BUS_TYPE_SESSION, cancellable, on_bus_get, task);
 	} else {
 #ifdef WITH_TPM
-		EggTpm2Context *context;
-		GFile *tpm2_file;
-		gchar *tpm2_file_path;
-		gboolean status;
-		GBytes *encrypted;
-		GBytes *decrypted;
+		GBytes *decrypted = NULL;
+		gconstpointer data;
+		gsize size;
 
-		context = egg_tpm2_initialize (&error);
-		if (!context) {
-			g_task_return_error (task, error);
-			g_object_unref (task);
-			return;
-		}
-
-		path = g_file_get_path (file);
-		tpm2_file_path = g_strdup_printf ("%s.tpm2", path);
-		g_free(path);
-		tpm2_file = g_file_new_for_path (tpm2_file_path);
-		status = g_file_test (tpm2_file_path, G_FILE_TEST_EXISTS);
-		g_free (tpm2_file_path);
-
-		if (!status) {
-			encrypted = egg_tpm2_generate_master_password (
-							context,
-							&error);
-			if (!encrypted) {
-				g_task_return_error (task, error);
-				g_object_unref (task);
-				return;
-			}
-
-			gconstpointer contents;
-			gsize size;
-			contents = g_bytes_get_data (encrypted, &size);
-			status = g_file_replace_contents (tpm2_file,
-							  contents,
-							  size,
-							  NULL,
-							  FALSE,
-							  G_FILE_CREATE_PRIVATE,
-							  NULL,
-							  cancellable,
-							  &error);
-			if (!status) {
-				g_task_return_error (task, error);
-				g_object_unref (task);
-				return;
-			}
-
-		} else {
-			char *contents;
-			gsize length;
-			status = g_file_load_contents (tpm2_file,
-						       cancellable,
-						       &contents,
-						       &length,
-						       NULL,
-						       &error);
-			if (!status) {
-				g_task_return_error (task, error);
-				g_object_unref (task);
-				return;
-			}
-
-			encrypted = g_bytes_new_take (contents, length);
-		}
-
-		decrypted = egg_tpm2_decrypt_master_password (context,
-							      encrypted,
-							      &error);
-		g_bytes_unref (encrypted);
-		egg_tpm2_finalize (context);
+		decrypted = load_password_from_tpm (file, cancellable, &error);
 		if (!decrypted) {
 			g_task_return_error (task, error);
 			g_object_unref (task);
 			return;
 		}
 
-		gconstpointer data;
-		gsize size;
-		data = g_bytes_get_data(decrypted, &size);
-		password = secret_value_new (data,
-					     size,
-					     "text/plain");
+		data = g_bytes_get_data (decrypted, &size);
+		password = secret_value_new (data,size, "text/plain");
 		g_bytes_unref (decrypted);
 		g_async_initable_new_async (SECRET_TYPE_FILE_COLLECTION,
 					    io_priority,
@@ -590,16 +602,15 @@ secret_file_backend_real_init_async (GAsyncInitable *initable,
 					    "password", password,
 					    NULL);
 
-		g_object_unref (tpm2_file);
 		g_object_unref (file);
 		secret_value_unref (password);
+		return;
 #else
 		g_task_return_new_error (task,
 					 G_IO_ERROR,
 					 G_IO_ERROR_INVALID_ARGUMENT,
 					 "master password is not retrievable");
 		g_object_unref (task);
-		return;
 #endif
 	}
 }
