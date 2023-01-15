@@ -1,19 +1,15 @@
+image: registry.gitlab.gnome.org/gnome/libsecret/master:v1
+
 stages:
   - build
   - deploy
 
 variables:
-  DEPENDENCIES: dbus-x11 diffutils gcc gjs meson ninja-build python3-dbus python3-gobject redhat-rpm-config
   CPPCHECK_OPTIONS: "--enable=warning --enable=style --enable=performance --enable=portability --std=c99 --template='{id}:{file}:{line},{severity},{message}'"
 
 fedora:Werror:
-  image: fedora:34
   stage: build
   before_script:
-    - dnf upgrade -y
-    - dnf install -y 'dnf-command(builddep)'
-    - dnf builddep -y libsecret
-    - dnf install -y $DEPENDENCIES
     - dbus-uuidgen --ensure
   script:
     - meson _build -Dwerror=true -Dc_args=-Wno-error=deprecated-declarations -Dgtk_doc=false
@@ -26,16 +22,11 @@ fedora:Werror:
       - _build/meson-logs/testlog.txt
 
 fedora:asan:
-  image: fedora:latest
   stage: build
   before_script:
-    - dnf upgrade -y
-    - dnf install -y 'dnf-command(builddep)'
-    - dnf builddep -y libsecret
-    - dnf install -y $DEPENDENCIES libasan
     - dbus-uuidgen --ensure
   script:
-    - meson _build -Db_sanitize=address -Dgtk_doc=false
+    - meson _build -Db_sanitize=address -Dgtk_doc=false -Dintrospection=false
     - meson compile -C _build
     - eval `dbus-launch --sh-syntax`
     - meson test -C _build
@@ -46,13 +37,8 @@ fedora:asan:
       - _build/meson-logs/testlog.txt
 
 fedora:ubsan:
-  image: fedora:34
   stage: build
   before_script:
-    - dnf upgrade -y
-    - dnf install -y 'dnf-command(builddep)'
-    - dnf builddep -y libsecret
-    - dnf install -y $DEPENDENCIES libubsan
     - dbus-uuidgen --ensure
   script:
     - meson _build -Db_sanitize=undefined -Dgtk_doc=false
@@ -65,13 +51,8 @@ fedora:ubsan:
       - _build/meson-logs/testlog.txt
 
 fedora-static-analyzers/test:
-  image: fedora:34
   stage: build
   before_script:
-    - dnf upgrade -y
-    - dnf install -y 'dnf-command(builddep)'
-    - dnf builddep -y libsecret
-    - dnf install -y $DEPENDENCIES clang-analyzer cppcheck
     - dbus-uuidgen --ensure
   script:
     - meson _build -Dgtk_doc=false
@@ -83,14 +64,8 @@ fedora-static-analyzers/test:
       - _build/meson-logs/testlog.txt
 
 fedora:coverage:
-  image: fedora:34
   stage: build
   before_script:
-    - dnf upgrade -y
-    - dnf install -y 'dnf-command(builddep)'
-    - dnf builddep -y libsecret
-    - dnf install -y $DEPENDENCIES swtpm swtpm-tools tpm2-abrmd tpm2-tss-devel
-    - dnf install -y $DEPENDENCIES lcov
     - dbus-uuidgen --ensure
   script:
     - meson _build -Db_coverage=true -Dtpm2=true -Dgtk_doc=false
@@ -116,9 +91,6 @@ fedora:coverage:
 
 reference:
   stage: build
-  image: fedora:35
-  before_script:
-    - dnf install -y $DEPENDENCIES gi-docgen gobject-introspection-devel libgcrypt-devel
   variables:
     MESON_ARGS: >-
       -Dgtk_doc=true
