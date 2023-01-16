@@ -1341,7 +1341,7 @@ loads_closure_free (gpointer data)
 	if (loads->service)
 		g_object_unref (loads->service);
 	g_hash_table_destroy (loads->items);
-	g_slice_free (LoadsClosure, loads);
+	g_free (loads);
 }
 
 static void
@@ -1443,7 +1443,7 @@ secret_item_load_secrets (GList *items,
 
 	task = g_task_new (NULL, cancellable, callback, user_data);
 	g_task_set_source_tag (task, secret_item_load_secrets);
-	loads = g_slice_new0 (LoadsClosure);
+	loads = g_new0 (LoadsClosure, 1);
 	loads->items = g_hash_table_new_full (g_str_hash, g_str_equal,
 	                                      g_free, g_object_unref);
 

@@ -100,7 +100,7 @@ store_closure_free (gpointer data)
 	g_free (store->collection);
 	g_free (store->label);
 	secret_value_unref (store->value);
-	g_slice_free (StoreClosure, store);
+	g_free (store);
 }
 
 static void
@@ -202,7 +202,7 @@ secret_password_storev (const SecretSchema *schema,
 		return;
 
 	task = g_task_new (NULL, cancellable, callback, user_data);
-	store = g_slice_new0 (StoreClosure);
+	store = g_new0 (StoreClosure, 1);
 	store->schema = _secret_schema_ref_if_nonstatic (schema);
 	store->attributes = g_hash_table_ref (attributes);
 	store->collection = g_strdup (collection);
@@ -312,7 +312,7 @@ secret_password_storev_binary (const SecretSchema *schema,
 		return;
 
 	task = g_task_new (NULL, cancellable, callback, user_data);
-	store = g_slice_new0 (StoreClosure);
+	store = g_new0 (StoreClosure, 1);
 	store->schema = _secret_schema_ref_if_nonstatic (schema);
 	store->attributes = g_hash_table_ref (attributes);
 	store->collection = g_strdup (collection);
@@ -648,7 +648,7 @@ lookup_closure_free (gpointer data)
 	LookupClosure *closure = data;
 	_secret_schema_unref_if_nonstatic (closure->schema);
 	g_hash_table_unref (closure->attributes);
-	g_slice_free (LookupClosure, closure);
+	g_free (closure);
 }
 
 static void
@@ -740,7 +740,7 @@ secret_password_lookupv (const SecretSchema *schema,
 		return;
 
 	task = g_task_new (NULL, cancellable, callback, user_data);
-	lookup = g_slice_new0 (LookupClosure);
+	lookup = g_new0 (LookupClosure, 1);
 	lookup->schema = _secret_schema_ref_if_nonstatic (schema);
 	lookup->attributes = g_hash_table_ref (attributes);
 	g_task_set_task_data (task, lookup, lookup_closure_free);
@@ -1192,7 +1192,7 @@ clear_closure_free (gpointer data)
 	ClearClosure *closure = data;
 	_secret_schema_unref_if_nonstatic (closure->schema);
 	g_hash_table_unref (closure->attributes);
-	g_slice_free (ClearClosure, closure);
+	g_free (closure);
 }
 
 static void
@@ -1282,7 +1282,7 @@ secret_password_clearv (const SecretSchema *schema,
 		return;
 
 	task = g_task_new (NULL, cancellable, callback, user_data);
-	clear = g_slice_new0 (ClearClosure);
+	clear = g_new0 (ClearClosure, 1);
 	clear->schema = _secret_schema_ref_if_nonstatic (schema);
 	clear->attributes = g_hash_table_ref (attributes);
 	g_task_set_task_data (task, clear, clear_closure_free);
@@ -1474,7 +1474,7 @@ search_closure_free (gpointer data)
 	SearchClosure *closure = data;
 	_secret_schema_unref_if_nonstatic (closure->schema);
 	g_hash_table_unref (closure->attributes);
-	g_slice_free (SearchClosure, closure);
+	g_free (closure);
 }
 
 static void
@@ -1573,7 +1573,7 @@ secret_password_searchv (const SecretSchema *schema,
                 return;
 
 	task = g_task_new (NULL, cancellable, callback, user_data);
-	search = g_slice_new0 (SearchClosure);
+	search = g_new0 (SearchClosure, 1);
 	search->schema = _secret_schema_ref_if_nonstatic (schema);
 	search->attributes = g_hash_table_ref (attributes);
 	search->flags = flags;

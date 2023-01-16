@@ -740,7 +740,7 @@ items_closure_free (gpointer data)
 {
 	ItemsClosure *closure = data;
 	g_hash_table_unref (closure->items);
-	g_slice_free (ItemsClosure, closure);
+	g_free (closure);
 }
 
 static void
@@ -816,7 +816,7 @@ secret_collection_load_items (SecretCollection *self,
 
 	task = g_task_new (self, cancellable, callback, user_data);
 	g_task_set_source_tag (task, secret_collection_load_items);
-	closure = g_slice_new0 (ItemsClosure);
+	closure = g_new0 (ItemsClosure, 1);
 	closure->items = items_table_new ();
 	g_task_set_task_data (task, closure, items_closure_free);
 
@@ -973,7 +973,7 @@ create_closure_free (gpointer data)
 	g_clear_object (&closure->collection);
 	g_hash_table_unref (closure->properties);
 	g_free (closure->alias);
-	g_slice_free (CreateClosure, closure);
+	g_free (closure);
 }
 
 static void
@@ -1103,7 +1103,7 @@ secret_collection_create (SecretService *service,
 
 	task = g_task_new (NULL, cancellable, callback, user_data);
 	g_task_set_source_tag (task, secret_collection_create);
-	closure = g_slice_new0 (CreateClosure);
+	closure = g_new0 (CreateClosure, 1);
 	closure->properties = _secret_collection_properties_new (label);
 	closure->alias = g_strdup (alias);
 	closure->flags = flags;
@@ -1240,7 +1240,7 @@ search_closure_free (gpointer data)
 	g_object_unref (closure->collection);
 	g_hash_table_unref (closure->items);
 	g_strfreev (closure->paths);
-	g_slice_free (SearchClosure, closure);
+	g_free (closure);
 }
 
 static void
@@ -1444,7 +1444,7 @@ secret_collection_search (SecretCollection *self,
 
 	task = g_task_new (self, cancellable, callback, user_data);
 	g_task_set_source_tag (task, secret_collection_search);
-	search = g_slice_new0 (SearchClosure);
+	search = g_new0 (SearchClosure, 1);
 	search->collection = g_object_ref (self);
 	search->items = g_hash_table_new_full (g_str_hash, g_str_equal, NULL, g_object_unref);
 	search->flags = flags;
@@ -2013,7 +2013,7 @@ read_closure_free (gpointer data)
 {
 	ReadClosure *read = data;
 	g_free (read->alias);
-	g_slice_free (ReadClosure, read);
+	g_free (read);
 }
 
 static void
@@ -2141,7 +2141,7 @@ secret_collection_for_alias (SecretService *service,
 
 	task = g_task_new (NULL, cancellable, callback, user_data);
 	g_task_set_source_tag (task, secret_collection_for_alias);
-	read = g_slice_new0 (ReadClosure);
+	read = g_new0 (ReadClosure, 1);
 	read->alias = g_strdup (alias);
 	read->flags = flags;
 	g_task_set_task_data (task, read, read_closure_free);
