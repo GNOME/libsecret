@@ -610,7 +610,7 @@ static void
 init_closure_free (gpointer data)
 {
 	InitClosure *closure = data;
-	g_slice_free (InitClosure, closure);
+	g_free (closure);
 }
 
 static gboolean
@@ -744,7 +744,7 @@ on_init_base (GObject *source,
 
 	task = g_task_new (source, cancellable, base->callback, base->user_data);
 	g_task_set_source_tag (task, secret_service_async_initable_init_async);
-	init = g_slice_new0 (InitClosure);
+	init = g_new0 (InitClosure, 1);
 	g_task_set_task_data (task, init, init_closure_free);
 
 	g_clear_object (&base_task);
@@ -822,7 +822,7 @@ secret_service_real_ensure_for_flags (SecretBackend *self,
 	g_return_if_fail (SECRET_IS_SERVICE (self));
 
 	task = g_task_new (self, cancellable, callback, user_data);
-	closure = g_slice_new0 (InitClosure);
+	closure = g_new0 (InitClosure, 1);
 	g_task_set_task_data (task, closure, init_closure_free);
 	service_ensure_for_flags_async (SECRET_SERVICE (self), flags, task);
 	g_object_unref (task);
@@ -1004,7 +1004,7 @@ secret_service_get (SecretServiceFlags flags,
 	} else {
 		task = g_task_new (service, cancellable, callback, user_data);
 		g_task_set_source_tag (task, secret_service_get);
-		closure = g_slice_new0 (InitClosure);
+		closure = g_new0 (InitClosure, 1);
 		closure->flags = flags;
 		g_task_set_task_data (task, closure, init_closure_free);
 
@@ -1620,7 +1620,7 @@ ensure_closure_free (gpointer data)
 {
 	EnsureClosure *closure = data;
 	g_hash_table_unref (closure->collections);
-	g_slice_free (EnsureClosure, closure);
+	g_free (closure);
 }
 
 static void
@@ -1695,7 +1695,7 @@ secret_service_load_collections (SecretService *self,
 
 	task = g_task_new (self, cancellable, callback, user_data);
 	g_task_set_source_tag (task, secret_service_load_collections);
-	closure = g_slice_new0 (EnsureClosure);
+	closure = g_new0 (EnsureClosure, 1);
 	closure->collections = collections_table_new ();
 	g_task_set_task_data (task, closure, ensure_closure_free);
 

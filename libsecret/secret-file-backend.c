@@ -218,7 +218,7 @@ init_closure_free (gpointer data)
 	g_clear_pointer (&init->buffer, egg_secure_free);
 	g_clear_object (&init->connection);
 	g_clear_pointer (&init->request_path, g_free);
-	g_slice_free (InitClosure, init);
+	g_free (init);
 }
 
 #define PASSWORD_SIZE 64
@@ -572,7 +572,7 @@ secret_file_backend_real_init_async (GAsyncInitable *initable,
 		g_object_unref (file);
 		secret_value_unref (password);
 	} else if (g_file_test ("/.flatpak-info", G_FILE_TEST_EXISTS) || g_getenv ("SNAP_NAME") != NULL) {
-		init = g_slice_new0 (InitClosure);
+		init = g_new0 (InitClosure, 1);
 		init->io_priority = io_priority;
 		init->file = file;
 		g_task_set_task_data (task, init, init_closure_free);

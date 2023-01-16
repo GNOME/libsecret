@@ -55,7 +55,7 @@ search_closure_free (gpointer data)
 	g_variant_unref (closure->attributes);
 	g_strfreev (closure->unlocked);
 	g_strfreev (closure->locked);
-	g_slice_free (SearchClosure, closure);
+	g_free (closure);
 }
 
 static void
@@ -317,7 +317,7 @@ secret_service_search (SecretService *service,
 
 	task = g_task_new (service, cancellable, callback, user_data);
 	g_task_set_source_tag (task, secret_service_search);
-	closure = g_slice_new0 (SearchClosure);
+	closure = g_new0 (SearchClosure, 1);
 	closure->items = g_hash_table_new_full (g_str_hash, g_str_equal, NULL, g_object_unref);
 	closure->flags = flags;
 	closure->attributes = _secret_attributes_to_variant (attributes, schema_name);
@@ -583,7 +583,7 @@ xlock_closure_free (gpointer data)
 	g_ptr_array_free (closure->paths, TRUE);
 	g_strfreev (closure->xlocked);
 	g_hash_table_unref (closure->objects);
-	g_slice_free (XlockClosure, closure);
+	g_free (closure);
 }
 
 static void
@@ -667,7 +667,7 @@ service_xlock_async (SecretService *service,
 
 	task = g_task_new (service, cancellable, callback, user_data);
 	g_task_set_source_tag (task, service_xlock_async);
-	xlock = g_slice_new0 (XlockClosure);
+	xlock = g_new0 (XlockClosure, 1);
 	xlock->objects = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_object_unref);
 	xlock->locking = locking;
 	xlock->paths = g_ptr_array_new ();
@@ -969,7 +969,7 @@ store_closure_free (gpointer data)
 	g_free (store->collection_path);
 	secret_value_unref (store->value);
 	g_hash_table_unref (store->properties);
-	g_slice_free (StoreClosure, store);
+	g_free (store);
 }
 
 static void
@@ -1172,7 +1172,7 @@ secret_service_store (SecretService *service,
 
 	task = g_task_new (service, cancellable, callback, user_data);
 	g_task_set_source_tag (task, secret_service_store);
-	store = g_slice_new0 (StoreClosure);
+	store = g_new0 (StoreClosure, 1);
 	store->collection_path = _secret_util_collection_to_path (collection);
 	store->value = secret_value_ref (value);
 	store->properties = g_hash_table_new_full (g_str_hash, g_str_equal, NULL,
@@ -1581,7 +1581,7 @@ delete_closure_free (gpointer data)
 	if (closure->service)
 		g_object_unref (closure->service);
 	g_variant_unref (closure->attributes);
-	g_slice_free (DeleteClosure, closure);
+	g_free (closure);
 }
 
 static void
@@ -1708,7 +1708,7 @@ secret_service_clear (SecretService *service,
 
 	task = g_task_new (service, cancellable, callback, user_data);
 	g_task_set_source_tag (task, secret_service_clear);
-	closure = g_slice_new0 (DeleteClosure);
+	closure = g_new0 (DeleteClosure, 1);
 	closure->attributes = _secret_attributes_to_variant (attributes, schema_name);
 	g_variant_ref_sink (closure->attributes);
 	g_task_set_task_data (task, closure, delete_closure_free);
@@ -1822,7 +1822,7 @@ set_closure_free (gpointer data)
 	SetClosure *set = data;
 	g_free (set->alias);
 	g_free (set->collection_path);
-	g_slice_free (SetClosure, set);
+	g_free (set);
 }
 
 static void
@@ -1907,7 +1907,7 @@ secret_service_set_alias (SecretService *service,
 
 	task = g_task_new (service, cancellable, callback, user_data);
 	g_task_set_source_tag (task, secret_service_set_alias);
-	set = g_slice_new0 (SetClosure);
+	set = g_new0 (SetClosure, 1);
 	set->alias = g_strdup (alias);
 
 	if (collection) {

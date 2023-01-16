@@ -271,7 +271,7 @@ set_closure_free (gpointer data)
 	SetClosure *closure = data;
 	g_free (closure->property);
 	g_variant_unref (closure->value);
-	g_slice_free (SetClosure, closure);
+	g_free (closure);
 }
 
 static void
@@ -320,7 +320,7 @@ _secret_util_set_property (GDBusProxy *proxy,
 
 	task = g_task_new (proxy, cancellable, callback, user_data);
 	g_task_set_source_tag (task, result_tag);
-	closure = g_slice_new0 (SetClosure);
+	closure = g_new0 (SetClosure, 1);
 	closure->property = g_strdup (property);
 	closure->value = g_variant_ref_sink (value);
 	g_task_set_task_data (task, closure, set_closure_free);

@@ -134,7 +134,7 @@ secret_value_new_full (gchar *secret,
 	if (length < 0)
 		length = strlen (secret);
 
-	value = g_slice_new0 (SecretValue);
+	value = g_new0 (SecretValue, 1);
 	value->refs = 1;
 	value->content_type = g_strdup (content_type);
 	value->destroy = destroy;
@@ -243,7 +243,7 @@ secret_value_unref (gpointer value)
 		g_free (val->content_type);
 		if (val->destroy)
 			(val->destroy) (val->secret);
-		g_slice_free (SecretValue, val);
+		g_free (val);
 	}
 }
 
@@ -296,7 +296,7 @@ secret_value_unref_to_password (SecretValue *value,
 				*length = val->length;
 		}
 		g_free (val->content_type);
-		g_slice_free (SecretValue, val);
+		g_free (val);
 
 	} else {
 		result = egg_secure_strndup (val->secret, val->length);
@@ -343,7 +343,7 @@ _secret_value_unref_to_string (SecretValue *value)
 				(val->destroy) (val->secret);
 		}
 		g_free (val->content_type);
-		g_slice_free (SecretValue, val);
+		g_free (val);
 
 	} else {
 		result = g_strndup (val->secret, val->length);
