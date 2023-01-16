@@ -251,7 +251,7 @@ perform_closure_free (gpointer data)
 		g_variant_type_free (closure->return_type);
 	g_assert (closure->signal == 0);
 	g_assert (closure->watch == 0);
-	g_slice_free (PerformClosure, closure);
+	g_free (closure);
 }
 
 static void
@@ -446,7 +446,7 @@ secret_prompt_perform (SecretPrompt *self,
 	task = g_task_new (self, cancellable, callback, user_data);
 	async_cancellable = g_task_get_cancellable (task);
 	g_task_set_source_tag (task, secret_prompt_perform);
-	closure = g_slice_new0 (PerformClosure);
+	closure = g_new0 (PerformClosure, 1);
 	closure->connection = g_object_ref (g_dbus_proxy_get_connection (proxy));
 	closure->call_cancellable = g_cancellable_new ();
 	async_cancellable = cancellable ? g_object_ref (cancellable) : NULL;

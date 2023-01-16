@@ -1000,7 +1000,7 @@ xlock_closure_free (gpointer data)
 {
 	XlockClosure *closure = data;
 	g_clear_object (&closure->prompt);
-	g_slice_free (XlockClosure, closure);
+	g_free (closure);
 }
 
 static void
@@ -1095,7 +1095,7 @@ _secret_service_xlock_paths_async (SecretService *self,
 
 	task = g_task_new (self, cancellable, callback, user_data);
 	g_task_set_source_tag (task, _secret_service_xlock_paths_async);
-	closure = g_slice_new0 (XlockClosure);
+	closure = g_new0 (XlockClosure, 1);
 	g_task_set_task_data (task, closure, xlock_closure_free);
 
 	g_dbus_proxy_call (G_DBUS_PROXY (self), method,
@@ -1406,7 +1406,7 @@ delete_closure_free (gpointer data)
 {
 	DeleteClosure *closure = data;
 	g_clear_object (&closure->prompt);
-	g_slice_free (DeleteClosure, closure);
+	g_free (closure);
 }
 
 static void
@@ -1486,7 +1486,7 @@ _secret_service_delete_path (SecretService *self,
 
 	task = g_task_new (self, cancellable, callback, user_data);
 	g_task_set_source_tag (task, _secret_service_delete_path);
-	closure = g_slice_new0 (DeleteClosure);
+	closure = g_new0 (DeleteClosure, 1);
 	g_task_set_task_data (task, closure, delete_closure_free);
 
 	g_dbus_connection_call (g_dbus_proxy_get_connection (G_DBUS_PROXY (self)),
@@ -1630,7 +1630,7 @@ collection_closure_free (gpointer data)
 {
 	CollectionClosure *closure = data;
 	g_clear_object (&closure->prompt);
-	g_slice_free (CollectionClosure, closure);
+	g_free (closure);
 }
 
 static void
@@ -1753,7 +1753,7 @@ secret_service_create_collection_dbus_path (SecretService *self,
 
 	task = g_task_new (self, cancellable, callback, user_data);
 	g_task_set_source_tag (task, secret_service_create_collection_dbus_path);
-	closure = g_slice_new0 (CollectionClosure);
+	closure = g_new0 (CollectionClosure, 1);
 	g_task_set_task_data (task, closure, collection_closure_free);
 
 	props = _secret_util_variant_for_properties (properties);
@@ -1894,7 +1894,7 @@ item_closure_free (gpointer data)
 	secret_value_unref (closure->value);
 	g_free (closure->collection_path);
 	g_clear_object (&closure->prompt);
-	g_slice_free (ItemClosure, closure);
+	g_free (closure);
 }
 
 static void
@@ -2049,7 +2049,7 @@ secret_service_create_item_dbus_path (SecretService *self,
 
 	task = g_task_new (self, cancellable, callback, user_data);
 	g_task_set_source_tag (task, secret_service_create_item_dbus_path);
-	closure = g_slice_new0 (ItemClosure);
+	closure = g_new0 (ItemClosure, 1);
 	closure->properties = _secret_util_variant_for_properties (properties);
 	g_variant_ref_sink (closure->properties);
 	closure->replace = flags & SECRET_ITEM_CREATE_REPLACE;

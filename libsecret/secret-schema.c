@@ -120,7 +120,7 @@ schema_attribute_copy (SecretSchemaAttribute *attribute)
 {
 	SecretSchemaAttribute *copy;
 
-	copy = g_slice_new0 (SecretSchemaAttribute);
+	copy = g_new0 (SecretSchemaAttribute, 1);
 	copy->name = g_strdup (attribute->name);
 	copy->type = attribute->type;
 
@@ -131,7 +131,7 @@ static void
 schema_attribute_free (SecretSchemaAttribute *attribute)
 {
 	g_free ((gchar *)attribute->name);
-	g_slice_free (SecretSchemaAttribute, attribute);
+	g_free (attribute);
 }
 
 G_DEFINE_BOXED_TYPE (SecretSchemaAttribute, secret_schema_attribute,
@@ -184,7 +184,7 @@ secret_schema_newv (const gchar *name,
 	g_return_val_if_fail (name != NULL, NULL);
 	g_return_val_if_fail (attribute_names_and_types != NULL, NULL);
 
-	schema = g_slice_new0 (SecretSchema);
+	schema = g_new0 (SecretSchema, 1);
 	schema->name = g_strdup (name);
 	schema->flags = flags;
 	schema->reserved = 1;
@@ -308,7 +308,7 @@ secret_schema_ref (SecretSchema *schema)
 		g_atomic_int_inc (&schema->reserved);
 		result = schema;
 	} else {
-		result = g_slice_new0 (SecretSchema);
+		result = g_new0 (SecretSchema, 1);
 		result->reserved = 1;
 		result->name = g_strdup (schema->name);
 
@@ -354,7 +354,7 @@ secret_schema_unref (SecretSchema *schema)
 		g_free ((gpointer)schema->name);
 		for (i = 0; i < G_N_ELEMENTS (schema->attributes); i++)
 			g_free ((gpointer)schema->attributes[i].name);
-		g_slice_free (SecretSchema, schema);
+		g_free (schema);
 	}
 }
 
