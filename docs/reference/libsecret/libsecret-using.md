@@ -18,7 +18,7 @@ AC_SUBST(LIBSECRET_LIBS)
 Code using libsecret should include the header like this:
 
 ```c
-#include <libsecret/secret.h>;
+#include <libsecret/secret.h>
 ```
 
 Including individual headers besides the main header files is not permitted and
