@@ -581,7 +581,8 @@ secret_file_backend_real_init_async (GAsyncInitable *initable,
 		init = g_new0 (InitClosure, 1);
 		init->io_priority = io_priority;
 		init->file = file;
-		init->cancellable = g_object_ref (cancellable);
+		if (cancellable)
+			init->cancellable = g_object_ref (cancellable);
 		g_task_set_task_data (task, init, init_closure_free);
 		g_bus_get (G_BUS_TYPE_SESSION, cancellable, on_bus_get, task);
 	} else {
