@@ -17,12 +17,13 @@ You can find the nightly documentation at https://gnome.pages.gitlab.gnome.org/l
 Building
 --------
 
-To build and install libsecret, you can use the following commands:
+To build, test and install libsecret, you can use the following commands:
 
 ```
-$ meson _build
-$ ninja -C _build
-$ ninja -C _build install
+$ meson setup _build
+$ meson compile -C _build
+$ meson test -C _build
+$ meson install -C _build
 ```
 
 Contributing
