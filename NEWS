@@ -1,3 +1,16 @@
+0.21.0
+ * Unlock the keyring before getting secret attributes [!105]
+ * file-backend: avoid deadlock when portal op is canceled [!118, !120]
+ * Properly chain-up GTasks around GDBusProxy::init_async [!106]
+ * Fix nullable in secret_collection_for_alias_* [!110]
+ * Fix finish function for searchv [!112]
+ * secret-paths: Fix a little memory leak [!109]
+ * Stop using GSlice [!116]
+ * docs: port to gi-docgen [!101]
+ * docs: fix example in usage docs [!117]
+ * Several CI fixes [!111, !114]
+ * Updated translations
+
 0.20.5
  * Drop autotools-based build [!44]
  * Use G_GNUC_NULL_TERMINATED where appropriate [!65]
