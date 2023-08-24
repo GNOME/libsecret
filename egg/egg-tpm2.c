@@ -407,7 +407,7 @@ egg_tpm2_decrypt_master_password(EggTpm2Context *context,
 	data = g_variant_get_fixed_array(out_private_variant,
 					 &count,
 			                 sizeof(guint8));
-	guint8 *marshaled_out_private = g_memdup(data, count);
+	guint8 *marshaled_out_private = g_memdup2(data, count);
 	count = 0;
 
 	TPM2B_PRIVATE out_private = {
@@ -434,7 +434,7 @@ egg_tpm2_decrypt_master_password(EggTpm2Context *context,
 	data = g_variant_get_fixed_array(out_public_variant,
 					 &count,
 					 sizeof(guint8));
-	guint8 *marshaled_out_public = g_memdup(data, count);
+	guint8 *marshaled_out_public = g_memdup2(data, count);
 
 	TPM2B_PUBLIC out_public = {
 		.size = 0
