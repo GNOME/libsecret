@@ -21,6 +21,7 @@
 #include "egg/egg-dh.h"
 #include "egg/egg-hkdf.h"
 #include "egg/egg-libgcrypt.h"
+#include <gcrypt.h>
 #endif
 
 #include "egg/egg-hex.h"
@@ -37,9 +38,9 @@ struct _SecretSession {
 	gchar *path;
 	const gchar *algorithms;
 #ifdef WITH_GCRYPT
-	gcry_mpi_t prime;
-	gcry_mpi_t privat;
-	gcry_mpi_t publi;
+	egg_dh_params *params;
+	egg_dh_privkey *privat;
+	egg_dh_pubkey *publi;
 #endif
 	gpointer key;
 	gsize n_key;
@@ -55,9 +56,9 @@ _secret_session_free (gpointer data)
 
 	g_free (session->path);
 #ifdef WITH_GCRYPT
-	gcry_mpi_release (session->publi);
-	gcry_mpi_release (session->privat);
-	gcry_mpi_release (session->prime);
+	egg_dh_pubkey_free (session->publi);
+	egg_dh_privkey_free (session->privat);
+	egg_dh_params_free (session->params);
 #endif
 	egg_secure_free (session->key);
 	g_free (session);
@@ -68,41 +69,36 @@ _secret_session_free (gpointer data)
 static GVariant *
 request_open_session_aes (SecretSession *session)
 {
-	gcry_error_t gcry;
-	gcry_mpi_t base;
-	unsigned char *buffer;
-	size_t n_buffer;
+	GBytes *buffer;
 	GVariant *argument;
 
-	g_assert (session->prime == NULL);
+	g_assert (session->params == NULL);
 	g_assert (session->privat == NULL);
 	g_assert (session->publi == NULL);
 
 	egg_libgcrypt_initialize ();
 
 	/* Initialize our local parameters and values */
-	if (!egg_dh_default_params ("ietf-ike-grp-modp-1024",
-	                            &session->prime, &base))
+	session->params = egg_dh_default_params ("ietf-ike-grp-modp-1024");
+	if (!session->params)
 		g_return_val_if_reached (NULL);
 
 #if 0
-	g_printerr ("\n lib prime: ");
-	gcry_mpi_dump (session->prime);
-	g_printerr ("\n  lib base: ");
-	gcry_mpi_dump (base);
+	g_printerr ("\n lib params: ");
+	egg_dh_params_dump (session->params);
 	g_printerr ("\n");
 #endif
 
-	if (!egg_dh_gen_pair (session->prime, base, 0,
+	if (!egg_dh_gen_pair (session->params, 0,
 	                      &session->publi, &session->privat))
 		g_return_val_if_reached (NULL);
-	gcry_mpi_release (base);
 
-	gcry = gcry_mpi_aprint (GCRYMPI_FMT_USG, &buffer, &n_buffer, session->publi);
-	g_return_val_if_fail (gcry == 0, NULL);
-	argument = g_variant_new_from_data (G_VARIANT_TYPE ("ay"),
-	                                    buffer, n_buffer, TRUE,
-	                                    gcry_free, buffer);
+	buffer = egg_dh_pubkey_export (session->publi);
+	g_return_val_if_fail (buffer != NULL, NULL);
+	argument = g_variant_new_from_bytes (G_VARIANT_TYPE ("ay"),
+					     buffer,
+					     TRUE);
+	g_bytes_unref (buffer);
 
 	return g_variant_new ("(sv)", ALGORITHMS_AES, argument);
 }
@@ -111,14 +107,11 @@ static gboolean
 response_open_session_aes (SecretSession *session,
                            GVariant *response)
 {
-	gconstpointer buffer;
+	GBytes *buffer;
 	GVariant *argument;
 	const gchar *sig;
-	gsize n_buffer;
-	gcry_mpi_t peer;
-	gcry_error_t gcry;
-	gpointer ikm;
-	gsize n_ikm;
+	egg_dh_pubkey *peer;
+	GBytes *ikm;
 
 	sig = g_variant_get_type_string (response);
 	g_return_val_if_fail (sig != NULL, FALSE);
@@ -131,24 +124,27 @@ response_open_session_aes (SecretSession *session,
 	g_assert (session->path == NULL);
 	g_variant_get (response, "(vo)", &argument, &session->path);
 
-	buffer = g_variant_get_fixed_array (argument, &n_buffer, sizeof (guchar));
-	gcry = gcry_mpi_scan (&peer, GCRYMPI_FMT_USG, buffer, n_buffer, NULL);
-	g_return_val_if_fail (gcry == 0, FALSE);
+	buffer = g_variant_get_data_as_bytes (argument);
+	peer = egg_dh_pubkey_new_from_bytes (session->params, buffer);
+	g_bytes_unref (buffer);
+	g_return_val_if_fail (peer != NULL, FALSE);
 	g_variant_unref (argument);
 
 #if 0
 	g_printerr (" lib publi: ");
-	gcry_mpi_dump (session->publi);
+	egg_dh_pubkey_dump (session->publi);
 	g_printerr ("\n  lib peer: ");
-	gcry_mpi_dump (peer);
+	egg_dh_pubkey_dump (peer);
 	g_printerr ("\n");
 #endif
 
-	ikm = egg_dh_gen_secret (peer, session->privat, session->prime, &n_ikm);
-	gcry_mpi_release (peer);
+	ikm = egg_dh_gen_secret (peer, session->privat, session->params);
+	egg_dh_pubkey_free (peer);
 
 #if 0
-	g_printerr ("   lib ikm:  %s\n", egg_hex_encode (ikm, n_ikm));
+	g_printerr ("   lib ikm:  %s\n",
+		    egg_hex_encode (g_bytes_get_data (ikm, NULL),
+				    g_bytes_get_size (ikm)));
 #endif
 
 	if (ikm == NULL) {
@@ -160,10 +156,13 @@ response_open_session_aes (SecretSession *session,
 
 	session->n_key = 16;
 	session->key = egg_secure_alloc (session->n_key);
-	if (!egg_hkdf_perform ("sha256", ikm, n_ikm, NULL, 0, NULL, 0,
+	if (!egg_hkdf_perform ("sha256",
+			       g_bytes_get_data (ikm, NULL),
+			       g_bytes_get_size (ikm),
+			       NULL, 0, NULL, 0,
 	                       session->key, session->n_key))
 		g_return_val_if_reached (FALSE);
-	egg_secure_free (ikm);
+	g_bytes_unref (ikm);
 
 	session->algorithms = ALGORITHMS_AES;
 	return TRUE;
