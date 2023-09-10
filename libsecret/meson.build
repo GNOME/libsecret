@@ -36,7 +36,7 @@ libsecret_headers = [
   'secret-value.h',
 ]
 
-if get_option('gcrypt')
+if with_crypto
   libsecret_sources += [
     'secret-file-backend.c',
     'secret-file-collection.c',
@@ -76,8 +76,8 @@ libsecret_dependencies = [
   glib_deps,
 ]
 
-if get_option('gcrypt')
-  libsecret_dependencies += gcrypt_dep
+if with_crypto
+  libsecret_dependencies += crypto_deps
 endif
 
 libsecret_cflags = [
@@ -231,7 +231,7 @@ test_names = [
   'test-collection',
 ]
 
-if get_option('gcrypt')
+if with_crypto
   test_names += [
     'test-file-collection',
   ]

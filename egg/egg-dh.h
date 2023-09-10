@@ -30,6 +30,17 @@ typedef struct egg_dh_params egg_dh_params;
 typedef struct egg_dh_pubkey egg_dh_pubkey;
 typedef struct egg_dh_privkey egg_dh_privkey;
 
+typedef struct egg_dh_group {
+	const gchar *name;
+	guint bits;
+	const guchar *prime;
+	gsize n_prime;
+	const guchar base[1];
+	gsize n_base;
+} egg_dh_group;
+
+extern const egg_dh_group egg_dh_groups[];
+
 egg_dh_params *egg_dh_default_params        (const gchar *name);
 
 gboolean       egg_dh_default_params_raw    (const gchar *name,

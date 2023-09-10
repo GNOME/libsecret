@@ -13,10 +13,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *  
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- * MA 02110-1301 USA
+ * You should have received copies of the GNU General Public License and
+ * the GNU Lesser General Public License along with this program.  If
+ * not, see http://www.gnu.org/licenses/.
  *
  * Author: Stef Walter <stefw@collabora.co.uk>
  */
@@ -24,10 +23,8 @@
 #include "config.h"
 
 #include "egg-hkdf.h"
-#include "egg-secure-memory.h"
 
 #include <gcrypt.h>
-
 #include <string.h>
 
 gboolean

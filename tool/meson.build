@@ -10,7 +10,7 @@ secret_tool = executable('secret-tool',
   install: true,
 )
 
-if get_option('gcrypt') and host_machine.system() != 'windows'
+if with_crypto and host_machine.system() != 'windows'
   test('test-secret-tool.sh',
     find_program('test-secret-tool.sh'),
     env: test_env,

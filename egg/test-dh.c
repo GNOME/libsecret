@@ -33,7 +33,6 @@
 #include <string.h>
 
 #include <glib.h>
-#include <gcrypt.h>
 
 EGG_SECURE_DEFINE_GLIB_GLOBALS ();
 
@@ -107,10 +106,8 @@ static void
 check_dh_default (const gchar *name, guint bits)
 {
 	gboolean ret;
-	gcry_mpi_t check;
 	gconstpointer prime, base;
 	gsize n_prime, n_base;
-	gcry_error_t gcry;
 
 	ret = egg_dh_default_params_raw (name, &prime, &n_prime, &base, &n_base);
 	g_assert_true (ret);
@@ -118,14 +115,6 @@ check_dh_default (const gchar *name, guint bits)
 	egg_assert_cmpsize (n_prime, >, 0);
 	g_assert_nonnull (base);
 	egg_assert_cmpsize (n_base, >, 0);
-
-	gcry = gcry_mpi_scan (&check, GCRYMPI_FMT_USG, prime, n_prime, NULL);
-	g_assert_true (gcry == 0);
-	gcry_mpi_release (check);
-
-	gcry = gcry_mpi_scan (&check, GCRYMPI_FMT_USG, base, n_base, NULL);
-	g_assert_true (gcry == 0);
-	gcry_mpi_release (check);
 }
 
 static void

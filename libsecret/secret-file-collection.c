@@ -17,10 +17,13 @@
 #include "secret-file-collection.h"
 
 #include "egg/egg-keyring1.h"
-#include "egg/egg-libgcrypt.h"
 #include "egg/egg-secure-memory.h"
 
 EGG_SECURE_DECLARE (secret_file_collection);
+
+#ifdef WITH_GCRYPT
+#include "egg/egg-libgcrypt.h"
+#endif
 
 #define KEYRING_FILE_HEADER "GnomeKeyring\n\r\0\n"
 #define KEYRING_FILE_HEADER_LEN 16
@@ -143,8 +146,9 @@ secret_file_collection_class_init (SecretFileCollectionClass *klass)
 		   g_param_spec_boxed ("password", "password", "Password",
 				       SECRET_TYPE_VALUE,
 				       G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
-
+#ifdef WITH_GCRYPT
 	egg_libgcrypt_initialize ();
+#endif
 }
 
 static gboolean

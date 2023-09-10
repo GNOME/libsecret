@@ -29,7 +29,7 @@
 #include <errno.h>
 #include <stdlib.h>
 
-#ifdef WITH_GCRYPT
+#ifdef WITH_CRYPTO
 #define SESSION_ALGO "dh-ietf1024-sha256-aes128-cbc-pkcs7"
 #else
 #define SESSION_ALGO "plain"

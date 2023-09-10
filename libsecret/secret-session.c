@@ -17,11 +17,18 @@
 
 #include "secret-private.h"
 
-#ifdef WITH_GCRYPT
+#ifdef WITH_CRYPTO
 #include "egg/egg-dh.h"
 #include "egg/egg-hkdf.h"
+#endif
+
+#ifdef WITH_GCRYPT
 #include "egg/egg-libgcrypt.h"
 #include <gcrypt.h>
+#endif
+
+#ifdef WITH_GNUTLS
+#include <gnutls/crypto.h>
 #endif
 
 #include "egg/egg-hex.h"
@@ -37,7 +44,7 @@ EGG_SECURE_DECLARE (secret_session);
 struct _SecretSession {
 	gchar *path;
 	const gchar *algorithms;
-#ifdef WITH_GCRYPT
+#ifdef WITH_CRYPTO
 	egg_dh_params *params;
 	egg_dh_privkey *privat;
 	egg_dh_pubkey *publi;
@@ -55,7 +62,7 @@ _secret_session_free (gpointer data)
 		return;
 
 	g_free (session->path);
-#ifdef WITH_GCRYPT
+#ifdef WITH_CRYPTO
 	egg_dh_pubkey_free (session->publi);
 	egg_dh_privkey_free (session->privat);
 	egg_dh_params_free (session->params);
@@ -64,7 +71,7 @@ _secret_session_free (gpointer data)
 	g_free (session);
 }
 
-#ifdef WITH_GCRYPT
+#ifdef WITH_CRYPTO
 
 static GVariant *
 request_open_session_aes (SecretSession *session)
@@ -76,7 +83,9 @@ request_open_session_aes (SecretSession *session)
 	g_assert (session->privat == NULL);
 	g_assert (session->publi == NULL);
 
+#ifdef WITH_GCRYPT
 	egg_libgcrypt_initialize ();
+#endif
 
 	/* Initialize our local parameters and values */
 	session->params = egg_dh_default_params ("ietf-ike-grp-modp-1024");
@@ -168,7 +177,7 @@ response_open_session_aes (SecretSession *session,
 	return TRUE;
 }
 
-#endif /* WITH_GCRYPT */
+#endif /* WITH_CRYPTO */
 
 static GVariant *
 request_open_session_plain (SecretSession *session)
@@ -251,7 +260,7 @@ on_service_open_session_plain (GObject *source,
 	g_object_unref (task);
 }
 
-#ifdef WITH_GCRYPT
+#ifdef WITH_CRYPTO
 
 static void
 on_service_open_session_aes (GObject *source,
@@ -300,7 +309,7 @@ on_service_open_session_aes (GObject *source,
 	g_object_unref (task);
 }
 
-#endif /* WITH_GCRYPT */
+#endif /* WITH_CRYPTO */
 
 
 void
@@ -319,7 +328,7 @@ _secret_session_open (SecretService *service,
 	g_task_set_task_data (task, closure, open_session_closure_free);
 
 	g_dbus_proxy_call (G_DBUS_PROXY (service), "OpenSession",
-#ifdef WITH_GCRYPT
+#ifdef WITH_CRYPTO
 	                   request_open_session_aes (closure->session),
 	                   G_DBUS_CALL_FLAGS_NONE, -1,
 	                   cancellable, on_service_open_session_aes,
@@ -345,7 +354,7 @@ _secret_session_open_finish (GAsyncResult *result,
 	return TRUE;
 }
 
-#ifdef WITH_GCRYPT
+#ifdef WITH_CRYPTO
 
 static gboolean
 pkcs7_unpad_bytes_in_place (guchar *padded,
@@ -376,6 +385,8 @@ pkcs7_unpad_bytes_in_place (guchar *padded,
 
 	return TRUE;
 }
+
+#ifdef WITH_GCRYPT
 
 static SecretValue *
 service_decode_aes_secret (SecretSession *session,
@@ -447,6 +458,85 @@ service_decode_aes_secret (SecretSession *session,
 
 #endif /* WITH_GCRYPT */
 
+#ifdef WITH_GNUTLS
+
+static SecretValue *
+service_decode_aes_secret (SecretSession *session,
+                           gconstpointer param,
+                           gsize n_param,
+                           gconstpointer value,
+                           gsize n_value,
+                           const gchar *content_type)
+{
+	gnutls_cipher_hd_t cih;
+	gnutls_datum_t iv, key;
+	gsize n_padded;
+	int ret;
+	guchar *padded;
+
+	if (n_param != 16) {
+		g_info ("received an encrypted secret structure with invalid parameter");
+		return NULL;
+	}
+
+	if (n_value == 0 || n_value % 16 != 0) {
+		g_info ("received an encrypted secret structure with bad secret length");
+		return NULL;
+	}
+
+#if 0
+	g_printerr ("    lib iv:  %s\n", egg_hex_encode (param, n_param));
+#endif
+
+#if 0
+	g_printerr ("   lib key:  %s\n", egg_hex_encode (session->key, session->n_key));
+#endif
+
+	iv.data = (void *)param;
+	iv.size = n_param;
+	key.data = session->key;
+	key.size = session->n_key;
+	ret = gnutls_cipher_init (&cih, GNUTLS_CIPHER_AES_128_CBC, &key, &iv);
+	if (ret != 0) {
+		g_warning ("couldn't create AES cipher: %s", gnutls_strerror (ret));
+		return NULL;
+	}
+
+	/* Copy the memory buffer */
+	n_padded = n_value;
+	padded = egg_secure_alloc (n_padded);
+	if (!padded) {
+		gnutls_cipher_deinit (cih);
+		return NULL;
+	}
+	memcpy (padded, value, n_padded);
+
+	/* Perform the decryption */
+	ret = gnutls_cipher_decrypt2 (cih, padded, n_padded, padded, n_padded);
+	if (ret < 0) {
+		egg_secure_clear (padded, n_padded);
+		egg_secure_free (padded);
+		gnutls_cipher_deinit (cih);
+		return NULL;
+	}
+
+	gnutls_cipher_deinit (cih);
+
+	/* Unpad the resulting value */
+	if (!pkcs7_unpad_bytes_in_place (padded, &n_padded)) {
+		egg_secure_clear (padded, n_padded);
+		egg_secure_free (padded);
+		g_info ("received an invalid or unencryptable secret");
+		return FALSE;
+	}
+
+	return secret_value_new_full ((gchar *)padded, n_padded, content_type, egg_secure_free);
+}
+
+#endif /* WITH_GNUTLS */
+
+#endif /* WITH_CRYPTO */
+
 static SecretValue *
 service_decode_plain_secret (SecretSession *session,
                              gconstpointer param,
@@ -496,7 +586,7 @@ _secret_session_decode_secret (SecretSession *session,
 	value = g_variant_get_fixed_array (vvalue, &n_value, sizeof (guchar));
 	g_variant_get_child (encoded, 3, "s", &content_type);
 
-#ifdef WITH_GCRYPT
+#ifdef WITH_CRYPTO
 	if (session->key != NULL)
 		result = service_decode_aes_secret (session, param, n_param,
 		                                    value, n_value, content_type);
@@ -513,7 +603,7 @@ _secret_session_decode_secret (SecretSession *session,
 	return result;
 }
 
-#ifdef WITH_GCRYPT
+#ifdef WITH_CRYPTO
 
 static guchar*
 pkcs7_pad_bytes_in_secure_memory (gconstpointer secret,
@@ -534,6 +624,8 @@ pkcs7_pad_bytes_in_secure_memory (gconstpointer secret,
 	memset (padded + length, n_pad, n_pad);
 	return padded;
 }
+
+#ifdef WITH_GCRYPT
 
 static gboolean
 service_encode_aes_secret (SecretSession *session,
@@ -594,6 +686,72 @@ service_encode_aes_secret (SecretSession *session,
 
 #endif /* WITH_GCRYPT */
 
+#ifdef WITH_GNUTLS
+
+static gboolean
+service_encode_aes_secret (SecretSession *session,
+                           SecretValue *value,
+                           GVariantBuilder *builder)
+{
+	gnutls_cipher_hd_t cih = NULL;
+	guchar *padded;
+	gsize n_padded;
+	int ret;
+	gnutls_datum_t iv, key;
+	gpointer iv_data;
+	gconstpointer secret;
+	gsize n_secret;
+	GVariant *child;
+
+	g_variant_builder_add (builder, "o", session->path);
+
+	secret = secret_value_get (value, &n_secret);
+
+	/* Perform the encoding here */
+	padded = pkcs7_pad_bytes_in_secure_memory (secret, n_secret, &n_padded);
+	g_assert (padded != NULL);
+
+	/* Setup the IV */
+	iv_data = g_malloc0 (16);
+	iv.data = iv_data;
+	iv.size = 16;
+	ret = gnutls_rnd (GNUTLS_RND_NONCE, iv.data, iv.size);
+	g_return_val_if_fail (ret >= 0, FALSE);
+
+	/* Setup the key */
+	key.data = session->key;
+	key.size = session->n_key;
+
+	/* Create the cipher */
+	ret = gnutls_cipher_init (&cih, GNUTLS_CIPHER_AES_128_CBC, &key, &iv);
+	if (ret < 0) {
+		g_warning ("couldn't create AES cipher: %s", gnutls_strerror (ret));
+		return FALSE;
+	}
+
+	/* Perform the encryption */
+	ret = gnutls_cipher_encrypt2 (cih, padded, n_padded, padded, n_padded);
+	if (ret < 0) {
+		gnutls_cipher_deinit (cih);
+		return FALSE;
+	}
+
+	gnutls_cipher_deinit (cih);
+
+	child = g_variant_new_from_data (G_VARIANT_TYPE ("ay"), iv_data, 16, TRUE, g_free, iv_data);
+	g_variant_builder_add_value (builder, child);
+
+	child = g_variant_new_from_data (G_VARIANT_TYPE ("ay"), padded, n_padded, TRUE, egg_secure_free, padded);
+	g_variant_builder_add_value (builder, child);
+
+	g_variant_builder_add (builder, "s", secret_value_get_content_type (value));
+	return TRUE;
+}
+
+#endif /* WITH_GNUTLS */
+
+#endif /* WITH_CRYPTO */
+
 static gboolean
 service_encode_plain_secret (SecretSession *session,
                              SecretValue *value,
@@ -633,7 +791,7 @@ _secret_session_encode_secret (SecretSession *session,
 	type = g_variant_type_new ("(oayays)");
 	builder = g_variant_builder_new (type);
 
-#ifdef WITH_GCRYPT
+#ifdef WITH_CRYPTO
 	if (session->key)
 		ret = service_encode_aes_secret (session, value, builder);
 	else

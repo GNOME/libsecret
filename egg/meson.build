@@ -8,15 +8,27 @@ libegg_deps = [
   glib_deps,
 ]
 
-if get_option('gcrypt')
+if with_crypto
   libegg_sources += [
     'egg-dh.c',
-    'egg-hkdf.c',
-    'egg-keyring1.c',
-    'egg-libgcrypt.c',
   ]
 
-  libegg_deps += gcrypt_dep
+  if with_gcrypt
+    libegg_sources += [
+      'egg-dh-libgcrypt.c',
+      'egg-hkdf-libgcrypt.c',
+      'egg-keyring1-libgcrypt.c',
+      'egg-libgcrypt.c',
+    ]
+  elif with_gnutls
+    libegg_sources += [
+      'egg-dh-gnutls.c',
+      'egg-hkdf-gnutls.c',
+      'egg-keyring1-gnutls.c',
+    ]
+  endif
+
+  libegg_deps += crypto_deps
 endif
 
 if get_option('tpm2')
@@ -39,7 +51,7 @@ test_names = [
   'test-secmem',
 ]
 
-if get_option('gcrypt')
+if with_crypto
   test_names += [
     'test-dh',
     'test-hkdf',
