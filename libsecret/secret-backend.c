@@ -152,18 +152,16 @@ backend_get_impl_type (void)
 	g_type_ensure (secret_file_backend_get_type ());
 #endif
 
+	envvar = g_getenv ("SECRET_BACKEND");
+	if (envvar == NULL || *envvar == '\0') {
+		extension_name = "service";
 #ifdef WITH_CRYPTO
-	if ((g_file_test ("/.flatpak-info", G_FILE_TEST_EXISTS) || g_getenv ("SNAP_NAME") != NULL) &&
-	    _secret_file_backend_check_portal_version ())
-		extension_name = "file";
-	else
+		if ((g_file_test ("/.flatpak-info", G_FILE_TEST_EXISTS) || g_getenv ("SNAP_NAME") != NULL) &&
+		    _secret_file_backend_check_portal_version ())
+			extension_name = "file";
 #endif
-	{
-		envvar = g_getenv ("SECRET_BACKEND");
-		if (envvar == NULL || *envvar == '\0')
-			extension_name = "service";
-		else
-			extension_name = envvar;
+	} else {
+		extension_name = envvar;
 	}
 
 	ep = g_io_extension_point_lookup (SECRET_BACKEND_EXTENSION_POINT_NAME);
