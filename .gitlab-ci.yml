@@ -15,7 +15,7 @@ fedora:Werror:
     - meson _build -Dwerror=true -Dc_args=-Wno-error=deprecated-declarations -Dgtk_doc=false
     - meson compile -C _build
     - eval `dbus-launch --sh-syntax`
-    - meson test -C _build
+    - meson test -C _build --print-errorlogs
   artifacts:
     when: on_failure
     paths:
@@ -29,7 +29,7 @@ fedora:asan:
     - meson _build -Db_sanitize=address -Dgtk_doc=false -Dintrospection=false
     - meson compile -C _build
     - eval `dbus-launch --sh-syntax`
-    - meson test -C _build
+    - meson test -C _build --print-errorlogs
   allow_failure: true
   artifacts:
     when: on_failure
@@ -44,7 +44,7 @@ fedora:ubsan:
     - meson _build -Db_sanitize=undefined -Dgtk_doc=false
     - meson compile -C _build
     - eval `dbus-launch --sh-syntax`
-    - meson test -C _build
+    - meson test -C _build --print-errorlogs
   artifacts:
     when: on_failure
     paths:
@@ -78,7 +78,7 @@ fedora:coverage:
     - swtpm socket --tpm2 --tpmstate dir=$XDG_CONFIG_HOME/mytpm1 --flags startup-clear --ctrl type=tcp,port=2322 --server type=tcp,port=2321 --daemon
     - 'tpm2-abrmd --logger=stdout --tcti=swtpm: --session --allow-root --flush-all &'
     - 'export TCTI=tabrmd:bus_type=session'
-    - meson test -C _build
+    - meson test -C _build --print-errorlogs
     - ninja coverage-html -C _build
   coverage: '/^\s+lines.+:\s+([\d.]+\%)\s+/'
   artifacts:
