@@ -1,3 +1,9 @@
+0.21.1
+ * Fix updating credentials by another process in the same Flatpak sandbox [#62, !99]
+ * Migrate to g_memdup2 [!121]
+ * Print error logs in CI [!125]
+ * Updated translations
+
 0.21.0
  * Unlock the keyring before getting secret attributes [!105]
  * file-backend: avoid deadlock when portal op is canceled [!118, !120]
