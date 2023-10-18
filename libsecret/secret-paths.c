@@ -1044,7 +1044,6 @@ on_xlock_called (GObject *source,
 	XlockClosure *closure = g_task_get_task_data (task);
 	GCancellable *cancellable = g_task_get_cancellable (task);
 	SecretService *self = SECRET_SERVICE (g_task_get_source_object (task));
-	GPtrArray *xlocked_array;
 	const gchar *prompt = NULL;
 	gchar **xlocked = NULL;
 	GError *error = NULL;
@@ -1056,11 +1055,13 @@ on_xlock_called (GObject *source,
 		g_task_return_error (task, g_steal_pointer (&error));
 
 	} else {
-		xlocked_array = g_ptr_array_new_with_free_func (g_free);
-
 		g_variant_get (retval, "(^ao&o)", &xlocked, &prompt);
 
 		if (_secret_util_empty_path (prompt)) {
+			GPtrArray *xlocked_array;
+
+			xlocked_array = g_ptr_array_new_with_free_func (g_free);
+
 			for (i = 0; xlocked[i]; i++)
 				g_ptr_array_add (xlocked_array, g_strdup (xlocked[i]));
 
