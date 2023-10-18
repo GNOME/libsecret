@@ -1,4 +1,4 @@
-image: registry.gitlab.gnome.org/gnome/libsecret/master:v1
+image: registry.gitlab.gnome.org/gnome/libsecret/master:v2
 
 stages:
   - build
@@ -31,7 +31,6 @@ fedora:asan:
     - meson compile -C _build
     - eval `dbus-launch --sh-syntax`
     - meson test -C _build --print-errorlogs
-  allow_failure: true
   artifacts:
     when: on_failure
     paths:

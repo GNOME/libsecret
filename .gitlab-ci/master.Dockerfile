@@ -1,4 +1,4 @@
-FROM fedora:34
+FROM fedora:38
 
 RUN dnf update -y \
     && dnf install -y \
