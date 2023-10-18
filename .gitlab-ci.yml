@@ -26,6 +26,7 @@ fedora:asan:
   before_script:
     - dbus-uuidgen --ensure
   script:
+    - export LSAN_OPTIONS=suppressions=$PWD/build/lsan.supp
     - meson _build -Db_sanitize=address -Dgtk_doc=false -Dintrospection=false
     - meson compile -C _build
     - eval `dbus-launch --sh-syntax`
