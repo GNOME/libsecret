@@ -783,6 +783,7 @@ secret_service_get_secret_for_dbus_path_finish (SecretService *self,
                                                 GError **error)
 {
 	GVariant *ret;
+	SecretValue *value;
 
 	g_return_val_if_fail (SECRET_IS_SERVICE (self), NULL);
 	g_return_val_if_fail (g_task_is_valid (result, self), NULL);
@@ -796,7 +797,9 @@ secret_service_get_secret_for_dbus_path_finish (SecretService *self,
 		return NULL;
 	}
 
-	return _secret_service_decode_get_secrets_first (self, ret);
+	value = _secret_service_decode_get_secrets_first (self, ret);
+	g_variant_unref (ret);
+	return value;
 }
 
 /**
@@ -920,6 +923,7 @@ secret_service_get_secrets_for_dbus_paths_finish (SecretService *self,
                                                   GError **error)
 {
 	GVariant *ret;
+	GHashTable *values;
 
 	g_return_val_if_fail (SECRET_IS_SERVICE (self), NULL);
 	g_return_val_if_fail (g_task_is_valid (result, self), NULL);
@@ -933,7 +937,9 @@ secret_service_get_secrets_for_dbus_paths_finish (SecretService *self,
 		return NULL;
 	}
 
-	return _secret_service_decode_get_secrets_all (self, ret);
+	values = _secret_service_decode_get_secrets_all (self, ret);
+	g_variant_unref (ret);
+	return values;
 }
 
 /**
