@@ -372,7 +372,7 @@ secret_service_real_prompt_finish (SecretService *self,
 		return NULL;
 	}
 
-	return g_variant_ref_sink (retval);
+	return retval;
 }
 
 static void

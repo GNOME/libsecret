@@ -1,0 +1,2 @@
+# https://gitlab.gnome.org/GNOME/glib/-/issues/2312
+leak:async_initable_init_first

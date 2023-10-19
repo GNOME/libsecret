@@ -783,6 +783,7 @@ secret_service_get_secret_for_dbus_path_finish (SecretService *self,
                                                 GError **error)
 {
 	GVariant *ret;
+	SecretValue *value;
 
 	g_return_val_if_fail (SECRET_IS_SERVICE (self), NULL);
 	g_return_val_if_fail (g_task_is_valid (result, self), NULL);
@@ -796,7 +797,9 @@ secret_service_get_secret_for_dbus_path_finish (SecretService *self,
 		return NULL;
 	}
 
-	return _secret_service_decode_get_secrets_first (self, ret);
+	value = _secret_service_decode_get_secrets_first (self, ret);
+	g_variant_unref (ret);
+	return value;
 }
 
 /**
@@ -920,6 +923,7 @@ secret_service_get_secrets_for_dbus_paths_finish (SecretService *self,
                                                   GError **error)
 {
 	GVariant *ret;
+	GHashTable *values;
 
 	g_return_val_if_fail (SECRET_IS_SERVICE (self), NULL);
 	g_return_val_if_fail (g_task_is_valid (result, self), NULL);
@@ -933,7 +937,9 @@ secret_service_get_secrets_for_dbus_paths_finish (SecretService *self,
 		return NULL;
 	}
 
-	return _secret_service_decode_get_secrets_all (self, ret);
+	values = _secret_service_decode_get_secrets_all (self, ret);
+	g_variant_unref (ret);
+	return values;
 }
 
 /**
@@ -1044,7 +1050,6 @@ on_xlock_called (GObject *source,
 	XlockClosure *closure = g_task_get_task_data (task);
 	GCancellable *cancellable = g_task_get_cancellable (task);
 	SecretService *self = SECRET_SERVICE (g_task_get_source_object (task));
-	GPtrArray *xlocked_array;
 	const gchar *prompt = NULL;
 	gchar **xlocked = NULL;
 	GError *error = NULL;
@@ -1056,11 +1061,13 @@ on_xlock_called (GObject *source,
 		g_task_return_error (task, g_steal_pointer (&error));
 
 	} else {
-		xlocked_array = g_ptr_array_new_with_free_func (g_free);
-
 		g_variant_get (retval, "(^ao&o)", &xlocked, &prompt);
 
 		if (_secret_util_empty_path (prompt)) {
+			GPtrArray *xlocked_array;
+
+			xlocked_array = g_ptr_array_new_with_free_func (g_free);
+
 			for (i = 0; xlocked[i]; i++)
 				g_ptr_array_add (xlocked_array, g_strdup (xlocked[i]));
 
