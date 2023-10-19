@@ -430,13 +430,16 @@ ensure_up_to_date (SecretFileCollection *self)
 		gsize length = 0;
 		gboolean success;
 		GError *error = NULL;
+		gchar *etag = NULL;
 
 		self->file_last_modified = last_modified;
-		g_clear_pointer (&self->etag, g_free);
 
-		success = g_file_load_contents (self->file, NULL, &contents, &length, &self->etag, &error);
+		success = g_file_load_contents (self->file, NULL, &contents, &length, &etag, &error);
 
-		if (!success && g_error_matches (error, G_IO_ERROR, G_IO_ERROR_NOT_FOUND)) {
+		if (success) {
+			g_clear_pointer (&self->etag, g_free);
+			self->etag = g_steal_pointer (&etag);
+		} else if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_NOT_FOUND)) {
 			g_clear_error (&error);
 
 			success = init_empty_file (self, &error);
@@ -464,12 +467,13 @@ on_load_contents (GObject *source_object,
 	gsize length;
 	GError *error = NULL;
 	gboolean ret;
+	gchar *etag = NULL;
 
 	self->file_last_modified = get_file_last_modified (self);
 
 	ret = g_file_load_contents_finish (file, result,
 					   &contents, &length,
-					   &self->etag,
+					   &etag,
 					   &error);
 
 	if (!ret) {
@@ -487,6 +491,9 @@ on_load_contents (GObject *source_object,
 		g_object_unref (task);
 		return;
 	}
+
+	g_clear_pointer (&self->etag, g_free);
+	self->etag = g_steal_pointer (&etag);
 
 	ret = load_contents (self, contents, length, &error);
 	if (ret)
@@ -864,14 +871,17 @@ on_replace_contents (GObject *source_object,
 	GTask *task = G_TASK (user_data);
 	SecretFileCollection *self = g_task_get_source_object (task);
 	GError *error = NULL;
+	gchar *etag = NULL;
 
-	if (!g_file_replace_contents_finish (file, result, &self->etag, &error)) {
+	if (!g_file_replace_contents_finish (file, result, &etag, &error)) {
 		g_task_return_error (task, error);
 		g_object_unref (task);
 		return;
 	}
 
 	self->file_last_modified = get_file_last_modified (self);
+	g_clear_pointer (&self->etag, g_free);
+	self->etag = g_steal_pointer (&etag);
 
 	g_task_return_boolean (task, TRUE);
 	g_object_unref (task);
