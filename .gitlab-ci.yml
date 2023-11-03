@@ -78,6 +78,20 @@ fedora-static-analyzers/test:
     paths:
       - _build/meson-logs/testlog.txt
 
+fedora:PAM:
+  stage: build
+  before_script:
+    - dbus-uuidgen --ensure
+  script:
+    - meson _build -Dwerror=true -Dc_args=-Wno-error=deprecated-declarations -Dgtk_doc=false -Dpam=true
+    - meson compile -C _build
+    - eval `dbus-launch --sh-syntax`
+    - meson test -C _build --print-errorlogs
+  artifacts:
+    when: on_failure
+    paths:
+      - _build/meson-logs/testlog.txt
+
 fedora:coverage:
   stage: build
   before_script:

@@ -97,6 +97,10 @@ endif
 conf.set('WITH_DEBUG', get_option('debugging'))
 conf.set('_DEBUG', get_option('debugging'))
 conf.set('HAVE_MLOCK', meson.get_compiler('c').has_function('mlock'))
+if get_option('pam')
+  conf.set_quoted('GNOME_KEYRING_DAEMON', get_option('prefix') /
+    get_option('bindir') / 'gnome-keyring-daemon')
+endif
 configure_file(output: 'config.h', configuration: conf)
 
 # Test environment
@@ -109,3 +113,6 @@ subdir('egg')
 subdir('libsecret')
 subdir('tool')
 subdir('docs')
+if get_option('pam')
+  subdir('pam')
+endif
