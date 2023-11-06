@@ -272,9 +272,13 @@ read_password_stdin (void)
 		}
 	}
 
-	/* TODO: Verify that the password really is utf-8 text. */
-	return secret_value_new_full (password, length, "text/plain",
+	if (g_utf8_validate (password, -1, NULL)) {
+		return secret_value_new_full (password, length, "text/plain",
 	                              (GDestroyNotify)secret_password_free);
+	} else {
+		g_printerr ("%s: password not valid UTF-8\n", g_get_prgname ());
+		exit (1);
+	}
 }
 
 static SecretValue *
