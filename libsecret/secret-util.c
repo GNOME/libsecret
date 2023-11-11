@@ -29,6 +29,14 @@
  *   Service
  * @SECRET_ERROR_ALREADY_EXISTS: a relevant item or collection already exists
  * @SECRET_ERROR_INVALID_FILE_FORMAT: the file format is not valid
+ * @SECRET_ERROR_MISMATCHED_SCHEMA: the xdg:schema attribute of the table does
+ * not match the schema name
+ * @SECRET_ERROR_NO_MATCHING_ATTRIBUTE: attribute contained in table not found
+ * in corresponding schema
+ * @SECRET_ERROR_WRONG_TYPE: attribute could not be parsed according to its type
+ * reported in the table's schema
+ * @SECRET_ERROR_EMPTY_TABLE: attribute list passed to secret_attributes_validate
+ * has no elements to validate
  *
  * Errors returned by the Secret Service.
  *
