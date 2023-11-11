@@ -12,6 +12,20 @@
 Secret.Schema schema;
 Secret.Schema no_name_schema;
 
+private void test_attributes_validate () {
+  try {
+    var attributes = new GLib.HashTable<string,string> (GLib.str_hash, GLib.str_equal);
+    attributes["even"] = "false";
+    attributes["string"] = "one";
+    attributes["number"] = "1";
+    
+    bool valid = Secret.attributes_validate (schema, attributes);
+    GLib.assert (valid = true);
+  } catch ( GLib.Error e ) {
+    GLib.error (e.message);
+  }
+}
+
 private void test_lookup_sync () {
   try {
     string? password = Secret.password_lookup_sync (schema, null, "even", false, "string", "one", "number", 1);
@@ -166,6 +180,7 @@ private static int main (string[] args) {
                                         "string", Secret.SchemaAttributeType.STRING);
   }
 
+  GLib.Test.add_data_func ("/vala/attributes/validate", test_attributes_validate);
   GLib.Test.add_data_func ("/vala/lookup/sync", test_lookup_sync);
   GLib.Test.add_data_func ("/vala/lookup/async", test_lookup_async);
   GLib.Test.add_data_func ("/vala/lookup/no-name", test_lookup_no_name);

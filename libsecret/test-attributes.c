@@ -29,7 +29,7 @@
 
 static const SecretSchema MOCK_SCHEMA = {
 	"org.mock.Schema",
-	SECRET_SCHEMA_NONE,
+	SECRET_SCHEMA_DONT_MATCH_NAME,
 	{
 		{ "number", SECRET_SCHEMA_ATTRIBUTE_INTEGER },
 		{ "string", SECRET_SCHEMA_ATTRIBUTE_STRING },
@@ -152,7 +152,41 @@ test_validate_schema (void)
 }
 
 static void
-test_validate_schema_bad (void)
+test_validate_schema_empty_ok (void)
+{
+	GHashTable *attributes;
+	gboolean ret;
+
+	attributes = g_hash_table_new (g_str_hash, g_str_equal);
+	
+	ret = _secret_attributes_validate (&MOCK_SCHEMA, attributes, G_STRFUNC, FALSE);
+	g_assert_true (ret);
+
+	g_hash_table_unref (attributes);
+}
+
+static void
+test_validate_schema_bad_empty_not_ok (void)
+{
+	GHashTable *attributes;
+	gboolean ret;
+
+	if (g_test_subprocess ()) {
+		attributes = g_hash_table_new (g_str_hash, g_str_equal);
+		
+		ret = _secret_attributes_validate (&MOCK_SCHEMA, attributes, G_STRFUNC, TRUE);
+		g_assert_false (ret);
+
+		g_hash_table_unref (attributes);
+		return;
+	}
+
+	g_test_trap_subprocess ("/attributes/validate-schema-bad-empty-not-ok", 0, G_TEST_SUBPROCESS_INHERIT_STDOUT);
+	g_test_trap_assert_failed ();
+}
+
+static void
+test_validate_schema_bad_mismatched_schema (void)
 {
 	GHashTable *attributes;
 	gboolean ret;
@@ -170,7 +204,57 @@ test_validate_schema_bad (void)
 		return;
 	}
 
-	g_test_trap_subprocess ("/attributes/validate-schema-bad", 0, G_TEST_SUBPROCESS_INHERIT_STDOUT);
+	g_test_trap_subprocess ("/attributes/validate-schema-bad-mismatched-schema", 0, G_TEST_SUBPROCESS_INHERIT_STDOUT);
+	g_test_trap_assert_failed ();
+}
+
+static void
+test_validate_schema_bad_wrong_type (void)
+{
+	GHashTable *attributes;
+	gboolean ret;
+	char non_utf8_string[] = {(char) 128, '\0'};
+
+	if (g_test_subprocess ()) {
+		attributes = g_hash_table_new (g_str_hash, g_str_equal);
+		g_hash_table_replace (attributes, "number", "string_in_wrong_place");
+		g_hash_table_replace (attributes, "string", non_utf8_string);
+		g_hash_table_replace (attributes, "even", "neither_true_nor_false");
+		g_hash_table_replace (attributes, "xdg:schema", "org.mock.Schema");
+
+		ret = _secret_attributes_validate (&MOCK_SCHEMA, attributes, G_STRFUNC, TRUE);
+		g_assert_false (ret);
+
+		g_hash_table_unref (attributes);
+		return;
+	}
+
+	g_test_trap_subprocess ("/attributes/validate-schema-bad-wrong-type", 0, G_TEST_SUBPROCESS_INHERIT_STDOUT);
+	g_test_trap_assert_failed ();
+}
+
+static void
+test_validate_schema_bad_fake_key (void)
+{
+	GHashTable *attributes;
+	gboolean ret;
+
+	if (g_test_subprocess ()) {
+		attributes = g_hash_table_new (g_str_hash, g_str_equal);
+		g_hash_table_replace (attributes, "number", "1");
+		g_hash_table_replace (attributes, "string", "test");
+		g_hash_table_replace (attributes, "xdg:schema", "org.mock.Schema");
+		g_hash_table_replace (attributes, "made_up_key", "not_valid");
+
+		ret = _secret_attributes_validate (&MOCK_SCHEMA, attributes, G_STRFUNC, TRUE);
+		g_assert_false (ret);
+
+		g_hash_table_unref (attributes);
+		return;
+	}
+
+	g_test_trap_subprocess ("/attributes/validate-schema-bad-fake-key", 0, G_TEST_SUBPROCESS_INHERIT_STDOUT);
+	g_test_trap_assert_failed ();
 }
 
 static void
@@ -203,7 +287,11 @@ main (int argc, char **argv)
 	g_test_add_func ("/attributes/build-bad-type", test_build_bad_type);
 
 	g_test_add_func ("/attributes/validate-schema", test_validate_schema);
-	g_test_add_func ("/attributes/validate-schema-bad", test_validate_schema_bad);
+	g_test_add_func ("/attributes/validate-schema-empty-ok", test_validate_schema_empty_ok);
+	g_test_add_func ("/attributes/validate-schema-bad-empty-not-ok", test_validate_schema_bad_empty_not_ok);
+	g_test_add_func ("/attributes/validate-schema-bad-mismatched-schema", test_validate_schema_bad_mismatched_schema);
+	g_test_add_func ("/attributes/validate-schema-bad-wrong-type", test_validate_schema_bad_wrong_type);
+	g_test_add_func ("/attributes/validate-schema-bad-fake-key", test_validate_schema_bad_fake_key);
 	g_test_add_func ("/attributes/validate-libgnomekeyring", test_validate_libgnomekeyring);
 
 	return g_test_run ();
