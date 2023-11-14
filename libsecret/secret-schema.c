@@ -54,7 +54,7 @@
  * items that are not stored by the libsecret library. Other libraries such as
  * libgnome-keyring don't store the schema name.
  *
- * Additional schemas can be defined via the %SecretSchema structure like this:
+ * Additional schemas can be defined via the [struct@Schema] structure like this:
  *
  * ```c
  * // in a header:
