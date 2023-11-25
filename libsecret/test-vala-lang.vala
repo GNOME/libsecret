@@ -20,7 +20,7 @@ private void test_attributes_validate () {
     attributes["number"] = "1";
     
     bool valid = Secret.attributes_validate (schema, attributes);
-    GLib.assert (valid = true);
+    GLib.assert (valid == true);
   } catch ( GLib.Error e ) {
     GLib.error (e.message);
   }
