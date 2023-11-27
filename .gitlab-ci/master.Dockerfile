@@ -1,4 +1,4 @@
-FROM fedora:38
+FROM fedora:39
 
 RUN dnf update -y \
     && dnf install -y \
@@ -10,6 +10,7 @@ RUN dnf update -y \
            gi-docgen \
            git \
            glib2-devel \
+           gnutls-devel \
            gobject-introspection-devel \
            lcov \
            libasan \
