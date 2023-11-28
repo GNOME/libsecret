@@ -32,8 +32,9 @@ EGG_SECURE_DECLARE (secret_file_collection);
 #define MAC_ALGO GCRY_MAC_HMAC_SHA256
 #define MAC_SIZE 32
 
-#define CIPHER_ALGO GCRY_CIPHER_AES256
+#define CIPHER_ALGO GCRY_CIPHER_AES128
 #define CIPHER_BLOCK_SIZE 16
+#define KEY_SIZE 16
 #define IV_SIZE CIPHER_BLOCK_SIZE
 
 #define KEYRING_FILE_HEADER "GnomeKeyring\n\r\0\n"
@@ -96,9 +97,9 @@ do_derive_key (SecretFileCollection *self)
 
 	password = secret_value_get (self->password, &n_password);
 
-	key = egg_secure_alloc (CIPHER_BLOCK_SIZE);
+	key = egg_secure_alloc (KEY_SIZE);
 	self->key = g_bytes_new_with_free_func (key,
-						CIPHER_BLOCK_SIZE,
+						KEY_SIZE,
 						egg_secure_free,
 						key);
 
@@ -106,7 +107,7 @@ do_derive_key (SecretFileCollection *self)
 	gcry = gcry_kdf_derive (password, n_password,
 				GCRY_KDF_PBKDF2, PBKDF2_HASH_ALGO,
 				g_bytes_get_data (self->salt, NULL), n_salt,
-				self->iteration_count, CIPHER_BLOCK_SIZE, key);
+				self->iteration_count, KEY_SIZE, key);
 	return (gcry != 0) ? FALSE : TRUE;
 }
 
