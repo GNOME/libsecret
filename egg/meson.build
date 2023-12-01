@@ -12,6 +12,7 @@ if get_option('gcrypt')
   libegg_sources += [
     'egg-dh.c',
     'egg-hkdf.c',
+    'egg-keyring1.c',
     'egg-libgcrypt.c',
   ]
 
