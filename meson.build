@@ -30,11 +30,37 @@ glib_deps = [
   dependency('gio-unix-2.0', version: '>=' + min_glib_version),
 ]
 
-min_libgcrypt_version = '1.2.2'
-gcrypt_dep = dependency('libgcrypt',
-  version: '>=' + min_libgcrypt_version,
-  required: get_option('gcrypt'),
-)
+with_gcrypt = false
+with_gnutls = false
+with_crypto = false
+
+crypto_deps = []
+
+if get_option('crypto') == 'libgcrypt'
+  min_libgcrypt_version = '1.2.2'
+  gcrypt_dep = dependency(
+    'libgcrypt',
+    version: '>=' + min_libgcrypt_version,
+    required: false,
+  )
+  if gcrypt_dep.found()
+    with_gcrypt = true
+    with_crypto = true
+    crypto_deps += gcrypt_dep
+  endif
+elif get_option('crypto') == 'gnutls'
+  min_gnutls_version = '3.8.2'
+  gnutls_dep = dependency(
+    'gnutls',
+    version: '>=' + min_gnutls_version,
+    required: false,
+  )
+  if gnutls_dep.found()
+    with_gnutls = true
+    with_crypto = true
+    crypto_deps += gnutls_dep
+  endif
+endif
 
 min_tss2_version = '3.0.3'
 tss2_esys = dependency('tss2-esys', version: '>=' + min_tss2_version, required: get_option('tpm2'))
@@ -58,9 +84,11 @@ conf.set_quoted('LOCALEDIR', libsecret_prefix / get_option('localedir'))
 conf.set_quoted('PACKAGE_NAME', meson.project_name())
 conf.set_quoted('PACKAGE_STRING', meson.project_name())
 conf.set_quoted('PACKAGE_VERSION', meson.project_version())
-conf.set('WITH_GCRYPT', get_option('gcrypt'))
+conf.set('WITH_GCRYPT', with_gcrypt)
+conf.set('WITH_GNUTLS', with_gnutls)
+conf.set('WITH_CRYPTO', with_crypto)
 conf.set('WITH_TPM', get_option('tpm2'))
-if get_option('gcrypt')
+if with_gcrypt
   conf.set_quoted('LIBGCRYPT_VERSION', min_libgcrypt_version)
 endif
 if get_option('tpm2')

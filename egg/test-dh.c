@@ -33,86 +33,81 @@
 #include <string.h>
 
 #include <glib.h>
-#include <gcrypt.h>
 
 EGG_SECURE_DEFINE_GLIB_GLOBALS ();
 
 static void
 test_perform (void)
 {
-	gcry_mpi_t p, g;
-	gcry_mpi_t x1, X1;
-	gcry_mpi_t x2, X2;
-	gpointer k1, k2;
+	egg_dh_params *params;
+	egg_dh_pubkey *y1;
+	egg_dh_privkey *x1;
+	egg_dh_pubkey *y2;
+	egg_dh_privkey *x2;
+	GBytes *k1, *k2;
 	gboolean ret;
-	gsize n1, n2;
 
 	/* Load up the parameters */
-	if (!egg_dh_default_params ("ietf-ike-grp-modp-768", &p, &g))
+	params = egg_dh_default_params ("ietf-ike-grp-modp-768");
+	if (!params)
 		g_assert_not_reached ();
 
 	/* Generate secrets */
-	ret = egg_dh_gen_pair (p, g, 0, &X1, &x1);
+	ret = egg_dh_gen_pair (params, 0, &y1, &x1);
 	g_assert_true (ret);
-	ret = egg_dh_gen_pair (p, g, 0, &X2, &x2);
+	ret = egg_dh_gen_pair (params, 0, &y2, &x2);
 	g_assert_true (ret);
 
 	/* Calculate keys */
-	k1 = egg_dh_gen_secret (X2, x1, p, &n1);
+	k1 = egg_dh_gen_secret (y1, x2, params);
 	g_assert_nonnull (k1);
-	k2 = egg_dh_gen_secret (X1, x2, p, &n2);
+	k2 = egg_dh_gen_secret (y2, x1, params);
 	g_assert_nonnull (k2);
 
 	/* Keys must be the same */
-	egg_assert_cmpsize (n1, ==, n2);
-	g_assert_true (memcmp (k1, k2, n1) == 0);
+	g_assert_cmpmem (g_bytes_get_data (k1, NULL), g_bytes_get_size (k1),
+			 g_bytes_get_data (k2, NULL), g_bytes_get_size (k2));
 
-	gcry_mpi_release (p);
-	gcry_mpi_release (g);
-	gcry_mpi_release (x1);
-	gcry_mpi_release (X1);
+	egg_dh_params_free (params);
+	egg_dh_pubkey_free (y1);
+	egg_dh_privkey_free (x1);
 	egg_secure_free (k1);
-	gcry_mpi_release (x2);
-	gcry_mpi_release (X2);
+	egg_dh_pubkey_free (y2);
+	egg_dh_privkey_free (x2);
 	egg_secure_free (k2);
 }
 
 static void
 test_short_pair (void)
 {
-	gcry_mpi_t p, g;
-	gcry_mpi_t x1, X1;
+	egg_dh_params *params;
+	egg_dh_pubkey *y1;
+	egg_dh_privkey *x1;
+	GBytes *bytes;
 	gboolean ret;
 
 	/* Load up the parameters */
-	ret = egg_dh_default_params ("ietf-ike-grp-modp-1024", &p, &g);
-	g_assert_true (ret);
-	g_assert_cmpuint (gcry_mpi_get_nbits (p), ==, 1024);
+	params = egg_dh_default_params ("ietf-ike-grp-modp-1024");
+	g_assert_nonnull (params);
 
 	/* Generate secrets */
-	ret = egg_dh_gen_pair (p, g, 512, &X1, &x1);
+	ret = egg_dh_gen_pair (params, 512, &y1, &x1);
 	g_assert_true (ret);
-	g_assert_cmpuint (gcry_mpi_get_nbits (x1), <=, 512);
+	bytes = egg_dh_pubkey_export (y1);
+	g_assert_cmpuint (g_bytes_get_size (bytes), <=, 512);
+	g_bytes_unref (bytes);
 
-	gcry_mpi_release (p);
-	gcry_mpi_release (g);
-	gcry_mpi_release (x1);
-	gcry_mpi_release (X1);
+	egg_dh_params_free (params);
+	egg_dh_pubkey_free (y1);
+	egg_dh_privkey_free (x1);
 }
 
 static void
 check_dh_default (const gchar *name, guint bits)
 {
 	gboolean ret;
-	gcry_mpi_t p, g, check;
 	gconstpointer prime, base;
 	gsize n_prime, n_base;
-	gcry_error_t gcry;
-
-	ret = egg_dh_default_params (name, &p, &g);
-	g_assert_true (ret);
-	g_assert_cmpint (gcry_mpi_get_nbits (p), ==, bits);
-	g_assert_cmpint (gcry_mpi_get_nbits (g), <, gcry_mpi_get_nbits (p));
 
 	ret = egg_dh_default_params_raw (name, &prime, &n_prime, &base, &n_base);
 	g_assert_true (ret);
@@ -120,19 +115,6 @@ check_dh_default (const gchar *name, guint bits)
 	egg_assert_cmpsize (n_prime, >, 0);
 	g_assert_nonnull (base);
 	egg_assert_cmpsize (n_base, >, 0);
-
-	gcry = gcry_mpi_scan (&check, GCRYMPI_FMT_USG, prime, n_prime, NULL);
-	g_assert_true (gcry == 0);
-	g_assert_true (gcry_mpi_cmp (check, p) == 0);
-	gcry_mpi_release (check);
-
-	gcry = gcry_mpi_scan (&check, GCRYMPI_FMT_USG, base, n_base, NULL);
-	g_assert_true (gcry == 0);
-	g_assert_true (gcry_mpi_cmp (check, g) == 0);
-	gcry_mpi_release (check);
-
-	gcry_mpi_release (p);
-	gcry_mpi_release (g);
 }
 
 static void
@@ -180,11 +162,10 @@ test_default_8192 (void)
 static void
 test_default_bad (void)
 {
-	gboolean ret;
-	gcry_mpi_t p, g;
+	egg_dh_params *params;
 
-	ret = egg_dh_default_params ("bad-name", &p, &g);
-	g_assert_false (ret);
+	params = egg_dh_default_params ("bad-name");
+	g_assert_null (params);
 }
 
 int

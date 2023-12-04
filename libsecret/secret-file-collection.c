@@ -16,25 +16,14 @@
 
 #include "secret-file-collection.h"
 
-#include "egg/egg-libgcrypt.h"
+#include "egg/egg-keyring1.h"
 #include "egg/egg-secure-memory.h"
 
 EGG_SECURE_DECLARE (secret_file_collection);
 
 #ifdef WITH_GCRYPT
-#include <gcrypt.h>
+#include "egg/egg-libgcrypt.h"
 #endif
-
-#define PBKDF2_HASH_ALGO GCRY_MD_SHA256
-#define SALT_SIZE 32
-#define ITERATION_COUNT 100000
-
-#define MAC_ALGO GCRY_MAC_HMAC_SHA256
-#define MAC_SIZE 32
-
-#define CIPHER_ALGO GCRY_CIPHER_AES256
-#define CIPHER_BLOCK_SIZE 16
-#define IV_SIZE CIPHER_BLOCK_SIZE
 
 #define KEYRING_FILE_HEADER "GnomeKeyring\n\r\0\n"
 #define KEYRING_FILE_HEADER_LEN 16
@@ -83,158 +72,6 @@ get_file_last_modified (SecretFileCollection *self)
 	g_object_unref (info);
 
 	return res;
-}
-
-static gboolean
-do_derive_key (SecretFileCollection *self)
-{
-	const gchar *password;
-	gsize n_password;
-	gchar *key;
-	gsize n_salt;
-	gcry_error_t gcry;
-
-	password = secret_value_get (self->password, &n_password);
-
-	key = egg_secure_alloc (CIPHER_BLOCK_SIZE);
-	self->key = g_bytes_new_with_free_func (key,
-						CIPHER_BLOCK_SIZE,
-						egg_secure_free,
-						key);
-
-	n_salt = g_bytes_get_size (self->salt);
-	gcry = gcry_kdf_derive (password, n_password,
-				GCRY_KDF_PBKDF2, PBKDF2_HASH_ALGO,
-				g_bytes_get_data (self->salt, NULL), n_salt,
-				self->iteration_count, CIPHER_BLOCK_SIZE, key);
-	return (gcry != 0) ? FALSE : TRUE;
-}
-
-static gboolean
-do_calculate_mac (SecretFileCollection *self,
-		  const guint8 *value, gsize n_value,
-		  guint8 *buffer)
-{
-	gcry_mac_hd_t hd;
-	gcry_error_t gcry;
-	gconstpointer secret;
-	gsize n_secret;
-	gboolean ret = FALSE;
-
-	gcry = gcry_mac_open (&hd, MAC_ALGO, 0, NULL);
-	g_return_val_if_fail (gcry == 0, FALSE);
-
-	secret = g_bytes_get_data (self->key, &n_secret);
-	gcry = gcry_mac_setkey (hd, secret, n_secret);
-	if (gcry != 0)
-		goto out;
-
-	gcry = gcry_mac_write (hd, value, n_value);
-	if (gcry != 0)
-		goto out;
-
-	n_value = MAC_SIZE;
-	gcry = gcry_mac_read (hd, buffer, &n_value);
-	if (gcry != 0)
-		goto out;
-
-	if (n_value != MAC_SIZE)
-		goto out;
-
-	ret = TRUE;
- out:
-	gcry_mac_close (hd);
-	return ret;
-}
-
-static gboolean
-do_verify_mac (SecretFileCollection *self,
-	       const guint8 *value, gsize n_value,
-	       const guint8 *data)
-{
-	guint8 buffer[MAC_SIZE];
-	guint8 status = 0;
-	gsize i;
-
-	if (!do_calculate_mac (self, value, n_value, buffer)) {
-		return FALSE;
-	}
-
-	for (i = 0; i < MAC_SIZE; i++) {
-		status |= data[i] ^ buffer[i];
-	}
-
-	return status == 0;
-}
-
-static gboolean
-do_decrypt (SecretFileCollection *self,
-	    guint8 *data,
-	    gsize n_data)
-{
-	gcry_cipher_hd_t hd;
-	gcry_error_t gcry;
-	gconstpointer secret;
-	gsize n_secret;
-	gboolean ret = FALSE;
-
-	gcry = gcry_cipher_open (&hd, CIPHER_ALGO, GCRY_CIPHER_MODE_CBC, 0);
-	if (gcry != 0)
-		goto out;
-
-	secret = g_bytes_get_data (self->key, &n_secret);
-	gcry = gcry_cipher_setkey (hd, secret, n_secret);
-	if (gcry != 0)
-		goto out;
-
-	gcry = gcry_cipher_setiv (hd, data + n_data, IV_SIZE);
-	if (gcry != 0)
-		goto out;
-
-	gcry = gcry_cipher_decrypt (hd, data, n_data, NULL, 0);
-	if (gcry != 0)
-		goto out;
-
-	ret = TRUE;
- out:
-	(void) gcry_cipher_close (hd);
-	return ret;
-}
-
-static gboolean
-do_encrypt (SecretFileCollection *self,
-	    guint8 *data,
-	    gsize n_data)
-{
-	gcry_cipher_hd_t hd;
-	gcry_error_t gcry;
-	gconstpointer secret;
-	gsize n_secret;
-	gboolean ret = FALSE;
-
-	gcry = gcry_cipher_open (&hd, CIPHER_ALGO, GCRY_CIPHER_MODE_CBC, 0);
-	if (gcry != 0)
-		goto out;
-
-	secret = g_bytes_get_data (self->key, &n_secret);
-	gcry = gcry_cipher_setkey (hd, secret, n_secret);
-	if (gcry != 0)
-		goto out;
-
-	gcry_create_nonce (data + n_data, IV_SIZE);
-
-	gcry = gcry_cipher_setiv (hd, data + n_data, IV_SIZE);
-	if (gcry != 0)
-		goto out;
-
-	gcry = gcry_cipher_encrypt (hd, data, n_data, NULL, 0);
-	if (gcry != 0)
-		goto out;
-
-	ret = TRUE;
- out:
-	(void) gcry_cipher_close (hd);
-	return ret;
 }
 
 static void
@@ -309,8 +146,9 @@ secret_file_collection_class_init (SecretFileCollectionClass *klass)
 		   g_param_spec_boxed ("password", "password", "Password",
 				       SECRET_TYPE_VALUE,
 				       G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
-
+#ifdef WITH_GCRYPT
 	egg_libgcrypt_initialize ();
+#endif
 }
 
 static gboolean
@@ -328,6 +166,8 @@ load_contents (SecretFileCollection *self,
 	guint64 usage_count;
 	gconstpointer data;
 	gsize n_data;
+	const gchar *password;
+	gsize n_password;
 
 	p = contents;
 	if (length < KEYRING_FILE_HEADER_LEN ||
@@ -379,7 +219,12 @@ load_contents (SecretFileCollection *self,
 	g_variant_unref (salt_array);
 	g_variant_unref (variant);
 
-	if (!do_derive_key (self)) {
+	password = secret_value_get (self->password, &n_password);
+	self->key = egg_keyring1_derive_key (password,
+					     n_password,
+					     self->salt,
+					     self->iteration_count);
+	if (!self->key) {
 		g_set_error_literal (error,
 				     SECRET_ERROR,
 				     SECRET_ERROR_PROTOCOL,
@@ -395,15 +240,22 @@ init_empty_file (SecretFileCollection *self,
 		 GError **error)
 {
 	GVariantBuilder builder;
+	const gchar *password;
+	gsize n_password;
 	guint8 salt[SALT_SIZE];
 
-	gcry_create_nonce (salt, sizeof(salt));
+	egg_keyring1_create_nonce (salt, sizeof(salt));
 	self->salt = g_bytes_new (salt, sizeof(salt));
 	self->iteration_count = ITERATION_COUNT;
 	self->modified = g_date_time_new_now_utc ();
 	self->usage_count = 0;
 
-	if (!do_derive_key (self)) {
+	password = secret_value_get (self->password, &n_password);
+	self->key = egg_keyring1_derive_key (password,
+					     n_password,
+					     self->salt,
+					     self->iteration_count);
+	if (!self->key) {
 		g_set_error_literal (error,
 				     SECRET_ERROR,
 				     SECRET_ERROR_PROTOCOL,
@@ -555,7 +407,10 @@ hash_attributes (SecretFileCollection *self,
 		GVariant *variant;
 
 		value = g_hash_table_lookup (attributes, l->data);
-		if (!do_calculate_mac (self, (guint8 *)value, strlen (value), buffer)) {
+		if (!egg_keyring1_calculate_mac (self->key,
+						 (const guint8 *)value,
+						 strlen (value),
+						 buffer)) {
 			g_list_free (keys);
 			return NULL;
 		}
@@ -597,7 +452,7 @@ hashed_attributes_match (SecretFileCollection *self,
 			return FALSE;
 		}
 
-		if (!do_verify_mac (self, value, strlen ((char *)value), data)) {
+		if (!egg_keyring1_verify_mac (self->key, value, strlen ((char *)value), data)) {
 			g_variant_unref (hashed_attribute);
 			return FALSE;
 		}
@@ -693,7 +548,7 @@ secret_file_collection_replace (SecretFileCollection *self,
 	g_variant_store (serialized_item, data);
 	g_variant_unref (serialized_item);
 	memset (data + n_data, n_padded - n_data, n_padded - n_data);
-	if (!do_encrypt (self, data, n_padded)) {
+	if (!egg_keyring1_encrypt (self->key, data, n_padded)) {
 		egg_secure_free (data);
 		g_set_error (error,
 			     SECRET_ERROR,
@@ -702,8 +557,8 @@ secret_file_collection_replace (SecretFileCollection *self,
 		return FALSE;
 	}
 
-	if (!do_calculate_mac (self, data, n_padded + IV_SIZE,
-			       data + n_padded + IV_SIZE)) {
+	if (!egg_keyring1_calculate_mac (self->key, data, n_padded + IV_SIZE,
+					 data + n_padded + IV_SIZE)) {
 		egg_secure_free (data);
 		g_set_error (error,
 			     SECRET_ERROR,
@@ -791,7 +646,7 @@ _secret_file_item_decrypt (GVariant *encrypted,
 	}
 
 	n_padded -= MAC_SIZE;
-	if (!do_verify_mac (collection, data, n_padded, data + n_padded)) {
+	if (!egg_keyring1_verify_mac (collection->key, data, n_padded, data + n_padded)) {
 		egg_secure_free (data);
 		g_set_error (error,
 			     SECRET_ERROR,
@@ -801,7 +656,7 @@ _secret_file_item_decrypt (GVariant *encrypted,
 	}
 
 	n_padded -= IV_SIZE;
-	if (!do_decrypt (collection, data, n_padded)) {
+	if (!egg_keyring1_decrypt (collection->key, data, n_padded)) {
 		egg_secure_free (data);
 		g_set_error (error,
 			     SECRET_ERROR,

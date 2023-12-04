@@ -16,7 +16,7 @@
 
 #include "secret-backend.h"
 
-#ifdef WITH_GCRYPT
+#ifdef WITH_CRYPTO
 #include "secret-file-backend.h"
 #endif
 
@@ -148,11 +148,11 @@ backend_get_impl_type (void)
 	GIOExtensionPoint *ep;
 
 	g_type_ensure (secret_service_get_type ());
-#ifdef WITH_GCRYPT
+#ifdef WITH_CRYPTO
 	g_type_ensure (secret_file_backend_get_type ());
 #endif
 
-#ifdef WITH_GCRYPT
+#ifdef WITH_CRYPTO
 	if ((g_file_test ("/.flatpak-info", G_FILE_TEST_EXISTS) || g_getenv ("SNAP_NAME") != NULL) &&
 	    _secret_file_backend_check_portal_version ())
 		extension_name = "file";

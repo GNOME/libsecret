@@ -1,4 +1,4 @@
-image: registry.gitlab.gnome.org/gnome/libsecret/master:v2
+image: registry.gitlab.gnome.org/gnome/libsecret/master:v3
 
 stages:
   - build
@@ -7,12 +7,21 @@ stages:
 variables:
   CPPCHECK_OPTIONS: "--enable=warning --enable=style --enable=performance --enable=portability --std=c99 --template='{id}:{file}:{line},{severity},{message}'"
 
+.build:
+  parallel:
+    matrix:
+      - CRYPTO: libgcrypt
+      - CRYPTO: gnutls
+      - CRYPTO: disabled
+
 fedora:Werror:
   stage: build
+  extends:
+    - .build
   before_script:
     - dbus-uuidgen --ensure
   script:
-    - meson _build -Dwerror=true -Dc_args=-Wno-error=deprecated-declarations -Dgtk_doc=false
+    - meson _build -Dwerror=true -Dc_args=-Wno-error=deprecated-declarations -Dgtk_doc=false -Dcrypto=$CRYPTO
     - meson compile -C _build
     - eval `dbus-launch --sh-syntax`
     - meson test -C _build --print-errorlogs
@@ -23,11 +32,13 @@ fedora:Werror:
 
 fedora:asan:
   stage: build
+  extends:
+    - .build
   before_script:
     - dbus-uuidgen --ensure
   script:
     - export LSAN_OPTIONS=suppressions=$PWD/build/lsan.supp
-    - meson _build -Db_sanitize=address -Dgtk_doc=false -Dintrospection=false
+    - meson _build -Db_sanitize=address -Dgtk_doc=false -Dintrospection=false -Dcrypto=$CRYPTO
     - meson compile -C _build
     - eval `dbus-launch --sh-syntax`
     - meson test -C _build --print-errorlogs
@@ -38,10 +49,12 @@ fedora:asan:
 
 fedora:ubsan:
   stage: build
+  extends:
+    - .build
   before_script:
     - dbus-uuidgen --ensure
   script:
-    - meson _build -Db_sanitize=undefined -Dgtk_doc=false
+    - meson _build -Db_sanitize=undefined -Dgtk_doc=false -Dcrypto=$CRYPTO
     - meson compile -C _build
     - eval `dbus-launch --sh-syntax`
     - meson test -C _build --print-errorlogs
@@ -52,10 +65,12 @@ fedora:ubsan:
 
 fedora-static-analyzers/test:
   stage: build
+  extends:
+    - .build
   before_script:
     - dbus-uuidgen --ensure
   script:
-    - meson _build -Dgtk_doc=false
+    - meson _build -Dgtk_doc=false -Dcrypto=$CRYPTO
     - meson compile -C _build --ninja-args scan-build
     - cppcheck --force -q $CPPCHECK_OPTIONS libsecret/ egg/ tool/
   artifacts:

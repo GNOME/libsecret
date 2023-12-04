@@ -29,6 +29,12 @@
 #include <errno.h>
 #include <stdlib.h>
 
+#ifdef WITH_CRYPTO
+#define SESSION_ALGO "dh-ietf1024-sha256-aes128-cbc-pkcs7"
+#else
+#define SESSION_ALGO "plain"
+#endif
+
 typedef struct {
 	SecretService *service;
 } Test;
@@ -73,7 +79,7 @@ test_ensure (Test *test,
 	g_assert_no_error (error);
 	g_assert_true (ret);
 	g_assert_cmpstr (secret_service_get_session_dbus_path (test->service), !=, NULL);
-	g_assert_cmpstr (secret_service_get_session_algorithms (test->service), ==, "dh-ietf1024-sha256-aes128-cbc-pkcs7");
+	g_assert_cmpstr (secret_service_get_session_algorithms (test->service), ==, SESSION_ALGO);
 }
 
 static void
@@ -91,14 +97,14 @@ test_ensure_twice (Test *test,
 	g_assert_no_error (error);
 	g_assert_true (ret);
 	g_assert_cmpstr (secret_service_get_session_dbus_path (test->service), !=, NULL);
-	g_assert_cmpstr (secret_service_get_session_algorithms (test->service), ==, "dh-ietf1024-sha256-aes128-cbc-pkcs7");
+	g_assert_cmpstr (secret_service_get_session_algorithms (test->service), ==, SESSION_ALGO);
 
 	path = g_strdup (secret_service_get_session_dbus_path (test->service));
 	ret = secret_service_ensure_session_sync (test->service, NULL, &error);
 	g_assert_no_error (error);
 	g_assert_true (ret);
 	g_assert_cmpstr (secret_service_get_session_dbus_path (test->service), ==, path);
-	g_assert_cmpstr (secret_service_get_session_algorithms (test->service), ==, "dh-ietf1024-sha256-aes128-cbc-pkcs7");
+	g_assert_cmpstr (secret_service_get_session_algorithms (test->service), ==, SESSION_ALGO);
 
 	g_free (path);
 }
@@ -172,7 +178,7 @@ test_ensure_async_aes (Test *test,
 
 	g_assert_true (ret);
 	g_assert_cmpstr (secret_service_get_session_dbus_path (test->service), !=, NULL);
-	g_assert_cmpstr (secret_service_get_session_algorithms (test->service), ==, "dh-ietf1024-sha256-aes128-cbc-pkcs7");
+	g_assert_cmpstr (secret_service_get_session_algorithms (test->service), ==, SESSION_ALGO);
 
 	g_object_unref (result);
 }

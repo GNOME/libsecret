@@ -26,27 +26,44 @@
 
 #include <glib.h>
 
-#include <gcrypt.h>
+typedef struct egg_dh_params egg_dh_params;
+typedef struct egg_dh_pubkey egg_dh_pubkey;
+typedef struct egg_dh_privkey egg_dh_privkey;
 
-gboolean   egg_dh_default_params                              (const gchar *name,
-                                                               gcry_mpi_t *prime,
-                                                               gcry_mpi_t *base);
+typedef struct egg_dh_group {
+	const gchar *name;
+	guint bits;
+	const guchar *prime;
+	gsize n_prime;
+	const guchar base[1];
+	gsize n_base;
+} egg_dh_group;
 
-gboolean   egg_dh_default_params_raw                          (const gchar *name,
-                                                               gconstpointer *prime,
-                                                               gsize *n_prime,
-                                                               gconstpointer *base,
-                                                               gsize *n_base);
+extern const egg_dh_group egg_dh_groups[];
 
-gboolean   egg_dh_gen_pair                                    (gcry_mpi_t prime,
-                                                               gcry_mpi_t base,
-                                                               guint bits,
-                                                               gcry_mpi_t *pub,
-                                                               gcry_mpi_t *priv);
+egg_dh_params *egg_dh_default_params        (const gchar *name);
 
-gpointer   egg_dh_gen_secret                                  (gcry_mpi_t peer,
-                                                               gcry_mpi_t priv,
-                                                               gcry_mpi_t prime,
-                                                               gsize *bytes);
+gboolean       egg_dh_default_params_raw    (const gchar *name,
+                                             gconstpointer *prime,
+                                             gsize *n_prime,
+                                             gconstpointer *base,
+                                             gsize *n_base);
+
+gboolean       egg_dh_gen_pair              (egg_dh_params *params,
+                                             guint bits,
+                                             egg_dh_pubkey **pub,
+                                             egg_dh_privkey **priv);
+
+GBytes        *egg_dh_gen_secret            (egg_dh_pubkey *peer,
+                                             egg_dh_privkey *priv,
+                                             egg_dh_params *prime);
+
+void           egg_dh_params_free           (egg_dh_params *params);
+void           egg_dh_pubkey_free           (egg_dh_pubkey *pubkey);
+void           egg_dh_privkey_free          (egg_dh_privkey *privkey);
+
+GBytes        *egg_dh_pubkey_export         (const egg_dh_pubkey *pubkey);
+egg_dh_pubkey *egg_dh_pubkey_new_from_bytes (const egg_dh_params *params,
+					     GBytes *bytes);
 
 #endif /* EGG_DH_H_ */

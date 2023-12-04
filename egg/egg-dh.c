@@ -13,10 +13,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *  
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- * MA 02110-1301 USA
+ * You should have received copies of the GNU General Public License and
+ * the GNU Lesser General Public License along with this program.  If
+ * not, see http://www.gnu.org/licenses/.
  *
  * Author: Stef Walter <stefw@thewalter.net>
  */
@@ -24,21 +23,6 @@
 #include "config.h"
 
 #include "egg-dh.h"
-#include "egg-secure-memory.h"
-
-/* Enabling this is a complete security compromise */
-#define DEBUG_DH_SECRET 0
-
-EGG_SECURE_DECLARE (dh);
-
-typedef struct _DHGroup {
-	const gchar *name;
-	guint bits;
-	const guchar *prime;
-	gsize n_prime;
-	const guchar base[1];
-	gsize n_base;
-} DHGroup;
 
 static const guchar dh_group_768_prime[] = {
 	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xC9, 0x0F, 0xDA, 0xA2, 0x21, 0x68, 0xC2, 0x34, 0xC4, 0xC6, 0x62, 0x8B, 0x80, 0xDC, 0x1C, 0xD1,
@@ -171,7 +155,7 @@ static const guchar dh_group_8192_prime[] = {
 	0x60, 0xC9, 0x80, 0xDD, 0x98, 0xED, 0xD3, 0xDF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
 };
 
-static const DHGroup dh_groups[] = {
+const egg_dh_group egg_dh_groups[] = {
 	{
 		"ietf-ike-grp-modp-768", 768,
 		dh_group_768_prime, G_N_ELEMENTS (dh_group_768_prime),
@@ -216,7 +200,7 @@ gboolean
 egg_dh_default_params_raw (const gchar *name, gconstpointer *prime,
                            gsize *n_prime, gconstpointer *base, gsize *n_base)
 {
-	const DHGroup *group;
+	const egg_dh_group *group;
 
 	g_return_val_if_fail (name, FALSE);
 	g_return_val_if_fail (prime, FALSE);
@@ -224,7 +208,7 @@ egg_dh_default_params_raw (const gchar *name, gconstpointer *prime,
 	g_return_val_if_fail (base, FALSE);
 	g_return_val_if_fail (n_base, FALSE);
 
-	for (group = dh_groups; group->name; ++group) {
+	for (group = egg_dh_groups; group->name; ++group) {
 		if (g_str_equal (group->name, name)) {
 			*prime = group->prime;
 			*n_prime = group->n_prime;
@@ -235,128 +219,4 @@ egg_dh_default_params_raw (const gchar *name, gconstpointer *prime,
 	}
 
 	return FALSE;
-}
-
-gboolean
-egg_dh_default_params (const gchar *name, gcry_mpi_t *prime, gcry_mpi_t *base)
-{
-	const DHGroup *group;
-	gcry_error_t gcry;
-
-	g_return_val_if_fail (name, FALSE);
-
-	for (group = dh_groups; group->name; ++group) {
-		if (g_str_equal (group->name, name)) {
-			if (prime) {
-				gcry = gcry_mpi_scan (prime, GCRYMPI_FMT_USG, group->prime, group->n_prime, NULL);
-				g_return_val_if_fail (gcry == 0, FALSE);
-				g_return_val_if_fail (gcry_mpi_get_nbits (*prime) == group->bits, FALSE);
-			}
-			if (base) {
-				gcry = gcry_mpi_scan (base, GCRYMPI_FMT_USG, group->base, group->n_base, NULL);
-				g_return_val_if_fail (gcry == 0, FALSE);
-			}
-			return TRUE;
-		}
-	}
-
-	return FALSE;
-}
-
-gboolean
-egg_dh_gen_pair (gcry_mpi_t prime, gcry_mpi_t base, guint bits,
-                 gcry_mpi_t *pub, gcry_mpi_t *priv)
-{
-	guint pbits;
-
-	g_return_val_if_fail (prime, FALSE);
-	g_return_val_if_fail (base, FALSE);
-	g_return_val_if_fail (pub, FALSE);
-	g_return_val_if_fail (priv, FALSE);
-
-	pbits = gcry_mpi_get_nbits (prime);
-	g_return_val_if_fail (pbits > 1, FALSE);
-
-	if (bits == 0) {
-		bits = pbits;
-	} else if (bits > pbits) {
-		g_return_val_if_reached (FALSE);
-	}
-
-	/*
-	 * Generate a strong random number of bits, and not zero.
-	 * gcry_mpi_randomize bumps up to the next byte. Since we
-	 * need to have a value less than half of prime, we make sure
-	 * we bump down.
-	 */
-	*priv = gcry_mpi_snew (bits);
-	g_return_val_if_fail (*priv, FALSE);
-	while (gcry_mpi_cmp_ui (*priv, 0) == 0)
-		gcry_mpi_randomize (*priv, bits, GCRY_STRONG_RANDOM);
-
-	/* Secret key value must be less than half of p */
-	if (gcry_mpi_get_nbits (*priv) > bits)
-		gcry_mpi_clear_highbit (*priv, bits);
-	if (gcry_mpi_get_nbits (*priv) > pbits - 1)
-		gcry_mpi_clear_highbit (*priv, pbits - 1);
-	g_assert (gcry_mpi_cmp (prime, *priv) > 0);
-
-	*pub = gcry_mpi_new (gcry_mpi_get_nbits (*priv));
-	g_return_val_if_fail (*pub, FALSE);
-	gcry_mpi_powm (*pub, base, *priv, prime);
-
-	return TRUE;
-}
-
-gpointer
-egg_dh_gen_secret (gcry_mpi_t peer, gcry_mpi_t priv,
-                   gcry_mpi_t prime, gsize *bytes)
-{
-	gcry_error_t gcry;
-	guchar *value;
-	gsize n_prime;
-	gsize n_value;
-	gcry_mpi_t k;
-	gint bits;
-
-	g_return_val_if_fail (peer, NULL);
-	g_return_val_if_fail (priv, NULL);
-	g_return_val_if_fail (prime, NULL);
-
-	bits = gcry_mpi_get_nbits (prime);
-	g_return_val_if_fail (bits >= 0, NULL);
-
-	k = gcry_mpi_snew (bits);
-	g_return_val_if_fail (k, NULL);
-	gcry_mpi_powm (k, peer, priv, prime);
-
-	/* Write out the secret */
-	gcry = gcry_mpi_print (GCRYMPI_FMT_USG, NULL, 0, &n_prime, prime);
-	g_return_val_if_fail (gcry == 0, NULL);
-	value = egg_secure_alloc (n_prime);
-	gcry = gcry_mpi_print (GCRYMPI_FMT_USG, value, n_prime, &n_value, k);
-	g_return_val_if_fail (gcry == 0, NULL);
-
-	/* Pad the secret with zero bytes to match length of prime in bytes. */
-	if (n_value < n_prime) {
-		memmove (value + (n_prime - n_value), value, n_value);
-		memset (value, 0, (n_prime - n_value));
-	}
-
-#if DEBUG_DH_SECRET
-	g_printerr ("DH SECRET: ");
-	gcry_mpi_dump (k);
-#endif
-	gcry_mpi_release (k);
-
-	*bytes = n_prime;
-
-#if DEBUG_DH_SECRET
-	gcry_mpi_scan (&k, GCRYMPI_FMT_USG, value, bytes, NULL);
-	g_printerr ("RAW SECRET: ");
-	gcry_mpi_dump (k);
-	gcry_mpi_release (k);
-#endif
-
-	return value;
 }
