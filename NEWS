@@ -1,3 +1,11 @@
+0.21.2
+ * Support GnuTLS as an alternative crypto backend [!122]
+ * Fix LeakSanitizer issues [!126]
+ * secret-tool: Verify that the parsed stdin password is vaild UTF-8 [!130]
+ * Fix markup syntax for SecretSchema [!131]
+ * Public secret_attributes_validate method [!129]
+ * Updated translations
+
 0.21.1
  * Fix updating credentials by another process in the same Flatpak sandbox [#62, !99]
  * Migrate to g_memdup2 [!121]
