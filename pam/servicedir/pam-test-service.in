@@ -1,0 +1,3 @@
+auth      required     @KEYRING_PAM@
+password  required     @KEYRING_PAM@
+session   required     @KEYRING_PAM@

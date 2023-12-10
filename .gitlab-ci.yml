@@ -1,4 +1,4 @@
-image: registry.gitlab.gnome.org/gnome/libsecret/master:v3
+image: registry.gitlab.gnome.org/gnome/libsecret/master:v5
 
 stages:
   - build
@@ -73,6 +73,20 @@ fedora-static-analyzers/test:
     - meson _build -Dgtk_doc=false -Dcrypto=$CRYPTO
     - meson compile -C _build --ninja-args scan-build
     - cppcheck --force -q $CPPCHECK_OPTIONS libsecret/ egg/ tool/
+  artifacts:
+    when: on_failure
+    paths:
+      - _build/meson-logs/testlog.txt
+
+fedora:PAM:
+  stage: build
+  before_script:
+    - dbus-uuidgen --ensure
+  script:
+    - meson _build -Dwerror=true -Dc_args=-Wno-error=deprecated-declarations -Dgtk_doc=false -Dpam=true
+    - meson compile -C _build
+    - eval `dbus-launch --sh-syntax`
+    - meson test -C _build --print-errorlogs
   artifacts:
     when: on_failure
     paths:

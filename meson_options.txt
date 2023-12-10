@@ -7,3 +7,4 @@ option('introspection', type: 'boolean', value: true, description: 'Create GIR f
 option('bashcompdir', type: 'string', value: '', description: 'Override default location for bash completion files')
 option('bash_completion', type: 'feature', value: 'auto', description: 'Install bash completion files')
 option('tpm2', type: 'boolean', value: false, description: 'With TPM2 Software Stack')
+option('pam', type: 'boolean', value: false, description: 'Build PAM module')

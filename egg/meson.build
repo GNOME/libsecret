@@ -1,6 +1,8 @@
 libegg_sources = [
   'egg-hex.c',
   'egg-secure-memory.c',
+  'egg-unix-credentials.c',
+  'egg-buffer.c',
   'egg-testing.c',
 ]
 
@@ -42,6 +44,9 @@ endif
 libegg = static_library('egg',
   libegg_sources,
   dependencies: libegg_deps,
+  c_args: [
+    '-D_GNU_SOURCE',
+  ],
   include_directories: [config_h_dir, build_dir],
 )
 
