@@ -32,8 +32,6 @@
 #include "egg/egg-secure-memory.h"
 #include "egg/egg-testing.h"
 
-#include <gcrypt.h>
-
 #undef G_DISABLE_ASSERT
 
 EGG_SECURE_DEFINE_GLIB_GLOBALS ();
