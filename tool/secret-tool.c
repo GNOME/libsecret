@@ -512,26 +512,27 @@ static int
 secret_tool_action_lock (int argc,
                          char *argv[])
 {
+	int ret = 0;
+	SecretService *service = NULL;
 	GError *error = NULL;
+	GOptionContext *context = NULL;
 	GList *locked = NULL;
-	GOptionContext *context;
-	g_autofree gchar *collection_path = NULL;
-	g_autolist (GList) collections = NULL;
-	g_autoptr (SecretService) service = NULL;
-	g_autoptr (SecretCollection) collection = NULL;
+	GList *collections = NULL;
+	SecretCollection *collection = NULL;
 
 	service = secret_service_get_sync (SECRET_SERVICE_LOAD_COLLECTIONS, NULL, &error);
 	if (error != NULL) {
 		g_printerr ("%s: %s\n", g_get_prgname (), error->message);
-		g_error_free (error);
-		return 1;
+		ret = 1;
+		goto out;
 	}
 
 	context = g_option_context_new ("collections");
 	g_option_context_add_main_entries (context, COLLECTION_OPTIONS, GETTEXT_PACKAGE);
 	g_option_context_parse (context, &argc, &argv, &error);
 
-	if (store_collection) {
+	if (store_collection != NULL) {
+		char *collection_path = NULL;
 
 		collection_path = g_strconcat (SECRET_COLLECTION_PREFIX, store_collection, NULL);
 		collection = secret_collection_new_for_dbus_path_sync (service, collection_path, SECRET_COLLECTION_NONE, NULL, &error);
@@ -540,15 +541,17 @@ secret_tool_action_lock (int argc,
 
 		if (error != NULL) {
 			g_printerr ("%s: %s\n", g_get_prgname (), error->message);
-			g_error_free (error);
-			return 1;
+			ret = 1;
+			goto out;
 		}
 
 		if (secret_collection_get_locked (collection) || collection == NULL) {
-			return 1;
+			ret = 1;
+			goto out;
 		}
 
-		collections = g_list_append (collections, collection);
+		collections = g_list_append (collections,
+		                             g_steal_pointer (&collection));
 	} else {
 		collections = secret_service_get_collections (service);
 	}
@@ -556,11 +559,18 @@ secret_tool_action_lock (int argc,
 	secret_service_lock_sync (NULL, collections, 0, &locked, &error);
 	if (error != NULL) {
 		g_printerr ("%s: %s\n", g_get_prgname (), error->message);
-		g_error_free (error);
-		return 1;
+		ret = 1;
+		goto out;
 	}
 
-	return 0;
+out:
+	g_clear_object (&collection);
+	g_clear_list (&collections, g_object_unref);
+	g_clear_list (&locked, g_object_unref);
+	g_clear_pointer (&context, g_option_context_free);
+	g_clear_error (&error);
+	g_clear_object (&service);
+	return ret;
 }
 
 int
