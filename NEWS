@@ -1,3 +1,7 @@
+0.21.3
+ * Port PAM module from gnome-keyring [!128]
+ * secret-tool: Fix memory issues in lock command [!134]
+
 0.21.2
  * Support GnuTLS as an alternative crypto backend [!122]
  * Fix LeakSanitizer issues [!126]
