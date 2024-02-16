@@ -1,4 +1,4 @@
-image: registry.gitlab.gnome.org/gnome/libsecret/master:v5
+image: registry.gitlab.gnome.org/gnome/libsecret/master:v6
 
 stages:
   - build
