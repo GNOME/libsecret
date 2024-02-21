@@ -41,25 +41,19 @@ if get_option('crypto') == 'libgcrypt'
   gcrypt_dep = dependency(
     'libgcrypt',
     version: '>=' + min_libgcrypt_version,
-    required: false,
   )
-  if gcrypt_dep.found()
-    with_gcrypt = true
-    with_crypto = true
-    crypto_deps += gcrypt_dep
-  endif
+  with_gcrypt = true
+  with_crypto = true
+  crypto_deps += gcrypt_dep
 elif get_option('crypto') == 'gnutls'
   min_gnutls_version = '3.8.2'
   gnutls_dep = dependency(
     'gnutls',
     version: '>=' + min_gnutls_version,
-    required: false,
   )
-  if gnutls_dep.found()
-    with_gnutls = true
-    with_crypto = true
-    crypto_deps += gnutls_dep
-  endif
+  with_gnutls = true
+  with_crypto = true
+  crypto_deps += gnutls_dep
 endif
 
 min_tss2_version = '3.0.3'
