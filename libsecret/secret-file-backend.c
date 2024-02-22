@@ -33,6 +33,7 @@ EGG_SECURE_DECLARE (secret_file_backend);
 #define PORTAL_BUS_NAME "org.freedesktop.portal.Desktop"
 #define PORTAL_OBJECT_PATH "/org/freedesktop/portal/desktop"
 #define PORTAL_REQUEST_INTERFACE "org.freedesktop.portal.Request"
+#define PORTAL_REQUEST_PATH_PREFIX "/org/freedesktop/portal/desktop/request/"
 #define PORTAL_SECRET_INTERFACE "org.freedesktop.portal.Secret"
 #define PORTAL_SECRET_VERSION 1
 
@@ -208,6 +209,7 @@ typedef struct {
 	guint portal_signal_id;
 	GCancellable *cancellable;
 	gulong cancellable_signal_id;
+	gchar *sender;
 } InitClosure;
 
 static void
@@ -219,6 +221,7 @@ init_closure_free (gpointer data)
 	g_clear_pointer (&init->buffer, egg_secure_free);
 	g_clear_object (&init->connection);
 	g_clear_pointer (&init->request_path, g_free);
+	g_clear_pointer (&init->sender, g_free);
 	if (init->cancellable_signal_id) {
 		g_cancellable_disconnect (init->cancellable, init->cancellable_signal_id);
 		init->cancellable_signal_id = 0;
@@ -385,20 +388,7 @@ on_portal_retrieve_secret (GObject *source_object,
 		return;
 	}
 
-	g_variant_get (reply, "(o)", &init->request_path);
 	g_variant_unref (reply);
-
-	init->portal_signal_id =
-		g_dbus_connection_signal_subscribe (connection,
-						    PORTAL_BUS_NAME,
-						    PORTAL_REQUEST_INTERFACE,
-						    "Response",
-						    init->request_path,
-						    NULL,
-						    G_DBUS_SIGNAL_FLAGS_NO_MATCH_RULE,
-						    on_portal_response,
-						    task,
-						    NULL);
 
 	if (cancellable != NULL)
 		init->cancellable_signal_id =
@@ -421,6 +411,7 @@ on_bus_get (GObject *source_object,
 	gint fd_index;
 	GVariantBuilder options;
 	GError *error = NULL;
+	gchar *token;
 
 	connection = g_bus_get_finish (result, &error);
 	if (connection == NULL) {
@@ -428,12 +419,21 @@ on_bus_get (GObject *source_object,
 		g_object_unref (task);
 		return;
 	}
+
+	token = g_strdup_printf ("libsecret%d", g_random_int_range (0, G_MAXINT));
+
 	init->connection = connection;
+	init->sender = g_strdup (g_dbus_connection_get_unique_name (connection) + 1);
+	/* We modify the string in place, see
+	 * https://flatpak.github.io/xdg-desktop-portal/docs/doc-org.freedesktop.portal.Request.html */
+	g_strdelimit (init->sender, ".", '_');
+	init->request_path = g_strconcat (PORTAL_REQUEST_PATH_PREFIX, init->sender, "/", token, NULL);
 
 	if (!g_unix_open_pipe (fds, FD_CLOEXEC, &error)) {
 		g_object_unref (connection);
 		g_task_return_error (task, error);
 		g_object_unref (task);
+		g_free (token);
 		return;
 	}
 
@@ -446,12 +446,27 @@ on_bus_get (GObject *source_object,
 		g_object_unref (connection);
 		g_task_return_error (task, error);
 		g_object_unref (task);
+		g_free (token);
 		return;
 	}
 
 	init->stream = g_unix_input_stream_new (fds[0], TRUE);
 
 	g_variant_builder_init (&options, G_VARIANT_TYPE_VARDICT);
+	g_variant_builder_add (&options, "{sv}", "handle_token", g_variant_new_string (token));
+
+	init->portal_signal_id =
+		g_dbus_connection_signal_subscribe (connection,
+						    PORTAL_BUS_NAME,
+						    PORTAL_REQUEST_INTERFACE,
+						    "Response",
+						    init->request_path,
+						    NULL,
+						    G_DBUS_SIGNAL_FLAGS_NO_MATCH_RULE,
+						    on_portal_response,
+						    task,
+						    NULL);
+
 	g_dbus_connection_call_with_unix_fd_list (connection,
 						  PORTAL_BUS_NAME,
 						  PORTAL_OBJECT_PATH,
@@ -468,6 +483,7 @@ on_bus_get (GObject *source_object,
 						  on_portal_retrieve_secret,
 						  task);
 	g_object_unref (fd_list);
+	g_free (token);
 }
 
 #ifdef WITH_TPM
