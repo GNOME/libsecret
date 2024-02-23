@@ -1,3 +1,8 @@
+0.21.4
+ * file-backend: Subscribe before calling dbus [!138]
+ * meson: Fix crypto option being silently ignored [!137]
+ * Updated translations
+
 0.21.3
  * Port PAM module from gnome-keyring [!128]
  * secret-tool: Fix memory issues in lock command [!134]
