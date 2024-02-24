@@ -191,6 +191,8 @@ secret_attributes_buildv (const SecretSchema *schema,
  * of attribute values.
  *
  * Returns: whether or not the given attributes table is valid
+ *
+ * Since: 0.21.2
  */
 gboolean
 secret_attributes_validate (const SecretSchema *schema,
