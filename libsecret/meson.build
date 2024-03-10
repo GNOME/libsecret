@@ -257,8 +257,8 @@ if get_option('introspection')
   # env to be used in tests that use the typelib,
   # to make sure they find the one for MockService
   test_typelib_env = environment()
-  test_typelib_env.set('GI_TYPELIB_PATH', meson.current_build_dir())
-  test_typelib_env.set('LD_LIBRARY_PATH', meson.current_build_dir())
+  test_typelib_env.prepend('GI_TYPELIB_PATH', meson.current_build_dir())
+  test_typelib_env.prepend('LD_LIBRARY_PATH', meson.current_build_dir())
 
   # Python Tests
   pytest_names = [
