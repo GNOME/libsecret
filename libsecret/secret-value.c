@@ -176,7 +176,7 @@ secret_value_get (SecretValue *value,
  *
  * The content type must be `text/plain`.
  *
- * Returns: (nullable): the content type
+ * Returns: (nullable): the value
  */
 const gchar *
 secret_value_get_text (SecretValue *value)
