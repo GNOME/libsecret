@@ -75,10 +75,10 @@
 /**
  * SecretServiceClass:
  * @parent_class: the parent class
- * @collection_gtype: the [alias@GLib.Type] of the [class@Collection] objects instantiated
- *   by the #SecretService proxy
- * @item_gtype: the [alias@GLib.Type] of the [class@Item] objects instantiated by the
- *   #SecretService proxy
+ * @collection_gtype: the [alias@GObject.Type] of the [class@Collection] objects
+ *   instantiated by the #SecretService proxy
+ * @item_gtype: the [alias@GObject.Type] of the [class@Item] objects
+ *   instantiated by the #SecretService proxy
  * @prompt_async: called to perform asynchronous prompting when necessary
  * @prompt_finish: called to complete an asynchronous prompt operation
  * @prompt_sync: called to perform synchronous prompting when necessary
