@@ -1,0 +1,59 @@
+# Kabyle translation for libsecret.
+# Copyright (C) 2024 libsecret's COPYRIGHT HOLDER
+# This file is distributed under the same license as the libsecret package.
+# Rachida SACI <rgebbid@gmail.com>, 2024.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: libsecret master\n"
+"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/libsecret/issues/\n"
+"POT-Creation-Date: 2024-03-21 06:29+0000\n"
+"PO-Revision-Date: 2024-03-30 10:54+0100\n"
+"Last-Translator: sa\n"
+"Language-Team: Kabyle <kab@li.org>\n"
+"Language: kab\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.4.2\n"
+
+#: libsecret/secret-item.c:1130
+#, c-format
+msgid "Received invalid secret from the secret storage"
+msgstr "Yettwarmes tuffirt tarameɣtut seg uḥraz uffir"
+
+#: libsecret/secret-methods.c:1058
+msgid "Default keyring"
+msgstr "Keyring amezwer"
+
+#: libsecret/secret-session.c:251 libsecret/secret-session.c:287
+msgid "Couldn’t communicate with the secret storage"
+msgstr "Ur yezmir ara ad yemmeslay akked uḥraz uffir"
+
+#: tool/secret-tool.c:42
+msgid "the label for the new stored item"
+msgstr "tabzimt i uferdis amaynut i yettwaḥerzen"
+
+#: tool/secret-tool.c:44
+msgid "the collection in which to place the stored item"
+msgstr "talkensit anida yella uferdis yettwaḥerzen"
+
+#: tool/secret-tool.c:46 tool/secret-tool.c:53 tool/secret-tool.c:462
+msgid "attribute value pairs of item to lookup"
+msgstr "iyugan n wazal n umyerr n uferdis iɣef ara yili unadi"
+
+#: tool/secret-tool.c:60
+msgid "attribute value pairs which match items to clear"
+msgstr "iyugan n wazal n umyerr yemṣadan d yiferdisen ara yettwasefḍen"
+
+#: tool/secret-tool.c:67
+msgid "collection in which to lock"
+msgstr "talkensit anida ttwasekkṛen"
+
+#: tool/secret-tool.c:458
+msgid "return all results, instead of just first one"
+msgstr "yerra-d akk igmaḍ, deg wadeg n yiwen kan"
+
+#: tool/secret-tool.c:460
+msgid "unlock item results if necessary"
+msgstr "kkes asekkeṛ i yigmaḍ n uferdis ma yella ilaq"
