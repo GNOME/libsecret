@@ -1,0 +1,60 @@
+# Hindi translation for libsecret.
+# Copyright (C) 2024 libsecret's COPYRIGHT HOLDER
+# This file is distributed under the same license as the libsecret package.
+# Scrambled777 <weblate.scrambled777@simplelogin.com>, 2024.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: libsecret master\n"
+"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/libsecret/issues/\n"
+"POT-Creation-Date: 2024-03-31 02:51+0000\n"
+"PO-Revision-Date: 2024-04-17 17:09+0530\n"
+"Last-Translator: Scrambled777 <weblate.scrambled777@simplelogin.com>\n"
+"Language-Team: Hindi\n"
+"Language: hi\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Generator: Gtranslator 46.0\n"
+
+#: libsecret/secret-item.c:1130
+#, c-format
+msgid "Received invalid secret from the secret storage"
+msgstr "गुप्त भंडार से अमान्य रहस्य प्राप्त हुआ"
+
+#: libsecret/secret-methods.c:1058
+msgid "Default keyring"
+msgstr "डिफ़ॉल्ट कीरिंग"
+
+#: libsecret/secret-session.c:251 libsecret/secret-session.c:287
+msgid "Couldn’t communicate with the secret storage"
+msgstr "गुप्त भंडारण के साथ संचार नहीं किया जा सका"
+
+#: tool/secret-tool.c:42
+msgid "the label for the new stored item"
+msgstr "नये संग्रहीत वस्तु के लिए लेबल"
+
+#: tool/secret-tool.c:44
+msgid "the collection in which to place the stored item"
+msgstr "वह संग्रह जिसमें संग्रहित वस्तु को रखा जाए"
+
+#: tool/secret-tool.c:46 tool/secret-tool.c:53 tool/secret-tool.c:462
+msgid "attribute value pairs of item to lookup"
+msgstr "देखने के लिए वस्तु की विशेषता मान जोड़ी"
+
+#: tool/secret-tool.c:60
+msgid "attribute value pairs which match items to clear"
+msgstr "विशेषता मान जोड़े जो साफ़ करने के लिए आइटम से मेल खाते हैं"
+
+#: tool/secret-tool.c:67
+msgid "collection in which to lock"
+msgstr "संग्रह जिसमें बंद करना है"
+
+#: tool/secret-tool.c:458
+msgid "return all results, instead of just first one"
+msgstr "केवल पहले परिणाम के बजाय सभी परिणाम लौटाएं"
+
+#: tool/secret-tool.c:460
+msgid "unlock item results if necessary"
+msgstr "यदि जरूरी हो तो वस्तु परिणाम अनलॉक करें"
