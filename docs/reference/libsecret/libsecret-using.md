@@ -57,7 +57,7 @@ from gi.repository import Secret
 
 # ... and a here's sample line of code which uses the import
 schema = Secret.Schema.new("org.mock.Schema",
-	Secret.SchemaFlags.NONE, { "name", Secret.SchemaAttributeType.STRING })
+	Secret.SchemaFlags.NONE, { "name": Secret.SchemaAttributeType.STRING })
 ```
 
 ## Vala: Compiling with libsecret
