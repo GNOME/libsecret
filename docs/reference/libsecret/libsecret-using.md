@@ -53,6 +53,8 @@ var schema = new Secret.Schema.new("org.mock.Schema",
 In python use the standard introspection import mechanism to get at libsecret:
 
 ```python
+import gi
+gi.require_version("Secret", "1")
 from gi.repository import Secret
 
 # ... and a here's sample line of code which uses the import
