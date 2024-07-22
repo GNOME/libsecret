@@ -19,6 +19,7 @@
 
 #ifdef WITH_CRYPTO
 #include "egg/egg-dh.h"
+#include "egg/egg-fips.h"
 #include "egg/egg-hkdf.h"
 #endif
 
@@ -78,6 +79,7 @@ request_open_session_aes (SecretSession *session)
 {
 	GBytes *buffer;
 	GVariant *argument;
+	EggFipsMode fips_mode;
 
 	g_assert (session->params == NULL);
 	g_assert (session->privat == NULL);
@@ -98,9 +100,12 @@ request_open_session_aes (SecretSession *session)
 	g_printerr ("\n");
 #endif
 
+	fips_mode = egg_fips_get_mode ();
+	egg_fips_set_mode (EGG_FIPS_MODE_DISABLED);
 	if (!egg_dh_gen_pair (session->params, 0,
 	                      &session->publi, &session->privat))
 		g_return_val_if_reached (NULL);
+	egg_fips_set_mode (fips_mode);
 
 	buffer = egg_dh_pubkey_export (session->publi);
 	g_return_val_if_fail (buffer != NULL, NULL);
@@ -121,6 +126,7 @@ response_open_session_aes (SecretSession *session,
 	const gchar *sig;
 	egg_dh_pubkey *peer;
 	GBytes *ikm;
+	EggFipsMode fips_mode;
 
 	sig = g_variant_get_type_string (response);
 	g_return_val_if_fail (sig != NULL, FALSE);
@@ -147,7 +153,10 @@ response_open_session_aes (SecretSession *session,
 	g_printerr ("\n");
 #endif
 
+	fips_mode = egg_fips_get_mode ();
+	egg_fips_set_mode (EGG_FIPS_MODE_DISABLED);
 	ikm = egg_dh_gen_secret (peer, session->privat, session->params);
+	egg_fips_set_mode (fips_mode);
 	egg_dh_pubkey_free (peer);
 
 #if 0
