@@ -18,6 +18,7 @@ if with_crypto
   if with_gcrypt
     libegg_sources += [
       'egg-dh-libgcrypt.c',
+      'egg-fips-libgcrypt.c',
       'egg-hkdf-libgcrypt.c',
       'egg-keyring1-libgcrypt.c',
       'egg-libgcrypt.c',
@@ -25,6 +26,7 @@ if with_crypto
   elif with_gnutls
     libegg_sources += [
       'egg-dh-gnutls.c',
+      'egg-fips-gnutls.c',
       'egg-hkdf-gnutls.c',
       'egg-keyring1-gnutls.c',
     ]
