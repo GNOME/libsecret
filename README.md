@@ -1,13 +1,11 @@
 libsecret
 =========
 
-A [GObject]-based library for accessing the Secret Service API of the
-[freedesktop.org project], a cross-desktop effort to access passwords, tokens
-and other types of secrets. libsecret provides a convenient wrapper for these
-methods so consumers do not have to call the low-level DBus methods.
-
-The actual Secret Service API spec can be found at
-https://specifications.freedesktop.org/secret-service/.
+A [GObject]-based library for storing and receiving secrets. libsecret provides
+a convenient wrapper around two different mechanisms: If available, secrets are
+stored in the freedesktop [secret service]. Otherwise, secrets are stored in a
+file that is encrypted using a master secret that was provided by the [secret
+portal].
 
 Documentation
 --------
@@ -59,7 +57,8 @@ version number is even or odd.
 
 
 [GObject]: https://developer.gnome.org/gobject/stable/
-[freedesktop.org project]: https://www.freedesktop.org/
+[secret service]: https://specifications.freedesktop.org/secret-service/
+[secret portal]: https://flatpak.github.io/xdg-desktop-portal/docs/doc-org.freedesktop.portal.Secret.html
 [GitLab repository]: https://gitlab.gnome.org/GNOME/libsecret
 [help pages on MR's]: https://docs.gitlab.com/ee/gitlab-basics/add-merge-request.html
 [issue tracker]: https://gitlab.gnome.org/GNOME/libsecret/issues

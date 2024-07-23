@@ -34,8 +34,11 @@
  *
  * A proxy object representing the Secret Service.
  *
- * A #SecretService object represents the Secret Service implementation which
- * runs as a D-Bus service.
+ * A #SecretService object either represents an implementation of the
+ * [`org.freedesktop.Secret`](https://specifications.freedesktop.org/secret-service/latest/)
+ * D-Bus service or a file that is encrypted using a master secret that was
+ * provided by the
+ * [secret portal](https://flatpak.github.io/xdg-desktop-portal/docs/doc-org.freedesktop.portal.Secret.html).
  *
  * Normally a single #SecretService object can be shared between multiple
  * callers. The [func@Service.get] method is used to access this #SecretService
