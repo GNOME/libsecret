@@ -57,7 +57,7 @@ version number is even or odd.
 
 
 [GObject]: https://developer.gnome.org/gobject/stable/
-[secret service]: https://specifications.freedesktop.org/secret-service/
+[secret service]: https://specifications.freedesktop.org/secret-service-spec/
 [secret portal]: https://flatpak.github.io/xdg-desktop-portal/docs/doc-org.freedesktop.portal.Secret.html
 [GitLab repository]: https://gitlab.gnome.org/GNOME/libsecret
 [help pages on MR's]: https://docs.gitlab.com/ee/gitlab-basics/add-merge-request.html
