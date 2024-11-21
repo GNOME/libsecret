@@ -22,7 +22,6 @@
 #include <gio/gio.h>
 
 #include "secret-collection.h"
-#include "secret-item.h"
 #include "secret-service.h"
 #include "secret-value.h"
 
