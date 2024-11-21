@@ -441,6 +441,7 @@ secret_service_signal (GDBusProxy *proxy,
 	 */
 
 	paths = g_dbus_proxy_get_cached_property (G_DBUS_PROXY (self), "Collections");
+	g_return_if_fail (paths != NULL);
 
 	/* A new collection was added, add it to the Collections property */
 	if (g_str_equal (signal_name, SECRET_SIGNAL_COLLECTION_CREATED)) {
