@@ -62,7 +62,7 @@ secret = test2
 
 EOF
 
-${SECRET_TOOL} search foo bar | sed '/^created\|^modified/d' > search.out
+${SECRET_TOOL} search foo bar | sed -E '/^created|^modified/d' > search.out
 if test $? -ne 0; then
   echo "not ok 4 /secret-tool/search"
   exit 1
@@ -90,7 +90,7 @@ secret = test1
 
 EOF
 
-${SECRET_TOOL} search foo bar | sed '/^created\|^modified/d' > search-after-clear.out
+${SECRET_TOOL} search foo bar | sed -E '/^created|^modified/d' > search-after-clear.out
 if test $? -ne 0; then
   echo "not ok 6 /secret-tool/search-after-clear"
   exit 1
