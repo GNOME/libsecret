@@ -18,7 +18,7 @@ private void test_attributes_validate () {
     attributes["even"] = "false";
     attributes["string"] = "one";
     attributes["number"] = "1";
-    
+
     bool valid = Secret.attributes_validate (schema, attributes);
     GLib.assert (valid == true);
   } catch ( GLib.Error e ) {
@@ -180,14 +180,14 @@ private static int main (string[] args) {
                                         "string", Secret.SchemaAttributeType.STRING);
   }
 
-  GLib.Test.add_data_func ("/vala/attributes/validate", test_attributes_validate);
-  GLib.Test.add_data_func ("/vala/lookup/sync", test_lookup_sync);
-  GLib.Test.add_data_func ("/vala/lookup/async", test_lookup_async);
-  GLib.Test.add_data_func ("/vala/lookup/no-name", test_lookup_no_name);
-  GLib.Test.add_data_func ("/vala/store/sync", test_store_sync);
-  GLib.Test.add_data_func ("/vala/store/async", test_store_async);
-  GLib.Test.add_data_func ("/vala/clear/sync", test_clear_sync);
-  GLib.Test.add_data_func ("/vala/clear/async", test_clear_async);
+  GLib.Test.add_func ("/vala/attributes/validate", test_attributes_validate);
+  GLib.Test.add_func ("/vala/lookup/sync", test_lookup_sync);
+  GLib.Test.add_func ("/vala/lookup/async", test_lookup_async);
+  GLib.Test.add_func ("/vala/lookup/no-name", test_lookup_no_name);
+  GLib.Test.add_func ("/vala/store/sync", test_store_sync);
+  GLib.Test.add_func ("/vala/store/async", test_store_async);
+  GLib.Test.add_func ("/vala/clear/sync", test_clear_sync);
+  GLib.Test.add_func ("/vala/clear/async", test_clear_async);
 
   var res = GLib.Test.run ();
 

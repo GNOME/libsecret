@@ -28,7 +28,7 @@ private static int main (string[] args) {
 		GLib.error ("Unable to start mock service: %s", e.message);
 	}
 
-	GLib.Test.add_data_func ("/vala/unstable/read-alias", test_read_alias);
+	GLib.Test.add_func ("/vala/unstable/read-alias", test_read_alias);
 
 	var res = GLib.Test.run ();
 	Secret.Service.disconnect ();
