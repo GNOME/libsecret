@@ -27,9 +27,13 @@ fedora:Werror:
     - eval `dbus-launch --sh-syntax`
     - meson test -C _build --print-errorlogs
   artifacts:
-    when: on_failure
+    reports:
+      junit: "_build/meson-logs/testlog.junit.xml"
+    name: "libsecret-werror-${CI_JOB_NAME}-${CI_COMMIT_REF_NAME}"
+    when: always
     paths:
-      - _build/meson-logs/testlog.txt
+      - "_build/config.h"
+      - "_build/meson-logs"
 
 fedora:asan:
   stage: build
@@ -44,9 +48,13 @@ fedora:asan:
     - eval `dbus-launch --sh-syntax`
     - meson test -C _build --print-errorlogs
   artifacts:
-    when: on_failure
+    reports:
+      junit: "_build/meson-logs/testlog.junit.xml"
+    name: "libsecret-asan-${CI_JOB_NAME}-${CI_COMMIT_REF_NAME}"
+    when: always
     paths:
-      - _build/meson-logs/testlog.txt
+      - "_build/config.h"
+      - "_build/meson-logs"
 
 fedora:ubsan:
   stage: build
@@ -60,9 +68,13 @@ fedora:ubsan:
     - eval `dbus-launch --sh-syntax`
     - meson test -C _build --print-errorlogs
   artifacts:
-    when: on_failure
+    reports:
+      junit: "_build/meson-logs/testlog.junit.xml"
+    name: "libsecret-ubsan-${CI_JOB_NAME}-${CI_COMMIT_REF_NAME}"
+    when: always
     paths:
-      - _build/meson-logs/testlog.txt
+      - "_build/config.h"
+      - "_build/meson-logs"
 
 fedora-static-analyzers/test:
   stage: build
@@ -89,9 +101,13 @@ fedora:PAM:
     - eval `dbus-launch --sh-syntax`
     - meson test -C _build --print-errorlogs
   artifacts:
-    when: on_failure
+    reports:
+      junit: "_build/meson-logs/testlog.junit.xml"
+    name: "libsecret-pam-${CI_JOB_NAME}-${CI_COMMIT_REF_NAME}"
+    when: always
     paths:
-      - _build/meson-logs/testlog.txt
+      - "_build/config.h"
+      - "_build/meson-logs"
 
 fedora:coverage:
   stage: build
