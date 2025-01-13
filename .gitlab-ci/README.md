@@ -22,4 +22,3 @@ GitLab CI jobs run in a Docker image, defined here. To update that image
    image
 
 [pat]: https://gitlab.gnome.org/-/profile/personal_access_tokens
-[cs]: https://scan.coverity.com/

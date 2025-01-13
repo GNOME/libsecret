@@ -4,7 +4,7 @@ include:
       dist-job-name: "build-release-tarball"
       tarball-artifact-path: "${TARBALL_ARTIFACT_PATH}"
 
-image: registry.gitlab.gnome.org/gnome/libsecret/master:v6
+image: registry.gitlab.gnome.org/gnome/libsecret/main:v1
 
 stages:
   - build

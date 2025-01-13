@@ -1,4 +1,4 @@
-FROM fedora:39
+FROM fedora:41
 
 RUN dnf update -y \
     && dnf install -y \
@@ -9,6 +9,7 @@ RUN dnf update -y \
            gettext \
            gi-docgen \
            git \
+           gjs \
            glib2-devel \
            gnutls-devel \
            gobject-introspection-devel \

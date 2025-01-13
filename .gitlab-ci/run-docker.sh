@@ -85,7 +85,7 @@ fi
 
 # We really need to know the branch name after this point
 if [[ -z "${branch}" ]]; then
-    branch=master
+    branch=main
 fi
 
 DOCKERFILE="${branch}.Dockerfile"
