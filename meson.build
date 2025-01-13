@@ -101,6 +101,12 @@ configure_file(output: 'config.h', configuration: conf)
 test_env = environment()
 test_env.set('abs_top_builddir', meson.build_root())
 
+# Most tests require a D-Bus session
+add_test_setup('dbus',
+  exe_wrapper: find_program('dbus-run-session'),
+  is_default: true,
+)
+
 # Subfolders
 subdir('po')
 subdir('egg')
