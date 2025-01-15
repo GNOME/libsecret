@@ -101,11 +101,16 @@ configure_file(output: 'config.h', configuration: conf)
 test_env = environment()
 test_env.set('abs_top_builddir', meson.build_root())
 
-# Most tests require a D-Bus session
-add_test_setup('dbus',
-  exe_wrapper: find_program('dbus-run-session'),
-  is_default: true,
-)
+# Most tests require a D-Bus session, so try to wrap automatically with dbus-run-session
+dbus_run_session = find_program('dbus-run-session', required: false)
+if dbus_run_session.found()
+  add_test_setup('dbus',
+    exe_wrapper: dbus_run_session,
+    is_default: true,
+  )
+else
+  message('dbus-run-session not found. Please note that tests might fail if you don\'t set up a D-Bus session.')
+endif
 
 # Subfolders
 subdir('po')
