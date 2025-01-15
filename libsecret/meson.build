@@ -314,11 +314,11 @@ if get_option('introspection')
     valatests = [
       {
         'name': 'test-vala-lang',
-        'cflags': [],
+        'cflags': [ '-Wno-unused-but-set-variable' ],
       },
       {
         'name': 'test-vala-unstable',
-        'cflags': [ '-DSECRET_WITH_UNSTABLE' ],
+        'cflags': [ '-DSECRET_WITH_UNSTABLE', '-DSECRET_API_SUBJECT_TO_CHANGE' ],
       },
     ]
 
