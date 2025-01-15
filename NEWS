@@ -1,3 +1,7 @@
+0.21.6
+ * meson: Make dbus-run-session optional [!157]
+ * meson: Actually include bash-completion subdir [!158]
+
 0.21.5
  * session: Tolerate non-approved DH parameter usage in FIPS mode [!145]
  * Add some missing GIR annotations [!140]
