@@ -175,6 +175,9 @@ fedora:PAM:
       - "_build/meson-logs"
 
 fedora:coverage:
+  extends:
+    - '.fdo.suffixed-image@fedora'
+    - '.fedora.container.common'
   stage: build
   script:
     - meson _build -Db_coverage=true -Dtpm2=true -Dgtk_doc=false
