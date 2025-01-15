@@ -121,3 +121,4 @@ subdir('docs')
 if get_option('pam')
   subdir('pam')
 endif
+subdir('bash-completion')
