@@ -21,6 +21,7 @@ config_h_dir = include_directories('.')
 build_dir = include_directories('build')
 libsecret_prefix = get_option('prefix')
 po_dir = meson.source_root() / 'po'
+cc = meson.get_compiler('c')
 
 # Dependencies
 min_glib_version = '2.44'

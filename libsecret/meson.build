@@ -84,14 +84,29 @@ libsecret_cflags = [
   '-DSECRET_COMPILATION',
 ]
 
+libsecret_symbolmap = meson.current_source_dir() / 'libsecret.map'
+libsecret_linkflags = cc.get_supported_link_arguments(
+  '-Wl,--version-script,@0@'.format(libsecret_symbolmap),
+)
+
 libsecret = library('secret-@0@'.format(api_version_major),
   [ libsecret_sources, _dbus_generated, _enums_generated ],
   version: libtool_version,
   dependencies: libsecret_dependencies,
   link_with: libegg,
+  link_args: libsecret_linkflags,
   c_args: libsecret_cflags,
   include_directories: config_h_dir,
   install: true,
+)
+
+# Also create a static library used for our tests which doesn't hide symbols
+libsecret_static = static_library('secret-@0@'.format(api_version_major),
+  [ libsecret_sources, _dbus_generated, _enums_generated ],
+  dependencies: libsecret_dependencies,
+  link_with: libegg,
+  c_args: libsecret_cflags,
+  include_directories: config_h_dir,
 )
 
 install_headers(libsecret_headers,
@@ -241,8 +256,11 @@ foreach _test : test_names
 
   test_bin = executable(_test,
     '@0@.c'.format(_test),
-    dependencies: libsecret_dep,
-    link_with: mock_service_lib,
+    dependencies: libsecret_dependencies,
+    link_with: [
+      libsecret_static,
+      mock_service_lib,
+    ],
     include_directories: config_h_dir,
     c_args: test_cflags,
   )
