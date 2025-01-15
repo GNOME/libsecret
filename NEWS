@@ -1,3 +1,20 @@
+0.21.5
+ * session: Tolerate non-approved DH parameter usage in FIPS mode [!145]
+ * Add some missing GIR annotations [!140]
+ * meson: Create default test setup with D-Bus [!115]
+ * meson: Use env.prepend() for test environment setup [!141]
+ * meson: Fix license field [!139]
+ * build: Remove self-inclusion from secret-item.h [!149]
+ * build: Fix compiler warnings in Vala tests [!153]
+ * tests: Fix "\|" used in test-secret-tool.sh not portable [!150]
+ * Fix typo in D-Bus XML [!152]
+ * docs: Fix minor gi-docgen reference [!142]
+ * docs: Fix Python example [!144]
+ * docs: Mention file backend [!146]
+ * docs: Fix link in README [!147]
+ * Several CI-related updates
+ * Updated translations
+
 0.21.4
  * file-backend: Subscribe before calling dbus [!138]
  * meson: Fix crypto option being silently ignored [!137]
