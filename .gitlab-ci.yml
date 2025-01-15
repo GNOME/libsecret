@@ -1,20 +1,90 @@
 include:
+  - remote: 'https://gitlab.gnome.org/Infrastructure/freedesktop-ci-templates/-/raw/145b1bc7ef1702d2bd71584010d7113c6786a506/templates/fedora.yml'
   - component: gitlab.gnome.org/GNOME/citemplates/release-service@master
     inputs:
       dist-job-name: "build-release-tarball"
       tarball-artifact-path: "${TARBALL_ARTIFACT_PATH}"
 
-image: registry.gitlab.gnome.org/gnome/libsecret/master:v6
-
 stages:
+  - prepare
   - build
   - deploy
 
 variables:
+  FDO_UPSTREAM_REPO: gnome/libsecret
   TARBALL_ARTIFACT_PATH: "_build/meson-dist/${CI_PROJECT_NAME}-${CI_COMMIT_TAG}.tar.xz"
   CPPCHECK_OPTIONS: "--enable=warning --enable=style --enable=performance --enable=portability --std=c99 --template='{id}:{file}:{line},{severity},{message}'"
 
+.fedora.container.common:
+  variables:
+    # When branching a stable release, change 'main' to the
+    # release branch name to ensure that a new image will
+    # be created, tailored for the stable branch.
+    BRANCH_NAME: 'main'
+    CONTAINER_TAG: '2025-01-15.0'
+    FEDORA_VERSION: latest
+    # Derive FDO variables from this automatically.
+    # DO NOT edit, instead change the variables above
+    FDO_REPO_SUFFIX: '${BRANCH_NAME}'
+    FDO_DISTRIBUTION_TAG: '${CONTAINER_TAG}-fedora-${FEDORA_VERSION}'
+    FDO_DISTRIBUTION_VERSION: '${FEDORA_VERSION}'
+
+#############################################
+#          Create CI Docker Images          #
+#############################################
+
+# See also https://gitlab.gnome.org/Infrastructure/freedesktop-ci-templates
+build.container.fedora@x86_64:
+  extends:
+  - '.fdo.container-build@fedora'
+  - '.fedora.container.common'
+  stage: prepare
+  variables:
+    # no need to pull the whole tree for rebuilding the image
+    GIT_STRATEGY: none
+    # Expiry sets fdo.expires on the image
+    FDO_EXPIRES_AFTER: 8w
+    FDO_DISTRIBUTION_PACKAGES: >-
+      clang-analyzer
+      cppcheck
+      dbus-x11
+      diffutils
+      docbook-style-xsl
+      gettext
+      gi-docgen
+      git
+      gjs
+      glib2-devel
+      gnutls-devel
+      gobject-introspection-devel
+      lcov
+      libasan
+      libgcrypt-devel
+      libpamtest-devel
+      libubsan
+      libxslt
+      meson
+      pam-devel
+      pam_wrapper
+      python3-dbus
+      python3-gobject
+      redhat-rpm-config
+      swtpm
+      swtpm-tools
+      tpm2-abrmd
+      tpm2-tss-devel
+      vala
+      valgrind-devel
+
+
+#############################################
+#               STAGE: BUILD                #
+#############################################
+
 .build:
+  extends:
+    - '.fdo.suffixed-image@fedora'
+    - '.fedora.container.common'
   parallel:
     matrix:
       - CRYPTO: libgcrypt
@@ -127,18 +197,10 @@ fedora:coverage:
   # https://github.com/linux-test-project/lcov/issues/58
   allow_failure: true
 
-build-release-tarball:
-  stage: deploy
-  script:
-    - meson setup _build
-    - meson dist -C _build
-  artifacts:
-    paths:
-      - $TARBALL_ARTIFACT_PATH
-  rules:
-    - if: $CI_COMMIT_REF_PROTECTED
-
 reference:
+  extends:
+    - '.fdo.suffixed-image@fedora'
+    - '.fedora.container.common'
   stage: build
   variables:
     MESON_ARGS: >-
@@ -152,6 +214,23 @@ reference:
   artifacts:
     paths:
       - _reference
+
+
+#############################################
+#              STAGE: DEPLOY                #
+#############################################
+
+build-release-tarball:
+  extends:
+    - '.fdo.suffixed-image@fedora'
+    - '.fedora.container.common'
+  stage: deploy
+  script:
+    - meson setup _build
+    - meson dist -C _build
+  artifacts:
+    paths:
+      - $TARBALL_ARTIFACT_PATH
 
 pages:
   stage: deploy
