@@ -102,7 +102,7 @@ test_env = environment()
 test_env.set('abs_top_builddir', meson.build_root())
 
 # Most tests require a D-Bus session, so try to wrap automatically with dbus-run-session
-dbus_run_session = find_program('dbus-run-session', required: false)
+dbus_run_session = find_program('dbus-run-session', required: get_option('test_setup'))
 if dbus_run_session.found()
   add_test_setup('dbus',
     exe_wrapper: dbus_run_session,

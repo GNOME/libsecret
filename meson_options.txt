@@ -61,3 +61,8 @@ option('pam',
   description: 'Build PAM module',
 )
 
+option('test_setup',
+  type: 'feature',
+  value: 'auto',
+  description: 'Automatically setup a test environment when running tests',
+)
