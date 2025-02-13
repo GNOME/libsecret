@@ -29,7 +29,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define SECRET_ALIAS_PREFIX "/org/freedesktop/secrets/aliases/"
+#define SECRET_DEFAULT_ALIAS "/org/freedesktop/secrets/aliases/default"
 #define SECRET_COLLECTION_PREFIX "/org/freedesktop/secrets/collection/"
 
 static gchar **attribute_args = NULL;
@@ -61,8 +61,8 @@ static const GOptionEntry CLEAR_OPTIONS[] = {
 	{ NULL }
 };
 
-/* secret-tool lock collections="xxxx" */
-static const GOptionEntry COLLECTION_OPTIONS[] = {
+/* secret-tool lock --collection="xxxx" */
+static const GOptionEntry LOCK_OPTIONS[] = {
 	{ "collection", 'c', 0, G_OPTION_ARG_STRING, &store_collection,
 	  N_("collection in which to lock"), NULL },
 	{ NULL }
@@ -75,11 +75,11 @@ static void       usage                         (void) G_GNUC_NORETURN;
 static void
 usage (void)
 {
-	g_printerr ("usage: secret-tool store --label='label' attribute value ...\n");
+	g_printerr ("usage: secret-tool store [--collection='collection'] --label='label' attribute value ...\n");
 	g_printerr ("       secret-tool lookup attribute value ...\n");
 	g_printerr ("       secret-tool clear attribute value ...\n");
 	g_printerr ("       secret-tool search [--all] [--unlock] attribute value ...\n");
-	g_printerr ("       secret-tool lock --collection='collection'\n");
+	g_printerr ("       secret-tool lock [--collection='collection']\n");
 	exit (2);
 }
 
@@ -125,6 +125,27 @@ attributes_from_arguments (gchar **args)
 	}
 
 	return attributes;
+}
+
+static gchar*
+get_collection_path ()
+{
+	gchar *collection = NULL;
+
+	if (!store_collection)
+		return NULL;
+
+	/* TODO: Verify that the collection is a valid path or path element */
+	if (g_str_has_prefix (store_collection, "/")) {
+		collection = g_strdup (store_collection);
+	} else if (g_str_equal (store_collection, "default")) {
+		collection = g_strdup (SECRET_DEFAULT_ALIAS);
+	} else {
+		g_printerr ("%s: collection must be a full path, or the 'default' alias\n", g_get_prgname ());
+		usage ();
+	}
+
+	return collection;
 }
 
 static int
@@ -319,13 +340,7 @@ secret_tool_action_store (int argc,
 	attributes = attributes_from_arguments (attribute_args);
 	g_strfreev (attribute_args);
 
-	if (store_collection) {
-		/* TODO: Verify that the collection is a valid path or path element */
-		if (g_str_has_prefix (store_collection, "/"))
-			collection = g_strdup (store_collection);
-		else
-			collection = g_strconcat (SECRET_ALIAS_PREFIX, store_collection, NULL);
-	}
+	collection = get_collection_path ();
 
 	if (isatty (0))
 		value = read_password_tty ();
@@ -518,6 +533,7 @@ secret_tool_action_lock (int argc,
 	GOptionContext *context = NULL;
 	GList *locked = NULL;
 	GList *collections = NULL;
+	gchar *collection_path = NULL;
 	SecretCollection *collection = NULL;
 
 	service = secret_service_get_sync (SECRET_SERVICE_LOAD_COLLECTIONS, NULL, &error);
@@ -528,16 +544,13 @@ secret_tool_action_lock (int argc,
 	}
 
 	context = g_option_context_new ("collections");
-	g_option_context_add_main_entries (context, COLLECTION_OPTIONS, GETTEXT_PACKAGE);
+	g_option_context_add_main_entries (context, LOCK_OPTIONS, GETTEXT_PACKAGE);
 	g_option_context_parse (context, &argc, &argv, &error);
 
-	if (store_collection != NULL) {
-		char *collection_path = NULL;
+	collection_path = get_collection_path ();
 
-		collection_path = g_strconcat (SECRET_COLLECTION_PREFIX, store_collection, NULL);
+	if (collection_path != NULL) {
 		collection = secret_collection_new_for_dbus_path_sync (service, collection_path, SECRET_COLLECTION_NONE, NULL, &error);
-		g_free (store_collection);
-		g_free (collection_path);
 
 		if (error != NULL) {
 			g_printerr ("%s: %s\n", g_get_prgname (), error->message);
@@ -555,6 +568,8 @@ secret_tool_action_lock (int argc,
 	} else {
 		collections = secret_service_get_collections (service);
 	}
+
+	g_free (collection_path);
 
 	secret_service_lock_sync (NULL, collections, 0, &locked, &error);
 	if (error != NULL) {
