@@ -1,3 +1,10 @@
+0.21.7
+ * docs: Fix return comment of secret_value_get_text [#92]
+ * bash-completion: Fix man section number in secret-tool completion file [!160]
+ * bash-completion: Integrate external extended bash-completion script [!161]
+ * bash-completion: Require minimal version for bash-completion [!163]
+ * meson: Use newlines for build options
+
 0.21.6
  * meson: Make dbus-run-session optional [!157]
  * meson: Actually include bash-completion subdir [!158]
