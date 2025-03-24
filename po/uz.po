@@ -1,0 +1,59 @@
+# Uzbek (Latin) translation for libsecret.
+# Copyright (C) 2025 libsecret's COPYRIGHT HOLDER
+# This file is distributed under the same license as the libsecret package.
+# Baxrom Raxmatov <magdiyevbahrom@gmail.com>,  2025.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: libsecret main\n"
+"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/libsecret/issues/\n"
+"POT-Creation-Date: 2025-03-18 22:18+0000\n"
+"PO-Revision-Date: 2025-03-24 20:02+0500\n"
+"Last-Translator: \n"
+"Language-Team: Uzbek (Latin) <uz@li.org>\n"
+"Language: uz\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.5\n"
+
+#: libsecret/secret-item.c:1130
+#, c-format
+msgid "Received invalid secret from the secret storage"
+msgstr "Maxfiy saqlashdan yaroqsiz sir olindi"
+
+#: libsecret/secret-methods.c:1058
+msgid "Default keyring"
+msgstr "Standart kalit"
+
+#: libsecret/secret-session.c:260 libsecret/secret-session.c:296
+msgid "Couldn’t communicate with the secret storage"
+msgstr "Maxfiy xotira bilan bogʻlanib boʻlmadi"
+
+#: tool/secret-tool.c:42
+msgid "the label for the new stored item"
+msgstr "yangi saqlangan element uchun yorliq"
+
+#: tool/secret-tool.c:44
+msgid "the collection in which to place the stored item"
+msgstr "saqlangan elementni joylashtirish uchun to’plam"
+
+#: tool/secret-tool.c:46 tool/secret-tool.c:53 tool/secret-tool.c:462
+msgid "attribute value pairs of item to lookup"
+msgstr "qidiriladigan elementning atribut qiymati juftlari"
+
+#: tool/secret-tool.c:60
+msgid "attribute value pairs which match items to clear"
+msgstr "tozalash uchun elementlarga mos keladigan atribut qiymat juftlari"
+
+#: tool/secret-tool.c:67
+msgid "collection in which to lock"
+msgstr "qulflanadigan to’plam"
+
+#: tool/secret-tool.c:458
+msgid "return all results, instead of just first one"
+msgstr "faqat birinchisini emas, barcha natijalarni qaytaring"
+
+#: tool/secret-tool.c:460
+msgid "unlock item results if necessary"
+msgstr "agar kerak bo’lsa, element natijalarini qulfdan chiqaring"
