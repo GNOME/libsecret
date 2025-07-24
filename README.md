@@ -40,7 +40,7 @@ If libsecret is not translated in your language or you believe that the
 current translation has errors, you can join one of the various translation
 teams in GNOME. Translators do not commit directly to Git, but are advised to
 use our separate translation infrastructure instead. More info can be found at
-the [translation project wiki page].
+the [translation project Welcome page].
 
 Releases
 -------------
@@ -62,5 +62,5 @@ version number is even or odd.
 [GitLab repository]: https://gitlab.gnome.org/GNOME/libsecret
 [help pages on MR's]: https://docs.gitlab.com/ee/gitlab-basics/add-merge-request.html
 [issue tracker]: https://gitlab.gnome.org/GNOME/libsecret/issues
-[translation project wiki page]: https://wiki.gnome.org/TranslationProject/
+[translation project Welcome page]: https://welcome.gnome.org/team/translation/
 [semantic versioning]: https://semver.org
