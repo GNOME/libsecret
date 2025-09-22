@@ -1,0 +1,58 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr "Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/libsecret/issues/\n"
+"POT-Creation-Date: 2025-09-10 21:26+0000\n"
+"PO-Revision-Date: 2025-09-11 00:40-0400\n"
+"Last-Translator: Abduqadir Abliz <sahranbay@gmail.com>\n"
+"Language-Team: \n"
+"Language: ug\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.7\n"
+
+#: libsecret/secret-item.c:1130
+#, c-format
+msgid "Received invalid secret from the secret storage"
+msgstr "مەخپىي ساقلىغۇچتىن ئىناۋەتسىز مەخپىيەتلىك تاپشۇرۇۋالدى"
+
+#: libsecret/secret-methods.c:1058
+msgid "Default keyring"
+msgstr "كۆڭۈلدىكى شىفىرلىق ئاچقۇچ ھالقىسى"
+
+#: libsecret/secret-session.c:260 libsecret/secret-session.c:296
+msgid "Couldn’t communicate with the secret storage"
+msgstr "مەخپىي ساقلىغۇچ بىلەن باغلىنالمايدۇ"
+
+#: tool/secret-tool.c:42
+msgid "the label for the new stored item"
+msgstr "يېڭى ساقلاش تۈرىنىڭ بەلگىسى"
+
+#: tool/secret-tool.c:44
+msgid "the collection in which to place the stored item"
+msgstr "تۈرنى ساقلايدىغان ئورۇننىڭ توپلىمى"
+
+#: tool/secret-tool.c:46 tool/secret-tool.c:53 tool/secret-tool.c:462
+msgid "attribute value pairs of item to lookup"
+msgstr "تۈر سۈرۈشتۈرۈشكە ئىشلىتىدىغان خاسلىق قىممىتىنىڭ جۈپى"
+
+#: tool/secret-tool.c:60
+msgid "attribute value pairs which match items to clear"
+msgstr "ماس كەلگەندىن كېيىن تازىلاشقا ئىشلىتىلىدىغان خاسلىق قىممىتىنىڭ جۈپى"
+
+#: tool/secret-tool.c:67
+msgid "collection in which to lock"
+msgstr "قۇلۇپلايدىغان توپلام"
+
+#: tool/secret-tool.c:458
+msgid "return all results, instead of just first one"
+msgstr "بىرىنچىسىنىلا ئەمەس بەلكى ھەممە نەتىجىنى قايتۇرىدۇ"
+
+#: tool/secret-tool.c:460
+msgid "unlock item results if necessary"
+msgstr "ئەگەر زۆرۈر بولسا تۈر نەتىجىسىنىڭ قۇلۇپىنى ئاچىدۇ"
