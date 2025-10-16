@@ -3,32 +3,35 @@
 # This file is distributed under the same license as the libsecret package.
 # Daniel Șerbănescu <daniel@serbanescu.dk>, 2015.
 # Daniel Șerbănescu <daniel [at] serbanescu [dot] dk>, 2015.
+# Antonio Marin <gnmer.6qxyg@slmail.me>, 2025.
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: libsecret master\n"
-"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/libsecret/issues\n"
-"POT-Creation-Date: 2021-06-24 11:59+0000\n"
-"PO-Revision-Date: 2021-06-30 16:36+0200\n"
-"Last-Translator: Daniel Șerbănescu <daniel [at] serbanescu [dot] dk>\n"
-"Language-Team: Gnome Romanian Translation Team\n"
+"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/libsecret/issues/\n"
+"POT-Creation-Date: 2025-10-11 01:00+0000\n"
+"PO-Revision-Date: 2025-10-16 10:54+0200\n"
+"Last-Translator: Antonio Marin <gnmer.6qxyg@slmail.me>\n"
+"Language-Team: Romanian <gnomero-list@lists.sourceforge.net>\n"
 "Language: ro\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : (n==0 || (n%100 > 0 && n%100 < "
-"20)) ? 1 : 2);;\n"
-"X-Generator: Poedit 2.4.3\n"
+"20)) ? 1 : 2);\n"
+"X-Generator: Gtranslator 48.0\n"
 "X-Project-Style: gnome\n"
 
-#: libsecret/secret-item.c:1104
+#: libsecret/secret-item.c:1130
+#, c-format
 msgid "Received invalid secret from the secret storage"
-msgstr "S-a primit un secret nevalid de la depozitul de secrete"
+msgstr "S-a primit un secret incorect de la depozitul de secrete"
 
-#: libsecret/secret-methods.c:1055
+#: libsecret/secret-methods.c:1058
 msgid "Default keyring"
-msgstr "Inel de chei implicit"
+msgstr "Inel de chei prestabilit"
 
-#: libsecret/secret-session.c:243 libsecret/secret-session.c:279
+#: libsecret/secret-session.c:260 libsecret/secret-session.c:296
 msgid "Couldn’t communicate with the secret storage"
 msgstr "Nu s-a putut comunica cu depozitul de secrete"
 
@@ -40,22 +43,22 @@ msgstr "eticheta pentru noul element stocat"
 msgid "the collection in which to place the stored item"
 msgstr "colecția în care să fie plasat noul element"
 
-#: tool/secret-tool.c:46 tool/secret-tool.c:53 tool/secret-tool.c:458
+#: tool/secret-tool.c:46 tool/secret-tool.c:53 tool/secret-tool.c:462
 msgid "attribute value pairs of item to lookup"
 msgstr "perechi atribut-valoare ale elementelor de căutat"
 
 #: tool/secret-tool.c:60
 msgid "attribute value pairs which match items to clear"
-msgstr "perechi atribut-valoare care se potrivesc elementelor de curățat"
+msgstr "perechi atribut-valoare care se potrivesc elementelor de șters"
 
 #: tool/secret-tool.c:67
 msgid "collection in which to lock"
 msgstr "colecția în care să se blocheze"
 
-#: tool/secret-tool.c:454
+#: tool/secret-tool.c:458
 msgid "return all results, instead of just first one"
-msgstr "returnează toate rezultatele, în loc de doar primul"
+msgstr "afișează toate rezultatele, nu doar primul"
 
-#: tool/secret-tool.c:456
+#: tool/secret-tool.c:460
 msgid "unlock item results if necessary"
-msgstr "deblochează rezultatele elementelor dacă este necesar"
+msgstr "deblochează elementele găsite, dacă este necesar"
