@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: libsecret main\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/libsecret/issues/\n"
 "POT-Creation-Date: 2025-11-08 17:29+0000\n"
-"PO-Revision-Date: 2026-01-26 13:45+0000\n"
+"PO-Revision-Date: 2026-05-11 22:21+0100\n"
 "Last-Translator: Flynn Peck <cirilla@tuta.io>\n"
 "Language-Team: kw\n"
 "Language: kw\n"
@@ -23,12 +23,12 @@ msgstr ""
 "X-DL-Domain: po\n"
 "X-DL-State: Translating\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Gtranslator 49.0\n"
+"X-Generator: Gtranslator 50.0\n"
 
 #: libsecret/secret-item.c:1130
 #, c-format
 msgid "Received invalid secret from the secret storage"
-msgstr "Degemerys kevrin anewn dhyworth an gwithva kevrinyow"
+msgstr "Degemerys kevrin anewn dhyworth an withva gevrin"
 
 #: libsecret/secret-methods.c:1058
 msgid "Default keyring"
@@ -36,23 +36,23 @@ msgstr "Alwedh-klygh defowt"
 
 #: libsecret/secret-session.c:260 libsecret/secret-session.c:296
 msgid "Couldn’t communicate with the secret storage"
-msgstr "Y fyllis keskomunya gans an gwithva kevrinyow"
+msgstr "Ny yllir keskomunya gans an withva gevrin"
 
 #: tool/secret-tool.c:42
 msgid "the label for the new stored item"
-msgstr "an label rag an tra gwithys nowydh"
+msgstr "an label rag an tra withys nowydh"
 
 #: tool/secret-tool.c:44
 msgid "the collection in which to place the stored item"
-msgstr "an kuntel may settya an tra gwithys"
+msgstr "an kuntel may settya an tra withys"
 
 #: tool/secret-tool.c:46 tool/secret-tool.c:53 tool/secret-tool.c:477
 msgid "attribute value pairs of item to lookup"
-msgstr "koplow teythien-dalgh tra rag hwilas"
+msgstr "koplow deythien-dalgh tra rag hwilas"
 
 #: tool/secret-tool.c:60
 msgid "attribute value pairs which match items to clear"
-msgstr "koplow teythien-dalgh may desedha taklow rag ylynhe"
+msgstr "koplow deythien-dalgh may desedha taklow rag ylynhe"
 
 #: tool/secret-tool.c:67
 msgid "collection in which to lock"
@@ -64,4 +64,4 @@ msgstr "ri tre oll sewyansow, yn-dar unn kynsa hepken"
 
 #: tool/secret-tool.c:475
 msgid "unlock item results if necessary"
-msgstr "dialhwedhen sewyansow tra mar a res"
+msgstr "dialhwedha sewyansow dra mars a res"
