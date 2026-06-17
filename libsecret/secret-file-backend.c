@@ -884,6 +884,8 @@ secret_file_backend_real_search (SecretBackend *backend,
 	for (l = matches; l; l = g_list_next (l)) {
 		SecretFileItem *item = _secret_file_item_decrypt (l->data, self->collection, &error);
 		if (item == NULL) {
+			g_list_free_full (matches, (GDestroyNotify)g_variant_unref);
+			g_list_free_full (results, g_object_unref);
 			g_task_return_error (task, error);
 			g_object_unref (task);
 			return;
