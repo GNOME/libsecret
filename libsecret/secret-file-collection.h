@@ -45,6 +45,9 @@ gboolean        secret_file_collection_write_finish
                                                (SecretFileCollection  *self,
                                                 GAsyncResult          *result,
                                                 GError               **error);
+int             secret_file_collection_lock    (SecretFileCollection  *self,
+                                                GError               **error);
+void            secret_file_collection_unlock  (int                    lock_fd);
 
 SecretFileItem *_secret_file_item_decrypt
                                                (GVariant              *encrypted,
