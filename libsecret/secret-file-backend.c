@@ -44,6 +44,7 @@ struct _SecretFileBackend {
 	GObject parent;
 	SecretFileCollection *collection;
 	SecretServiceFlags init_flags;
+	GMutex mutex;
 };
 
 G_DEFINE_TYPE_WITH_CODE (SecretFileBackend, secret_file_backend, G_TYPE_OBJECT,
@@ -109,6 +110,7 @@ get_secret_file (GCancellable *cancellable, GError **error)
 static void
 secret_file_backend_init (SecretFileBackend *self)
 {
+	g_mutex_init (&self->mutex);
 }
 
 static void
@@ -153,6 +155,7 @@ secret_file_backend_finalize (GObject *object)
 	SecretFileBackend *self = SECRET_FILE_BACKEND (object);
 
 	g_clear_object (&self->collection);
+	g_mutex_clear (&self->mutex);
 
 	G_OBJECT_CLASS (secret_file_backend_parent_class)->finalize (object);
 }
@@ -656,6 +659,20 @@ secret_file_backend_async_initable_iface (GAsyncInitableIface *iface)
 	iface->init_finish = secret_file_backend_real_init_finish;
 }
 
+typedef struct {
+	int lock_fd;
+	GMutex *mutex;
+} WriteClosure;
+
+static void
+write_closure_free (gpointer data)
+{
+	WriteClosure *closure = data;
+	if (closure->lock_fd >= 0)
+		close (closure->lock_fd);
+	g_free (closure);
+}
+
 static void
 on_collection_write (GObject *source_object,
 		     GAsyncResult *result,
@@ -664,7 +681,16 @@ on_collection_write (GObject *source_object,
 	SecretFileCollection *collection =
 		SECRET_FILE_COLLECTION (source_object);
 	GTask *task = G_TASK (user_data);
+	WriteClosure *closure = g_task_get_task_data (task);
 	GError *error = NULL;
+
+	if (closure != NULL && closure->lock_fd >= 0) {
+		secret_file_collection_unlock (closure->lock_fd);
+		closure->lock_fd = -1;
+	}
+
+	if (closure != NULL && closure->mutex != NULL)
+		g_mutex_unlock (closure->mutex);
 
 	if (!secret_file_collection_write_finish (collection, result, &error)) {
 		g_task_return_error (task, error);
@@ -688,8 +714,10 @@ secret_file_backend_real_store (SecretBackend *backend,
 				gpointer user_data)
 {
 	SecretFileBackend *self = SECRET_FILE_BACKEND (backend);
+	WriteClosure *closure;
 	GTask *task;
 	GError *error = NULL;
+	int lock_fd;
 
 	/* Warnings raised already */
 	if (schema != NULL && !_secret_attributes_validate (schema, attributes, G_STRFUNC, FALSE))
@@ -697,11 +725,28 @@ secret_file_backend_real_store (SecretBackend *backend,
 
 	task = g_task_new (self, cancellable, callback, user_data);
 
+	g_mutex_lock (&self->mutex);
+
+	lock_fd = secret_file_collection_lock (self->collection, &error);
+	if (lock_fd < 0) {
+		g_mutex_unlock (&self->mutex);
+		g_task_return_error (task, error);
+		g_object_unref (task);
+		return;
+	}
+
+	closure = g_new0 (WriteClosure, 1);
+	closure->lock_fd = lock_fd;
+	closure->mutex = &self->mutex;
+	g_task_set_task_data (task, closure, write_closure_free);
+
 	if (!secret_file_collection_replace (self->collection,
 					     attributes,
 					     label,
 					     value,
 					     &error)) {
+		closure->mutex = NULL;
+		g_mutex_unlock (&self->mutex);
 		g_task_return_error (task, error);
 		g_object_unref (task);
 		return;
@@ -766,9 +811,12 @@ secret_file_backend_real_lookup (SecretBackend *backend,
 
 	task = g_task_new (self, cancellable, callback, user_data);
 
+	g_mutex_lock (&self->mutex);
+
 	matches = secret_file_collection_search (self->collection, attributes);
 
 	if (matches == NULL) {
+		g_mutex_unlock (&self->mutex);
 		g_task_return_pointer (task, NULL, NULL);
 		g_object_unref (task);
 		return;
@@ -779,6 +827,9 @@ secret_file_backend_real_lookup (SecretBackend *backend,
 
 	item = _secret_file_item_decrypt (variant, self->collection, &error);
 	g_variant_unref (variant);
+
+	g_mutex_unlock (&self->mutex);
+
 	if (item == NULL) {
 		g_task_return_error (task, error);
 		g_object_unref (task);
@@ -810,9 +861,11 @@ secret_file_backend_real_clear (SecretBackend *backend,
 				gpointer user_data)
 {
 	SecretFileBackend *self = SECRET_FILE_BACKEND (backend);
+	WriteClosure *closure;
 	GTask *task;
 	GError *error = NULL;
 	gboolean ret;
+	int lock_fd;
 
 	/* Warnings raised already */
 	if (schema != NULL && !_secret_attributes_validate (schema, attributes, G_STRFUNC, TRUE))
@@ -820,8 +873,25 @@ secret_file_backend_real_clear (SecretBackend *backend,
 
 	task = g_task_new (self, cancellable, callback, user_data);
 
+	g_mutex_lock (&self->mutex);
+
+	lock_fd = secret_file_collection_lock (self->collection, &error);
+	if (lock_fd < 0) {
+		g_mutex_unlock (&self->mutex);
+		g_task_return_error (task, error);
+		g_object_unref (task);
+		return;
+	}
+
+	closure = g_new0 (WriteClosure, 1);
+	closure->lock_fd = lock_fd;
+	closure->mutex = &self->mutex;
+	g_task_set_task_data (task, closure, write_closure_free);
+
 	ret = secret_file_collection_clear (self->collection, attributes, &error);
 	if (error != NULL) {
+		closure->mutex = NULL;
+		g_mutex_unlock (&self->mutex);
 		g_task_return_error (task, error);
 		g_object_unref (task);
 		return;
@@ -829,6 +899,8 @@ secret_file_backend_real_clear (SecretBackend *backend,
 
 	/* No need to write as nothing has been removed. */
 	if (!ret) {
+		closure->mutex = NULL;
+		g_mutex_unlock (&self->mutex);
 		g_task_return_boolean (task, FALSE);
 		g_object_unref (task);
 		return;
@@ -880,10 +952,13 @@ secret_file_backend_real_search (SecretBackend *backend,
 
 	task = g_task_new (self, cancellable, callback, user_data);
 
+	g_mutex_lock (&self->mutex);
+
 	matches = secret_file_collection_search (self->collection, attributes);
 	for (l = matches; l; l = g_list_next (l)) {
 		SecretFileItem *item = _secret_file_item_decrypt (l->data, self->collection, &error);
 		if (item == NULL) {
+			g_mutex_unlock (&self->mutex);
 			g_task_return_error (task, error);
 			g_object_unref (task);
 			return;
@@ -891,6 +966,8 @@ secret_file_backend_real_search (SecretBackend *backend,
 		results = g_list_append (results, item);
 	}
 	g_list_free_full (matches, (GDestroyNotify)g_variant_unref);
+
+	g_mutex_unlock (&self->mutex);
 
 	g_task_return_pointer (task, results, unref_objects);
 	g_object_unref (task);

@@ -19,6 +19,11 @@
 #include "egg/egg-keyring1.h"
 #include "egg/egg-secure-memory.h"
 
+#include <glib/gstdio.h>
+
+#include <sys/file.h>
+#include <errno.h>
+
 EGG_SECURE_DECLARE (secret_file_collection);
 
 #ifdef WITH_GCRYPT
@@ -803,4 +808,59 @@ secret_file_collection_write_finish (SecretFileCollection *self,
 	g_return_val_if_fail (g_task_is_valid (result, self), FALSE);
 
 	return g_task_propagate_boolean (G_TASK (result), error);
+}
+
+int
+secret_file_collection_lock (SecretFileCollection *self,
+			     GError **error)
+{
+	const gchar *path;
+	gchar *lock_path;
+	int fd;
+	int ret;
+	int errsv;
+
+	path = g_file_peek_path (self->file);
+	lock_path = g_strdup_printf ("%s.lock", path);
+
+	fd = g_open (lock_path, O_CREAT | O_RDWR, 0600);
+	if (fd < 0) {
+		errsv = errno;
+		g_set_error (error, G_IO_ERROR,
+			     g_io_error_from_errno (errsv),
+			     "couldn't open lock file %s: %s",
+			     lock_path, g_strerror (errsv));
+		g_free (lock_path);
+		return -1;
+	}
+	do {
+		ret = flock (fd, LOCK_EX);
+	} while (ret < 0 && errno == EINTR);
+
+	if (ret < 0) {
+		errsv = errno;
+		g_set_error (error, G_IO_ERROR,
+			     g_io_error_from_errno (errsv),
+			     "couldn't lock keyring file %s: %s",
+			     lock_path, g_strerror (errsv));
+		g_free (lock_path);
+		close (fd);
+		return -1;
+	}
+	g_free (lock_path);
+
+	/* Force reload regardless of mtime, since mtime has only
+	 * second granularity and another process may have written
+	 * within the same second */
+	self->file_last_modified = 0;
+	ensure_up_to_date (self);
+
+	return fd;
+}
+
+void
+secret_file_collection_unlock (int lock_fd)
+{
+	if (lock_fd >= 0)
+		close (lock_fd);
 }

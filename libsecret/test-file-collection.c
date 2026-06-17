@@ -4,6 +4,8 @@
 #undef G_DISABLE_ASSERT
 
 #include "egg/egg-testing.h"
+#include "secret-backend.h"
+#include "secret-file-backend.h"
 #include "secret-file-collection.h"
 #include "secret-retrievable.h"
 #include "secret-schema.h"
@@ -351,6 +353,254 @@ test_read (Test *test,
 	g_hash_table_unref (attributes);
 }
 
+#define NUM_THREADS 10
+
+typedef struct {
+	gint index;
+	gboolean success;
+	GObject *backend;
+} ThreadData;
+
+typedef struct {
+	gboolean done;
+	gboolean result;
+	GError *error;
+} StoreResult;
+
+typedef struct {
+	gboolean done;
+	SecretValue *value;
+	GError *error;
+} LookupResult;
+
+static void
+on_backend_new (GObject *source_object,
+		GAsyncResult *result,
+		gpointer user_data)
+{
+	GObject **out = user_data;
+	GError *error = NULL;
+
+	*out = g_async_initable_new_finish (G_ASYNC_INITABLE (source_object), result, &error);
+	g_assert_no_error (error);
+}
+
+static void
+on_store_done (GObject *source_object,
+	       GAsyncResult *result,
+	       gpointer user_data)
+{
+	StoreResult *sr = user_data;
+	SecretBackendInterface *iface;
+
+	iface = SECRET_BACKEND_GET_IFACE (source_object);
+	sr->result = iface->store_finish (SECRET_BACKEND (source_object), result, &sr->error);
+	sr->done = TRUE;
+}
+
+static void
+on_lookup_done (GObject *source_object,
+		GAsyncResult *result,
+		gpointer user_data)
+{
+	LookupResult *lr = user_data;
+	SecretBackendInterface *iface;
+
+	iface = SECRET_BACKEND_GET_IFACE (source_object);
+	lr->value = iface->lookup_finish (SECRET_BACKEND (source_object), result, &lr->error);
+	lr->done = TRUE;
+}
+
+
+static gpointer
+concurrent_store_thread (gpointer data)
+{
+	ThreadData *td = data;
+	GMainContext *context;
+	SecretBackendInterface *iface;
+	GHashTable *attributes;
+	SecretValue *value;
+	StoreResult sr = { FALSE, FALSE, NULL };
+	LookupResult lr = { FALSE, NULL, NULL };
+	gchar *key_val;
+	gchar *secret_val;
+	const gchar *readback;
+
+	context = g_main_context_new ();
+	g_main_context_push_thread_default (context);
+
+	key_val = g_strdup_printf ("item_%d", td->index);
+	secret_val = g_strdup_printf ("secret_%d", td->index);
+
+	attributes = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
+	g_hash_table_insert (attributes, g_strdup ("item-id"), key_val);
+
+	value = secret_value_new (secret_val, -1, "text/plain");
+
+	iface = SECRET_BACKEND_GET_IFACE (td->backend);
+	iface->store (SECRET_BACKEND (td->backend), NULL, attributes, NULL, "label", value, NULL, on_store_done, &sr);
+
+	while (!sr.done) {
+		g_main_context_iteration (context, TRUE);
+	}
+
+	g_assert_no_error (sr.error);
+	g_assert_true (sr.result);
+
+	/* Verify the stored value can be read back */
+	iface->lookup (SECRET_BACKEND (td->backend), NULL, attributes, NULL, on_lookup_done, &lr);
+
+	while (!lr.done) {
+		g_main_context_iteration (context, TRUE);
+	}
+
+	g_assert_no_error (lr.error);
+	g_assert_nonnull (lr.value);
+	readback = secret_value_get_text (lr.value);
+	g_assert_cmpstr (readback, ==, secret_val);
+
+	g_main_context_pop_thread_default (context);
+	g_main_context_unref (context);
+
+	td->success = sr.result;
+
+	secret_value_unref (lr.value);
+	secret_value_unref (value);
+	g_hash_table_unref (attributes);
+	g_free (secret_val);
+
+	return NULL;
+}
+
+static void
+setup_concurrent (Test *test,
+		  gconstpointer data)
+{
+	gchar *path;
+
+	test->directory = egg_tests_create_scratch_directory (NULL, NULL);
+	test->loop = g_main_loop_new (NULL, TRUE);
+
+	path = g_build_filename (test->directory, "default.keyring", NULL);
+	g_setenv ("SECRET_FILE_TEST_PATH", path, TRUE);
+	g_setenv ("SECRET_FILE_TEST_PASSWORD", "password", TRUE);
+	g_free (path);
+}
+
+static void
+teardown_concurrent (Test *test,
+		     gconstpointer unused)
+{
+	g_unsetenv ("SECRET_FILE_TEST_PATH");
+	g_unsetenv ("SECRET_FILE_TEST_PASSWORD");
+
+	egg_tests_remove_scratch_directory (test->directory);
+	g_free (test->directory);
+	g_main_loop_unref (test->loop);
+}
+
+static void
+test_concurrent_write (Test *test,
+		       gconstpointer unused)
+{
+	GThread *threads[NUM_THREADS];
+	ThreadData thread_data[NUM_THREADS];
+	GObject *backend = NULL;
+	SecretBackendInterface *iface;
+	GMainContext *context;
+	gchar *path;
+	gint i;
+
+	path = g_build_filename (test->directory, "default.keyring", NULL);
+
+	context = g_main_context_new ();
+	g_main_context_push_thread_default (context);
+
+	g_async_initable_new_async (SECRET_TYPE_FILE_BACKEND,
+				    G_PRIORITY_DEFAULT,
+				    NULL,
+				    on_backend_new,
+				    &backend,
+				    "flags", SECRET_BACKEND_NONE,
+				    NULL);
+
+	while (backend == NULL) {
+		g_main_context_iteration (context, TRUE);
+	}
+
+	g_main_context_pop_thread_default (context);
+	g_main_context_unref (context);
+
+	for (i = 0; i < NUM_THREADS; i++) {
+		thread_data[i].index = i;
+		thread_data[i].success = FALSE;
+		thread_data[i].backend = backend;
+	}
+
+	for (i = 0; i < NUM_THREADS; i++) {
+		threads[i] = g_thread_new (NULL, concurrent_store_thread, &thread_data[i]);
+	}
+
+	for (i = 0; i < NUM_THREADS; i++) {
+		g_thread_join (threads[i]);
+	}
+
+	g_object_unref (backend);
+
+	/* Re-create a fresh backend and verify all items are present */
+	backend = NULL;
+	context = g_main_context_new ();
+	g_main_context_push_thread_default (context);
+
+	g_async_initable_new_async (SECRET_TYPE_FILE_BACKEND,
+				    G_PRIORITY_DEFAULT,
+				    NULL,
+				    on_backend_new,
+				    &backend,
+				    "flags", SECRET_BACKEND_NONE,
+				    NULL);
+
+	while (backend == NULL) {
+		g_main_context_iteration (context, TRUE);
+	}
+
+	iface = SECRET_BACKEND_GET_IFACE (backend);
+
+	for (i = 0; i < NUM_THREADS; i++) {
+		GHashTable *attributes;
+		LookupResult lr = { FALSE, NULL, NULL };
+		gchar *key_val;
+		gchar *secret_val;
+		const gchar *readback;
+
+		key_val = g_strdup_printf ("item_%d", i);
+		secret_val = g_strdup_printf ("secret_%d", i);
+		attributes = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
+		g_hash_table_insert (attributes, g_strdup ("item-id"), key_val);
+
+		iface->lookup (SECRET_BACKEND (backend), NULL, attributes, NULL, on_lookup_done, &lr);
+
+		while (!lr.done) {
+			g_main_context_iteration (context, TRUE);
+		}
+
+		g_assert_no_error (lr.error);
+		g_assert_nonnull (lr.value);
+		readback = secret_value_get_text (lr.value);
+		g_assert_cmpstr (readback, ==, secret_val);
+
+		secret_value_unref (lr.value);
+		g_hash_table_unref (attributes);
+		g_free (secret_val);
+	}
+
+	g_main_context_pop_thread_default (context);
+	g_main_context_unref (context);
+
+	g_object_unref (backend);
+	g_free (path);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -363,6 +613,7 @@ main (int argc, char **argv)
 	g_test_add ("/file-collection/decrypt", Test, NULL, setup, test_decrypt, teardown);
 	g_test_add ("/file-collection/write", Test, NULL, setup, test_write, teardown);
 	g_test_add ("/file-collection/read", Test, "default.keyring", setup, test_read, teardown);
+	g_test_add ("/file-collection/concurrent-write", Test, NULL, setup_concurrent, test_concurrent_write, teardown_concurrent);
 
 	return egg_tests_run_with_loop ();
 }
