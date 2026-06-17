@@ -197,6 +197,7 @@ load_contents (SecretFileCollection *self,
 					   TRUE,
 					   g_free,
 					   contents);
+	g_clear_pointer (&self->items, g_variant_unref);
 	g_variant_get (variant, "(u@ayutu@a(a{say}ay))",
 		       &salt_size, &salt_array, &iteration_count,
 		       &modified_time, &usage_count,
@@ -208,18 +209,21 @@ load_contents (SecretFileCollection *self,
 	usage_count = GUINT32_FROM_LE(usage_count);
 
 	self->iteration_count = iteration_count;
+	g_clear_pointer (&self->modified, g_date_time_unref);
 	self->modified = g_date_time_new_from_unix_utc (modified_time);
 	self->usage_count = usage_count;
 
 	data = g_variant_get_fixed_array (salt_array, &n_data, sizeof(guint8));
 	g_assert (n_data == salt_size);
 
+	g_clear_pointer (&self->salt, g_bytes_unref);
 	self->salt = g_bytes_new (data, n_data);
 
 	g_variant_unref (salt_array);
 	g_variant_unref (variant);
 
 	password = secret_value_get (self->password, &n_password);
+	g_clear_pointer (&self->key, g_bytes_unref);
 	self->key = egg_keyring1_derive_key (password,
 					     n_password,
 					     self->salt,
@@ -245,12 +249,15 @@ init_empty_file (SecretFileCollection *self,
 	guint8 salt[SALT_SIZE];
 
 	egg_keyring1_create_nonce (salt, sizeof(salt));
+	g_clear_pointer (&self->salt, g_bytes_unref);
 	self->salt = g_bytes_new (salt, sizeof(salt));
 	self->iteration_count = ITERATION_COUNT;
+	g_clear_pointer (&self->modified, g_date_time_unref);
 	self->modified = g_date_time_new_now_utc ();
 	self->usage_count = 0;
 
 	password = secret_value_get (self->password, &n_password);
+	g_clear_pointer (&self->key, g_bytes_unref);
 	self->key = egg_keyring1_derive_key (password,
 					     n_password,
 					     self->salt,
@@ -265,6 +272,7 @@ init_empty_file (SecretFileCollection *self,
 
 	g_variant_builder_init (&builder,
 				G_VARIANT_TYPE ("a(a{say}ay)"));
+	g_clear_pointer (&self->items, g_variant_unref);
 	self->items = g_variant_builder_end (&builder);
 	g_variant_ref_sink (self->items);
 
