@@ -115,8 +115,8 @@ class SecretPrompt(dbus.service.Object):
 	             dismiss=False, action=None):
 		self.sender = sender
 		self.service = service
-		self.delay = 0
-		self.dismiss = False
+		self.delay = delay
+		self.dismiss = dismiss
 		self.result = dbus.String("", variant_level=1)
 		self.action = action
 		self.completed = False
