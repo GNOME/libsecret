@@ -64,6 +64,8 @@ static void
 teardown (Test *test,
           gconstpointer unused)
 {
+	egg_test_wait_idle ();
+
 	g_object_unref (test->service);
 	secret_service_disconnect ();
 	g_assert_null (test->service);
