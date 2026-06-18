@@ -22,6 +22,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/wait.h>
 
 #ifdef __linux
 #include <sys/prctl.h>
@@ -140,6 +141,7 @@ mock_service_stop (void)
 				g_warning ("kill() failed: %s", g_strerror (errno));
 		}
 
+		waitpid (pid, NULL, 0);
 		g_spawn_close_pid (pid);
 		pid = 0;
 	}
