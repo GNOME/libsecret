@@ -193,9 +193,12 @@ fedora:coverage:
     - mkdir -p ${XDG_CONFIG_HOME}/mytpm1
     - swtpm_setup --tpm2 --tpmstate $XDG_CONFIG_HOME/mytpm1 --createek --allow-signing --decryption --create-ek-cert --create-platform-cert --lock-nvram --overwrite --display
     - swtpm socket --tpm2 --tpmstate dir=$XDG_CONFIG_HOME/mytpm1 --flags startup-clear --ctrl type=tcp,port=2322 --server type=tcp,port=2321 --daemon
-    - 'tpm2-abrmd --logger=stdout --tcti=swtpm: --session --allow-root --flush-all &'
-    - 'export TCTI=tabrmd:bus_type=session'
-    - meson test -C _build --print-errorlogs
+    - >-
+        dbus-run-session -- bash -c '
+        tpm2-abrmd --logger=stdout --tcti=swtpm: --session --allow-root --flush-all &
+        sleep 1 &&
+        export TCTI=tabrmd:bus_type=session &&
+        meson test -C _build --print-errorlogs --setup plain'
     - ninja coverage-html -C _build
   coverage: '/^\s+lines.+:\s+([\d.]+\%)\s+/'
   artifacts:
