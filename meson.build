@@ -112,6 +112,11 @@ else
   message('dbus-run-session not found. Please note that tests might fail if you don\'t set up a D-Bus session.')
 endif
 
+# Plain test setup without dbus-run-session wrapper, for use when
+# tests are already running inside a D-Bus session (e.g. coverage CI
+# with tpm2-abrmd needing a shared session bus)
+add_test_setup('plain')
+
 # Subfolders
 subdir('po')
 subdir('egg')
