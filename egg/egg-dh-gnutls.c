@@ -27,8 +27,11 @@
 /* Enabling this is a complete security compromise */
 #define DEBUG_DH_SECRET 0
 
+#include "egg-secure-memory.h"
 #include <gnutls/gnutls.h>
 #include <gnutls/abstract.h>
+
+EGG_SECURE_DECLARE (dh);
 
 struct egg_dh_params {
 	gnutls_dh_params_t inner;
@@ -165,6 +168,8 @@ egg_dh_gen_secret (egg_dh_pubkey *peer, egg_dh_privkey *priv,
 #if DEBUG_DH_SECRET
 	gnutls_datum_t h;
 #endif
+	guchar *value;
+	gsize n_prime = (params->bits + 7) / 8;
 
 	g_return_val_if_fail (peer, NULL);
 	g_return_val_if_fail (priv, NULL);
@@ -182,9 +187,21 @@ egg_dh_gen_secret (egg_dh_pubkey *peer, egg_dh_privkey *priv,
 	gnutls_free (h.data);
 #endif
 
-	return g_bytes_new_with_free_func (k.data, k.size,
-					   (GDestroyNotify)gnutls_free,
-					   k.data);
+	value = egg_secure_alloc (n_prime);
+	if (!value) {
+		gnutls_free (k.data);
+		return NULL;
+	}
+
+	/* Ensure length of secret match length of prime in bytes. */
+	g_return_val_if_fail (k.size <= n_prime, NULL);
+	memcpy (value + (n_prime - k.size), k.data, k.size);
+
+	gnutls_free (k.data);
+
+	return g_bytes_new_with_free_func (value, n_prime,
+					   (GDestroyNotify)egg_secure_free,
+					   value);
 }
 
 void
