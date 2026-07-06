@@ -1737,7 +1737,8 @@ secret_item_get_schema_name (SecretItem *self)
 	g_return_val_if_fail (SECRET_IS_ITEM (self), NULL);
 
 	variant = g_dbus_proxy_get_cached_property (G_DBUS_PROXY (self), "Attributes");
-	g_return_val_if_fail (variant != NULL, NULL);
+	if (variant == NULL)
+	    return NULL;
 
 	g_variant_lookup (variant, "xdg:schema", "s", &schema_name);
 	g_variant_unref (variant);
@@ -1771,7 +1772,8 @@ secret_item_get_attributes (SecretItem *self)
 	g_return_val_if_fail (SECRET_IS_ITEM (self), NULL);
 
 	variant = g_dbus_proxy_get_cached_property (G_DBUS_PROXY (self), "Attributes");
-	g_return_val_if_fail (variant != NULL, NULL);
+	if (variant == NULL)
+	    return NULL;
 
 	attributes = _secret_attributes_for_variant (variant);
 	g_variant_unref (variant);
@@ -1902,7 +1904,8 @@ secret_item_get_label (SecretItem *self)
 	g_return_val_if_fail (SECRET_IS_ITEM (self), NULL);
 
 	variant = g_dbus_proxy_get_cached_property (G_DBUS_PROXY (self), "Label");
-	g_return_val_if_fail (variant != NULL, NULL);
+	if (variant == NULL)
+	    return NULL;
 
 	label = g_variant_dup_string (variant, NULL);
 	g_variant_unref (variant);
