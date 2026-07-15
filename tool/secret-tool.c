@@ -91,7 +91,7 @@ is_password_value (SecretValue *value)
 	gsize length;
 
 	content_type = secret_value_get_content_type (value);
-	if (content_type && g_str_equal (content_type, "text/plain"))
+	if (content_type && g_str_has_prefix (content_type, "text/plain"))
 		return TRUE;
 
 	data = secret_value_get (value, &length);
