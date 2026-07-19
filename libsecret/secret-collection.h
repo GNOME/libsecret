@@ -61,7 +61,7 @@ struct _SecretCollectionClass {
 	gpointer padding[8];
 };
 
-GType               secret_collection_get_type                 (void) G_GNUC_CONST;
+GType               secret_collection_get_type                 (void);
 
 void                secret_collection_for_alias                (SecretService *service,
                                                                 const gchar *alias,

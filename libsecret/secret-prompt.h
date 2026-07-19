@@ -50,7 +50,7 @@ struct _SecretPromptClass {
 	gpointer padding[8];
 };
 
-GType               secret_prompt_get_type                  (void) G_GNUC_CONST;
+GType               secret_prompt_get_type                  (void);
 
 GVariant *          secret_prompt_run                       (SecretPrompt *self,
                                                              const gchar *window_id,

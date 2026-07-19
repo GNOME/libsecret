@@ -76,7 +76,7 @@ gchar *              _secret_util_collection_to_path          (const gchar *coll
 gint                 _secret_util_array_index_of              (GVariant *array,
                                                                GVariant *value);
 
-GType                _secret_list_get_type                    (void) G_GNUC_CONST;
+GType                _secret_list_get_type                    (void);
 
 GVariant *           _secret_attributes_to_variant            (GHashTable *attributes,
                                                                const gchar *schema_name);

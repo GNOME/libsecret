@@ -25,7 +25,7 @@ G_BEGIN_DECLS
 
 #define         SECRET_ERROR                (secret_error_get_quark ())
 
-GQuark          secret_error_get_quark      (void) G_GNUC_CONST;
+GQuark          secret_error_get_quark      (void);
 
 typedef enum {
 	SECRET_ERROR_PROTOCOL = 1,

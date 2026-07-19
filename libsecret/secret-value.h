@@ -29,7 +29,7 @@ typedef struct _SecretValue  SecretValue;
 
 #define             SECRET_TYPE_VALUE              (secret_value_get_type ())
 
-GType               secret_value_get_type          (void) G_GNUC_CONST;
+GType               secret_value_get_type          (void);
 
 SecretValue *       secret_value_new               (const gchar *secret,
                                                     gssize length,

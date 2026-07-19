@@ -85,7 +85,7 @@ struct _SecretServiceClass {
 	gpointer padding[14];
 };
 
-GType                secret_service_get_type                      (void) G_GNUC_CONST;
+GType                secret_service_get_type                      (void);
 
 GType                secret_service_get_collection_gtype          (SecretService *self);
 

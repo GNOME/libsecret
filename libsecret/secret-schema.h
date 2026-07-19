@@ -56,7 +56,7 @@ typedef struct {
 	gpointer reserved7;
 } SecretSchema;
 
-GType             secret_schema_get_type           (void) G_GNUC_CONST;
+GType             secret_schema_get_type           (void);
 
 SecretSchema *    secret_schema_new                (const gchar *name,
                                                     SecretSchemaFlags flags,
@@ -70,7 +70,7 @@ SecretSchema *    secret_schema_ref                (SecretSchema *schema);
 
 void              secret_schema_unref              (SecretSchema *schema);
 
-GType             secret_schema_attribute_get_type (void) G_GNUC_CONST;
+GType             secret_schema_attribute_get_type (void);
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (SecretSchema, g_object_unref)
 

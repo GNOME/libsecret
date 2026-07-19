@@ -61,7 +61,7 @@ struct _SecretItemClass {
 	gpointer padding[4];
 };
 
-GType               secret_item_get_type                   (void) G_GNUC_CONST;
+GType               secret_item_get_type                   (void);
 
 void                secret_item_refresh                    (SecretItem *self);
 
