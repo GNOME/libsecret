@@ -61,6 +61,7 @@ test_names = [
 if with_crypto
   test_names += [
     'test-dh',
+    'test-dh-length',
     'test-hkdf',
   ]
 endif
