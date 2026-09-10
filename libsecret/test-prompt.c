@@ -54,6 +54,8 @@ static void
 teardown (Test *test,
           gconstpointer unused)
 {
+	egg_test_wait_idle ();
+
 	g_object_unref (test->service);
 	secret_service_disconnect ();
 	g_assert_null (test->service);
@@ -122,7 +124,7 @@ test_perform_run (Test *test,
 	/* Verify that main loop does run during this call */
 	increment_id = g_idle_add (on_idle_increment, &value);
 
-	prompt = _secret_prompt_instance (test->service, "/org/freedesktop/secrets/prompts/simple");
+	prompt = _secret_prompt_instance (test->service, "/org/freedesktop/secrets/prompts/delay");
 
 	retval = secret_prompt_run (prompt, 0, NULL, NULL, &error);
 	g_assert_no_error (error);
