@@ -1,0 +1,3 @@
+exclude = */secret-dbus-generated.c
+exclude = */secret-enum-types.c
+ignore_errors = unused,unused
