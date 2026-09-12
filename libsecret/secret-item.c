@@ -1542,7 +1542,7 @@ secret_item_load_secrets_sync (GList *items,
 	gboolean ret = TRUE;
 	LoadsClosure *loads;
 	const char *session_path;
-	GVariant *response;
+	GVariant *response = NULL;
 
 	g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), FALSE);
 	for (GList *l = items; l != NULL; l = g_list_next (l))
@@ -1550,6 +1550,11 @@ secret_item_load_secrets_sync (GList *items,
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
 	loads = load_secrets_prepare (items);
+
+	if (loads->service == NULL) {
+		goto out;
+	}
+
 	ret = secret_service_ensure_session_sync (loads->service, cancellable, error);
 	if (!ret) {
 		goto out;

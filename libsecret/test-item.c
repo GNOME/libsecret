@@ -739,6 +739,51 @@ test_secrets_sync (Test *test,
 }
 
 static void
+test_secrets_sync_locked (Test *test,
+                          gconstpointer used)
+{
+	const gchar *path_item_one = "/org/freedesktop/secrets/collection/spanish/10";
+	const gchar *path_item_two = "/org/freedesktop/secrets/collection/spanish/20";
+
+	GError *error = NULL;
+	SecretItem *item_one, *item_two;
+	GList *items = NULL;
+	gboolean ret;
+
+	item_one = secret_item_new_for_dbus_path_sync (test->service, path_item_one, SECRET_ITEM_NONE, NULL, &error);
+	g_assert_no_error (error);
+	item_two = secret_item_new_for_dbus_path_sync (test->service, path_item_two, SECRET_ITEM_NONE, NULL, &error);
+	g_assert_no_error (error);
+
+	g_assert_true (secret_item_get_locked (item_one));
+	g_assert_true (secret_item_get_locked (item_two));
+
+	items = g_list_append (items, item_one);
+	items = g_list_append (items, item_two);
+
+	ret = secret_item_load_secrets_sync (items, NULL, &error);
+	g_assert_no_error (error);
+	g_assert_true (ret);
+
+	g_assert_null (secret_item_get_secret (item_one));
+	g_assert_null (secret_item_get_secret (item_two));
+
+	g_list_free_full (items, g_object_unref);
+}
+
+static void
+test_secrets_sync_empty (Test *test,
+                         gconstpointer used)
+{
+	GError *error = NULL;
+	gboolean ret;
+
+	ret = secret_item_load_secrets_sync (NULL, NULL, &error);
+	g_assert_no_error (error);
+	g_assert_true (ret);
+}
+
+static void
 test_secrets_async (Test *test,
                               gconstpointer used)
 {
@@ -881,6 +926,8 @@ main (int argc, char **argv)
 	g_test_add ("/item/load-secret-async", Test, "mock-service-normal.py", setup, test_load_secret_async, teardown);
 	g_test_add ("/item/set-secret-sync", Test, "mock-service-normal.py", setup, test_set_secret_sync, teardown);
 	g_test_add ("/item/secrets-sync", Test, "mock-service-normal.py", setup, test_secrets_sync, teardown);
+	g_test_add ("/item/secrets-sync-locked", Test, "mock-service-normal.py", setup, test_secrets_sync_locked, teardown);
+	g_test_add ("/item/secrets-sync-empty", Test, "mock-service-normal.py", setup, test_secrets_sync_empty, teardown);
 	g_test_add ("/item/secrets-async", Test, "mock-service-normal.py", setup, test_secrets_async, teardown);
 	g_test_add ("/item/delete-sync", Test, "mock-service-normal.py", setup, test_delete_sync, teardown);
 	g_test_add ("/item/delete-async", Test, "mock-service-normal.py", setup, test_delete_async, teardown);
