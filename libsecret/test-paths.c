@@ -244,6 +244,70 @@ test_search_paths_nulls (Test *test,
 }
 
 static void
+test_collection_search_paths_sync (Test *test,
+                                   gconstpointer used)
+{
+	const gchar *collection_path = "/org/freedesktop/secrets/collection/english";
+	SecretCollection *collection;
+	GHashTable *attributes;
+	GError *error = NULL;
+	gchar **paths;
+
+	collection = secret_collection_new_for_dbus_path_sync (test->service, collection_path,
+	                                                       SECRET_COLLECTION_NONE, NULL, &error);
+	g_assert_no_error (error);
+
+	attributes = g_hash_table_new (g_str_hash, g_str_equal);
+	g_hash_table_insert (attributes, "number", "1");
+
+	paths = secret_collection_search_for_dbus_paths_sync (collection, &MOCK_SCHEMA, attributes,
+	                                                      NULL, &error);
+	g_assert_no_error (error);
+
+	g_assert_nonnull (paths);
+	g_assert_cmpstr (paths[0], ==, "/org/freedesktop/secrets/collection/english/1");
+
+	g_strfreev (paths);
+	g_hash_table_unref (attributes);
+	g_object_unref (collection);
+}
+
+static void
+test_collection_search_paths_async (Test *test,
+                                    gconstpointer used)
+{
+	const gchar *collection_path = "/org/freedesktop/secrets/collection/english";
+	SecretCollection *collection;
+	GAsyncResult *result = NULL;
+	GHashTable *attributes;
+	GError *error = NULL;
+	gchar **paths;
+
+	collection = secret_collection_new_for_dbus_path_sync (test->service, collection_path,
+	                                                       SECRET_COLLECTION_NONE, NULL, &error);
+	g_assert_no_error (error);
+
+	attributes = g_hash_table_new (g_str_hash, g_str_equal);
+	g_hash_table_insert (attributes, "number", "1");
+
+	secret_collection_search_for_dbus_paths (collection, &MOCK_SCHEMA, attributes, NULL,
+	                                         on_complete_get_result, &result);
+	egg_test_wait ();
+
+	g_assert_true (G_IS_ASYNC_RESULT (result));
+	paths = secret_collection_search_for_dbus_paths_finish (collection, result, &error);
+	g_assert_no_error (error);
+
+	g_assert_nonnull (paths);
+	g_assert_cmpstr (paths[0], ==, "/org/freedesktop/secrets/collection/english/1");
+
+	g_strfreev (paths);
+	g_object_unref (result);
+	g_hash_table_unref (attributes);
+	g_object_unref (collection);
+}
+
+static void
 test_secret_for_path_sync (Test *test,
                            gconstpointer used)
 {
@@ -729,6 +793,9 @@ main (int argc, char **argv)
 	g_test_add ("/service/search-for-paths", Test, "mock-service-normal.py", setup, test_search_paths_sync, teardown);
 	g_test_add ("/service/search-for-paths-async", Test, "mock-service-normal.py", setup, test_search_paths_async, teardown);
 	g_test_add ("/service/search-for-paths-nulls", Test, "mock-service-normal.py", setup, test_search_paths_nulls, teardown);
+
+	g_test_add ("/collection/search-for-paths-sync", Test, "mock-service-normal.py", setup, test_collection_search_paths_sync, teardown);
+	g_test_add ("/collection/search-for-paths-async", Test, "mock-service-normal.py", setup, test_collection_search_paths_async, teardown);
 
 	g_test_add ("/service/secret-for-path-sync", Test, "mock-service-normal.py", setup, test_secret_for_path_sync, teardown);
 	g_test_add ("/service/secret-for-path-plain", Test, "mock-service-only-plain.py", setup, test_secret_for_path_sync, teardown);
