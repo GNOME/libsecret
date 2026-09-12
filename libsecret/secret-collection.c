@@ -652,6 +652,7 @@ on_init_base (GObject *source,
 
 	task = g_task_new (source, cancellable, base->callback, base->user_data);
 	g_task_set_source_tag (task, secret_collection_async_initable_init_async);
+	g_task_return_boolean (base_task, TRUE); /* bogus return before clearing the object */
 	g_clear_object (&base_task);
 
 	if (!secret_collection_async_initable_parent_iface->init_finish (G_ASYNC_INITABLE (self),
