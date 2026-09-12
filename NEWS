@@ -1,3 +1,20 @@
+0.21.8
+ * Allow the content type to have additional parameters [#114, !175]
+ * Support individually encrypted items [!174]
+ * Ensure we return chained up GTask [!179]
+ * Ensure length of DH shared secret match length of prime on GnuTLS [!170]
+ * file-backend: Add thread safety and file-based locking to prevent concurrent write races [!171]
+ * file-backend: Fix possible memory leak in error path of secret_file_backend_real_search() [!173]
+ * file-collection: Fix memory leaks on repeated calls [!173]
+ * Replace some SecretSync with a sync implementation [!108]
+ * Add linker version script to hide private symbols [#70, !159]
+ * Stop using CONST annotations on non-const fns [!176]
+ * secret-tool: align behavior for collection option [!164]
+ * secret-tool: document --collection option [#31, !164]
+ * meson: Put test setup behind a feature option [#101, !162]
+ * Several test and CI improvements [!172, !177, !178]
+ * Updated translations
+
 0.21.7
  * docs: Fix return comment of secret_value_get_text [#92]
  * bash-completion: Fix man section number in secret-tool completion file [!160]
