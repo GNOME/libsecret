@@ -1,3 +1,6 @@
+0.21.8.2
+ * Release to bump meson.build version
+
 0.21.8.1
  * Make secret_item_load_secrets_sync match async behavior [!180]
 
