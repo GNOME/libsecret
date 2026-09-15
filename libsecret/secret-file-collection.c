@@ -24,6 +24,8 @@
 #include <sys/file.h>
 #include <errno.h>
 
+#include <fcntl.h>
+
 EGG_SECURE_DECLARE (secret_file_collection);
 
 #ifdef WITH_GCRYPT
