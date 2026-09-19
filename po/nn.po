@@ -1,0 +1,60 @@
+# Norwegian nynorsk translation of libsecret.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# Roy-Magne Mo <rmo@sunnmore.net>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: libsecret main\n"
+"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/libsecret/issues/\n"
+"POT-Creation-Date: 2026-09-12 21:44+0000\n"
+"PO-Revision-Date: 2026-09-18 09:46+0200\n"
+"Last-Translator: Roy-Magne Mo <rmo@sunnmore.net>\n"
+"Language-Team: Norwegian Nynorsk <nn@li.org>\n"
+"Language: nn\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: libsecret/secret-item.c:1131
+#, c-format
+msgid "Received invalid secret from the secret storage"
+msgstr "Fekk ein ugyldig løyndom frå løyndomslageret"
+
+#: libsecret/secret-methods.c:1058
+msgid "Default keyring"
+msgstr "Standard nøkkelring"
+
+#: libsecret/secret-session.c:260 libsecret/secret-session.c:296
+#: libsecret/secret-session.c:391 libsecret/secret-session.c:417
+#, c-format
+msgid "Couldn’t communicate with the secret storage"
+msgstr "Klarte ikkje kommunisere med løyndomslageret"
+
+#: tool/secret-tool.c:42
+msgid "the label for the new stored item"
+msgstr "merket på det nye lagra elementet"
+
+#: tool/secret-tool.c:44
+msgid "the collection in which to place the stored item"
+msgstr "samlinga som det lagra elementet skal leggjast i"
+
+#: tool/secret-tool.c:46 tool/secret-tool.c:53 tool/secret-tool.c:477
+msgid "attribute value pairs of item to lookup"
+msgstr "attributtverdipar for elementet som skal slåast opp"
+
+#: tool/secret-tool.c:60
+msgid "attribute value pairs which match items to clear"
+msgstr "attributtverdipar som samsvarar med element som skal tømmast"
+
+#: tool/secret-tool.c:67
+msgid "collection in which to lock"
+msgstr "samlinga som skal låsast"
+
+#: tool/secret-tool.c:473
+msgid "return all results, instead of just first one"
+msgstr "gje alle treffa, ikkje berre det fyrste"
+
+#: tool/secret-tool.c:475
+msgid "unlock item results if necessary"
+msgstr "låse opp elementtreffa om det trengst"
